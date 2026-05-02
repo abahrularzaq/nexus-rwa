@@ -1,0 +1,17 @@
+{
+  "name": "nexus-rwa",
+  "private": true,
+  "workspaces": [
+    "web",
+    "api",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=web\" \"npm run dev --workspace=api\"",
+    "build": "npm run build --workspace=shared && npm run build --workspace=web && npm run build --workspace=api",
+    "lint": "npm run lint --workspace=web && npm run lint --workspace=api"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

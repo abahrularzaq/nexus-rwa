@@ -1,0 +1,461 @@
+# NEXUS RWA — CURSOR RULES
+# Platform Analytics RWA On-Chain dengan X402 Protocol
+# Baca seluruh rules ini sebelum menulis kode apapun.
+
+---
+
+## 🧠 IDENTITAS PROYEK
+
+Kamu adalah senior full-stack engineer yang membangun Nexus RWA:
+- Platform analytics data Real World Assets (RWA) on-chain
+- Monetisasi API via X402 Protocol (HTTP 402 + USDC micropayments)
+- Target pengguna: developer, AI agents, dan analis DeFi
+- Stack: Next.js 14 + TypeScript + Hono.js + PostgreSQL + Redis
+
+Selalu pikirkan: "Apakah ini scalable untuk 10.000 API calls per hari?"
+
+## 💻 ENVIRONMENT & OS
+
+Developer menggunakan Windows dengan Git Bash sebagai terminal utama.
+Cursor Pro terminal sudah dikonfigurasi ke Git Bash.
+
+ATURAN PENTING terkait Windows:
+- Semua perintah terminal harus kompatibel dengan Git Bash
+- JANGAN gunakan backslash \ untuk line continuation di terminal
+- JANGAN generate perintah PowerShell atau CMD
+- Path separator di kode TypeScript tetap pakai "/" (bukan "\")
+- Jika perlu jalankan beberapa perintah install, 
+  tulis dalam SATU BARIS saja:
+  ✅ npm install packageA packageB packageC
+  ❌ npm install packageA \
+       packageB \
+       packageC
+- Perintah mkdir, touch, cp, rm → sudah tersedia via Git Bash, bisa dipakai
+- Untuk membuka file explorer dari terminal: explorer . (bukan open .)
+- Untuk clear terminal: gunakan "clear" bukan "cls"
+---
+
+## 📁 STRUKTUR MONOREPO
+
+nexus-rwa/
+├── apps/
+│   ├── web/                  # Next.js 14 frontend
+│   └── api/                  # Hono.js REST API
+├── packages/
+│   ├── shared/               # Types, constants, utilities bersama
+│   ├── database/             # Prisma schema + migrations
+│   ├── indexer/              # Data collector & processor
+│   └── x402/                 # X402 middleware & payment logic
+├── .cursorrules
+├── turbo.json
+└── package.json
+
+Jangan buat file di luar struktur ini tanpa alasan jelas.
+Jika ragu taruh di mana, tanya dulu sebelum membuat.
+
+---
+
+## 🔧 TECH STACK — WAJIB DIIKUTI
+
+### Frontend (apps/web)
+- Framework: Next.js 14 dengan App Router (BUKAN Pages Router)
+- Language: TypeScript strict mode — tidak ada `any` kecuali terpaksa
+- Styling: Tailwind CSS + shadcn/ui
+- Charts: Recharts untuk semua visualisasi data
+- State management: Zustand untuk global state, TanStack Query untuk server state
+- Forms: React Hook Form + Zod validation
+- Icons: Lucide React
+- Animations: Framer Motion (hanya untuk transisi penting, jangan berlebihan)
+- HTTP Client: axios dengan instance terpusat di `lib/api-client.ts`
+
+### Backend (apps/api)
+- Framework: Hono.js (bukan Express, bukan Fastify)
+- Language: TypeScript strict mode
+- Validation: Zod untuk semua input/output schema
+- Auth: API Key via header `X-API-Key` + X402 middleware
+- Rate limiting: upstash/ratelimit dengan Redis
+- Logging: Pino dengan structured JSON logs
+
+### Database (packages/database)
+- ORM: Prisma
+- Database: PostgreSQL
+- Cache: Redis via ioredis
+- Migrations: selalu gunakan `prisma migrate dev`, jangan edit schema langsung
+
+### X402 (packages/x402)
+- Library: x402-js dari Coinbase
+- Network: Base Mainnet (production), Base Sepolia (development)
+- Currency: USDC only untuk MVP
+- Selalu verifikasi payment di server, jangan percaya client
+
+---
+
+## 🏗️ KONVENSI KODE
+
+### TypeScript
+- Selalu definisikan return type untuk semua fungsi
+- Gunakan `interface` untuk object shapes, `type` untuk unions/primitives
+- Exports: named exports saja, hindari default export kecuali page components
+- Path aliases: gunakan `@/` untuk import dalam satu app
+
+```typescript
+// ✅ BENAR
+export interface AssetData {
+  id: string;
+  name: string;
+  tvl: number;
+  yieldRate: number;
+  riskScore: RiskLevel;
+  updatedAt: Date;
+}
+
+export async function getAssetById(id: string): Promise<AssetData | null> {
+  // implementasi
+}
+
+// ❌ SALAH
+export default async function(id) {
+  // no types, no explicit return
+}
+```
+
+### Naming Conventions
+- Files: `kebab-case.ts` untuk semua file
+- Components: `PascalCase.tsx`
+- Functions: `camelCase`
+- Constants: `SCREAMING_SNAKE_CASE`
+- Types/Interfaces: `PascalCase`
+- Database tables: `snake_case` (Prisma convention)
+- API routes: `/v1/kebab-case`
+- Environment variables: `SCREAMING_SNAKE_CASE`
+
+### File Length
+- Maksimal 300 baris per file
+- Jika lebih, pecah menjadi modul yang lebih kecil
+- Satu file = satu tanggung jawab utama
+
+### Comments
+- Tulis komentar dalam Bahasa Indonesia untuk logika bisnis
+- Komentar teknis boleh dalam Bahasa Inggris
+- Wajib komentar untuk: kalkulasi risk score, X402 flow, data normalisasi
+
+```typescript
+// Hitung risk score berdasarkan 4 faktor: liquidity, concentration, protocol age, yield volatility
+// Formula: weighted average dengan bobot yang bisa dikonfigurasi
+function calculateRiskScore(asset: AssetData): number {
+  // ...
+}
+```
+
+---
+
+## 🌐 API DESIGN RULES
+
+### Struktur Response — SELALU konsisten
+```typescript
+// Success response
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "timestamp": "ISO8601",
+    "requestId": "uuid",
+    "cached": false
+  }
+}
+
+// Error response
+{
+  "success": false,
+  "error": {
+    "code": "ASSET_NOT_FOUND",    // machine-readable
+    "message": "Asset dengan ID tersebut tidak ditemukan",
+    "details": {}                  // opsional, untuk validation errors
+  },
+  "meta": {
+    "timestamp": "ISO8601",
+    "requestId": "uuid"
+  }
+}
+```
+
+### HTTP Status Codes
+- 200: Success
+- 201: Created
+- 400: Bad Request (validasi gagal)
+- 401: Unauthorized (API key salah)
+- 402: Payment Required (X402 — JANGAN gunakan untuk hal lain)
+- 404: Not Found
+- 429: Too Many Requests
+- 500: Internal Server Error (jangan expose detail error ke client)
+
+### Versioning
+- Semua endpoint harus prefixed `/v1/`
+- Jangan pernah breaking change di v1 tanpa v2
+
+### Pagination
+- Semua list endpoint harus support pagination
+- Default: `page=1&limit=20`, max limit: 100
+```typescript
+interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+```
+
+---
+
+## 💳 X402 RULES — SANGAT PENTING
+
+### Prinsip Utama
+- JANGAN pernah skip payment verification di server
+- JANGAN simpan private key di kode atau .env yang di-commit
+- SELALU log setiap payment attempt (sukses maupun gagal)
+- SELALU gunakan testnet (Base Sepolia) di development
+
+### Middleware Structure
+```typescript
+// packages/x402/src/middleware.ts
+// Setiap endpoint berbayar WAJIB pakai middleware ini
+// Urutan: rate limit → API key check → X402 payment check → handler
+```
+
+### Pricing — Jangan diubah tanpa update di sini
+
+/v1/market/overview          → GRATIS
+/v1/assets (list)            → $0.0005 per request
+/v1/assets/:id               → $0.001 per request
+/v1/assets/:id/yield         → $0.005 per request
+/v1/assets/:id/holders       → $0.005 per request
+/v1/assets/:id/risk          → $0.003 per request
+/v1/search                   → $0.001 per request
+
+### Error Handling X402
+Jika payment gagal, selalu return:
+```json
+{
+  "status": 402,
+  "x402Version": 1,
+  "accepts": [{
+    "scheme": "exact",
+    "network": "base",
+    "maxAmountRequired": "1000",
+    "resource": "/v1/assets/:id/yield",
+    "description": "Yield data for RWA asset",
+    "mimeType": "application/json",
+    "payTo": "0x...",
+    "maxTimeoutSeconds": 60,
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  }]
+}
+```
+
+---
+
+## 🗄️ DATABASE RULES
+
+### Prisma Schema Conventions
+```prisma
+// Selalu sertakan fields ini di setiap model
+model ExampleModel {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // ... fields lainnya
+}
+```
+
+### Query Rules
+- Selalu gunakan Prisma transactions untuk operasi multi-tabel
+- Selalu ada `.select()` untuk query yang tidak butuh semua field
+- Index semua foreign keys dan field yang sering di-query
+- Jangan gunakan raw SQL kecuali performance-critical
+
+### Caching Strategy
+Data yang WAJIB di-cache di Redis:
+
+/market/overview → TTL: 60 detik
+/assets list → TTL: 120 detik
+/assets/:id detail → TTL: 300 detik
+Yield/holder data → TTL: 600 detik
+
+Cache key format: nexus:{version}:{resource}:{params_hash}
+
+---
+
+## 🔒 SECURITY RULES
+
+### Environment Variables
+```bash
+# .env.example harus selalu update, .env JANGAN di-commit
+# Gunakan prefix ini:
+DATABASE_URL=           # Database connection
+REDIS_URL=              # Redis connection
+X402_WALLET_PRIVATE_KEY= # JANGAN PERNAH expose ini
+X402_RECEIVING_ADDRESS= # Alamat penerima pembayaran
+RPC_URL_BASE=           # Base mainnet RPC
+RPC_URL_BASE_SEPOLIA=   # Base testnet RPC
+NEXT_PUBLIC_API_URL=    # Frontend API URL (boleh public)
+```
+
+### Input Validation
+- SEMUA input dari user/client harus divalidasi dengan Zod
+- JANGAN percaya parameter apapun dari request
+- Sanitasi semua string sebelum masuk database
+
+### API Key
+```typescript
+// Format API key: nxs_live_xxx (production) atau nxs_test_xxx (development)
+// Simpan sebagai bcrypt hash di database, bukan plaintext
+// Rotate setiap 90 hari untuk subscription users
+```
+
+---
+
+## 🧪 TESTING RULES
+
+### Wajib ada test untuk:
+- Semua kalkulasi risk score dan yield aggregation
+- X402 payment flow (gunakan mock untuk blockchain calls)
+- Semua API endpoints (happy path + error cases)
+- Data normalization functions
+
+### Struktur Test
+tests/
+├── unit/         # Pure functions, calculations
+├── integration/  # API endpoints dengan database
+└── e2e/          # Full flow termasuk X402
+
+### Naming Test
+```typescript
+describe('calculateRiskScore', () => {
+  it('should return HIGH risk when liquidity score below threshold', () => {})
+  it('should return LOW risk when all factors are optimal', () => {})
+  it('should throw error when required data is missing', () => {})
+})
+```
+
+---
+
+## ⚛️ FRONTEND RULES
+
+### Component Structure
+components/
+├── ui/              # shadcn components (JANGAN edit manual)
+├── common/          # Reusable components (Button variants, etc.)
+├── layout/          # Sidebar, Navbar, PageWrapper
+├── dashboard/       # Dashboard-specific components
+├── charts/          # Semua chart components
+└── x402/            # Payment-related UI components
+
+### Data Fetching Pattern
+```typescript
+// Selalu gunakan TanStack Query untuk server state
+// Jangan fetch di useEffect langsung
+
+// hooks/use-asset.ts
+export function useAsset(id: string) {
+  return useQuery({
+    queryKey: ['asset', id],
+    queryFn: () => apiClient.get<AssetData>(`/v1/assets/${id}`),
+    staleTime: 5 * 60 * 1000, // 5 menit
+  });
+}
+```
+
+### Color System — Nexus RWA Design Tokens
+```css
+/* Gunakan selalu dari design tokens ini, jangan hardcode warna */
+--color-bg-primary: #0A0E1A      /* Deep navy background */
+--color-bg-secondary: #0F1629    /* Card background */
+--color-bg-tertiary: #1A2035     /* Elevated surfaces */
+--color-accent-cyan: #00D4FF     /* Primary accent */
+--color-accent-cyan-dim: #00D4FF33 /* Accent dengan opacity */
+--color-accent-green: #00FF88    /* Positive/bullish */
+--color-accent-red: #FF4444      /* Negative/bearish */
+--color-accent-yellow: #FFB800   /* Warning/medium risk */
+--color-text-primary: #FFFFFF    /* Heading text */
+--color-text-secondary: #8892A4  /* Body text */
+--color-text-muted: #4A5568      /* Muted/disabled text */
+--color-border: #1E2A3A          /* Border/divider */
+```
+
+### Performance Rules
+- Semua chart harus `dynamic import` dengan `ssr: false`
+- Gambar wajib pakai `next/image`
+- Gunakan `React.memo` untuk komponen tabel dengan data banyak
+- Skeleton loading untuk semua data yang di-fetch
+
+---
+
+## 📝 GIT RULES
+
+### Commit Message Format
+feat: tambah endpoint yield historis
+fix: perbaiki kalkulasi risk score untuk low liquidity assets
+chore: update dependencies
+docs: tambah API documentation untuk X402 flow
+test: tambah unit test untuk payment verification
+refactor: ekstrak pricing logic ke package terpisah
+
+### Branch Strategy
+main          → production only, protected
+develop       → staging, base untuk semua PR
+feature/xxx   → fitur baru
+fix/xxx       → bug fixes
+
+### Perintah Git — Gunakan via Git Bash
+# Setup awal (jalankan sekali)
+git config --global core.autocrlf true
+git config --global core.eol lf
+
+# Alasan: Windows menggunakan CRLF, Linux/server menggunakan LF
+# Setting ini mencegah konflik line ending di file TypeScript/JSON
+---
+
+## 🚫 LARANGAN KERAS
+
+1. JANGAN gunakan `any` type di TypeScript tanpa komentar alasan
+2. JANGAN hardcode wallet address atau private key di kode
+3. JANGAN skip X402 middleware untuk alasan development
+4. JANGAN gunakan `console.log` di production (gunakan Pino logger)
+5. JANGAN buat API endpoint tanpa Zod validation
+6. JANGAN commit `.env` file
+7. JANGAN gunakan `useEffect` untuk data fetching (pakai TanStack Query)
+8. JANGAN merge ke main tanpa review
+9. JANGAN gunakan CSS inline style kecuali dynamic values
+10. JANGAN buat komponen > 200 baris (pecah jadi sub-komponen)
+11. JANGAN tulis perintah terminal dengan backslash line continuation
+12. JANGAN generate script .sh yang pakai syntax bash-only tanpa 
+    konfirmasi dulu apakah bisa jalan di Git Bash Windows
+13. JANGAN gunakan path separator backslash dalam kode TypeScript,
+    import, atau konfigurasi — selalu gunakan forward slash "/"
+
+---
+
+## ✅ CHECKLIST SEBELUM SELESAI CODING
+
+Sebelum bilang "sudah selesai", cek ini:
+- [ ] TypeScript tidak ada error (`tsc --noEmit` bersih)
+- [ ] Tidak ada `console.log` yang tertinggal
+- [ ] Semua environment variable ada di `.env.example`
+- [ ] Error handling ada di semua async function
+- [ ] Loading state ada di semua fetch di frontend
+- [ ] Response API mengikuti format standar
+- [ ] Cache strategy sudah diimplementasi untuk endpoint baru
+- [ ] Test sudah ditulis untuk logic baru
+- [ ] Semua perintah terminal ditulis dalam satu baris 
+      (kompatibel Git Bash Windows)
+- [ ] Tidak ada path separator backslash \ di dalam kode TypeScript
+      (selalu gunakan "/" untuk path)
+
+---
+
+*Rules ini adalah kontrak kerja kita. Jika ada yang perlu diubah, update di sini dulu.*

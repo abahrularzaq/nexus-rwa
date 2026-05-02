@@ -1,0 +1,27 @@
+{
+  "name": "@nexus-rwa/api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.11.1",
+    "hono": "^4.3.11",
+    "prisma": "^5.14.0",
+    "@prisma/client": "^5.14.0",
+    "ioredis": "^5.3.2",
+    "pino": "^9.2.0",
+    "zod": "^3.23.8",
+    "uuid": "^10.0.0",
+    "@nexus-rwa/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "tsx": "^4.15.7",
+    "@types/node": "^20.14.2",
+    "@types/uuid": "^10.0.0"
+  }
+}

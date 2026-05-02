@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Asset {
+  id              String        @id @default(cuid())
+  name            String
+  symbol          String        @unique
+  protocol        String
+  category        AssetCategory
+  chain           Chain         @default(base)
+  contractAddress String
+  logoUrl         String?
+  description     String?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  snapshots  AssetSnapshot[]
+  riskScores RiskScore[]
+  holders    HolderSnapshot[]
+
+  @@index([category])
+  @@index([chain])
+  @@index([isActive])
+}
+
+model AssetSnapshot {
+  id          String   @id @default(cuid())
+  assetId     String
+  tvl         Float
+  yieldRate   Float
+  holderCount Int
+  price       Float    @default(0)
+  timestamp   DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([timestamp])
+  @@index([assetId, timestamp])
+}
+
+model RiskScore {
+  id                  String    @id @default(cuid())
+  assetId             String
+  overallScore        RiskLevel
+  liquidityScore      Float
+  concentrationScore  Float
+  protocolAgeScore    Float
+  volatilityScore     Float
+  calculatedAt        DateTime  @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([calculatedAt])
+}
+
+model HolderSnapshot {
+  id                  String   @id @default(cuid())
+  assetId             String
+  totalHolders        Int
+  top10Concentration  Float
+  whaleCount          Int
+  retailCount         Int
+  timestamp           DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([timestamp])
+}
+
+// ============================================
+// API & PAYMENT TRACKING
+// ============================================
+
+model ApiRequest {
+  id            String        @id @default(cuid())
+  requestId     String        @unique
+  endpoint      String
+  method        String
+  ipAddress     String?
+  userAgent     String?
+  paymentTxHash String?
+  paymentAmount Float?
+  paymentStatus PaymentStatus @default(NONE)
+  responseCode  Int
+  durationMs    Int
+  timestamp     DateTime      @default(now())
+
+  @@index([endpoint])
+  @@index([timestamp])
+  @@index([paymentStatus])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  keyHash     String    @unique
+  prefix      String
+  name        String
+  tier        KeyTier   @default(STANDARD)
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([prefix])
+  @@index([isActive])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum AssetCategory {
+  TREASURY
+  CREDIT
+  REAL_ESTATE
+  COMMODITIES
+  EQUITY
+}
+
+enum Chain {
+  ethereum
+  base
+  polygon
+  arbitrum
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum PaymentStatus {
+  NONE
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum KeyTier {
+  FREE
+  STANDARD
+  PREMIUM
+}
