@@ -1,27 +1,40 @@
 {
   "name": "@nexus-rwa/api",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "node --import tsx/esm src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "seed": "node --import tsx/esm prisma/seed.ts",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma db push --force-reset && node --import tsx/esm prisma/seed.ts",
+    "test:x402": "node --import tsx/esm src/scripts/test-x402.ts",
     "lint": "eslint src --ext .ts"
+  },
+  "prisma": {
+    "seed": "node --import tsx/esm prisma/seed.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.11.1",
-    "hono": "^4.3.11",
-    "prisma": "^5.14.0",
+    "@nexus-rwa/shared": "*",
     "@prisma/client": "^5.14.0",
+    "@x402/core": "^2.11.0",
+    "@x402/evm": "^2.11.0",
+    "dotenv": "^16.6.1",
+    "hono": "^4.3.11",
     "ioredis": "^5.3.2",
     "pino": "^9.2.0",
-    "zod": "^3.23.8",
+    "prisma": "^5.14.0",
     "uuid": "^10.0.0",
-    "@nexus-rwa/shared": "*"
+    "viem": "^2.48.8",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "tsx": "^4.15.7",
     "@types/node": "^20.14.2",
-    "@types/uuid": "^10.0.0"
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.15.7",
+    "typescript": "^5.4.5"
   }
 }

@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono';
-import { logger } from '../lib/logger';
+import { logger } from '../lib/logger.js';
 
 // Log setiap incoming request
 export const requestLogger: MiddlewareHandler = async (c, next) => {

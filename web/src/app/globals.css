@@ -46,6 +46,19 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Nexus RWA design tokens (.cursorrules) */
+  --color-nexus-bg-primary: #0a0e1a;
+  --color-nexus-bg-secondary: #0f1629;
+  --color-nexus-bg-tertiary: #1a2035;
+  --color-nexus-accent-cyan: #00d4ff;
+  --color-nexus-accent-cyan-dim: #00d4ff33;
+  --color-nexus-accent-green: #00ff88;
+  --color-nexus-accent-red: #ff4444;
+  --color-nexus-accent-yellow: #ffb800;
+  --color-nexus-text-primary: #ffffff;
+  --color-nexus-text-secondary: #8892a4;
+  --color-nexus-text-muted: #4a5568;
+  --color-nexus-border: #1e2a3a;
 }
 
 :root {

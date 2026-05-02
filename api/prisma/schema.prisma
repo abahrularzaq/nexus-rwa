@@ -86,18 +86,20 @@ model HolderSnapshot {
 // ============================================
 
 model ApiRequest {
-  id            String        @id @default(cuid())
-  requestId     String        @unique
-  endpoint      String
-  method        String
-  ipAddress     String?
-  userAgent     String?
-  paymentTxHash String?
-  paymentAmount Float?
-  paymentStatus PaymentStatus @default(NONE)
-  responseCode  Int
-  durationMs    Int
-  timestamp     DateTime      @default(now())
+  id             String        @id @default(cuid())
+  requestId      String        @unique
+  endpoint       String
+  method         String
+  ipAddress      String?
+  userAgent      String?
+  paymentTxHash  String?
+  paymentAmount  Float?
+  paymentFrom    String?
+  failureReason  String?
+  paymentStatus  PaymentStatus @default(NONE)
+  responseCode   Int
+  durationMs     Int
+  timestamp      DateTime      @default(now())
 
   @@index([endpoint])
   @@index([timestamp])

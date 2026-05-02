@@ -1,25 +1,63 @@
-import Redis from 'ioredis';
-import { logger } from './logger';
+import type { Hono } from 'hono';
+import type { ApiErrorResponse } from '@nexus-rwa/shared';
+import { createMeta, ERROR_CODES } from '@nexus-rwa/shared';
+import { logger } from '../lib/logger.js';
+import { AppError } from '../services/asset.service.js';
 
-export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,
-});
+let processHandlersBound = false;
 
-redis.on('connect', () => logger.info('Redis connected'));
-redis.on('error', (err) => logger.error({ err }, 'Redis error'));
+function apiErrorBody(code: string, message: string): ApiErrorResponse {
+  return {
+    success: false,
+    error: { code, message },
+    meta: createMeta(false),
+  };
+}
 
-// Helper: get atau set cache
-export async function getCached<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  ttlSeconds: number
-): Promise<{ data: T; cached: boolean }> {
-  const cached = await redis.get(key);
-  if (cached) {
-    return { data: JSON.parse(cached) as T, cached: true };
+function statusForAppError(code: string): 400 | 401 | 404 {
+  switch (code) {
+    case ERROR_CODES.ASSET_NOT_FOUND:
+    case ERROR_CODES.DATA_NOT_AVAILABLE:
+      return 404;
+    case ERROR_CODES.INVALID_PARAMS:
+      return 400;
+    case ERROR_CODES.UNAUTHORIZED:
+      return 401;
+    default:
+      return 400;
   }
-  const data = await fetcher();
-  await redis.setex(key, ttlSeconds, JSON.stringify(data));
-  return { data, cached: false };
+}
+
+export function setupErrorHandlers(app: Hono): void {
+  app.onError((err, c) => {
+    if (err instanceof AppError) {
+      const status = statusForAppError(err.code);
+      return c.json(apiErrorBody(err.code, err.message), status);
+    }
+
+    logger.error({ err }, 'Unhandled error in request handler');
+    return c.json(
+      apiErrorBody(
+        ERROR_CODES.INTERNAL_ERROR,
+        'Terjadi kesalahan internal',
+      ),
+      500,
+    );
+  });
+
+  if (processHandlersBound) {
+    return;
+  }
+  processHandlersBound = true;
+
+  process.on('unhandledRejection', (reason) => {
+    logger.fatal({ reason }, 'unhandledRejection');
+  });
+
+  process.on('uncaughtException', (error) => {
+    logger.fatal({ err: error }, 'uncaughtException');
+    setTimeout(() => {
+      process.exit(1);
+    }, 1000);
+  });
 }
