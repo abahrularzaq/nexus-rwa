@@ -1,0 +1,235 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Layers,
+  TrendingUp,
+  Shield,
+  Users,
+  Code,
+  Menu,
+  X,
+  ChevronRight,
+  Zap,
+  RefreshCw,
+} from "lucide-react";
+
+const navItems = [
+  { label: "Overview", href: "/dashboard", icon: LayoutDashboard, match: "exact" as const },
+  { label: "Assets", href: "/dashboard/assets", icon: Layers, match: "prefix" as const },
+  { label: "Yield", href: "/dashboard/assets", icon: TrendingUp, match: "prefix" as const },
+  { label: "Risk", href: "/dashboard/assets", icon: Shield, match: "prefix" as const },
+  { label: "Holders", href: "/dashboard/assets", icon: Users, match: "prefix" as const },
+  { label: "API Docs", href: "/dashboard/api-docs", icon: Code, match: "prefix" as const },
+];
+
+function normalizePath(path: string) {
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path;
+}
+
+function isNavActive(pathname: string, href: string, match: "exact" | "prefix") {
+  const p = normalizePath(pathname);
+  const h = normalizePath(href);
+  if (match === "exact") return p === h;
+  return p === h || p.startsWith(`${h}/`);
+}
+
+function breadcrumbsFromPathname(pathname: string) {
+  const segments = normalizePath(pathname).split("/").filter(Boolean);
+  const items: { label: string; href: string }[] = [];
+  let acc = "";
+  for (const seg of segments) {
+    acc += `/${seg}`;
+    const label =
+      seg === "dashboard"
+        ? "Dashboard"
+        : seg
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ");
+    items.push({ label, href: acc });
+  }
+  return items;
+}
+
+function HexLogo() {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="shrink-0"
+      aria-hidden
+    >
+      <path
+        d="M12 2L20 7V17L12 22L4 17V7L12 2Z"
+        stroke="#00D4FF"
+        strokeWidth="1.5"
+        fill="rgba(0,212,255,0.12)"
+      />
+    </svg>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const crumbs = breadcrumbsFromPathname(pathname);
+
+  return (
+    <div className="min-h-screen bg-[#0A0E1A] text-white">
+      {/* Mobile overlay */}
+      {sidebarOpen ? (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={closeSidebar}
+        />
+      ) : null}
+
+      {/* Sidebar */}
+      <aside
+        className={[
+          "fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col border-r border-[rgba(30,42,58,0.8)] bg-[#0F1629] transition-transform duration-200 ease-out md:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+        ].join(" ")}
+      >
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="border-b border-[rgba(30,42,58,0.8)] px-4 py-4">
+            <Link
+              href="/"
+              onClick={closeSidebar}
+              className="flex items-center gap-2.5 rounded-lg outline-none ring-[#00D4FF] focus-visible:ring-2"
+            >
+              <HexLogo />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-bold tracking-tight text-white">
+                    NEXUS RWA
+                  </span>
+                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#00D4FF] ring-1 ring-[#00D4FF]/40">
+                    BETA
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-4">
+            {navItems.map(({ label, href, icon: Icon, match }) => {
+              const active = isNavActive(pathname, href, match);
+              return (
+                <Link
+                  key={label}
+                  href={href}
+                  onClick={closeSidebar}
+                  className={[
+                    "flex items-center gap-3 rounded-r-md py-2.5 pl-3 pr-3 text-sm font-medium transition-colors",
+                    active
+                      ? "border-l-[3px] border-l-[#00D4FF] bg-[rgba(0,212,255,0.08)] text-[#00D4FF]"
+                      : "border-l-[3px] border-l-transparent text-[#8892A4] hover:bg-[rgba(255,255,255,0.05)] hover:text-white",
+                  ].join(" ")}
+                >
+                  <Icon className="size-[18px] shrink-0 opacity-90" strokeWidth={2} />
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="mt-auto space-y-4 border-t border-[rgba(30,42,58,0.8)] px-4 py-4">
+            <div className="flex items-center gap-2 text-xs text-[#8892A4]">
+              <span className="size-2 shrink-0 rounded-full bg-[#00FF88] shadow-[0_0_8px_rgba(0,255,136,0.6)]" />
+              <span className="text-[#8892A4]">API Connected</span>
+            </div>
+            <Link
+              href="/"
+              onClick={closeSidebar}
+              className="block text-sm text-[#8892A4] transition-colors hover:text-white"
+            >
+              ← Back to Home
+            </Link>
+          </div>
+        </div>
+      </aside>
+
+      {/* Top bar */}
+      <header
+        className="fixed right-0 top-0 z-30 flex h-14 items-center justify-between border-b border-[rgba(30,42,58,0.8)] bg-[rgba(10,14,26,0.9)] px-4 backdrop-blur-md md:left-[240px]"
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <button
+            type="button"
+            aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+            className="flex size-9 shrink-0 items-center justify-center rounded-md text-[#8892A4] transition-colors hover:bg-white/5 hover:text-white md:hidden"
+            onClick={() => setSidebarOpen((o) => !o)}
+          >
+            {sidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+
+          <nav className="flex min-w-0 items-center gap-1 text-sm text-[#8892A4]" aria-label="Breadcrumb">
+            {crumbs.map((c, i) => (
+              <span key={c.href} className="flex min-w-0 items-center gap-1">
+                {i > 0 ? (
+                  <ChevronRight className="size-4 shrink-0 text-[#4A5568]" aria-hidden />
+                ) : null}
+                {i === crumbs.length - 1 ? (
+                  <span className="truncate font-medium text-white">{c.label}</span>
+                ) : (
+                  <Link
+                    href={c.href}
+                    className="truncate transition-colors hover:text-[#00D4FF]"
+                  >
+                    {c.label}
+                  </Link>
+                )}
+              </span>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <Zap
+            className="size-4 shrink-0 text-[#00D4FF]"
+            aria-hidden
+            strokeWidth={2.25}
+          />
+          <div className="flex items-center gap-2 rounded-md border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.6)] px-2.5 py-1 text-xs font-medium">
+            <span className="size-1.5 shrink-0 rounded-full bg-[#00FF88] shadow-[0_0_6px_rgba(0,255,136,0.5)]" />
+            <span className="text-[#8892A4]">X402 Active</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Refresh"
+            className="flex size-9 items-center justify-center rounded-md text-[#8892A4] transition-colors hover:bg-white/5 hover:text-white"
+            onClick={() => router.refresh()}
+          >
+            <RefreshCw className="size-[18px]" />
+          </button>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main
+        className="min-h-screen bg-[#0A0E1A] px-6 pb-6 pt-[calc(56px+24px)] md:ml-[240px]"
+      >
+        {children}
+      </main>
+    </div>
+  );
+}

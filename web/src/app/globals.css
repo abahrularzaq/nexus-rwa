@@ -131,6 +131,10 @@ html, body {
   0%, 100% { opacity: 0.4; transform: translateX(0); }
   50%       { opacity: 1; transform: translateX(3px); }
 }
+@keyframes nexus-metric-card-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
 
 @import "tailwindcss";
 @import "tw-animate-css";

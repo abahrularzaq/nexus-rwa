@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 interface CountUpProps {
   to: number;
@@ -21,7 +21,9 @@ export function CountUpClient({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    startTransition(() => {
+      setMounted(true);
+    });
     // Animasi count up
     const duration = 1500;
     const steps = 60;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Sparkline } from "@/components/landing/primitives";
 
@@ -93,7 +94,8 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <button
+          <Link
+            href="/dashboard"
             className="px-9 py-3.5 rounded-[10px] text-white font-bold text-base transition-transform hover:scale-[1.02]"
             style={{
               background: "linear-gradient(135deg, #00D4FF 0%, #7C3AED 100%)",
@@ -102,7 +104,7 @@ export function Hero() {
             }}
           >
             Explore Dashboard →
-          </button>
+          </Link>
           <button
             className="px-9 py-3.5 rounded-[10px] font-semibold text-base transition-colors"
             style={{

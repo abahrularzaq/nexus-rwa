@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { HexLogo } from "@/components/landing/primitives";
 
@@ -69,7 +70,8 @@ export function Nav() {
             >
               API Docs
             </button>
-            <button
+            <Link
+              href="/dashboard"
               className="text-sm font-bold px-5 py-2 rounded-lg text-white transition-transform hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, #00D4FF, #0099BB)",
@@ -77,7 +79,7 @@ export function Nav() {
               }}
             >
               Launch App →
-            </button>
+            </Link>
             <button
               className="lg:hidden p-2 text-white"
               onClick={() => setOpen(true)}

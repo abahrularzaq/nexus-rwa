@@ -65,7 +65,7 @@ export function UseCases() {
                     borderLeft: `3px solid ${c.color}`,
                   }}
                 >
-                  <p className="italic text-white">"{c.quote}"</p>
+                  <p className="italic text-white">{`\u201C${c.quote}\u201D`}</p>
                   <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
                     {c.by}
                   </p>
