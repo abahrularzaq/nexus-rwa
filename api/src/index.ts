@@ -18,7 +18,39 @@ const PORT = Number(process.env.PORT) || 3001;
 const rateLimiter = createRateLimiter();
 
 // Global middleware
-app.use('*', cors({ origin: process.env.FRONTEND_URL ?? '*' }));
+app.use('*', cors({
+  origin: (origin) => {
+    // Izinkan tanpa origin (curl, server-to-server)
+    if (!origin) return '*';
+
+    // Izinkan localhost development
+    if (origin.includes('localhost')) return origin;
+
+    // Izinkan Vercel deployments
+    if (origin.includes('vercel.app')) return origin;
+
+    // Izinkan domain custom jika ada
+    const allowed = process.env.FRONTEND_URL;
+    if (allowed && origin === allowed) return origin;
+
+    return '';
+  },
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: [
+    'Content-Type',
+    'X-API-Key',
+    'X-Payment',
+    'Authorization',
+  ],
+  exposeHeaders: [
+    'X-Payment-Status',
+    'X-Request-Id',
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining',
+  ],
+  credentials: false,
+  maxAge: 86400,
+}));
 app.use('*', requestLogger);
 app.use('*', rateLimiter);
 
