@@ -412,7 +412,14 @@ export default function DashboardPage() {
                     </defs>
                     <XAxis dataKey="rank" tick={{ fill: "#8892A4", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: "#8892A4", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} width={44} />
-                    <Tooltip contentStyle={chartTooltipStyle} formatter={(v: number) => [`${v.toFixed(2)}%`, "Yield"]} labelFormatter={(l) => `Rank ${l}`} />
+                    <Tooltip
+                      contentStyle={chartTooltipStyle}
+                      formatter={(v) => {
+                        const n = typeof v === "number" ? v : Number(v);
+                        return [`${Number.isFinite(n) ? n.toFixed(2) : "—"}%`, "Yield"];
+                      }}
+                      labelFormatter={(l) => `Rank ${l}`}
+                    />
                     <Area type="monotone" dataKey="yieldPct" stroke="#00D4FF" fill="url(#gainersFill)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -453,7 +460,14 @@ export default function DashboardPage() {
                   <LineChart data={losersChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <XAxis dataKey="rank" tick={{ fill: "#8892A4", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: "#8892A4", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} width={44} />
-                    <Tooltip contentStyle={chartTooltipStyle} formatter={(v: number) => [`${v.toFixed(2)}%`, "Yield"]} labelFormatter={(l) => `Rank ${l}`} />
+                    <Tooltip
+                      contentStyle={chartTooltipStyle}
+                      formatter={(v) => {
+                        const n = typeof v === "number" ? v : Number(v);
+                        return [`${Number.isFinite(n) ? n.toFixed(2) : "—"}%`, "Yield"];
+                      }}
+                      labelFormatter={(l) => `Rank ${l}`}
+                    />
                     <Line type="monotone" dataKey="yieldPct" stroke="#FF4444" strokeWidth={2} dot={{ r: 3, fill: "#FF4444" }} />
                   </LineChart>
                 </ResponsiveContainer>

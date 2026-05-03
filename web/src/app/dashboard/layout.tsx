@@ -18,23 +18,53 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard, match: "exact" as const },
-  { label: "Assets", href: "/dashboard/assets", icon: Layers, match: "prefix" as const },
-  { label: "Yield", href: "/dashboard/assets", icon: TrendingUp, match: "prefix" as const },
-  { label: "Risk", href: "/dashboard/assets", icon: Shield, match: "prefix" as const },
-  { label: "Holders", href: "/dashboard/assets", icon: Users, match: "prefix" as const },
-  { label: "API Docs", href: "/dashboard/api-docs", icon: Code, match: "prefix" as const },
-];
+  {
+    label: "Overview",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    label: "Assets",
+    href: "/dashboard/assets",
+    icon: Layers,
+    exact: false,
+  },
+  {
+    label: "Yield",
+    href: "/dashboard/yield",
+    icon: TrendingUp,
+    exact: false,
+  },
+  {
+    label: "Risk",
+    href: "/dashboard/risk",
+    icon: Shield,
+    exact: false,
+  },
+  {
+    label: "Holders",
+    href: "/dashboard/holders",
+    icon: Users,
+    exact: false,
+  },
+  {
+    label: "API Docs",
+    href: "/dashboard/api-docs",
+    icon: Code,
+    exact: false,
+  },
+] as const;
 
 function normalizePath(path: string) {
   if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
   return path;
 }
 
-function isNavActive(pathname: string, href: string, match: "exact" | "prefix") {
+function isNavActive(pathname: string, href: string, exact: boolean) {
   const p = normalizePath(pathname);
   const h = normalizePath(href);
-  if (match === "exact") return p === h;
+  if (exact) return p === h;
   return p === h || p.startsWith(`${h}/`);
 }
 
@@ -131,8 +161,8 @@ export default function DashboardLayout({
           </div>
 
           <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-4">
-            {navItems.map(({ label, href, icon: Icon, match }) => {
-              const active = isNavActive(pathname, href, match);
+            {navItems.map(({ label, href, icon: Icon, exact }) => {
+              const active = isNavActive(pathname, href, exact);
               return (
                 <Link
                   key={label}

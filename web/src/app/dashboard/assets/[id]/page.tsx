@@ -59,15 +59,8 @@ type AssetDetailMock = {
   };
 };
 
-function slugTitle(id: string): string {
-  return id
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 /** Mock detail rows aligned with `api/prisma/seed.ts` asset ids. */
-const ASSET_DETAIL_BY_ID: Record<string, AssetDetailMock> = {
+const mockAssets: Record<string, AssetDetailMock> = {
   "ondo-usdy": {
     id: "ondo-usdy",
     name: "Ondo USDY",
@@ -286,39 +279,6 @@ const ASSET_DETAIL_BY_ID: Record<string, AssetDetailMock> = {
   },
 };
 
-function resolveAsset(id: string): AssetDetailMock {
-  const known = ASSET_DETAIL_BY_ID[id];
-  if (known) return known;
-  const base = 0.045 + (id.length % 7) * 0.004;
-  return {
-    id,
-    name: slugTitle(id),
-    symbol: id.split("-").pop()?.toUpperCase().slice(0, 6) ?? "RWA",
-    protocol: "Unknown Protocol",
-    category: "Treasury",
-    chain: "Base",
-    contractAddress: "0x0000000000000000000000000000000000000000",
-    accent: "#8892A4",
-    currentYield: base,
-    tvl: 25_000_000,
-    tvlChange7d: 0.001,
-    riskLevel: "MEDIUM",
-    holders: 5_000,
-    riskBreakdown: {
-      liquidity: 0.4,
-      concentration: 0.45,
-      protocolAge: 0.35,
-      yieldVolatility: 0.42,
-    },
-    holdersIntel: {
-      total: 5_000,
-      top10Concentration: 40,
-      whaleCount: 12,
-      retailCount: 4_800,
-    },
-  };
-}
-
 function hash01(id: string, i: number): number {
   let h = 0;
   const s = `${id}:${i}`;
@@ -382,8 +342,14 @@ const tooltipContentStyle = {
 
 export default function AssetDetailPage() {
   const params = useParams();
-  const id = typeof params?.id === "string" ? params.id : "";
-  const asset = useMemo(() => resolveAsset(id || "unknown"), [id]);
+  const rawId = params?.id;
+  const id =
+    typeof rawId === "string"
+      ? rawId
+      : Array.isArray(rawId)
+        ? (rawId[0] ?? "")
+        : "";
+  const asset = mockAssets[id] ?? mockAssets["ondo-usdy"];
 
   const [period, setPeriod] = useState<Period>("30d");
   const [copied, setCopied] = useState(false);
@@ -576,7 +542,10 @@ export default function AssetDetailPage() {
               />
               <Tooltip
                 contentStyle={tooltipContentStyle}
-                formatter={(v: number) => [`${v.toFixed(2)}%`, "Yield"]}
+                formatter={(v) => {
+                  const n = typeof v === "number" ? v : Number(v);
+                  return [`${Number.isFinite(n) ? n.toFixed(2) : "—"}%`, "Yield"];
+                }}
                 labelStyle={{ color: "#8892A4" }}
               />
               <Area
@@ -704,7 +673,13 @@ export default function AssetDetailPage() {
                 <CartesianGrid stroke="rgba(30,42,58,0.5)" vertical={false} />
                 <XAxis dataKey="seg" tick={{ fill: "#8892A4", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fill: "#8892A4", fontSize: 10 }} width={36} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipContentStyle} formatter={(v: number) => [`${v.toFixed(1)}%`, "Share"]} />
+                <Tooltip
+                  contentStyle={tooltipContentStyle}
+                  formatter={(v) => {
+                    const n = typeof v === "number" ? v : Number(v);
+                    return [`${Number.isFinite(n) ? n.toFixed(1) : "—"}%`, "Share"];
+                  }}
+                />
                 <Line type="monotone" dataKey="pct" stroke="#7C3AED" strokeWidth={2} dot={{ r: 4, fill: "#7C3AED" }} />
               </LineChart>
             </ResponsiveContainer>

@@ -404,6 +404,7 @@ export default function DashboardAssetsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredSorted.map((a) => {
+            console.log("Asset ID:", a.id);
             const accent = categoryAccent(a.category);
             const up = a.change7d >= 0;
             return (
