@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { HexLogo } from "./primitives";
+import { HexLogo } from "@/components/landing/primitives";
 
 const links = ["Dashboard", "Assets", "Analytics", "API", "Pricing"];
 

@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { FadeUp } from "./primitives";
+import { FadeUp } from "@/components/landing/primitives";
 
 const endpoints = [
   { method: "GET", path: "/v1/market/overview", price: "FREE" },

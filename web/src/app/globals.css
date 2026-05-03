@@ -1,3 +1,137 @@
+/* ============================================
+   NEXUS RWA — CSS Variables dari Lovable
+   ============================================ */
+
+:root {
+  --radius: 0.625rem;
+
+  /* Nexus RWA palette */
+  --bg-primary: #0A0E1A;
+  --bg-secondary: #0F1629;
+  --bg-tertiary: #1A2035;
+  --accent-cyan: #00D4FF;
+  --accent-green: #00FF88;
+  --accent-red: #FF4444;
+  --accent-yellow: #FFB800;
+  --accent-purple: #7C3AED;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8892A4;
+  --text-muted: #4A5568;
+  --border-line: rgba(30, 42, 58, 0.8);
+  --border-cyan: rgba(0, 212, 255, 0.3);
+  --border-purple: rgba(124, 58, 237, 0.3);
+
+  /* Shadcn mapping */
+  --background: #0A0E1A;
+  --foreground: #FFFFFF;
+  --card: #0F1629;
+  --card-foreground: #FFFFFF;
+  --popover: #0F1629;
+  --popover-foreground: #FFFFFF;
+  --primary: #00D4FF;
+  --primary-foreground: #0A0E1A;
+  --secondary: #1A2035;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A2035;
+  --muted-foreground: #8892A4;
+  --accent: #1A2035;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(30, 42, 58, 0.8);
+  --input: rgba(30, 42, 58, 0.8);
+  --ring: #00D4FF;
+}
+
+.dark {
+  --background: #0A0E1A;
+  --foreground: #FFFFFF;
+}
+
+/* Base styles */
+html, body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utility classes dari Lovable */
+.text-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #00D4FF 50%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #FFFFFF 0%, #00D4FF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-cp {
+  background: linear-gradient(135deg, #00D4FF 0%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.glass-card {
+  background: rgba(15, 22, 41, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-line);
+  border-radius: 12px;
+}
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.25);
+}
+.glow-cyan-strong {
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.label-eyebrow {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.dot-grid {
+  background-image: radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.025;
+}
+.ticker-track {
+  animation: ticker-scroll 40s linear infinite;
+}
+.float-card {
+  animation: float-y 4s ease-in-out infinite;
+}
+.pulse-dot {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.arrow-pulse {
+  animation: arrow-pulse 1.6s ease-in-out infinite;
+}
+
+/* Keyframes */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes float-y {
+  0%, 100% { transform: rotate(-4deg) translateY(-4px); }
+  50%       { transform: rotate(-4deg) translateY(4px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.6); }
+  50%       { box-shadow: 0 0 0 6px rgba(0,255,136,0); }
+}
+@keyframes arrow-pulse {
+  0%, 100% { opacity: 0.4; transform: translateX(0); }
+  50%       { opacity: 1; transform: translateX(3px); }
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

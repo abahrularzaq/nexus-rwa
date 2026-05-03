@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { FadeUp } from "./primitives";
+import { FadeUp } from "@/components/landing/primitives";
 
 type Cat = "Treasury" | "Credit" | "Real Estate" | "Commodities";
 type Risk = "LOW" | "MEDIUM" | "HIGH";

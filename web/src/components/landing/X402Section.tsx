@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { Bot, Lock, Wallet, ShieldCheck, Database, Zap, Coins } from "lucide-react";
-import { FadeUp } from "./primitives";
+import { FadeUp } from "@/components/landing/primitives";
 
 const steps = [
   { Icon: Bot, title: "Agent Request", text: "AI agent calls Nexus RWA API", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },

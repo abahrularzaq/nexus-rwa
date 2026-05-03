@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AreaChart,
   Area,
@@ -7,13 +9,9 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
 } from "recharts";
-import { Check, BarChart3, Layers, Percent, Shield, Users, Code2, Sparkles } from "lucide-react";
-import { FadeUp, Sparkline, HexLogo } from "./primitives";
+import { Check } from "lucide-react";
+import { FadeUp, HexLogo } from "@/components/landing/primitives";
 
 const tvlData = [
   { m: "Dec", v: 1.8 }, { m: "Jan", v: 2.0 }, { m: "Feb", v: 2.1 },
@@ -154,7 +152,7 @@ export function DashboardPreview() {
                 </div>
                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[340px]">
                   <MiniChart title="TVL Over Time">
-                    <ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height={100}>
                       <AreaChart data={tvlData}>
                         <defs>
                           <linearGradient id="tvlg" x1="0" y1="0" x2="0" y2="1">
@@ -167,7 +165,7 @@ export function DashboardPreview() {
                     </ResponsiveContainer>
                   </MiniChart>
                   <MiniChart title="Yield by Protocol">
-                    <ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height={100}>
                       <BarChart data={yieldByProto}>
                         <Bar dataKey="v" radius={[3, 3, 0, 0]}>
                           {yieldByProto.map((d, i) => <Cell key={i} fill={d.c} />)}
@@ -176,7 +174,7 @@ export function DashboardPreview() {
                     </ResponsiveContainer>
                   </MiniChart>
                   <MiniChart title="Category Mix">
-                    <ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height={100}>
                       <PieChart>
                         <Pie data={catMix} dataKey="v" innerRadius={22} outerRadius={42} stroke="none">
                           {catMix.map((d, i) => <Cell key={i} fill={d.c} />)}
@@ -185,7 +183,7 @@ export function DashboardPreview() {
                     </ResponsiveContainer>
                   </MiniChart>
                   <MiniChart title="Risk Trend">
-                    <ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height={100}>
                       <AreaChart data={riskTrend}>
                         <defs>
                           <linearGradient id="riskg" x1="0" y1="0" x2="0" y2="1">
@@ -219,7 +217,7 @@ function MiniChart({ title, children }: { title: string; children: React.ReactNo
       <div className="text-[9px] label-eyebrow" style={{ color: "var(--text-secondary)" }}>
         {title}
       </div>
-      <div className="flex-1 mt-1">{children}</div>
+      <div className="mt-1 h-[100px] w-full min-w-0 shrink-0">{children}</div>
     </div>
   );
 }

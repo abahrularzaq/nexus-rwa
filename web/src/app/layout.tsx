@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -13,9 +13,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
 const siteName = "Nexus RWA";
 const description =
-  "Platform tokenisasi real world assets (RWA): temukan, investasi, dan kelola aset riil dengan transparansi dan kepatuhan.";
+  "Institutional-grade RWA analytics: yield, TVL, risk and holders. Powered by X402 Protocol on Base for AI agents and developers.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -48,9 +54,9 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="id"
-      className={`dark ${inter.variable} ${geistMono.variable} h-full antialiased`}
-    >
+      lang="en"
+      className={`dark ${inter.variable} ${geistMono.variable} ${jetbrainsMono.variable} h-full antialiased`}
+   >
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
       </body>

@@ -1,5 +1,5 @@
 import { Bot, Code2, BarChart3 } from "lucide-react";
-import { FadeUp } from "./primitives";
+import { FadeUp } from "@/components/landing/primitives";
 
 const cards = [
   {

@@ -1,5 +1,7 @@
+"use client";
+
 import { BarChart2, Shield, Users, TrendingUp, Globe, Search } from "lucide-react";
-import { FadeUp } from "./primitives";
+import { FadeUp } from "@/components/landing/primitives";
 
 const cards = [
   { Icon: BarChart2, title: "Yield Analytics", body: "Historical and real-time yield data. Daily, weekly, monthly aggregations for all tracked assets.", badge: "REST API", badgeStyle: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" }, endpoint: "GET /v1/assets/:id/yield" },

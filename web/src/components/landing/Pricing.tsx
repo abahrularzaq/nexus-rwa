@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { Check, X, Bot } from "lucide-react";
-import { FadeUp } from "./primitives";
+import { FadeUp } from "@/components/landing/primitives";
 
 type Tier = {
   name: string;

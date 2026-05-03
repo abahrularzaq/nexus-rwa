@@ -1,5 +1,7 @@
+"use client";
+
 import { motion } from "framer-motion";
-import { Sparkline } from "./primitives";
+import { Sparkline } from "@/components/landing/primitives";
 
 export function Hero() {
   return (

@@ -1,32 +1,34 @@
+"use client";
+
 import { TrendingUp, Layers, Percent, Zap } from "lucide-react";
-import { CountUp } from "./primitives";
+import { CountUpClient } from "./CountUpClient";
 
 const cards = [
   {
     Icon: TrendingUp,
     label: "TOTAL RWA TVL",
-    value: <CountUp to={2.84} decimals={2} prefix="$" suffix="B" />,
+    value: <CountUpClient to={2.84} decimals={2} prefix="$" suffix="B" />,
     sub: "+12.4% this month",
     pos: true,
   },
   {
     Icon: Layers,
     label: "ASSETS TRACKED",
-    value: <CountUp to={47} />,
+    value: <CountUpClient to={47} />,
     sub: "Across 6 protocols",
     pos: null,
   },
   {
     Icon: Percent,
     label: "AVG YIELD RATE",
-    value: <CountUp to={6.73} decimals={2} suffix="%" />,
+    value: <CountUpClient to={6.73} decimals={2} suffix="%" />,
     sub: "+0.31% vs last week",
     pos: true,
   },
   {
     Icon: Zap,
     label: "API CALLS (24H)",
-    value: <CountUp to={128439} />,
+    value: <CountUpClient to={128439} />,
     sub: "Via X402 Protocol",
     pos: null,
   },
