@@ -13,7 +13,7 @@ import {
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 
-// TODO: Connect to API with X402 payment
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type AssetCategoryTab =
   | "ALL"
@@ -23,120 +23,103 @@ type AssetCategoryTab =
   | "COMMODITIES"
   | "EQUITY";
 
-type AssetCardModel = {
+/** List row shape aligned with API (flat or nested). */
+interface AssetSnapshotRow {
+  tvl: number;
+  yieldRate: number;
+  holderCount: number;
+  riskScore: string;
+}
+
+interface AssetRiskScoreRow {
+  overallScore: string;
+}
+
+interface Asset {
   id: string;
   name: string;
   symbol: string;
   protocol: string;
-  category: Exclude<AssetCategoryTab, "ALL">;
-  tvl: number;
-  /** Annual yield as fraction, e.g. 0.052 = 5.2% */
-  yieldRate: number;
-  holders: number;
-  /** 7d yield change as fraction */
-  change7d: number;
-  riskScore: RiskBadgeProps["level"];
-};
+  category: string;
+  chain: string;
+  snapshots: AssetSnapshotRow[];
+  riskScores: AssetRiskScoreRow[];
+  /** From flat list summary for 7d sort / display. */
+  change7d?: number;
+}
 
-/** Mirrors `api/prisma/seed.ts` — `RWA_ASSETS` (8 rows) + display stats for UI. */
-const SEED_MOCK_ASSETS: AssetCardModel[] = [
-  {
-    id: "ondo-usdy",
-    name: "Ondo USDY",
-    symbol: "USDY",
-    protocol: "Ondo Finance",
-    category: "TREASURY",
-    tvl: 1_842_000_000,
-    yieldRate: 0.0482,
-    holders: 128_400,
-    change7d: 0.0014,
-    riskScore: "LOW",
-  },
-  {
-    id: "maple-usdc",
-    name: "Maple USDC",
-    symbol: "mUSDC",
-    protocol: "Maple Finance",
-    category: "CREDIT",
-    tvl: 412_000_000,
-    yieldRate: 0.089,
-    holders: 38_200,
-    change7d: -0.0031,
-    riskScore: "MEDIUM",
-  },
-  {
-    id: "centrifuge-drop",
-    name: "Centrifuge DROP",
-    symbol: "DROP",
-    protocol: "Centrifuge",
-    category: "CREDIT",
-    tvl: 96_500_000,
-    yieldRate: 0.071,
-    holders: 9_840,
-    change7d: 0.0028,
-    riskScore: "HIGH",
-  },
-  {
-    id: "backed-buidl",
-    name: "Backed BUIDL",
-    symbol: "bBUIDL",
-    protocol: "Backed Finance",
-    category: "TREASURY",
-    tvl: 1_120_000_000,
-    yieldRate: 0.0415,
-    holders: 54_100,
-    change7d: 0.0006,
-    riskScore: "LOW",
-  },
-  {
-    id: "openedon-ousg",
-    name: "OpenEden OUSG",
-    symbol: "OUSG",
-    protocol: "OpenEden",
-    category: "TREASURY",
-    tvl: 268_000_000,
-    yieldRate: 0.039,
-    holders: 21_300,
-    change7d: -0.0009,
-    riskScore: "LOW",
-  },
-  {
-    id: "ondo-ousg",
-    name: "Ondo OUSG",
-    symbol: "OUSG2",
-    protocol: "Ondo Finance",
-    category: "TREASURY",
-    tvl: 445_000_000,
-    yieldRate: 0.0402,
-    holders: 33_600,
-    change7d: 0.0011,
-    riskScore: "LOW",
-  },
-  {
-    id: "realt-token",
-    name: "RealT Token",
-    symbol: "REALT",
-    protocol: "RealT",
-    category: "REAL_ESTATE",
-    tvl: 52_800_000,
-    yieldRate: 0.056,
-    holders: 182_000,
-    change7d: 0.0042,
-    riskScore: "MEDIUM",
-  },
-  {
-    id: "goldfinch-gfi",
-    name: "Goldfinch GFI",
-    symbol: "GFI",
-    protocol: "Goldfinch",
-    category: "CREDIT",
-    tvl: 74_200_000,
-    yieldRate: 0.112,
-    holders: 6_120,
-    change7d: -0.0065,
-    riskScore: "HIGH",
-  },
-];
+function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
+  const u = (s ?? "MEDIUM").toUpperCase();
+  if (u === "LOW" || u === "MEDIUM" || u === "HIGH" || u === "CRITICAL") {
+    return u;
+  }
+  return "MEDIUM";
+}
+
+function parseAssetFromApiRow(raw: Record<string, unknown>): Asset {
+  const snapshotsRaw = raw.snapshots;
+  const riskScoresRaw = raw.riskScores;
+  const firstSnap =
+    Array.isArray(snapshotsRaw) &&
+    snapshotsRaw.length > 0 &&
+    typeof snapshotsRaw[0] === "object" &&
+    snapshotsRaw[0] !== null
+      ? (snapshotsRaw[0] as Record<string, unknown>)
+      : null;
+  const firstRisk =
+    Array.isArray(riskScoresRaw) &&
+    riskScoresRaw.length > 0 &&
+    typeof riskScoresRaw[0] === "object" &&
+    riskScoresRaw[0] !== null
+      ? (riskScoresRaw[0] as Record<string, unknown>)
+      : null;
+
+  if (firstSnap && firstRisk) {
+    return {
+      id: String(raw.id ?? ""),
+      name: String(raw.name ?? ""),
+      symbol: String(raw.symbol ?? ""),
+      protocol: String(raw.protocol ?? ""),
+      category: String(raw.category ?? "TREASURY"),
+      chain: String(raw.chain ?? "base"),
+      snapshots: [
+        {
+          tvl: Number(firstSnap.tvl ?? 0),
+          yieldRate: Number(firstSnap.yieldRate ?? 0),
+          holderCount: Number(firstSnap.holderCount ?? 0),
+          riskScore: String(
+            firstSnap.riskScore ?? firstRisk.overallScore ?? "MEDIUM",
+          ),
+        },
+      ],
+      riskScores: [
+        { overallScore: String(firstRisk.overallScore ?? "MEDIUM") },
+      ],
+      change7d:
+        typeof raw.change7d === "number" ? raw.change7d : undefined,
+    };
+  }
+
+  const risk = String(raw.riskScore ?? "MEDIUM");
+  return {
+    id: String(raw.id ?? ""),
+    name: String(raw.name ?? ""),
+    symbol: String(raw.symbol ?? ""),
+    protocol: String(raw.protocol ?? ""),
+    category: String(raw.category ?? "TREASURY"),
+    chain: String(raw.chain ?? "base"),
+    snapshots: [
+      {
+        tvl: Number(raw.tvl ?? 0),
+        yieldRate: Number(raw.yieldRate ?? 0),
+        holderCount: Number(raw.holderCount ?? 0),
+        riskScore: risk,
+      },
+    ],
+    riskScores: [{ overallScore: risk }],
+    change7d: Number(raw.change7d ?? 0),
+  };
+}
 
 const CATEGORY_TABS: { key: AssetCategoryTab; label: string }[] = [
   { key: "ALL", label: "All" },
@@ -149,7 +132,7 @@ const CATEGORY_TABS: { key: AssetCategoryTab; label: string }[] = [
 const SORT_OPTIONS = ["tvl", "yield", "holders", "name", "change7d"] as const;
 type SortKey = (typeof SORT_OPTIONS)[number];
 
-function categoryPillLabel(c: AssetCardModel["category"]): string {
+function categoryPillLabel(c: string): string {
   return c
     .split("_")
     .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
@@ -177,7 +160,7 @@ function formatChange7d(f: number): string {
   return `${sign}${pct.toFixed(2)}%`;
 }
 
-function categoryAccent(category: AssetCardModel["category"]): string {
+function categoryAccent(category: string): string {
   switch (category) {
     case "TREASURY":
       return "#00D4FF";
@@ -194,40 +177,90 @@ function categoryAccent(category: AssetCardModel["category"]): string {
   }
 }
 
-function compare(a: AssetCardModel, b: AssetCardModel, sortBy: SortKey, order: "asc" | "desc"): number {
+function compare(a: Asset, b: Asset, sortBy: SortKey, order: "asc" | "desc"): number {
   const dir = order === "asc" ? 1 : -1;
+  const sa = a.snapshots?.[0];
+  const sb = b.snapshots?.[0];
   switch (sortBy) {
     case "tvl":
-      return (a.tvl - b.tvl) * dir;
+      return ((sa?.tvl ?? 0) - (sb?.tvl ?? 0)) * dir;
     case "yield":
-      return (a.yieldRate - b.yieldRate) * dir;
+      return ((sa?.yieldRate ?? 0) - (sb?.yieldRate ?? 0)) * dir;
     case "holders":
-      return (a.holders - b.holders) * dir;
+      return ((sa?.holderCount ?? 0) - (sb?.holderCount ?? 0)) * dir;
     case "name":
       return a.name.localeCompare(b.name) * dir;
     case "change7d":
-      return (a.change7d - b.change7d) * dir;
+      return ((a.change7d ?? 0) - (b.change7d ?? 0)) * dir;
     default:
       return 0;
   }
 }
 
+function AssetCardSkeleton() {
+  return (
+    <div className="asset-card-skeleton rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
+      <div className="h-10 w-[85%] max-w-md rounded-lg bg-[rgba(30,42,58,0.9)]" />
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
+        <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
+        <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
+      </div>
+      <div className="mt-4 h-8 w-full rounded bg-[rgba(30,42,58,0.7)]" />
+      <div className="mt-4 h-10 w-full rounded-lg bg-[rgba(30,42,58,0.75)]" />
+    </div>
+  );
+}
+
 export default function DashboardAssetsPage() {
-  const [assets] = useState<AssetCardModel[]>(SEED_MOCK_ASSETS);
+  const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<AssetCategoryTab>("ALL");
   const [sortBy, setSortBy] = useState<string>("tvl");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    setLoading(true);
-    const id = window.setTimeout(() => setLoading(false), 380);
-    return () => window.clearTimeout(id);
+    async function fetchAssets() {
+      setLoading(true);
+      try {
+        setError(null);
+        const base = (API_URL ?? "").trim().replace(/\/$/, "");
+        if (!base) {
+          setError("Failed to load assets");
+          setAssets([]);
+          return;
+        }
+        const res = await fetch(`${base}/v1/assets?limit=20&page=1`);
+        const json: unknown = await res.json();
+        const body = json as {
+          success?: boolean;
+          data?: { data?: unknown[] };
+        };
+        if (!res.ok || !body.success || !Array.isArray(body.data?.data)) {
+          setError("Failed to load assets");
+          setAssets([]);
+          return;
+        }
+        setAssets(
+          body.data!.data!.map((row) =>
+            parseAssetFromApiRow(row as Record<string, unknown>),
+          ),
+        );
+        setError(null);
+      } catch {
+        setError("Failed to load assets");
+        setAssets([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void fetchAssets();
   }, []);
 
   const protocolCount = useMemo(
-    () => new Set(assets.map((a) => a.protocol)).size,
+    () => new Set(assets.map((a) => a.protocol).filter(Boolean)).size,
     [assets],
   );
 
@@ -277,9 +310,20 @@ export default function DashboardAssetsPage() {
       >
         <Info className="mt-0.5 size-5 shrink-0 text-[#00D4FF]" aria-hidden />
         <p className="text-sm leading-relaxed text-[#8892A4]">
-          Asset detail data requires X402 micropayment ($0.001 USDC per request)
+          Basic asset data is free. Advanced analytics (yield history, risk
+          details, holder intelligence) require X402 micropayment.
         </p>
       </div>
+
+      {error ? (
+        <div
+          className="rounded-xl border border-[rgba(255,68,68,0.25)] px-4 py-3 text-sm text-[#FF8888]"
+          style={{ background: "rgba(255,68,68,0.06)" }}
+          role="alert"
+        >
+          {error}
+        </div>
+      ) : null}
 
       {/* HEADER */}
       <header>
@@ -287,7 +331,9 @@ export default function DashboardAssetsPage() {
           RWA Assets
         </h1>
         <p className="mt-1 text-sm text-[#8892A4]">
-          {assets.length} assets tracked across {protocolCount} protocols
+          {loading
+            ? "Loading assets…"
+            : `${assets.length} assets tracked across ${protocolCount} protocols`}
         </p>
       </header>
 
@@ -368,19 +414,8 @@ export default function DashboardAssetsPage() {
       {/* GRID / LOADING / EMPTY */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5"
-            >
-              <div className="h-10 w-full rounded-lg bg-[rgba(30,42,58,0.9)]" />
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
-                <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
-                <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
-              </div>
-              <div className="mt-4 h-8 w-full rounded bg-[rgba(30,42,58,0.7)]" />
-            </div>
+          {[0, 1, 2].map((i) => (
+            <AssetCardSkeleton key={i} />
           ))}
         </div>
       ) : filteredSorted.length === 0 ? (
@@ -403,13 +438,19 @@ export default function DashboardAssetsPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredSorted.map((a) => {
-            console.log("Asset ID:", a.id);
-            const accent = categoryAccent(a.category);
-            const up = a.change7d >= 0;
+          {filteredSorted.map((asset) => {
+            const snapshot = asset.snapshots?.[0];
+            const tvl = snapshot?.tvl ?? 0;
+            const yieldRate = snapshot?.yieldRate ?? 0;
+            const holderCount = snapshot?.holderCount ?? 0;
+            const riskScore = toRiskLevel(asset.riskScores?.[0]?.overallScore);
+            const accent = categoryAccent(asset.category);
+            const change7d = asset.change7d ?? 0;
+            const up = change7d >= 0;
+            const protocolLabel = asset.protocol.trim() ? asset.protocol : "—";
             return (
               <article
-                key={a.id}
+                key={asset.id}
                 className="group flex flex-col rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.65)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-1 hover:border-[rgba(0,212,255,0.45)] hover:shadow-[0_0_24px_rgba(0,212,255,0.12)]"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -420,11 +461,11 @@ export default function DashboardAssetsPage() {
                       aria-hidden
                     />
                     <div className="min-w-0">
-                      <h2 className="truncate font-bold text-white">{a.name}</h2>
-                      <p className="text-sm text-[#8892A4]">{a.symbol}</p>
+                      <h2 className="truncate font-bold text-white">{asset.name}</h2>
+                      <p className="text-sm text-[#8892A4]">{asset.symbol}</p>
                     </div>
                   </div>
-                  <RiskBadge level={a.riskScore} showDot />
+                  <RiskBadge level={riskScore} showDot />
                 </div>
 
                 <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[rgba(30,42,58,0.6)] pt-4">
@@ -433,7 +474,7 @@ export default function DashboardAssetsPage() {
                       TVL
                     </p>
                     <p className="mt-1 text-sm font-bold tabular-nums text-white">
-                      {formatTvl(a.tvl)}
+                      {formatTvl(tvl)}
                     </p>
                   </div>
                   <div>
@@ -441,7 +482,7 @@ export default function DashboardAssetsPage() {
                       Yield
                     </p>
                     <p className="mt-1 text-sm font-bold tabular-nums text-[#00FF88]">
-                      {formatYieldFraction(a.yieldRate)}
+                      {formatYieldFraction(yieldRate)}
                     </p>
                   </div>
                   <div>
@@ -449,25 +490,25 @@ export default function DashboardAssetsPage() {
                       Holders
                     </p>
                     <p className="mt-1 text-sm font-bold tabular-nums text-white">
-                      {formatHolders(a.holders)}
+                      {formatHolders(holderCount)}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[rgba(30,42,58,0.6)] pt-4 text-sm">
-                  <span className="font-medium text-white">{a.protocol}</span>
+                  <span className="font-medium text-white">{protocolLabel}</span>
                   <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.5)] px-2 py-0.5 text-[11px] font-medium text-[#8892A4]">
-                    {categoryPillLabel(a.category)}
+                    {categoryPillLabel(asset.category)}
                   </span>
                   <span
                     className={`ml-auto font-semibold tabular-nums ${up ? "text-[#00FF88]" : "text-[#FF4444]"}`}
                   >
-                    {formatChange7d(a.change7d)}
+                    {formatChange7d(change7d)}
                   </span>
                 </div>
 
                 <Link
-                  href={`/dashboard/assets/${a.id}`}
+                  href={`/dashboard/assets/${asset.id}`}
                   className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-[rgba(0,212,255,0.25)] bg-[rgba(0,212,255,0.08)] py-2.5 text-sm font-semibold text-[#00D4FF] transition-colors hover:bg-[rgba(0,212,255,0.14)]"
                 >
                   View Details →

@@ -146,10 +146,14 @@ export async function summarizeAssetsForList(
       id: row.id,
       name: row.name,
       symbol: row.symbol,
+      protocol: row.protocol,
+      category: row.category,
+      chain: row.chain,
       tvl: snap?.tvl ?? 0,
       yieldRate: toFraction(snap?.yieldRate ?? 0),
       riskScore: (risk?.overallScore as RiskLevel) ?? 'MEDIUM',
       change7d: toFraction(change7dRaw),
+      holderCount: snap?.holderCount ?? 0,
     };
   });
 }

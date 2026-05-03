@@ -52,14 +52,14 @@ export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>>
     isFree: true,
   },
   "GET:/v1/assets": {
-    price: "$0.0005",
+    price: "$0.00",
     description: "Paginated list of tokenized real-world assets.",
-    isFree: false,
+    isFree: true,
   },
   "GET:/v1/assets/:id": {
-    price: "$0.001",
+    price: "$0.00",
     description: "Single asset profile and metadata.",
-    isFree: false,
+    isFree: true,
   },
   "GET:/v1/assets/:id/yield": {
     price: "$0.005",
@@ -77,9 +77,9 @@ export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>>
     isFree: false,
   },
   "GET:/v1/search": {
-    price: "$0.001",
+    price: "$0.00",
     description: "Full-text and faceted search across catalog fields.",
-    isFree: false,
+    isFree: true,
   },
 } as const;
 

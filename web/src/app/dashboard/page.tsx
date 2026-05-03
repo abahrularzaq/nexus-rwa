@@ -19,7 +19,7 @@ import {
   RefreshCw,
   TrendingDown,
   TrendingUp,
-  Trophy,
+  Users,
 } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
@@ -32,22 +32,16 @@ import type {
 } from "@/lib/shared";
 import { formatLargeNumber, formatYield } from "@/lib/shared";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
 type AssetRow = AssetSummary & {
   protocol?: string;
   category?: string | AssetCategory;
 };
 
 function apiBase(): string {
-  const raw = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
-  return raw.replace(/\/$/, "");
-}
-
-function pickTopGainer(overview: MarketOverview): AssetSummary | null {
-  const list = overview.topGainers ?? [];
-  if (list.length === 0) return null;
-  return list.reduce((best, cur) =>
-    cur.change7d > best.change7d ? cur : best,
-  list[0]!);
+  return API_URL.trim().replace(/\/$/, "");
 }
 
 function fmtChange7d(change7d: number): string {
@@ -71,9 +65,6 @@ function parseOverviewPayload(data: MarketOverview): MarketOverview {
 
 async function fetchMarketOverview(): Promise<MarketOverview> {
   const base = apiBase();
-  if (!base) {
-    throw new Error("NEXT_PUBLIC_API_URL is not set");
-  }
   const res = await fetch(`${base}/v1/market/overview`, {
     headers: { Accept: "application/json" },
     cache: "no-store",
@@ -87,18 +78,12 @@ async function fetchMarketOverview(): Promise<MarketOverview> {
   return parseOverviewPayload(body.data);
 }
 
-async function fetchAssetsList(): Promise<{ rows: AssetRow[]; usedMock402: boolean }> {
+async function fetchAssetsList(): Promise<AssetRow[]> {
   const base = apiBase();
-  if (!base) {
-    throw new Error("NEXT_PUBLIC_API_URL is not set");
-  }
-  const res = await fetch(`${base}/v1/assets?page=1&limit=5`, {
+  const res = await fetch(`${base}/v1/assets?limit=5&page=1`, {
     headers: { Accept: "application/json" },
     cache: "no-store",
   });
-  if (res.status === 402) {
-    return { rows: MOCK_ASSET_ROWS_402, usedMock402: true };
-  }
   let body: ApiResponse<PaginatedResponse<AssetSummary>>;
   try {
     body = (await res.json()) as ApiResponse<PaginatedResponse<AssetSummary>>;
@@ -110,72 +95,8 @@ async function fetchAssetsList(): Promise<{ rows: AssetRow[]; usedMock402: boole
       body.success === false ? body.error.message : res.statusText || "Request failed";
     throw new Error(msg);
   }
-  const rows: AssetRow[] = body.data.data.map((a) => ({
-    ...a,
-    protocol: "—",
-    category: "—",
-  }));
-  return { rows, usedMock402: false };
+  return body.data.data.map((a) => ({ ...a })) as AssetRow[];
 }
-
-/** Shown only when GET /v1/assets returns 402 (X402). Shape matches table columns. */
-const MOCK_ASSET_ROWS_402: AssetRow[] = [
-  {
-    id: "ondo-usdy",
-    name: "Ondo U.S. Dollar Yield",
-    symbol: "USDY",
-    protocol: "Ondo",
-    category: "TREASURY",
-    tvl: 482_000_000,
-    yieldRate: 0.0485,
-    riskScore: "LOW",
-    change7d: 0.0012,
-  },
-  {
-    id: "maple-usdc",
-    name: "Maple Direct USDC",
-    symbol: "MPL-USDC",
-    protocol: "Maple",
-    category: "CREDIT",
-    tvl: 128_000_000,
-    yieldRate: 0.092,
-    riskScore: "MEDIUM",
-    change7d: -0.004,
-  },
-  {
-    id: "centrifuge-tin",
-    name: "Centrifuge Tinlake",
-    symbol: "TIN",
-    protocol: "Centrifuge",
-    category: "CREDIT",
-    tvl: 64_000_000,
-    yieldRate: 0.071,
-    riskScore: "HIGH",
-    change7d: 0.0021,
-  },
-  {
-    id: "backed-bti",
-    name: "Backed IB01 $ Treasury",
-    symbol: "bIB01",
-    protocol: "Backed",
-    category: "TREASURY",
-    tvl: 41_000_000,
-    yieldRate: 0.039,
-    riskScore: "LOW",
-    change7d: 0.0004,
-  },
-  {
-    id: "gold-token",
-    name: "Tokenized Gold Reserve",
-    symbol: "XAUt",
-    protocol: "Paxos",
-    category: "COMMODITIES",
-    tvl: 22_000_000,
-    yieldRate: 0.012,
-    riskScore: "MEDIUM",
-    change7d: -0.0018,
-  },
-];
 
 function formatLastUpdated(d: Date): string {
   return d.toLocaleString("en-US", {
@@ -209,7 +130,6 @@ export default function DashboardPage() {
   const [assetsRows, setAssetsRows] = useState<AssetRow[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [assetsError, setAssetsError] = useState<string | null>(null);
-  const [assetsMock402, setAssetsMock402] = useState(false);
 
   const [lastDisplay, setLastDisplay] = useState<string>("—");
 
@@ -232,13 +152,11 @@ export default function DashboardPage() {
     setAssetsLoading(true);
     setAssetsError(null);
     try {
-      const { rows, usedMock402 } = await fetchAssetsList();
+      const rows = await fetchAssetsList();
       setAssetsRows(rows);
-      setAssetsMock402(usedMock402);
     } catch (e) {
       setAssetsRows([]);
       setAssetsError(e instanceof Error ? e.message : "Unknown error");
-      setAssetsMock402(false);
     } finally {
       setAssetsLoading(false);
     }
@@ -259,7 +177,6 @@ export default function DashboardPage() {
     return () => window.clearInterval(id);
   }, [loadOverview]);
 
-  const topGainer = overview ? pickTopGainer(overview) : null;
   const gainersChartData = (overview?.topGainers ?? [])
     .slice(0, 5)
     .map((a, i) => ({
@@ -275,10 +192,7 @@ export default function DashboardPage() {
       yieldPct: a.yieldRate * 100,
     }));
 
-  const base = apiBase();
-  const curlExample = base
-    ? `curl -s "${base}/v1/market/overview"`
-    : `curl -s "$NEXT_PUBLIC_API_URL/v1/market/overview"`;
+  const curlExample = `curl -s "${apiBase()}/v1/market/overview"`;
 
   return (
     <div className="space-y-10">
@@ -345,32 +259,62 @@ export default function DashboardPage() {
             isLoading={overviewLoading}
           />
           <MetricCard
-            title="Top Gainer (7D)"
-            value={
-              overviewLoading
-                ? "—"
-                : topGainer
-                  ? topGainer.name
-                  : "—"
-            }
-            change={
-              topGainer ? fmtChange7d(topGainer.change7d) : undefined
-            }
-            changeType={
-              !topGainer
-                ? "neutral"
-                : topGainer.change7d >= 0
-                  ? "positive"
-                  : "negative"
-            }
-            subtitle={topGainer ? topGainer.symbol : "No mover data"}
-            icon={<Trophy className="text-[#00D4FF]" />}
+            title="Total Holders"
+            value={overview ? overview.totalHolders : 0}
+            subtitle="Across active assets"
+            icon={<Users className="text-[#00D4FF]" />}
             isLoading={overviewLoading}
           />
         </div>
       )}
 
       {/* TOP MOVERS + CHARTS */}
+      {overviewLoading && !overviewError ? (
+        <section className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
+            <div className="mb-4 h-5 w-40 animate-pulse rounded bg-[rgba(30,42,58,0.9)]" />
+            <ul className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <li
+                  key={i}
+                  className="flex justify-between gap-2 border-b border-[rgba(30,42,58,0.5)] pb-3 last:border-0 last:pb-0"
+                >
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="h-4 w-48 max-w-full animate-pulse rounded bg-[rgba(30,42,58,0.85)]" />
+                    <div className="h-3 w-14 animate-pulse rounded bg-[rgba(30,42,58,0.75)]" />
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="h-4 w-16 animate-pulse rounded bg-[rgba(30,42,58,0.85)]" />
+                    <div className="h-6 w-20 animate-pulse rounded-md bg-[rgba(30,42,58,0.8)]" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 h-[180px] w-full animate-pulse rounded-lg bg-[rgba(30,42,58,0.45)]" />
+          </div>
+          <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
+            <div className="mb-4 h-5 w-40 animate-pulse rounded bg-[rgba(30,42,58,0.9)]" />
+            <ul className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <li
+                  key={i}
+                  className="flex justify-between gap-2 border-b border-[rgba(30,42,58,0.5)] pb-3 last:border-0 last:pb-0"
+                >
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="h-4 w-48 max-w-full animate-pulse rounded bg-[rgba(30,42,58,0.85)]" />
+                    <div className="h-3 w-14 animate-pulse rounded bg-[rgba(30,42,58,0.75)]" />
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="h-4 w-16 animate-pulse rounded bg-[rgba(30,42,58,0.85)]" />
+                    <div className="h-6 w-20 animate-pulse rounded-md bg-[rgba(30,42,58,0.8)]" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 h-[180px] w-full animate-pulse rounded-lg bg-[rgba(30,42,58,0.45)]" />
+          </div>
+        </section>
+      ) : null}
       {overview && !overviewLoading && !overviewError ? (
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
@@ -477,10 +421,10 @@ export default function DashboardPage() {
         </section>
       ) : null}
 
-      {/* ALL ASSETS TABLE */}
+      {/* RECENT ASSETS */}
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-white">All Assets</h2>
+          <h2 className="text-lg font-bold text-white">Recent Assets</h2>
           <Link
             href="/dashboard/assets"
             className="inline-flex items-center gap-1 text-sm font-medium text-[#00D4FF] hover:underline"
@@ -489,12 +433,6 @@ export default function DashboardPage() {
             <ArrowUpRight className="size-4" />
           </Link>
         </div>
-
-        {assetsMock402 ? (
-          <div className="mb-4 rounded-lg border border-[rgba(0,212,255,0.25)] bg-[rgba(0,212,255,0.06)] px-4 py-3 text-sm text-[#8892A4]">
-            Connect wallet to access live data via X402
-          </div>
-        ) : null}
 
         {assetsError ? (
           <div className="flex flex-col gap-3 rounded-xl border border-[rgba(255,68,68,0.35)] bg-[rgba(255,68,68,0.06)] p-5 md:flex-row md:items-center md:justify-between">

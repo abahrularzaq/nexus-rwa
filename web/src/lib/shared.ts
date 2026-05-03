@@ -87,10 +87,14 @@ export interface AssetSummary {
   id: string;
   name: string;
   symbol: string;
+  protocol?: string;
+  category?: AssetCategory;
+  chain?: Chain;
   tvl: number;
   yieldRate: number;
   riskScore: RiskLevel;
   change7d: number;
+  holderCount?: number;
 }
 
 // ============================================

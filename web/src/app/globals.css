@@ -136,6 +136,24 @@ html, body {
   100% { transform: translateX(100%); }
 }
 
+/* Dashboard asset grid loading placeholders */
+.asset-card-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+.asset-card-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 212, 255, 0.07),
+    transparent
+  );
+  animation: nexus-metric-card-shimmer 1.35s ease-in-out infinite;
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
