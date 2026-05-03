@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PAGINATION } from '@nexus-rwa/shared';
+import { PAGINATION } from '../shared/index.js';
 
 export const getAssetsSchema = z.object({
   page: z.coerce.number().min(1).default(PAGINATION.DEFAULT_PAGE),

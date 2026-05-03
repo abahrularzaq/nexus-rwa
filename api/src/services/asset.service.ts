@@ -8,8 +8,8 @@ import type {
   RiskLevel,
   YieldData,
   YieldPoint,
-} from '@nexus-rwa/shared';
-import { ERROR_CODES, paginate } from '@nexus-rwa/shared';
+} from '../shared/index.js';
+import { ERROR_CODES, paginate } from '../shared/index.js';
 import type { FindManyAssetsParams, YieldHistoryPeriod } from '../repositories/asset.repository.js';
 import * as assetRepo from '../repositories/asset.repository.js';
 

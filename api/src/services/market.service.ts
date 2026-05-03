@@ -1,5 +1,5 @@
-import type { MarketOverview } from '@nexus-rwa/shared';
-import { CACHE_TTL } from '@nexus-rwa/shared';
+import type { MarketOverview } from '../shared/index.js';
+import { CACHE_TTL } from '../shared/index.js';
 import { getCached } from '../lib/redis.js';
 import * as marketRepo from '../repositories/market.repo.js';
 

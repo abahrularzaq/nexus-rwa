@@ -1,8 +1,8 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import type { ApiErrorResponse, ApiSuccessResponse, AssetSummary } from '@nexus-rwa/shared';
-import { createMeta, ERROR_CODES } from '@nexus-rwa/shared';
+import type { ApiErrorResponse, ApiSuccessResponse, AssetSummary } from '../shared/index.js';
+import { createMeta, ERROR_CODES } from '../shared/index.js';
 import { createNexusX402Middleware } from '../middleware/x402/index.js';
 import * as assetRepo from '../repositories/asset.repository.js';
 import { summarizeAssetsForList } from '../services/asset.service.js';

@@ -8,8 +8,8 @@ import type {
   PaginatedResponse,
   RiskData,
   YieldData,
-} from '@nexus-rwa/shared';
-import { createMeta, ERROR_CODES } from '@nexus-rwa/shared';
+} from '../shared/index.js';
+import { createMeta, ERROR_CODES } from '../shared/index.js';
 import { createNexusX402Middleware } from '../middleware/x402/index.js';
 import {
   getAssetByIdSchema,

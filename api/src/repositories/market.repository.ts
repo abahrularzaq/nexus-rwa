@@ -1,4 +1,4 @@
-import type { AssetSummary, MarketOverview, RiskLevel } from '@nexus-rwa/shared';
+import type { AssetSummary, MarketOverview, RiskLevel } from '../shared/index.js';
 import { Prisma } from '@prisma/client';
 import { db } from '../lib/database.js';
 import { findTopMovers } from './asset.repository.js';

@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
-import type { ApiSuccessResponse } from '@nexus-rwa/shared';
-import { createMeta } from '@nexus-rwa/shared';
+import type { ApiSuccessResponse } from '../shared/index.js';
+import { createMeta } from '../shared/index.js';
 import { createFreePassMiddleware } from '../middleware/x402/index.js';
 import * as marketService from '../services/market.service.js';
 

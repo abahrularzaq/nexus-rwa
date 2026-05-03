@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
-import type { ApiErrorResponse } from '@nexus-rwa/shared';
-import { createMeta, ERROR_CODES } from '@nexus-rwa/shared';
+import type { ApiErrorResponse } from '../shared/index.js';
+import { createMeta, ERROR_CODES } from '../shared/index.js';
 import { logger } from '../lib/logger.js';
 import { AppError } from '../services/asset.service.js';
 
