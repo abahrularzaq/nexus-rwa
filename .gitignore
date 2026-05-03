@@ -32,4 +32,4 @@ api/prisma/migrations/
 
 # Cache
 .turbo/
-.cache/
+.cache/rwa-compass-dash/
