@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
-import type { MarketOverview } from '@nexus-rwa/shared';
-import { CACHE_TTL } from '@nexus-rwa/shared';
+import { CACHE_TTL, type MarketOverview } from '@/lib/shared';
 
 export function useMarketOverview() {
   return useQuery({

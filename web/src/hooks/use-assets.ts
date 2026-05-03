@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
-import type { Asset, PaginatedResponse } from '@nexus-rwa/shared';
+import type { Asset, PaginatedResponse } from '@/lib/shared';
 
 export function useAssets(params?: { page?: number; limit?: number; category?: string }) {
   const query = new URLSearchParams({

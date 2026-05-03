@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse } from '@nexus-rwa/shared';
+import type { ApiResponse } from '@/lib/shared';
 
 // Instance terpusat — semua fetch lewat sini
 export const apiClient = axios.create({
