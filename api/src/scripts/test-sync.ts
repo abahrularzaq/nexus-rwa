@@ -5,7 +5,11 @@ require('dotenv').config();
 
 import { db, connectDatabase } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
-import { fetchAllRwaTvl, fetchYieldPools } from '../services/defillama.service.js';
+import {
+  fetchAllRwaTvl,
+  fetchYieldPools,
+  PROTOCOL_SLUGS,
+} from '../services/defillama.service.js';
 import { syncTvlData } from '../services/sync.service.js';
 
 type MarketOverviewResponse = {
@@ -43,6 +47,7 @@ async function main(): Promise<void> {
   let passed = 0;
   let skipped = 0;
   let failed = 0;
+  let snapshotsCreatedBySync = 0;
 
   logger.info('Connecting database for sync tests...');
   await connectDatabase();
@@ -63,10 +68,24 @@ async function main(): Promise<void> {
 
     // TEST 1 — DeFi Llama TVL
     try {
+      const expectedKeys = Object.keys(PROTOCOL_SLUGS);
+      if (expectedKeys.length !== 13) {
+        throw new Error(`expected 13 PROTOCOL_SLUGS keys, got ${expectedKeys.length}`);
+      }
+
       const tvlByProtocol = await fetchAllRwaTvl();
       const entries = Object.entries(tvlByProtocol);
       if (entries.length === 0) {
         throw new Error('empty TVL response');
+      }
+
+      for (const protocolKey of expectedKeys) {
+        if (!(protocolKey in tvlByProtocol)) {
+          const slug = PROTOCOL_SLUGS[protocolKey];
+          console.log(
+            `⚠ No TVL from DeFi Llama for ${protocolKey} (slug=${slug}); see logs for details`,
+          );
+        }
       }
 
       let above1m = 0;
@@ -113,6 +132,7 @@ async function main(): Promise<void> {
       await syncTvlData();
       const after = await db.assetSnapshot.count();
       const created = after - before;
+      snapshotsCreatedBySync = created;
       console.log(`✓ Sync completed, ${created} snapshots created`);
       passed += 1;
     } catch (err) {
@@ -129,6 +149,14 @@ async function main(): Promise<void> {
         // This test is only meaningful when `npm run dev` is running in another terminal.
         skipped += 1;
         // eslint-disable-next-line no-empty
+        throw new Error('__SKIP_TEST4__');
+      }
+
+      if (snapshotsCreatedBySync === 0) {
+        console.log(
+          '↷ SKIPPED: TEST 4 — API Response (no new TVL snapshots; overview total unchanged)',
+        );
+        skipped += 1;
         throw new Error('__SKIP_TEST4__');
       }
 

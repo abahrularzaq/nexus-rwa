@@ -12,6 +12,7 @@
     "db:reset": "prisma db push --force-reset && node --import tsx/esm prisma/seed.ts",
     "test:sync": "node --import tsx/esm src/scripts/test-sync.ts",
     "test:x402": "node --import tsx/esm src/scripts/test-x402.ts",
+    "verify:assets": "node --import tsx/esm src/scripts/verify-assets.ts",
     "lint": "eslint src --ext .ts"
   },
   "prisma": {
@@ -23,6 +24,8 @@
     "@x402/core": "^2.11.0",
     "@x402/evm": "^2.11.0",
     "dotenv": "^16.6.1",
+    "graphql": "^16.14.0",
+    "graphql-request": "^7.4.0",
     "hono": "^4.3.11",
     "ioredis": "^5.3.2",
     "pino": "^9.2.0",

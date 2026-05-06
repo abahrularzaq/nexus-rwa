@@ -8,6 +8,7 @@ const TIMEOUT_MS = 10_000;
  * Mapping internal protocol key -> DeFi Llama protocol slug.
  */
 export const PROTOCOL_SLUGS: Record<string, string> = {
+  // existing 8
   'ondo-usdy': 'ondo-finance',
   'ondo-ousg': 'ondo-finance',
   'maple-usdc': 'maple-finance',
@@ -16,6 +17,12 @@ export const PROTOCOL_SLUGS: Record<string, string> = {
   'openedon-ousg': 'openeden',
   'realt-token': 'realt',
   'goldfinch-gfi': 'goldfinch',
+  // new 5
+  'franklin-benji': 'franklin-templeton',
+  'superstate-ustb': 'superstate',
+  'mountain-usdm': 'mountain-protocol',
+  'hashnote-usyc': 'hashnote',
+  'flux-fusdc': 'flux-finance',
 };
 
 export interface DefiLlamaProtocol {
@@ -81,7 +88,19 @@ function isYieldPool(x: unknown): x is YieldPool {
 
 function matchesRwaKeywords(pool: YieldPool): boolean {
   const hay = `${pool.project} ${pool.symbol} ${pool.chain}`.toLowerCase();
-  const keywords = ['ondo', 'maple', 'centrifuge', 'backed', 'openeden', 'goldfinch'];
+  const keywords = [
+    'ondo',
+    'maple',
+    'centrifuge',
+    'backed',
+    'openeden',
+    'goldfinch',
+    'franklin',
+    'superstate',
+    'mountain',
+    'hashnote',
+    'flux',
+  ];
   return keywords.some((k) => hay.includes(k));
 }
 

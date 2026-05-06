@@ -23,6 +23,117 @@ type AssetDetailPayload = Asset & {
   holder: HolderData | null;
 };
 
+/** Fallback when API is unavailable (e.g. local dev) — mirrors seeded RWA names. */
+const mockAssets: Record<string, AssetDetailPayload> = (() => {
+  const now = new Date();
+  const snap = (
+    id: string,
+    tvl: number,
+    yieldRate: number,
+    holderCount: number,
+    risk: AssetSnapshot["riskScore"],
+  ): AssetSnapshot => ({
+    id: `mock-snap-${id}`,
+    assetId: id,
+    tvl,
+    yieldRate,
+    holderCount,
+    riskScore: risk,
+    price: 1,
+    timestamp: now,
+  });
+  const riskBlock = (
+    id: string,
+    level: RiskData["overallScore"],
+  ): RiskData => ({
+    assetId: id,
+    overallScore: level,
+    liquidityScore: level === "LOW" ? 0.22 : 0.48,
+    concentrationScore: level === "LOW" ? 0.2 : 0.52,
+    protocolAgeScore: level === "LOW" ? 0.24 : 0.45,
+    volatilityScore: level === "LOW" ? 0.18 : 0.5,
+    calculatedAt: now,
+  });
+
+  return {
+    "franklin-benji": {
+      id: "franklin-benji",
+      name: "Franklin BENJI",
+      symbol: "BENJI",
+      protocol: "Franklin Templeton",
+      category: "TREASURY",
+      chain: "base",
+      contractAddress: "0x60CfC2b186a4CF647486e42c42B11cC6D571d1E4",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      snapshot: snap("franklin-benji", 4e8, 5.0, 1200, "LOW"),
+      risk: riskBlock("franklin-benji", "LOW"),
+      holder: null,
+    },
+    "superstate-ustb": {
+      id: "superstate-ustb",
+      name: "Superstate USTB",
+      symbol: "USTB",
+      protocol: "Superstate",
+      category: "TREASURY",
+      chain: "ethereum",
+      contractAddress: "0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      snapshot: snap("superstate-ustb", 2.4e8, 4.8, 900, "LOW"),
+      risk: riskBlock("superstate-ustb", "LOW"),
+      holder: null,
+    },
+    "mountain-usdm": {
+      id: "mountain-usdm",
+      name: "Mountain USDM",
+      symbol: "USDM",
+      protocol: "Mountain Protocol",
+      category: "TREASURY",
+      chain: "ethereum",
+      contractAddress: "0x59D9356E565Ab3A36dD77763Fc0d87fEaf85508C",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      snapshot: snap("mountain-usdm", 2e8, 5.1, 850, "LOW"),
+      risk: riskBlock("mountain-usdm", "LOW"),
+      holder: null,
+    },
+    "hashnote-usyc": {
+      id: "hashnote-usyc",
+      name: "Hashnote USYC",
+      symbol: "USYC",
+      protocol: "Hashnote",
+      category: "TREASURY",
+      chain: "ethereum",
+      contractAddress: "0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      snapshot: snap("hashnote-usyc", 1.75e8, 4.9, 700, "LOW"),
+      risk: riskBlock("hashnote-usyc", "LOW"),
+      holder: null,
+    },
+    "flux-fusdc": {
+      id: "flux-fusdc",
+      name: "Flux fUSDC",
+      symbol: "fUSDC",
+      protocol: "Flux Finance",
+      category: "CREDIT",
+      chain: "ethereum",
+      contractAddress: "0x465a5a630482f3abD6d3b84B39B29b07214d19e5",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      snapshot: snap("flux-fusdc", 1e8, 8.2, 400, "MEDIUM"),
+      risk: riskBlock("flux-fusdc", "MEDIUM"),
+      holder: null,
+    },
+  };
+})();
+
 function categoryAccent(category: string): string {
   switch (category) {
     case "TREASURY":
@@ -107,6 +218,12 @@ export default function AssetDetailPage() {
         const json: unknown = await res.json();
         const body = json as { success?: boolean; data?: AssetDetailPayload };
         if (!res.ok || !body.success || !body.data) {
+          const fallback = mockAssets[id];
+          if (fallback) {
+            setAsset(fallback);
+            setError(null);
+            return;
+          }
           setAsset(null);
           setError("Failed to load asset");
           return;

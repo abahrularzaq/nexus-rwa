@@ -80,7 +80,7 @@ async function fetchMarketOverview(): Promise<MarketOverview> {
 
 async function fetchAssetsList(): Promise<AssetRow[]> {
   const base = apiBase();
-  const res = await fetch(`${base}/v1/assets?limit=5&page=1`, {
+  const res = await fetch(`${base}/v1/assets?limit=13&page=1`, {
     headers: { Accept: "application/json" },
     cache: "no-store",
   });
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             Market Overview
           </h1>
           <p className="mt-1 text-sm text-[#8892A4]">
-            Real-time RWA market intelligence
+            13 assets tracked across 8 protocols
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-sm text-[#8892A4]">

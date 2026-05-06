@@ -11,6 +11,11 @@ type RwaAssetSeed = {
   chain: Chain;
   contractAddress: string;
   description: string;
+  snapshotDays?: number;
+  tvlMin?: number;
+  tvlMax?: number;
+  yieldMin?: number;
+  yieldMax?: number;
 };
 
 const RWA_ASSETS: RwaAssetSeed[] = [
@@ -94,6 +99,84 @@ const RWA_ASSETS: RwaAssetSeed[] = [
     contractAddress: "0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
     description: "Decentralized credit protocol for emerging market borrowers",
   },
+  {
+    id: "franklin-benji",
+    name: "Franklin OnChain U.S. Government Money Fund",
+    symbol: "BENJI",
+    protocol: "Franklin Templeton",
+    category: AssetCategory.TREASURY,
+    chain: Chain.base,
+    contractAddress: "0x59D397F19aE8a7B33B8A89e0FD84b8F9C8C1FE0",
+    description:
+      "Tokenized US government money market fund by Franklin Templeton, one of world's largest asset managers",
+    snapshotDays: 30,
+    tvlMin: 350e6,
+    tvlMax: 450e6,
+    yieldMin: 4.5,
+    yieldMax: 5.5,
+  },
+  {
+    id: "superstate-ustb",
+    name: "Superstate Short Duration US Government Securities Fund",
+    symbol: "USTB",
+    protocol: "Superstate",
+    category: AssetCategory.TREASURY,
+    chain: Chain.ethereum,
+    contractAddress: "0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
+    description:
+      "Tokenized short-duration US Treasury fund by Superstate, founded by Compound Finance creator",
+    snapshotDays: 30,
+    tvlMin: 200e6,
+    tvlMax: 280e6,
+    yieldMin: 4.5,
+    yieldMax: 5.5,
+  },
+  {
+    id: "mountain-usdm",
+    name: "Mountain Protocol USD",
+    symbol: "USDM",
+    protocol: "Mountain Protocol",
+    category: AssetCategory.TREASURY,
+    chain: Chain.ethereum,
+    contractAddress: "0x59D9356E565Ab3A36dD77763Fc0d87fEaf85508C",
+    description: "Yield-bearing stablecoin backed by short-term US Treasury Bills",
+    snapshotDays: 30,
+    tvlMin: 180e6,
+    tvlMax: 220e6,
+    yieldMin: 4.5,
+    yieldMax: 5.5,
+  },
+  {
+    id: "hashnote-usyc",
+    name: "Hashnote US Yield Coin",
+    symbol: "USYC",
+    protocol: "Hashnote",
+    category: AssetCategory.TREASURY,
+    chain: Chain.ethereum,
+    contractAddress: "0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+    description:
+      "Tokenized short-duration US Treasury and Repo instrument for institutional investors",
+    snapshotDays: 30,
+    tvlMin: 150e6,
+    tvlMax: 200e6,
+    yieldMin: 4.5,
+    yieldMax: 5.5,
+  },
+  {
+    id: "flux-fusdc",
+    name: "Flux USDC",
+    symbol: "fUSDC",
+    protocol: "Flux Finance",
+    category: AssetCategory.CREDIT,
+    chain: Chain.ethereum,
+    contractAddress: "0x465a5a630482f3abD6d3b84B39B29b07214d19e5",
+    description: "Lending protocol for RWA tokens, fork of Compound V2 by Ondo Finance",
+    snapshotDays: 30,
+    tvlMin: 80e6,
+    tvlMax: 120e6,
+    yieldMin: 7,
+    yieldMax: 9,
+  },
 ];
 
 function rng01(seed: string, salt: number): number {
@@ -169,7 +252,12 @@ function holderTop10Range(category: AssetCategory): { min: number; max: number }
 }
 
 function buildSnapshots(asset: RwaAssetSeed, days: number) {
-  const { tvlMin, tvlMax, yieldMin, yieldMax, holdersMin, holdersMax } = categoryRanges(asset.category);
+  const defaults = categoryRanges(asset.category);
+  const tvlMin = asset.tvlMin ?? defaults.tvlMin;
+  const tvlMax = asset.tvlMax ?? defaults.tvlMax;
+  const yieldMin = asset.yieldMin ?? defaults.yieldMin;
+  const yieldMax = asset.yieldMax ?? defaults.yieldMax;
+  const { holdersMin, holdersMax } = defaults;
   const baseTvl = rangeFromSeed(asset.id, 1, tvlMin, tvlMax);
   const baseYield = rangeFromSeed(asset.id, 2, yieldMin, yieldMax);
   const baseHolders = Math.round(rangeFromSeed(asset.id, 3, holdersMin, holdersMax));
@@ -241,8 +329,9 @@ async function seedAsset(asset: RwaAssetSeed) {
     },
   });
 
+  const snapshotDays = asset.snapshotDays ?? 90;
   await prisma.assetSnapshot.deleteMany({ where: { assetId: asset.id } });
-  const snapshots = buildSnapshots(asset, 90);
+  const snapshots = buildSnapshots(asset, snapshotDays);
   await prisma.assetSnapshot.createMany({ data: snapshots });
 
   await prisma.riskScore.deleteMany({ where: { assetId: asset.id } });

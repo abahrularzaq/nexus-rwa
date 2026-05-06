@@ -20,8 +20,7 @@ type AssetCategoryTab =
   | "TREASURY"
   | "CREDIT"
   | "REAL_ESTATE"
-  | "COMMODITIES"
-  | "EQUITY";
+  | "COMMODITIES";
 
 /** List row shape aligned with API (flat or nested). */
 interface AssetSnapshotRow {
@@ -170,8 +169,6 @@ function categoryAccent(category: string): string {
       return "#00FF88";
     case "COMMODITIES":
       return "#FFB800";
-    case "EQUITY":
-      return "#FF6B9D";
     default:
       return "#8892A4";
   }
@@ -232,7 +229,7 @@ export default function DashboardAssetsPage() {
           setAssets([]);
           return;
         }
-        const res = await fetch(`${base}/v1/assets?limit=20&page=1`);
+        const res = await fetch(`${base}/v1/assets?limit=50&page=1`);
         const json: unknown = await res.json();
         const body = json as {
           success?: boolean;
@@ -258,11 +255,6 @@ export default function DashboardAssetsPage() {
     }
     void fetchAssets();
   }, []);
-
-  const protocolCount = useMemo(
-    () => new Set(assets.map((a) => a.protocol).filter(Boolean)).size,
-    [assets],
-  );
 
   const filteredSorted = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -333,7 +325,7 @@ export default function DashboardAssetsPage() {
         <p className="mt-1 text-sm text-[#8892A4]">
           {loading
             ? "Loading assets…"
-            : `${assets.length} assets tracked across ${protocolCount} protocols`}
+            : `${assets.length} assets tracked`}
         </p>
       </header>
 
