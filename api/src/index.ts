@@ -12,6 +12,7 @@ import { searchRouter } from './routes/search.js';
 import { connectDatabase } from './lib/database.js';
 import { logger } from './lib/logger.js';
 import { setupErrorHandlers } from './middleware/error-handler.js';
+import { startSyncScheduler } from './services/sync.service.js';
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 3001;
@@ -58,7 +59,8 @@ app.use('*', rateLimiter);
 app.get('/health', (c) => c.json({ 
   status: 'ok', 
   version: process.env.API_VERSION,
-  timestamp: new Date().toISOString() 
+  timestamp: new Date().toISOString(),
+  dataSync: 'active',
 }));
 
 // Routes
@@ -77,6 +79,9 @@ setupErrorHandlers(app);
 // Start server
 async function main(): Promise<void> {
   await connectDatabase();
+  // Mulai sync data otomatis setiap 1 jam
+  startSyncScheduler();
+  logger.info('Data sync scheduler started');
   serve({ fetch: app.fetch, port: PORT }, () => {
     logger.info(`🚀 Nexus RWA API running on port ${PORT}`);
   });
