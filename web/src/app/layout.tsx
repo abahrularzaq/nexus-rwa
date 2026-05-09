@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter, JetBrains_Mono } from "next/font/google";
-import { Providers } from "./providers";
+
+import { Web3Provider } from "@/components/providers/Web3Provider";
+
 import "./globals.css";
 
 const inter = Inter({
@@ -58,7 +60,7 @@ export default function RootLayout({
       className={`dark ${inter.variable} ${geistMono.variable} ${jetbrainsMono.variable} h-full antialiased`}
    >
       <body className="min-h-full flex flex-col font-sans">
-        <Providers>{children}</Providers>
+        <Web3Provider>{children}</Web3Provider>
       </body>
     </html>
   );

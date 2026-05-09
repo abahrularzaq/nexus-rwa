@@ -13,10 +13,41 @@ import { connectDatabase } from './lib/database.js';
 import { logger } from './lib/logger.js';
 import { setupErrorHandlers } from './middleware/error-handler.js';
 import { startSyncScheduler } from './services/sync.service.js';
+import { gatedRouter } from './routes/gated.js';
+import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 3001;
 const rateLimiter = createRateLimiter();
+
+function normalizeOrigin(input: string): string | null {
+  const raw = input.trim();
+  if (raw === '') return null;
+  try {
+    // If user passes full URL, take its origin.
+    if (raw.includes('://')) return new URL(raw).origin;
+    // Otherwise assume https for domain-only values.
+    return new URL(`https://${raw}`).origin;
+  } catch {
+    return null;
+  }
+}
+
+function allowedOrigins(): Set<string> {
+  const env = (process.env.FRONTEND_URL ?? '').trim();
+  if (env === '') return new Set();
+
+  // Support comma-separated list: "https://a.com,https://b.com"
+  const parts = env.split(',').map((s) => s.trim()).filter(Boolean);
+  const set = new Set<string>();
+  for (const p of parts) {
+    const o = normalizeOrigin(p);
+    if (o) set.add(o);
+  }
+  return set;
+}
+
+const CUSTOM_ALLOWED_ORIGINS = allowedOrigins();
 
 // Global middleware
 app.use('*', cors({
@@ -31,8 +62,8 @@ app.use('*', cors({
     if (origin.includes('vercel.app')) return origin;
 
     // Izinkan domain custom jika ada
-    const allowed = process.env.FRONTEND_URL;
-    if (allowed && origin === allowed) return origin;
+    const reqOrigin = normalizeOrigin(origin);
+    if (reqOrigin && CUSTOM_ALLOWED_ORIGINS.has(reqOrigin)) return reqOrigin;
 
     return '';
   },
@@ -41,10 +72,12 @@ app.use('*', cors({
     'Content-Type',
     'X-API-Key',
     'X-Payment',
+    'X-Payment-Tx',
     'Authorization',
   ],
   exposeHeaders: [
     'X-Payment-Status',
+    'X-Payment-Verified',
     'X-Request-Id',
     'X-RateLimit-Limit',
     'X-RateLimit-Remaining',
@@ -67,6 +100,7 @@ app.get('/health', (c) => c.json({
 app.route('/v1/market', marketRouter);
 app.route('/v1/assets', assetsRouter);
 app.route('/v1/search', searchRouter);
+app.route('/v1/gated', gatedRouter);
 
 // 404 handler
 app.notFound((c) => c.json({
@@ -78,6 +112,7 @@ setupErrorHandlers(app);
 
 // Start server
 async function main(): Promise<void> {
+  assertX402Env();
   await connectDatabase();
   // Mulai sync data otomatis setiap 1 jam
   startSyncScheduler();

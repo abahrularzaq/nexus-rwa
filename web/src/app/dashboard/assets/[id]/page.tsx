@@ -17,6 +17,12 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+function apiKeyHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const apiKey = localStorage.getItem("nexus_api_key");
+  return apiKey ? { "X-API-Key": apiKey } : {};
+}
+
 type AssetDetailPayload = Asset & {
   snapshot: AssetSnapshot | null;
   risk: RiskData | null;
@@ -214,7 +220,9 @@ export default function AssetDetailPage() {
           setError("Failed to load asset");
           return;
         }
-        const res = await fetch(`${base}/v1/assets/${id}`);
+        const res = await fetch(`${base}/v1/assets/${id}`, {
+          headers: { Accept: "application/json", ...apiKeyHeader() },
+        });
         const json: unknown = await res.json();
         const body = json as { success?: boolean; data?: AssetDetailPayload };
         if (!res.ok || !body.success || !body.data) {

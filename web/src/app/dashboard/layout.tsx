@@ -17,6 +17,9 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { DashboardWalletButton } from "@/components/dashboard/DashboardWalletButton";
+import { PaymentHistory } from "@/components/paywall/PaymentHistory";
+
 const navItems = [
   {
     label: "Overview",
@@ -187,6 +190,7 @@ export default function DashboardLayout({
               <span className="size-2 shrink-0 rounded-full bg-[#00FF88] shadow-[0_0_8px_rgba(0,255,136,0.6)]" />
               <span className="text-[#8892A4]">API Connected</span>
             </div>
+            <PaymentHistory />
             <Link
               href="/"
               onClick={closeSidebar}
@@ -251,6 +255,7 @@ export default function DashboardLayout({
           >
             <RefreshCw className="size-[18px]" />
           </button>
+          <DashboardWalletButton />
         </div>
       </header>
 

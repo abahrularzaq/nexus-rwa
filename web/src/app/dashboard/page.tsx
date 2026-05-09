@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { BlurredPreview } from "@/components/paywall/BlurredPreview";
+import { PaywallGuard } from "@/components/paywall/PaywallGuard";
 import type {
   ApiResponse,
   AssetCategory,
@@ -42,6 +44,12 @@ type AssetRow = AssetSummary & {
 
 function apiBase(): string {
   return API_URL.trim().replace(/\/$/, "");
+}
+
+function apiKeyHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const apiKey = localStorage.getItem("nexus_api_key");
+  return apiKey ? { "X-API-Key": apiKey } : {};
 }
 
 function fmtChange7d(change7d: number): string {
@@ -66,7 +74,7 @@ function parseOverviewPayload(data: MarketOverview): MarketOverview {
 async function fetchMarketOverview(): Promise<MarketOverview> {
   const base = apiBase();
   const res = await fetch(`${base}/v1/market/overview`, {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...apiKeyHeader() },
     cache: "no-store",
   });
   const body = (await res.json()) as ApiResponse<MarketOverview>;
@@ -81,7 +89,7 @@ async function fetchMarketOverview(): Promise<MarketOverview> {
 async function fetchAssetsList(): Promise<AssetRow[]> {
   const base = apiBase();
   const res = await fetch(`${base}/v1/assets?limit=13&page=1`, {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...apiKeyHeader() },
     cache: "no-store",
   });
   let body: ApiResponse<PaginatedResponse<AssetSummary>>;
@@ -113,6 +121,26 @@ function categoryLabel(c: string | AssetCategory | undefined): string {
     .split("_")
     .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
     .join(" ");
+}
+
+function GatedAnalyticsPanel({
+  title,
+  subtitle,
+  data,
+}: {
+  title: string;
+  subtitle: string;
+  data: unknown;
+}) {
+  return (
+    <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
+      <h2 className="text-lg font-bold text-white">{title}</h2>
+      <p className="mt-1 text-sm text-[#8892A4]">{subtitle}</p>
+      <pre className="mt-4 max-h-[min(360px,50vh)] overflow-auto rounded-lg border border-[rgba(30,42,58,0.6)] bg-[#0A0E1A] p-4 font-mono text-xs leading-relaxed text-[#8892A4]">
+        {data == null ? "—" : JSON.stringify(data, null, 2)}
+      </pre>
+    </section>
+  );
 }
 
 const chartTooltipStyle = {
@@ -267,6 +295,80 @@ export default function DashboardPage() {
           />
         </div>
       )}
+
+      {/* TVL OVERVIEW (free) */}
+      {!overviewError ? (
+        <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
+          <h2 className="text-lg font-bold text-white">TVL Overview</h2>
+          <p className="mt-1 text-sm text-[#8892A4]">
+            Aggregate liquidity snapshot across tracked listings — always free.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-lg border border-[rgba(30,42,58,0.6)] bg-[rgba(10,14,26,0.55)] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
+                Total TVL
+              </p>
+              <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-white">
+                {overviewLoading ? "—" : overview ? fmtTvlUsd(overview.totalTvl) : "—"}
+              </p>
+            </div>
+            <div className="rounded-lg border border-[rgba(30,42,58,0.6)] bg-[rgba(10,14,26,0.55)] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
+                Active assets
+              </p>
+              <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-white">
+                {overviewLoading ? "—" : overview ? overview.totalAssets : "—"}
+              </p>
+            </div>
+            <div className="rounded-lg border border-[rgba(30,42,58,0.6)] bg-[rgba(10,14,26,0.55)] p-4 sm:col-span-2 lg:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
+                Last updated
+              </p>
+              <p className="mt-2 text-sm font-medium text-white">{lastDisplay}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* YIELD ANALYTICS (gated) */}
+      <PaywallGuard
+        endpoint="/api/v1/analytics/yield"
+        fallback={({ openPaywall }) => (
+          <BlurredPreview
+            title="Yield Analytics"
+            priceLabel="from ~0.001 ETH"
+            onUnlock={openPaywall}
+          />
+        )}
+      >
+        {(data) => (
+          <GatedAnalyticsPanel
+            title="Yield Analytics"
+            subtitle="Premium yield curves, regime splits, and forward-looking stress paths."
+            data={data}
+          />
+        )}
+      </PaywallGuard>
+
+      {/* RISK METRICS (gated) */}
+      <PaywallGuard
+        endpoint="/api/v1/analytics/risk"
+        fallback={({ openPaywall }) => (
+          <BlurredPreview
+            title="Risk Metrics"
+            priceLabel="from ~0.001 ETH"
+            onUnlock={openPaywall}
+          />
+        )}
+      >
+        {(data) => (
+          <GatedAnalyticsPanel
+            title="Risk Metrics"
+            subtitle="Concentration, drawdown bands, and protocol-level risk flags."
+            data={data}
+          />
+        )}
+      </PaywallGuard>
 
       {/* TOP MOVERS + CHARTS */}
       {overviewLoading && !overviewError ? (

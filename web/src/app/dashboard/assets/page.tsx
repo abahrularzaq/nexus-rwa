@@ -15,6 +15,12 @@ import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+function apiKeyHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const apiKey = localStorage.getItem("nexus_api_key");
+  return apiKey ? { "X-API-Key": apiKey } : {};
+}
+
 type AssetCategoryTab =
   | "ALL"
   | "TREASURY"
@@ -229,7 +235,9 @@ export default function DashboardAssetsPage() {
           setAssets([]);
           return;
         }
-        const res = await fetch(`${base}/v1/assets?limit=50&page=1`);
+        const res = await fetch(`${base}/v1/assets?limit=50&page=1`, {
+          headers: { Accept: "application/json", ...apiKeyHeader() },
+        });
         const json: unknown = await res.json();
         const body = json as {
           success?: boolean;
