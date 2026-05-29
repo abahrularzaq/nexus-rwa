@@ -11,7 +11,9 @@ import {
   SearchX,
 } from "lucide-react";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
+import type { AssetDataMeta } from "@/lib/shared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -36,10 +38,6 @@ interface AssetSnapshotRow {
   riskScore: string;
 }
 
-interface AssetRiskScoreRow {
-  overallScore: string;
-}
-
 interface Asset {
   id: string;
   name: string;
@@ -48,9 +46,40 @@ interface Asset {
   category: string;
   chain: string;
   snapshots: AssetSnapshotRow[];
-  riskScores: AssetRiskScoreRow[];
+  riskLevel: string;
   /** From flat list summary for 7d sort / display. */
   change7d?: number;
+  _meta?: AssetDataMeta;
+}
+
+const defaultAssetMeta: AssetDataMeta = {
+  sources: ["defillama"],
+  lastUpdated: new Date().toISOString(),
+  confidence: "MEDIUM",
+  methodology: "Latest snapshot from DeFi Llama sync (single_source)",
+};
+
+function parseMeta(raw: Record<string, unknown>): AssetDataMeta {
+  const m = raw._meta;
+  if (!m || typeof m !== "object") return defaultAssetMeta;
+  const o = m as Record<string, unknown>;
+  const sources = Array.isArray(o.sources)
+    ? o.sources.filter((s): s is string => typeof s === "string")
+    : ["defillama"];
+  const confidence =
+    o.confidence === "HIGH" || o.confidence === "MEDIUM" || o.confidence === "LOW"
+      ? o.confidence
+      : "MEDIUM";
+  return {
+    sources,
+    lastUpdated:
+      typeof o.lastUpdated === "string" ? o.lastUpdated : defaultAssetMeta.lastUpdated,
+    confidence,
+    methodology:
+      typeof o.methodology === "string"
+        ? o.methodology
+        : defaultAssetMeta.methodology,
+  };
 }
 
 function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
@@ -61,9 +90,21 @@ function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
   return "MEDIUM";
 }
 
+function resolveRiskLevel(raw: Record<string, unknown>): string {
+  const riskObj = raw.risk;
+  if (riskObj && typeof riskObj === "object" && riskObj !== null) {
+    const level = (riskObj as Record<string, unknown>).level;
+    if (typeof level === "string" && level) return level;
+  }
+  if (typeof raw.riskLevel === "string" && raw.riskLevel) {
+    return raw.riskLevel;
+  }
+  return String(raw.riskScore ?? "MEDIUM");
+}
+
 function parseAssetFromApiRow(raw: Record<string, unknown>): Asset {
+  const riskLevel = resolveRiskLevel(raw);
   const snapshotsRaw = raw.snapshots;
-  const riskScoresRaw = raw.riskScores;
   const firstSnap =
     Array.isArray(snapshotsRaw) &&
     snapshotsRaw.length > 0 &&
@@ -71,15 +112,8 @@ function parseAssetFromApiRow(raw: Record<string, unknown>): Asset {
     snapshotsRaw[0] !== null
       ? (snapshotsRaw[0] as Record<string, unknown>)
       : null;
-  const firstRisk =
-    Array.isArray(riskScoresRaw) &&
-    riskScoresRaw.length > 0 &&
-    typeof riskScoresRaw[0] === "object" &&
-    riskScoresRaw[0] !== null
-      ? (riskScoresRaw[0] as Record<string, unknown>)
-      : null;
 
-  if (firstSnap && firstRisk) {
+  if (firstSnap) {
     return {
       id: String(raw.id ?? ""),
       name: String(raw.name ?? ""),
@@ -92,20 +126,16 @@ function parseAssetFromApiRow(raw: Record<string, unknown>): Asset {
           tvl: Number(firstSnap.tvl ?? 0),
           yieldRate: Number(firstSnap.yieldRate ?? 0),
           holderCount: Number(firstSnap.holderCount ?? 0),
-          riskScore: String(
-            firstSnap.riskScore ?? firstRisk.overallScore ?? "MEDIUM",
-          ),
+          riskScore: String(firstSnap.riskScore ?? riskLevel),
         },
       ],
-      riskScores: [
-        { overallScore: String(firstRisk.overallScore ?? "MEDIUM") },
-      ],
+      riskLevel,
       change7d:
         typeof raw.change7d === "number" ? raw.change7d : undefined,
+      _meta: parseMeta(raw),
     };
   }
 
-  const risk = String(raw.riskScore ?? "MEDIUM");
   return {
     id: String(raw.id ?? ""),
     name: String(raw.name ?? ""),
@@ -118,11 +148,12 @@ function parseAssetFromApiRow(raw: Record<string, unknown>): Asset {
         tvl: Number(raw.tvl ?? 0),
         yieldRate: Number(raw.yieldRate ?? 0),
         holderCount: Number(raw.holderCount ?? 0),
-        riskScore: risk,
+        riskScore: riskLevel,
       },
     ],
-    riskScores: [{ overallScore: risk }],
+    riskLevel,
     change7d: Number(raw.change7d ?? 0),
+    _meta: parseMeta(raw),
   };
 }
 
@@ -310,8 +341,8 @@ export default function DashboardAssetsPage() {
       >
         <Info className="mt-0.5 size-5 shrink-0 text-[#00D4FF]" aria-hidden />
         <p className="text-sm leading-relaxed text-[#8892A4]">
-          Basic asset data is free. Advanced analytics (yield history, risk
-          details, holder intelligence) require X402 micropayment.
+          Asset list and risk scores are free. Yield history and holder
+          intelligence require X402 micropayment.
         </p>
       </div>
 
@@ -443,11 +474,14 @@ export default function DashboardAssetsPage() {
             const tvl = snapshot?.tvl ?? 0;
             const yieldRate = snapshot?.yieldRate ?? 0;
             const holderCount = snapshot?.holderCount ?? 0;
-            const riskScore = toRiskLevel(asset.riskScores?.[0]?.overallScore);
+            const riskScore = toRiskLevel(
+              asset.riskLevel ?? asset.snapshots?.[0]?.riskScore,
+            );
             const accent = categoryAccent(asset.category);
             const change7d = asset.change7d ?? 0;
             const up = change7d >= 0;
             const protocolLabel = asset.protocol.trim() ? asset.protocol : "—";
+            const meta = asset._meta ?? defaultAssetMeta;
             return (
               <article
                 key={asset.id}
@@ -476,6 +510,7 @@ export default function DashboardAssetsPage() {
                     <p className="mt-1 text-sm font-bold tabular-nums text-white">
                       {formatTvl(tvl)}
                     </p>
+                    <DataSourceBadge meta={meta} className="mt-1.5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8892A4]">
@@ -484,6 +519,7 @@ export default function DashboardAssetsPage() {
                     <p className="mt-1 text-sm font-bold tabular-nums text-[#00FF88]">
                       {formatYieldFraction(yieldRate)}
                     </p>
+                    <DataSourceBadge meta={meta} className="mt-1.5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8892A4]">
@@ -492,6 +528,7 @@ export default function DashboardAssetsPage() {
                     <p className="mt-1 text-sm font-bold tabular-nums text-white">
                       {formatHolders(holderCount)}
                     </p>
+                    <DataSourceBadge meta={meta} className="mt-1.5" />
                   </div>
                 </div>
 

@@ -13,7 +13,7 @@ const ENDPOINT_PATH: Record<LockedDataEndpoint, string> = {
 
 const PRICE_BADGE: Record<LockedDataEndpoint, string> = {
   yield: "$0.005 USDC per request",
-  risk: "$0.003 USDC per request",
+  risk: "$0.005 USDC per request",
   holders: "$0.005 USDC per request",
 };
 

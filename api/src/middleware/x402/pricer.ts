@@ -19,6 +19,7 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   "yield",
   "holders",
   "risk",
+  "history",
 ]);
 
 /**
@@ -66,14 +67,19 @@ export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>>
     description: "Historical and projected yield for one asset.",
     isFree: false,
   },
+  "GET:/v1/assets/:id/history": {
+    price: "$0.005",
+    description: "Time-series yield and TVL history for one asset.",
+    isFree: false,
+  },
   "GET:/v1/assets/:id/holders": {
     price: "$0.005",
     description: "Holder distribution and concentration metrics.",
     isFree: false,
   },
   "GET:/v1/assets/:id/risk": {
-    price: "$0.003",
-    description: "Risk scoring and factor breakdown for one asset.",
+    price: "$0.005",
+    description: "Risk scoring, factor breakdown, and category benchmark for one asset.",
     isFree: false,
   },
   "GET:/v1/search": {

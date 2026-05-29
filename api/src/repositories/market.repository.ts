@@ -1,6 +1,7 @@
-import type { AssetSummary, MarketOverview, RiskLevel } from '../shared/index.js';
+import type { AssetDataMeta, AssetSummary, MarketOverview, RiskLevel } from '../shared/index.js';
 import { Prisma } from '@prisma/client';
 import { db } from '../lib/database.js';
+import { resolveAssetMeta } from '../lib/dataSources.js';
 import { findTopMovers } from './asset.repository.js';
 
 /**
@@ -25,6 +26,13 @@ const latestActiveSnapshotMetrics = Prisma.sql`
   FROM latest
 `;
 
+const defaultMoverMeta: AssetDataMeta = {
+  sources: ['defillama'],
+  lastUpdated: new Date().toISOString(),
+  confidence: 'MEDIUM',
+  methodology: 'Latest snapshot from DeFi Llama sync (single_source)',
+};
+
 function mapMoverToMarketAssetSummary(
   row: {
     id: string;
@@ -35,6 +43,7 @@ function mapMoverToMarketAssetSummary(
   },
   snapByAsset: Map<string, { tvl: number; yieldRate: number }>,
   riskByAsset: Map<string, RiskLevel>,
+  metaByAsset: Map<string, AssetDataMeta>,
 ): AssetSummary {
   const snap = snapByAsset.get(row.id);
   const riskScore: RiskLevel = riskByAsset.get(row.id) ?? 'MEDIUM';
@@ -46,6 +55,7 @@ function mapMoverToMarketAssetSummary(
     yieldRate: (snap?.yieldRate ?? row.currentYield) / 100,
     riskScore,
     change7d: row.yieldChange7d / 100,
+    _meta: metaByAsset.get(row.id) ?? defaultMoverMeta,
   };
 }
 
@@ -63,9 +73,9 @@ export async function getMarketOverview(): Promise<MarketOverview> {
 
   const moverIds = [...new Set([...movers.gainers, ...movers.losers].map((m) => m.id))];
 
-  const [snapRows, riskRows] =
+  const [snapRows, riskRows, assetMetaRows] =
     moverIds.length === 0
-      ? [[], []] as const
+      ? [[], [], []] as const
       : await Promise.all([
           db.assetSnapshot.findMany({
             where: { assetId: { in: moverIds } },
@@ -76,6 +86,18 @@ export async function getMarketOverview(): Promise<MarketOverview> {
             where: { assetId: { in: moverIds } },
             orderBy: { calculatedAt: 'desc' },
             select: { assetId: true, overallScore: true },
+          }),
+          db.asset.findMany({
+            where: { id: { in: moverIds } },
+            select: {
+              id: true,
+              dataSources: true,
+              dataConfidence: true,
+              dataMethodology: true,
+              dataSourcesUpdatedAt: true,
+              updatedAt: true,
+              snapshots: { orderBy: { timestamp: 'desc' }, take: 1, select: { timestamp: true } },
+            },
           }),
         ]);
 
@@ -93,16 +115,21 @@ export async function getMarketOverview(): Promise<MarketOverview> {
     }
   }
 
+  const metaByAsset = new Map<string, AssetDataMeta>();
+  for (const a of assetMetaRows) {
+    metaByAsset.set(a.id, resolveAssetMeta(a));
+  }
+
   return {
     totalTvl: Number(metrics.totalTvl),
     totalAssets,
     avgYieldRate: Number(metrics.avgYieldRate) / 100,
     totalHolders: Math.round(Number(metrics.totalHolders)),
     topGainers: movers.gainers.map((g) =>
-      mapMoverToMarketAssetSummary(g, snapByAsset, riskByAsset),
+      mapMoverToMarketAssetSummary(g, snapByAsset, riskByAsset, metaByAsset),
     ),
     topLosers: movers.losers.map((l) =>
-      mapMoverToMarketAssetSummary(l, snapByAsset, riskByAsset),
+      mapMoverToMarketAssetSummary(l, snapByAsset, riskByAsset, metaByAsset),
     ),
     updatedAt: new Date(),
   };

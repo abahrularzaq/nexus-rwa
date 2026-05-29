@@ -8,12 +8,14 @@ import type {
   PaginatedResponse,
   RiskData,
   YieldData,
+  YieldHistoryResponse,
 } from '../shared/index.js';
 import { createMeta, ERROR_CODES } from '../shared/index.js';
 import { createNexusX402Middleware } from '../middleware/x402/index.js';
 import {
   getAssetByIdSchema,
   getAssetsSchema,
+  getHistorySchema,
   getYieldSchema,
 } from '../validators/asset.validator.js';
 import {
@@ -25,6 +27,7 @@ import {
   getRiskData,
   getYieldData,
 } from '../services/asset.service.js';
+import { getYieldHistory } from '../services/yieldHistory.service.js';
 
 let x402Instance: ReturnType<typeof createNexusX402Middleware> | null = null;
 
@@ -158,6 +161,44 @@ async function getHoldersHandler(c: Context) {
   }
 }
 
+/** GET /:id/history — time-series yield + TVL (gated) */
+async function getHistoryHandler(c: Context) {
+  const parsed = getHistorySchema.safeParse({
+    id: c.req.param('id'),
+    period: c.req.query('period'),
+  });
+  if (!parsed.success) {
+    return c.json(
+      err(ERROR_CODES.INVALID_PARAMS, 'Parameter tidak valid', {
+        issues: parsed.error.flatten(),
+      }),
+      400,
+    );
+  }
+
+  try {
+    const data: YieldHistoryResponse = await getYieldHistory(
+      parsed.data.id,
+      parsed.data.period,
+    );
+    return c.json(ok(data, false));
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === 'ASSET_NOT_FOUND') {
+      return c.json(
+        err(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan'),
+        404,
+      );
+    }
+    return c.json(
+      err(
+        ERROR_CODES.INTERNAL_ERROR,
+        e instanceof Error ? e.message : 'Terjadi kesalahan internal',
+      ),
+      500,
+    );
+  }
+}
+
 /** GET /:id/risk — detail skor risiko */
 async function getRiskHandler(c: Context) {
   const parsed = getAssetByIdSchema.safeParse({ id: c.req.param('id') });
@@ -171,8 +212,9 @@ async function getRiskHandler(c: Context) {
   }
 
   try {
-    const data: RiskData = await getRiskData(parsed.data.id);
-    return c.json(ok(data, false));
+    const { data, cached } = await getRiskData(parsed.data.id);
+    c.header('X-Cache', cached ? 'HIT' : 'MISS');
+    return c.json(ok<RiskData>(data, cached));
   } catch (e: unknown) {
     if (e instanceof AppError) {
       return c.json(err(e.code, e.message), appErrorStatus(e.code));
@@ -218,6 +260,7 @@ async function getAssetDetailHandler(c: Context) {
 
 assetsRouter.get('/', (c, next) => getX402Middleware()(c, next), getAssetsHandler);
 assetsRouter.get('/:id/yield', (c, next) => getX402Middleware()(c, next), getYieldHandler);
+assetsRouter.get('/:id/history', (c, next) => getX402Middleware()(c, next), getHistoryHandler);
 assetsRouter.get('/:id/holders', (c, next) => getX402Middleware()(c, next), getHoldersHandler);
 assetsRouter.get('/:id/risk', (c, next) => getX402Middleware()(c, next), getRiskHandler);
 assetsRouter.get('/:id', (c, next) => getX402Middleware()(c, next), getAssetDetailHandler);

@@ -47,6 +47,7 @@ export interface YieldData {
   avgYield30d: number;
   avgYield90d: number;
   history: YieldPoint[];
+  _meta: AssetDataMeta;
 }
 
 export interface YieldPoint {
@@ -54,15 +55,32 @@ export interface YieldPoint {
   yield: number;
 }
 
-// --- Risk Data ---
+export type YieldHistoryPeriod = '7d' | '30d' | '90d';
+
+export interface YieldHistoryPoint {
+  timestamp: string;
+  yield: number;
+  tvl: number;
+}
+
+export interface YieldHistoryResponse {
+  assetId: string;
+  period: YieldHistoryPeriod;
+  limited_history: boolean;
+  history: YieldHistoryPoint[];
+  _meta: AssetDataMeta;
+}
+
+// --- Risk Data (computed risk engine, stored on Asset) ---
+export type ComputedRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
 export interface RiskData {
   assetId: string;
-  overallScore: RiskLevel;
-  liquidityScore: number;
-  concentrationScore: number;
-  protocolAgeScore: number;
-  volatilityScore: number;
-  calculatedAt: Date;
+  score: number;
+  level: ComputedRiskLevel;
+  factors: string[];
+  updatedAt: Date | null;
+  _meta: AssetDataMeta;
 }
 
 // --- Holder Data ---
@@ -73,6 +91,7 @@ export interface HolderData {
   whaleCount: number;
   retailCount: number;
   updatedAt: Date;
+  _meta: AssetDataMeta;
 }
 
 // --- Market Overview ---
@@ -84,6 +103,15 @@ export interface MarketOverview {
   topGainers: AssetSummary[];
   topLosers: AssetSummary[];
   updatedAt: Date;
+}
+
+export type DataConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface AssetDataMeta {
+  sources: string[];
+  lastUpdated: string;
+  confidence: DataConfidence;
+  methodology: string;
 }
 
 export interface AssetSummary {
@@ -98,6 +126,7 @@ export interface AssetSummary {
   riskScore: RiskLevel;
   change7d: number;
   holderCount?: number;
+  _meta: AssetDataMeta;
 }
 
 // ============================================

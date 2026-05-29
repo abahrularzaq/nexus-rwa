@@ -10,6 +10,11 @@ import {
 } from './defillama.service.js';
 import { fetchCentrifugeData, fetchGoldfinchData } from './thegraph.service.js';
 import { logValidationWarnings, validateAssetSnapshot } from './validation.service.js';
+import {
+  fetchFromRwaXyz,
+  mergeDataSources,
+  mergedToAssetMeta,
+} from '../lib/dataSources.js';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const CHANGE_THRESHOLD = 0.001; // 0.1% (legacy TVL-only sync)
@@ -170,6 +175,7 @@ export async function syncAllData(): Promise<{
   const assets = await db.asset.findMany({
     select: {
       id: true,
+      symbol: true,
       protocol: true,
       snapshots: {
         select: { id: true, tvl: true, yieldRate: true, holderCount: true, timestamp: true },
@@ -188,16 +194,44 @@ export async function syncAllData(): Promise<{
       const batchLlama = tvlData[asset.id];
       const latest = asset.snapshots[0];
       const best = await getBestTvlData(asset.id, batchLlama, latest?.tvl);
-      sources[asset.id] = best.source;
 
       const projectName = YIELD_PROJECT_BY_PROTOCOL_KEY[asset.id] ?? asset.id;
       const apyFromPools = chooseBestApy(yieldPools, projectName);
 
       const prevTvl = latest?.tvl ?? 0;
       const prevYield = latest?.yieldRate ?? 0;
-      const nextTvl = best.tvl;
+
+      const rwaXyz = await fetchFromRwaXyz(asset.symbol);
+      const merged = mergeDataSources(
+        {
+          tvl: best.tvl,
+          yield:
+            apyFromPools !== null && Number.isFinite(apyFromPools) ? apyFromPools : prevYield,
+          holders: latest?.holderCount ?? 0,
+        },
+        rwaXyz,
+      );
+      const meta = mergedToAssetMeta(merged);
+
+      const nextTvl = merged.tvl > 0 ? merged.tvl : best.tvl;
       const nextYield =
-        apyFromPools !== null && Number.isFinite(apyFromPools) ? apyFromPools : prevYield;
+        merged.yield > 0
+          ? merged.yield
+          : apyFromPools !== null && Number.isFinite(apyFromPools)
+            ? apyFromPools
+            : prevYield;
+
+      const syncedAt = new Date();
+      await db.asset.update({
+        where: { id: asset.id },
+        data: {
+          dataSources: meta.sources,
+          dataConfidence: meta.confidence,
+          dataMethodology: meta.methodology,
+          dataSourcesUpdatedAt: syncedAt,
+        },
+      });
+      sources[asset.id] = merged.sources.join('+') || best.source;
 
       if (!shouldCreateMultiSourceSnapshot({ latest, nextTvl, nextYield })) {
         continue;
@@ -211,7 +245,8 @@ export async function syncAllData(): Promise<{
         continue;
       }
 
-      const holderCount = latest?.holderCount ?? 0;
+      const holderCount =
+        merged.holders > 0 ? merged.holders : (latest?.holderCount ?? 0);
       const validation = await validateAssetSnapshot({
         assetId: asset.id,
         tvl: Number.isFinite(nextTvl) ? nextTvl : 0,
@@ -230,13 +265,15 @@ export async function syncAllData(): Promise<{
           tvl: Number.isFinite(nextTvl) ? nextTvl : 0,
           yieldRate: Number.isFinite(nextYield) ? nextYield : 0,
           holderCount,
-          timestamp: new Date(),
+          timestamp: syncedAt,
         },
       });
 
       logger.info(
         {
           source: best.source,
+          sources: merged.sources,
+          confidence: merged.confidence,
           assetId: asset.id,
           tvl: nextTvl,
           yield: nextYield,

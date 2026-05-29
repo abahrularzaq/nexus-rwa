@@ -9,7 +9,7 @@ const endpoints = [
   { method: "GET", path: "/v1/assets/:id", price: "$0.001" },
   { method: "GET", path: "/v1/assets/:id/yield", price: "$0.005" },
   { method: "GET", path: "/v1/assets/:id/holders", price: "$0.005" },
-  { method: "GET", path: "/v1/assets/:id/risk", price: "$0.003" },
+  { method: "GET", path: "/v1/assets/:id/risk", price: "Free" },
   { method: "GET", path: "/v1/search", price: "$0.001" },
 ];
 

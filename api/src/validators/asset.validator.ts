@@ -17,3 +17,8 @@ export const getYieldSchema = z.object({
   id: z.string().min(1).max(100),
   period: z.enum(['7d', '30d', '90d', '365d']).default('30d'),
 });
+
+export const getHistorySchema = z.object({
+  id: z.string().min(1).max(100),
+  period: z.enum(['7d', '30d', '90d']).default('30d'),
+});

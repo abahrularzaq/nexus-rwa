@@ -5,7 +5,7 @@ import { FadeUp } from "@/components/landing/primitives";
 
 const cards = [
   { Icon: BarChart2, title: "Yield Analytics", body: "Historical and real-time yield data. Daily, weekly, monthly aggregations for all tracked assets.", badge: "REST API", badgeStyle: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" }, endpoint: "GET /v1/assets/:id/yield" },
-  { Icon: Shield, title: "Risk Scoring Engine", body: "Proprietary 4-factor risk model: liquidity, concentration, protocol age, yield volatility.", badge: "Proprietary", badgeStyle: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" }, endpoint: "GET /v1/assets/:id/risk" },
+  { Icon: Shield, title: "Risk Scoring Engine", body: "4-factor model: TVL stability, yield sustainability, holder concentration, protocol maturity. Free on every asset.", badge: "Free", badgeStyle: { bg: "rgba(0,255,136,0.12)", color: "#00FF88" }, endpoint: "GET /v1/assets/:id/risk" },
   { Icon: Users, title: "Holder Intelligence", body: "Total holders, whale concentration, retail distribution, and top-10 concentration metrics.", badge: "On-chain", badgeStyle: { bg: "rgba(0,212,255,0.1)", color: "#00D4FF" }, endpoint: "GET /v1/assets/:id/holders" },
   { Icon: TrendingUp, title: "TVL Tracking", body: "Real-time and 90-day historical TVL. Protocol breakdown, chain distribution, and growth metrics.", badge: "Real-time", badgeStyle: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" }, endpoint: "GET /v1/assets" },
   { Icon: Globe, title: "Market Overview", body: "Aggregated market stats, top movers, gainers and losers across the entire RWA landscape.", badge: "FREE", badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" }, endpoint: "GET /v1/market/overview" },

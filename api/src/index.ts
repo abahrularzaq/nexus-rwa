@@ -1,6 +1,4 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-require("dotenv").config();
+import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -12,6 +10,8 @@ import { searchRouter } from './routes/search.js';
 import { connectDatabase } from './lib/database.js';
 import { logger } from './lib/logger.js';
 import { setupErrorHandlers } from './middleware/error-handler.js';
+import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
+import { startRiskScoreScheduler } from './jobs/updateRiskScores.js';
 import { startSyncScheduler } from './services/sync.service.js';
 import { gatedRouter } from './routes/gated.js';
 import { assertX402Env } from './middleware/x402/index.js';
@@ -117,6 +117,10 @@ async function main(): Promise<void> {
   // Mulai sync data otomatis setiap 1 jam
   startSyncScheduler();
   logger.info('Data sync scheduler started');
+  startRiskScoreScheduler();
+  logger.info('Risk score scheduler started (every 6h)');
+  startYieldHistoryScheduler();
+  logger.info('Yield history scheduler started (every 6h)');
   serve({ fetch: app.fetch, port: PORT }, () => {
     logger.info(`🚀 Nexus RWA API running on port ${PORT}`);
   });

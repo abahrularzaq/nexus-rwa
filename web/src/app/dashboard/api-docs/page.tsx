@@ -269,6 +269,67 @@ const ENDPOINTS: EndpointDoc[] = [
     ),
   },
   {
+    id: "asset-history",
+    title: "GET /v1/assets/:id/history",
+    badge: "$0.005",
+    description: "Time-series yield and TVL history (6h snapshots)",
+    curl: `curl ${BASE}/assets/ondo-usdy/history?period=30d`,
+    params: [
+      {
+        name: "id",
+        in: "path",
+        type: "string",
+        required: "required",
+        example: "ondo-usdy",
+      },
+      {
+        name: "period",
+        in: "query",
+        type: "string",
+        required: "optional",
+        example: "7d | 30d | 90d",
+      },
+    ],
+    x402: "This endpoint requires X402 payment of $0.005 USDC",
+    response: (
+      <>
+        <Jp>{"{"}</Jp>
+        {"\n  "}
+        <Jk>&quot;success&quot;</Jk>
+        <Jp>: </Jp>
+        <Jb>true</Jb>
+        <Jp>,</Jp>
+        {"\n  "}
+        <Jk>&quot;data&quot;</Jk>
+        <Jp>: {"{"}</Jp>
+        {"\n    "}
+        <Jk>&quot;limited_history&quot;</Jk>
+        <Jp>: </Jp>
+        <Jb>true</Jb>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;history&quot;</Jk>
+        <Jp>: [{"{"} </Jp>
+        <Jk>&quot;timestamp&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;2026-05-29T00:00:00.000Z&quot;</Js>
+        <Jp>, </Jp>
+        <Jk>&quot;yield&quot;</Jk>
+        <Jp>: </Jp>
+        <Jn>5.2</Jn>
+        <Jp>, </Jp>
+        <Jk>&quot;tvl&quot;</Jk>
+        <Jp>: </Jp>
+        <Jn>892400000</Jn>
+        <Jp> {"}"}]</Jp>
+        {"\n  "}
+        <Jp>{"}"}</Jp>
+        {"\n"}
+        <Jp>{"}"}</Jp>
+      </>
+    ),
+  },
+  {
     id: "asset-holders",
     title: "GET /v1/assets/:id/holders",
     badge: "$0.005",
@@ -314,8 +375,8 @@ const ENDPOINTS: EndpointDoc[] = [
   {
     id: "asset-risk",
     title: "GET /v1/assets/:id/risk",
-    badge: "$0.003",
-    description: "Risk scoring and factor breakdown for one asset",
+    badge: "Free",
+    description: "Risk scoring and factor breakdown for one asset (no X402 payment)",
     curl: `curl ${BASE}/assets/ondo-usdy/risk`,
     params: [
       {
@@ -326,7 +387,7 @@ const ENDPOINTS: EndpointDoc[] = [
         example: "ondo-usdy",
       },
     ],
-    x402: "This endpoint requires X402 payment of $0.003 USDC",
+    x402: "No payment required — public risk overview hook",
     response: (
       <>
         <Jp>{"{"}</Jp>
@@ -339,14 +400,23 @@ const ENDPOINTS: EndpointDoc[] = [
         <Jk>&quot;data&quot;</Jk>
         <Jp>: {"{"}</Jp>
         {"\n    "}
-        <Jk>&quot;overallScore&quot;</Jk>
+        <Jk>&quot;assetId&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;ondo-usdy&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;score&quot;</Jk>
+        <Jp>: </Jp>
+        <Jn>72</Jn>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;level&quot;</Jk>
         <Jp>: </Jp>
         <Js>&quot;LOW&quot;</Js>
         <Jp>,</Jp>
         {"\n    "}
-        <Jk>&quot;liquidityScore&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>0.22</Jn>
+        <Jk>&quot;factors&quot;</Jk>
+        <Jp>: []</Jp>
         {"\n  "}
         <Jp>{"}"}</Jp>
         {"\n"}

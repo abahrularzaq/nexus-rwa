@@ -156,11 +156,29 @@ export async function findHolderData(id: string): Promise<HolderSnapshot | null>
   });
 }
 
-/** Latest risk score for an asset. */
+/** Latest risk score for an asset (legacy `RiskScore` table). */
 export async function findRiskData(id: string): Promise<RiskScore | null> {
   return db.riskScore.findFirst({
     where: { assetId: id },
     orderBy: { calculatedAt: 'desc' },
+  });
+}
+
+/** Computed risk fields stored on `Asset`. */
+export async function findRiskFields(id: string): Promise<{
+  riskScore: number | null;
+  riskLevel: string | null;
+  riskFactors: string[];
+  riskUpdatedAt: Date | null;
+} | null> {
+  return db.asset.findFirst({
+    where: { id, isActive: true },
+    select: {
+      riskScore: true,
+      riskLevel: true,
+      riskFactors: true,
+      riskUpdatedAt: true,
+    },
   });
 }
 

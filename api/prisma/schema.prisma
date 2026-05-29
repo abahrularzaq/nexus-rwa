@@ -22,12 +22,21 @@ model Asset {
   logoUrl         String?
   description     String?
   isActive        Boolean       @default(true)
+  riskScore       Int?
+  riskLevel       String?
+  riskFactors     String[]      @default([])
+  riskUpdatedAt   DateTime?
+  dataSources         String[]  @default([])
+  dataConfidence      String?
+  dataMethodology     String?
+  dataSourcesUpdatedAt DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  snapshots  AssetSnapshot[]
-  riskScores RiskScore[]
-  holders    HolderSnapshot[]
+  snapshots     AssetSnapshot[]
+  riskScores    RiskScore[]
+  holders       HolderSnapshot[]
+  yieldHistory  YieldHistory[]
 
   @@index([category])
   @@index([chain])
@@ -64,6 +73,19 @@ model RiskScore {
 
   @@index([assetId])
   @@index([calculatedAt])
+}
+
+model YieldHistory {
+  id        String   @id @default(cuid())
+  assetId   String
+  yield     Float
+  tvl       Float
+  timestamp DateTime @default(now())
+  source    String
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId, timestamp])
 }
 
 model HolderSnapshot {
