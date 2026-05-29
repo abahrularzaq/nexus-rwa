@@ -17,6 +17,7 @@ import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { YieldHistorySection } from "@/components/dashboard/YieldHistorySection";
 import { GatedRiskAnalysisSection } from "@/components/dashboard/GatedRiskAnalysisSection";
+import { AIInsightCard } from "@/components/dashboard/AIInsightCard";
 import { DataTransparencySection } from "@/components/dashboard/DataTransparencySection";
 import { RelatedAssetsSection } from "@/components/dashboard/RelatedAssetsSection";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
@@ -531,6 +532,9 @@ export default function AssetDetailPage() {
         categoryAvgPct={categoryAvg}
         initialRisk={asset.risk}
       />
+
+      {/* 4b. AI insight (PRO gated) */}
+      <AIInsightCard apiBaseUrl={apiBase} assetId={asset.id} />
 
       {/* 5. Data transparency (FREE) */}
       <DataTransparencySection

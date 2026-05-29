@@ -56,6 +56,7 @@ export function writeStoredX402Tx(endpoint: string, txHash: string): void {
   const payload = JSON.stringify({ txHash, paidAt: Date.now() });
   sessionStorage.setItem(key, payload);
   window.dispatchEvent(new Event("nexus-x402-payment"));
+  window.dispatchEvent(new Event("nexus-session-updated"));
 }
 
 export function clearStoredX402Tx(endpoint: string): void {

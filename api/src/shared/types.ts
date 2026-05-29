@@ -175,6 +175,37 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// --- AI Insights ---
+export type InsightOutlook = 'bullish' | 'neutral' | 'bearish';
+export type InsightConfidence = 'high' | 'medium' | 'low';
+
+export interface AssetInsight {
+  assetId: string;
+  summary: string;
+  opportunities: string[];
+  risks: string[];
+  outlook: InsightOutlook;
+  confidence: InsightConfidence;
+  generatedAt: string;
+}
+
+export interface AssetWithHistory {
+  id: string;
+  name: string;
+  symbol: string;
+  protocol: string;
+  category: AssetCategory;
+  chain: Chain;
+  tvl: number;
+  yieldRate: number;
+  holderCount: number;
+  riskScore: number | null;
+  riskLevel: string | null;
+  riskFactors: string[];
+  history: { timestamp: string; yield: number; tvl: number }[];
+  meta: AssetDataMeta;
+}
+
 // ============================================
 // X402 TYPES
 // ============================================

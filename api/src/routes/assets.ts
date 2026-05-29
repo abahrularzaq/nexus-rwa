@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import type {
   ApiErrorResponse,
   ApiSuccessResponse,
+  AssetInsight,
   AssetSummary,
   HolderData,
   PaginatedResponse,
@@ -28,6 +29,7 @@ import {
   getYieldData,
 } from '../services/asset.service.js';
 import { getYieldHistory } from '../services/yieldHistory.service.js';
+import { getAssetInsightById } from '../lib/aiInsights.js';
 
 let x402Instance: ReturnType<typeof createNexusX402Middleware> | null = null;
 
@@ -229,6 +231,36 @@ async function getRiskHandler(c: Context) {
   }
 }
 
+/** GET /:id/insight — Claude AI insight (Pro gated) */
+async function getInsightHandler(c: Context) {
+  const parsed = getAssetByIdSchema.safeParse({ id: c.req.param('id') });
+  if (!parsed.success) {
+    return c.json(
+      err(ERROR_CODES.INVALID_PARAMS, 'Parameter id tidak valid', {
+        issues: parsed.error.flatten(),
+      }),
+      400,
+    );
+  }
+
+  try {
+    const { insight, cached } = await getAssetInsightById(parsed.data.id);
+    c.header('X-Cache', cached ? 'HIT' : 'MISS');
+    return c.json(ok<AssetInsight>(insight, cached));
+  } catch (e: unknown) {
+    if (e instanceof AppError) {
+      return c.json(err(e.code, e.message), appErrorStatus(e.code));
+    }
+    return c.json(
+      err(
+        ERROR_CODES.INTERNAL_ERROR,
+        e instanceof Error ? e.message : 'Insight generation failed',
+      ),
+      500,
+    );
+  }
+}
+
 /** GET /:id — detail satu asset (validator: getAssetByIdSchema) */
 async function getAssetDetailHandler(c: Context) {
   const parsed = getAssetByIdSchema.safeParse({ id: c.req.param('id') });
@@ -263,4 +295,5 @@ assetsRouter.get('/:id/yield', (c, next) => getX402Middleware()(c, next), getYie
 assetsRouter.get('/:id/history', (c, next) => getX402Middleware()(c, next), getHistoryHandler);
 assetsRouter.get('/:id/holders', (c, next) => getX402Middleware()(c, next), getHoldersHandler);
 assetsRouter.get('/:id/risk', (c, next) => getX402Middleware()(c, next), getRiskHandler);
+assetsRouter.get('/:id/insight', (c, next) => getX402Middleware()(c, next), getInsightHandler);
 assetsRouter.get('/:id', (c, next) => getX402Middleware()(c, next), getAssetDetailHandler);

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { DashboardWalletButton } from "@/components/dashboard/DashboardWalletButton";
+import { AskNexus } from "@/components/dashboard/AskNexus";
 import { PaymentHistory } from "@/components/paywall/PaymentHistory";
 
 const navItems = [
@@ -265,6 +266,8 @@ export default function DashboardLayout({
       >
         {children}
       </main>
+
+      <AskNexus />
     </div>
   );
 }

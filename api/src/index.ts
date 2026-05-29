@@ -14,6 +14,9 @@ import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
 import { startRiskScoreScheduler } from './jobs/updateRiskScores.js';
 import { startSyncScheduler } from './services/sync.service.js';
 import { gatedRouter } from './routes/gated.js';
+import { sessionRouter } from './routes/session.js';
+import { analyticsRouter, exportRouter } from './routes/enterprise.js';
+import { askRouter } from './routes/ask.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
@@ -73,6 +76,7 @@ app.use('*', cors({
     'X-API-Key',
     'X-Payment',
     'X-Payment-Tx',
+    'X-Wallet-Address',
     'Authorization',
   ],
   exposeHeaders: [
@@ -101,6 +105,10 @@ app.route('/v1/market', marketRouter);
 app.route('/v1/assets', assetsRouter);
 app.route('/v1/search', searchRouter);
 app.route('/v1/gated', gatedRouter);
+app.route('/v1/session', sessionRouter);
+app.route('/v1/analytics', analyticsRouter);
+app.route('/v1/export', exportRouter);
+app.route('/v1/ask', askRouter);
 
 // 404 handler
 app.notFound((c) => c.json({

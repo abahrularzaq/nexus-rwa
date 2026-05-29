@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useAccount } from "wagmi";
 
 import { PaywallModal } from "@/components/paywall/PaywallModal";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,11 @@ import {
   readStoredX402Tx,
   writeStoredX402Tx,
 } from "@/lib/x402-session";
-import { isX402ErrorBody, type X402Details } from "@/types/x402";
+import {
+  parseX402Response,
+  type AccessTier,
+  type X402Details,
+} from "@/types/x402";
 
 function resolveEndpointUrl(endpoint: string): string {
   if (typeof window === "undefined") return endpoint;
@@ -53,10 +58,12 @@ export function PaywallGuard({
   fallback,
   children,
 }: PaywallGuardProps) {
+  const { address } = useAccount();
   const [status, setStatus] = useState<GuardStatus>("loading");
   const [payload, setPayload] = useState<unknown>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [x402, setX402] = useState<X402Details | null>(null);
+  const [requiredTier, setRequiredTier] = useState<AccessTier>("pro");
   const [modalOpen, setModalOpen] = useState(false);
 
   const openPaywall = useCallback(() => setModalOpen(true), []);
@@ -67,15 +74,18 @@ export function PaywallGuard({
       setErrorMsg(null);
 
       const url = resolveEndpointUrl(endpoint);
-      const headers = new Headers();
+      const headers = new Headers({ Accept: "application/json" });
       if (paymentTxHeader) {
         headers.set("X-Payment-Tx", paymentTxHeader);
+      }
+      if (address) {
+        headers.set("X-Wallet-Address", address);
       }
 
       try {
         const res = await fetch(url, {
           headers,
-          credentials: "same-origin",
+          credentials: "omit",
         });
 
         if (res.status === 402) {
@@ -83,8 +93,14 @@ export function PaywallGuard({
             clearStoredX402Tx(endpoint);
           }
           const body: unknown = await res.json().catch(() => null);
-          if (isX402ErrorBody(body)) {
-            setX402(body.x402);
+          const parsed = parseX402Response(body, endpoint);
+          if (parsed) {
+            setX402(parsed.x402);
+            setRequiredTier(
+              parsed.tier?.tier ??
+                parsed.x402.tier ??
+                (parsed.x402.price === "0.01" ? "enterprise" : "pro"),
+            );
             setModalOpen(true);
             setPayload(null);
             setStatus("gated");
@@ -120,7 +136,7 @@ export function PaywallGuard({
         setStatus("error");
       }
     },
-    [endpoint],
+    [endpoint, address],
   );
 
   useEffect(() => {
@@ -182,6 +198,7 @@ export function PaywallGuard({
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           x402Data={x402}
+          requiredTier={requiredTier}
           onPaymentSuccess={onPaymentSuccess}
         />
       ) : null}

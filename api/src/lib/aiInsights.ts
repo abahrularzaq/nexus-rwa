@@ -1,0 +1,191 @@
+import { z } from 'zod';
+import { getCached } from './redis.js';
+import { claudeComplete, claudeStream, parseJsonFromModelText } from './claude.js';
+import { logger } from './logger.js';
+import type { AssetInsight, AssetWithHistory } from '../shared/index.js';
+import {
+  AppError,
+  getAssetDetail,
+  getAssets,
+  getRiskData,
+} from '../services/asset.service.js';
+import { getYieldHistory } from '../services/yieldHistory.service.js';
+import { ERROR_CODES } from '../shared/index.js';
+
+const INSIGHT_CACHE_TTL_SECONDS = 12 * 60 * 60;
+
+const RWA_ANALYST_SYSTEM = `You are an RWA (Real World Asset) analyst. Analyze the provided asset data and return 
+a JSON object with: summary (2 sentences), opportunities (array of 2-3 strings), 
+risks (array of 2-3 strings), outlook ('bullish'|'neutral'|'bearish'), 
+confidence ('high'|'medium'|'low'). Be specific, data-driven, concise. Return ONLY valid JSON, no markdown.`;
+
+const insightSchema = z.object({
+  summary: z.string().min(1),
+  opportunities: z.array(z.string()).min(1).max(5),
+  risks: z.array(z.string()).min(1).max(5),
+  outlook: z.enum(['bullish', 'neutral', 'bearish']),
+  confidence: z.enum(['high', 'medium', 'low']),
+});
+
+export async function buildAssetWithHistory(assetId: string): Promise<AssetWithHistory> {
+  const [detail, history30, riskResult] = await Promise.all([
+    getAssetDetail(assetId),
+    getYieldHistory(assetId, '30d'),
+    getRiskData(assetId).catch(() => null),
+  ]);
+
+  return {
+    id: detail.id,
+    name: detail.name,
+    symbol: detail.symbol,
+    protocol: detail.protocol,
+    category: detail.category,
+    chain: detail.chain,
+    tvl: detail.snapshot?.tvl ?? 0,
+    yieldRate: detail.snapshot?.yieldRate ?? 0,
+    holderCount: detail.snapshot?.holderCount ?? 0,
+    riskScore: detail.risk?.score ?? null,
+    riskLevel: detail.risk?.level ?? detail.snapshot?.riskScore ?? null,
+    riskFactors: detail.risk?.factors ?? [],
+    history: history30.history.map((p) => ({
+      timestamp: p.timestamp,
+      yield: p.yield,
+      tvl: p.tvl,
+    })),
+    meta: detail._meta,
+  };
+}
+
+async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsight> {
+  const raw = await claudeComplete({
+    system: RWA_ANALYST_SYSTEM,
+    user: JSON.stringify(asset, null, 2),
+    maxTokens: 800,
+  });
+
+  let parsed: z.infer<typeof insightSchema>;
+  try {
+    parsed = insightSchema.parse(parseJsonFromModelText(raw));
+  } catch (err) {
+    logger.warn({ err, assetId: asset.id }, 'Claude insight JSON parse failed');
+    throw new Error('Invalid insight response from AI');
+  }
+
+  const generatedAt = new Date().toISOString();
+  return {
+    assetId: asset.id,
+    summary: parsed.summary,
+    opportunities: parsed.opportunities,
+    risks: parsed.risks,
+    outlook: parsed.outlook,
+    confidence: parsed.confidence,
+    generatedAt,
+  };
+}
+
+export async function generateAssetInsight(
+  asset: AssetWithHistory,
+): Promise<AssetInsight> {
+  const cacheKey = `insight:v1:${asset.id}`;
+
+  const { data } = await getCached(
+    cacheKey,
+    () => callClaudeForInsight(asset),
+    INSIGHT_CACHE_TTL_SECONDS,
+  );
+
+  return data;
+}
+
+export async function getAssetInsightById(assetId: string): Promise<{
+  insight: AssetInsight;
+  cached: boolean;
+}> {
+  const cacheKey = `insight:v1:${assetId}`;
+
+  const { data, cached } = await getCached(
+    cacheKey,
+    async () => {
+      const asset = await buildAssetWithHistory(assetId);
+      return callClaudeForInsight(asset);
+    },
+    INSIGHT_CACHE_TTL_SECONDS,
+  );
+
+  return { insight: data, cached };
+}
+
+const NEXUS_ASSISTANT_SYSTEM = `You are Nexus RWA assistant. Answer questions about RWA assets using 
+the provided data. Be concise, factual, cite specific numbers.`;
+
+export async function buildAskContext(assetIds: string[] | undefined): Promise<string> {
+  if (!assetIds || assetIds.length === 0) {
+    const market = await getAssets({ page: 1, limit: 25 });
+    return JSON.stringify(
+      {
+        scope: 'market_overview',
+        assets: market.data.map((a) => ({
+          id: a.id,
+          name: a.name,
+          category: a.category,
+          tvl: a.tvl,
+          yieldRate: a.yieldRate,
+          riskScore: a.riskScore,
+          change7d: a.change7d,
+        })),
+      },
+      null,
+      2,
+    );
+  }
+
+  const unique = [...new Set(assetIds)].slice(0, 8);
+  const blocks: AssetWithHistory[] = [];
+
+  for (const id of unique) {
+    try {
+      blocks.push(await buildAssetWithHistory(id));
+    } catch (e) {
+      if (e instanceof AppError && e.code === ERROR_CODES.ASSET_NOT_FOUND) {
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  if (blocks.length === 0) {
+    throw new AppError(ERROR_CODES.ASSET_NOT_FOUND, 'No valid assets in context');
+  }
+
+  return JSON.stringify({ scope: 'selected_assets', assets: blocks }, null, 2);
+}
+
+export async function streamAskNexus(params: {
+  question: string;
+  context?: string[];
+  onDelta: (text: string) => void | Promise<void>;
+  onDone: () => void | Promise<void>;
+  onError: (err: Error) => void | Promise<void>;
+}): Promise<void> {
+  const dataContext = await buildAskContext(params.context);
+  const userMessage = `Asset data:\n${dataContext}\n\nQuestion: ${params.question}`;
+
+  await new Promise<void>((resolve, reject) => {
+    void claudeStream({
+      system: NEXUS_ASSISTANT_SYSTEM,
+      user: userMessage,
+      maxTokens: 2048,
+      handlers: {
+        onDelta: (text) => {
+          void Promise.resolve(params.onDelta(text)).catch(reject);
+        },
+        onDone: () => {
+          void Promise.resolve(params.onDone()).then(() => resolve()).catch(reject);
+        },
+        onError: (err) => {
+          void Promise.resolve(params.onError(err)).then(() => reject(err));
+        },
+      },
+    });
+  });
+}

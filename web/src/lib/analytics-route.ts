@@ -1,22 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import type { MarketOverview } from "@/lib/shared";
-import type { X402ErrorResponse } from "@/types/x402";
+import type { AccessTier, X402ErrorResponse } from "@/types/x402";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").replace(
   /\/$/,
   "",
 );
 
-function paymentEthAmount(): string {
-  return (process.env.PAYMENT_AMOUNT_ETH ?? "0.001").trim() || "0.001";
+const TIER_AMOUNTS: Record<"pro" | "enterprise", string> = {
+  pro: "0.001",
+  enterprise: "0.01",
+};
+
+function tierForAnalytics(kind: "yield" | "risk"): AccessTier {
+  return "pro";
 }
 
-function buildX402Required(endpointPath: string): X402ErrorResponse {
+function buildX402Required(
+  endpointPath: string,
+  tier: "pro" | "enterprise",
+): X402ErrorResponse {
+  const price = TIER_AMOUNTS[tier];
   return {
     error: "Payment required",
+    tier: { tier, price, duration: tier === "pro" ? "24h" : "7d" },
     x402: {
-      price: paymentEthAmount(),
+      price,
       currency: "ETH",
       network: (process.env.X402_NETWORK ?? "base-sepolia").trim() || "base-sepolia",
       recipient:
@@ -24,11 +34,12 @@ function buildX402Required(endpointPath: string): X402ErrorResponse {
         process.env.X402_RECEIVING_ADDRESS?.trim() ||
         "0x0000000000000000000000000000000000000001",
       endpoint: endpointPath,
+      tier,
+      duration: tier === "pro" ? "24h" : "7d",
     },
   };
 }
 
-/** Sync payTo / network from API 402 when backend env is authoritative. */
 async function enrichX402FromApi(
   required: X402ErrorResponse,
 ): Promise<X402ErrorResponse> {
@@ -41,15 +52,17 @@ async function enrichX402FromApi(
     const body = (await res.json()) as {
       network?: string;
       accepts?: Array<{ network?: string; payTo?: string }>;
+      x402?: { recipient?: string; network?: string };
     };
     const accept = body.accepts?.[0];
-    if (!accept?.payTo) return required;
+    const recipient = accept?.payTo ?? body.x402?.recipient;
+    if (!recipient) return required;
     return {
       ...required,
       x402: {
         ...required.x402,
-        network: String(accept.network ?? body.network ?? required.x402.network),
-        recipient: String(accept.payTo),
+        network: String(accept?.network ?? body.network ?? required.x402.network),
+        recipient: String(recipient),
       },
     };
   } catch {
@@ -57,16 +70,27 @@ async function enrichX402FromApi(
   }
 }
 
-async function verifyPaymentTx(txHash: string): Promise<boolean> {
+async function verifyPaymentTx(
+  txHash: string,
+  tier: "pro" | "enterprise",
+  wallet?: string | null,
+): Promise<boolean> {
   try {
-    const res = await fetch(`${API_URL}/v1/gated/data`, {
-      headers: {
-        Accept: "application/json",
-        "X-Payment-Tx": txHash,
-      },
-      cache: "no-store",
-    });
-    return res.ok;
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "X-Payment-Tx": txHash,
+    };
+    if (wallet) headers["X-Wallet-Address"] = wallet;
+
+    const res = await fetch(
+      `${API_URL}/v1/session/verify?tier=${tier}`,
+      { headers, cache: "no-store" },
+    );
+    const body = (await res.json()) as {
+      success?: boolean;
+      data?: { verified?: boolean };
+    };
+    return Boolean(res.ok && body.data?.verified);
   } catch {
     return false;
   }
@@ -138,18 +162,24 @@ export async function handleAnalyticsGet(
   kind: AnalyticsKind,
   endpointPath: string,
 ): Promise<NextResponse> {
+  const tier = tierForAnalytics(kind);
   const tx = req.headers.get("X-Payment-Tx")?.trim();
+  const wallet = req.headers.get("X-Wallet-Address")?.trim();
 
   if (!tx) {
-    const required = await enrichX402FromApi(buildX402Required(endpointPath));
+    const required = await enrichX402FromApi(
+      buildX402Required(endpointPath, tier),
+    );
     return NextResponse.json(required, { status: 402 });
   }
 
-  const verified = await verifyPaymentTx(tx);
+  const verified = await verifyPaymentTx(tx, tier, wallet);
   if (!verified) {
-    const required = await enrichX402FromApi(buildX402Required(endpointPath));
+    const required = await enrichX402FromApi(
+      buildX402Required(endpointPath, tier),
+    );
     return NextResponse.json(
-      { error: "PAYMENT_VERIFICATION_FAILED", x402: required.x402 },
+      { error: "PAYMENT_VERIFICATION_FAILED", ...required },
       { status: 402 },
     );
   }

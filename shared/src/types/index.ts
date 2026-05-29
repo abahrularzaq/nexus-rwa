@@ -174,6 +174,19 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export type InsightOutlook = 'bullish' | 'neutral' | 'bearish';
+export type InsightConfidence = 'high' | 'medium' | 'low';
+
+export interface AssetInsight {
+  assetId: string;
+  summary: string;
+  opportunities: string[];
+  risks: string[];
+  outlook: InsightOutlook;
+  confidence: InsightConfidence;
+  generatedAt: string;
+}
+
 // ============================================
 // X402 TYPES
 // ============================================
