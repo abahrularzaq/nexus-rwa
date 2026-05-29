@@ -45,6 +45,7 @@ export function AssetInsightTeaser({
       return;
     }
 
+    const wallet = address;
     let cancelled = false;
     setLoading(true);
 
@@ -53,7 +54,7 @@ export function AssetInsightTeaser({
         const res = await fetch(`${API_URL}/v1/assets/${assetId}/insight`, {
           headers: {
             Accept: "application/json",
-            "X-Wallet-Address": address,
+            "X-Wallet-Address": wallet,
             ...apiKeyHeader(),
           },
         });
