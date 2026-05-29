@@ -82,6 +82,62 @@ const ENDPOINTS: EndpointDoc[] = [
     ),
   },
   {
+    id: "market-brief",
+    title: "GET /v1/market/brief",
+    badge: "FREE",
+    badgeFree: true,
+    description:
+      "AI-generated market narrative: headline, summary, 7d changes, and watch list (Redis-cached ~8h)",
+    curl: `curl ${BASE}/market/brief`,
+    x402: "No payment required — public market intelligence brief",
+    response: (
+      <>
+        <Jp>{"{"}</Jp>
+        {"\n  "}
+        <Jk>&quot;success&quot;</Jk>
+        <Jp>: </Jp>
+        <Jb>true</Jb>
+        <Jp>,</Jp>
+        {"\n  "}
+        <Jk>&quot;data&quot;</Jk>
+        <Jp>: {"{"}</Jp>
+        {"\n    "}
+        <Jk>&quot;headline&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;RWA yields compress as treasury tokens lead inflows&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;summary&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;Aggregate TVL rose 2.1% while average yield ticked down 12 bps…&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;whatChanged&quot;</Jk>
+        <Jp>: [</Jp>
+        <Js>&quot;Credit basket yield −18 bps 7d&quot;</Js>
+        <Jp>],</Jp>
+        {"\n    "}
+        <Jk>&quot;watchList&quot;</Jk>
+        <Jp>: [</Jp>
+        <Js>&quot;Fed path and short-duration RWAs&quot;</Js>
+        <Jp>],</Jp>
+        {"\n    "}
+        <Jk>&quot;riskTone&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;stable&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;generatedAt&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;2026-05-29T12:00:00.000Z&quot;</Js>
+        {"\n  "}
+        <Jp>{"}"}</Jp>
+        {"\n"}
+        <Jp>{"}"}</Jp>
+      </>
+    ),
+  },
+  {
     id: "assets-list",
     title: "GET /v1/assets",
     badge: "$0.0005",
@@ -417,6 +473,76 @@ const ENDPOINTS: EndpointDoc[] = [
         {"\n    "}
         <Jk>&quot;factors&quot;</Jk>
         <Jp>: []</Jp>
+        {"\n  "}
+        <Jp>{"}"}</Jp>
+        {"\n"}
+        <Jp>{"}"}</Jp>
+      </>
+    ),
+  },
+  {
+    id: "asset-insight",
+    title: "GET /v1/assets/:id/insight",
+    badge: "$0.001",
+    description:
+      "Claude-generated asset insight: summary, outlook, opportunities, risks, what changed, watch list (Pro session)",
+    curl: `curl ${BASE}/assets/ondo-usdy/insight`,
+    params: [
+      {
+        name: "id",
+        in: "path",
+        type: "string",
+        required: "required",
+        example: "ondo-usdy",
+      },
+    ],
+    x402:
+      "Requires Pro session ($0.001 ETH / 24h) or per-request X402 payment — include X-Wallet-Address when session is active",
+    response: (
+      <>
+        <Jp>{"{"}</Jp>
+        {"\n  "}
+        <Jk>&quot;success&quot;</Jk>
+        <Jp>: </Jp>
+        <Jb>true</Jb>
+        <Jp>,</Jp>
+        {"\n  "}
+        <Jk>&quot;data&quot;</Jk>
+        <Jp>: {"{"}</Jp>
+        {"\n    "}
+        <Jk>&quot;assetId&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;ondo-usdy&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;summary&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;Stable yield with modest TVL growth…&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;outlook&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;bullish&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;confidence&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;high&quot;</Js>
+        <Jp>,</Jp>
+        {"\n    "}
+        <Jk>&quot;whatChanged&quot;</Jk>
+        <Jp>: [</Jp>
+        <Js>&quot;Yield +6 bps vs 7d ago&quot;</Js>
+        <Jp>],</Jp>
+        {"\n    "}
+        <Jk>&quot;watchList&quot;</Jk>
+        <Jp>: [</Jp>
+        <Js>&quot;Issuer redemption window&quot;</Js>
+        <Jp>],</Jp>
+        {"\n    "}
+        <Jk>&quot;generatedAt&quot;</Jk>
+        <Jp>: </Jp>
+        <Js>&quot;2026-05-29T12:00:00.000Z&quot;</Js>
         {"\n  "}
         <Jp>{"}"}</Jp>
         {"\n"}

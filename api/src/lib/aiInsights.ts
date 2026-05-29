@@ -13,16 +13,25 @@ import { getYieldHistory } from '../services/yieldHistory.service.js';
 import { ERROR_CODES } from '../shared/index.js';
 
 const INSIGHT_CACHE_TTL_SECONDS = 12 * 60 * 60;
+const INSIGHT_CACHE_KEY_PREFIX = 'insight:v2';
 
-const RWA_ANALYST_SYSTEM = `You are an RWA (Real World Asset) analyst. Analyze the provided asset data and return 
-a JSON object with: summary (2 sentences), opportunities (array of 2-3 strings), 
-risks (array of 2-3 strings), outlook ('bullish'|'neutral'|'bearish'), 
-confidence ('high'|'medium'|'low'). Be specific, data-driven, concise. Return ONLY valid JSON, no markdown.`;
+const RWA_ANALYST_SYSTEM = `You are an RWA (Real World Asset) analyst. Analyze the provided asset data and return
+a JSON object with:
+- summary (2 sentences)
+- opportunities (array of 2-3 strings)
+- risks (array of 2-3 strings)
+- whatChanged (array of 2-3 bullet strings on meaningful recent yield/TVL/risk shifts for this asset)
+- watchList (array of 2-3 bullet strings on what investors should monitor next)
+- outlook ('bullish'|'neutral'|'bearish')
+- confidence ('high'|'medium'|'low')
+Be specific, data-driven, concise. Return ONLY valid JSON, no markdown.`;
 
 const insightSchema = z.object({
   summary: z.string().min(1),
   opportunities: z.array(z.string()).min(1).max(5),
   risks: z.array(z.string()).min(1).max(5),
+  whatChanged: z.array(z.string()).min(1).max(5),
+  watchList: z.array(z.string()).min(1).max(5),
   outlook: z.enum(['bullish', 'neutral', 'bearish']),
   confidence: z.enum(['high', 'medium', 'low']),
 });
@@ -77,6 +86,8 @@ async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsig
     summary: parsed.summary,
     opportunities: parsed.opportunities,
     risks: parsed.risks,
+    whatChanged: parsed.whatChanged.slice(0, 3),
+    watchList: parsed.watchList.slice(0, 3),
     outlook: parsed.outlook,
     confidence: parsed.confidence,
     generatedAt,
@@ -86,7 +97,7 @@ async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsig
 export async function generateAssetInsight(
   asset: AssetWithHistory,
 ): Promise<AssetInsight> {
-  const cacheKey = `insight:v1:${asset.id}`;
+  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${asset.id}`;
 
   const { data } = await getCached(
     cacheKey,
@@ -101,7 +112,7 @@ export async function getAssetInsightById(assetId: string): Promise<{
   insight: AssetInsight;
   cached: boolean;
 }> {
-  const cacheKey = `insight:v1:${assetId}`;
+  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${assetId}`;
 
   const { data, cached } = await getCached(
     cacheKey,

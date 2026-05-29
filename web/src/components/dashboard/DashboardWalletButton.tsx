@@ -1,7 +1,8 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ChevronDown, Clock } from "lucide-react";
+import { ChevronDown, Clock, Zap } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,21 @@ export function DashboardWalletButton() {
                     className="text-xs"
                   >
                     Refresh session
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-xs"
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    <Zap className="size-3.5 text-[var(--accent-amber)]" aria-hidden />
+                    <span className="text-muted-foreground">
+                      X402 payments active
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/api-docs" className="text-xs">
+                      API &amp; x402 docs
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={openAccountModal}>

@@ -37,7 +37,7 @@ export function MetricCard({
   if (isLoading) {
     return (
       <div
-        className="relative overflow-hidden rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.8)] p-6 transition-all duration-200 ease-in-out"
+        className="data-surface relative overflow-hidden p-5 transition-all duration-200 ease-in-out"
         aria-busy
         aria-label="Loading metric"
       >
@@ -64,24 +64,20 @@ export function MetricCard({
     changeType === "positive" ? "↑" : changeType === "negative" ? "↓" : "";
 
   return (
-    <div
-      className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.8)] p-6 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-[rgba(0,212,255,0.3)]"
-    >
+    <div className="data-surface p-5 transition-all duration-200 ease-in-out">
       <div className="flex items-center gap-3">
         {icon ? (
           <div
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[rgba(0,212,255,0.12)] text-[#00D4FF]"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[var(--accent-amber-dim)] text-[var(--accent-amber)]"
             aria-hidden
           >
-            <span className="flex [&>svg]:size-[18px]">{icon}</span>
+            <span className="flex [&>svg]:size-[17px]">{icon}</span>
           </div>
         ) : null}
-        <p className="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
-          {title}
-        </p>
+        <p className="terminal-label min-w-0 flex-1">{title}</p>
       </div>
 
-      <p className="mt-4 text-2xl font-bold tabular-nums tracking-tight text-white">
+      <p className="terminal-data mt-3 text-2xl font-semibold tracking-tight">
         {formatValue(value)}
       </p>
 

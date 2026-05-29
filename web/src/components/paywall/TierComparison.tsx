@@ -11,9 +11,11 @@ type FeatureRow = { label: string; free: boolean; pro: boolean; enterprise: bool
 
 const FEATURES: FeatureRow[] = [
   { label: "TVL & market overview", free: true, pro: true, enterprise: true },
+  { label: "Market Brief (AI narrative)", free: true, pro: true, enterprise: true },
   { label: "Asset list & search", free: true, pro: true, enterprise: true },
   { label: "Basic yield snapshot", free: true, pro: true, enterprise: true },
   { label: "Risk level (LOW / MEDIUM / HIGH)", free: true, pro: true, enterprise: true },
+  { label: "AI asset insight (per asset)", free: false, pro: true, enterprise: true },
   { label: "Yield history (time series)", free: false, pro: true, enterprise: true },
   { label: "Risk score & factor breakdown", free: false, pro: true, enterprise: true },
   { label: "Holder intelligence", free: false, pro: true, enterprise: true },

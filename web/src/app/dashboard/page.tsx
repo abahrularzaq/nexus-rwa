@@ -21,10 +21,11 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { RiskHeatmap } from "@/components/charts/RiskHeatmap";
+import { YieldLadder } from "@/components/charts/YieldLadder";
+import { MarketBriefCard } from "@/components/dashboard/MarketBriefCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
-import { BlurredPreview } from "@/components/paywall/BlurredPreview";
-import { PaywallGuard } from "@/components/paywall/PaywallGuard";
 import type {
   ApiResponse,
   AssetCategory,
@@ -123,26 +124,6 @@ function categoryLabel(c: string | AssetCategory | undefined): string {
     .join(" ");
 }
 
-function GatedAnalyticsPanel({
-  title,
-  subtitle,
-  data,
-}: {
-  title: string;
-  subtitle: string;
-  data: unknown;
-}) {
-  return (
-    <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
-      <h2 className="text-lg font-bold text-white">{title}</h2>
-      <p className="mt-1 text-sm text-[#8892A4]">{subtitle}</p>
-      <pre className="mt-4 max-h-[min(360px,50vh)] overflow-auto rounded-lg border border-[rgba(30,42,58,0.6)] bg-[#0A0E1A] p-4 font-mono text-xs leading-relaxed text-[#8892A4]">
-        {data == null ? "—" : JSON.stringify(data, null, 2)}
-      </pre>
-    </section>
-  );
-}
-
 const chartTooltipStyle = {
   backgroundColor: "rgba(15,22,41,0.95)",
   border: "1px solid rgba(30,42,58,0.9)",
@@ -223,28 +204,36 @@ export default function DashboardPage() {
   const curlExample = `curl -s "${apiBase()}/v1/market/overview"`;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* HEADER */}
-      <header className="flex flex-col gap-4 border-b border-[rgba(30,42,58,0.8)] pb-6 md:flex-row md:items-end md:justify-between">
+      <header className="flex flex-col gap-3 border-b border-[var(--border-line)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
+          <p className="terminal-label mb-1.5">Intelligence terminal</p>
+          <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white">
             Market Overview
           </h1>
-          <p className="mt-1 text-sm text-[#8892A4]">
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             13 assets tracked across 8 protocols
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-[#8892A4]">
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-[var(--text-secondary)] tabular-nums">
           <span>
             Last updated:{" "}
             <span className="font-medium text-white">{lastDisplay}</span>
           </span>
-          <span className="rounded-md border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.6)] px-2 py-0.5 text-xs text-[#8892A4]">
+          <span className="rounded border border-[var(--border-panel)] bg-[var(--bg-panel)] px-2 py-0.5 terminal-label">
             Auto-refresh 60s
           </span>
         </div>
       </header>
 
+      {/* 12-col: brief (4) + analytics (8) */}
+      <div className="overview-grid">
+        <aside className="overview-grid-brief">
+          <MarketBriefCard />
+        </aside>
+
+        <div className="overview-grid-main space-y-6">
       {/* METRICS */}
       {overviewError ? (
         <div className="flex flex-col gap-4 rounded-xl border border-[rgba(255,68,68,0.35)] bg-[rgba(255,68,68,0.06)] p-6 md:flex-row md:items-center md:justify-between">
@@ -257,7 +246,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => void loadOverview()}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.08)] px-4 py-2 text-sm font-medium text-[#00D4FF] transition-colors hover:bg-[rgba(0,212,255,0.14)]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--accent-amber)]/35 bg-[var(--accent-amber-dim)] px-4 py-2 text-sm font-medium text-[var(--accent-amber)] transition-colors hover:bg-[var(--accent-amber)]/20"
           >
             <RefreshCw className="size-4" />
             Retry
@@ -269,28 +258,28 @@ export default function DashboardPage() {
             title="Total TVL"
             value={overview ? fmtTvlUsd(overview.totalTvl) : 0}
             subtitle="Across active assets"
-            icon={<Layers className="text-[#00D4FF]" />}
+            icon={<Layers className="text-[var(--accent-amber)]" />}
             isLoading={overviewLoading}
           />
           <MetricCard
             title="Total Assets"
             value={overview ? overview.totalAssets : 0}
             subtitle="Active listings"
-            icon={<TrendingUp className="text-[#00D4FF]" />}
+            icon={<TrendingUp className="text-[var(--accent-amber)]" />}
             isLoading={overviewLoading}
           />
           <MetricCard
             title="Avg Yield Rate"
             value={overview ? formatYield(overview.avgYieldRate * 100) : "0.00%"}
             subtitle="Volume-weighted snapshot"
-            icon={<Percent className="text-[#00D4FF]" />}
+            icon={<Percent className="text-[var(--accent-amber)]" />}
             isLoading={overviewLoading}
           />
           <MetricCard
             title="Total Holders"
             value={overview ? overview.totalHolders : 0}
             subtitle="Across active assets"
-            icon={<Users className="text-[#00D4FF]" />}
+            icon={<Users className="text-[var(--accent-amber)]" />}
             isLoading={overviewLoading}
           />
         </div>
@@ -298,77 +287,42 @@ export default function DashboardPage() {
 
       {/* TVL OVERVIEW (free) */}
       {!overviewError ? (
-        <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
-          <h2 className="text-lg font-bold text-white">TVL Overview</h2>
-          <p className="mt-1 text-sm text-[#8892A4]">
+        <section className="terminal-panel p-5">
+          <p className="terminal-label">Liquidity</p>
+          <h2 className="mt-1 text-base font-semibold text-white">TVL Overview</h2>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             Aggregate liquidity snapshot across tracked listings — always free.
           </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border border-[rgba(30,42,58,0.6)] bg-[rgba(10,14,26,0.55)] p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                Total TVL
-              </p>
-              <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-white">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="data-surface p-4">
+              <p className="terminal-label">Total TVL</p>
+              <p className="terminal-data mt-2 text-2xl font-semibold">
                 {overviewLoading ? "—" : overview ? fmtTvlUsd(overview.totalTvl) : "—"}
               </p>
             </div>
-            <div className="rounded-lg border border-[rgba(30,42,58,0.6)] bg-[rgba(10,14,26,0.55)] p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                Active assets
-              </p>
-              <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-white">
+            <div className="data-surface p-4">
+              <p className="terminal-label">Active assets</p>
+              <p className="terminal-data mt-2 text-2xl font-semibold">
                 {overviewLoading ? "—" : overview ? overview.totalAssets : "—"}
               </p>
             </div>
-            <div className="rounded-lg border border-[rgba(30,42,58,0.6)] bg-[rgba(10,14,26,0.55)] p-4 sm:col-span-2 lg:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                Last updated
-              </p>
+            <div className="data-surface p-4 sm:col-span-2 lg:col-span-1">
+              <p className="terminal-label">Last updated</p>
               <p className="mt-2 text-sm font-medium text-white">{lastDisplay}</p>
             </div>
           </div>
         </section>
       ) : null}
 
-      {/* YIELD ANALYTICS (gated) */}
-      <PaywallGuard
-        endpoint="/api/v1/analytics/yield"
-        fallback={({ openPaywall }) => (
-          <BlurredPreview
-            title="Yield Analytics"
-            priceLabel="from ~0.001 ETH"
-            onUnlock={openPaywall}
-          />
-        )}
-      >
-        {(data) => (
-          <GatedAnalyticsPanel
-            title="Yield Analytics"
-            subtitle="Premium yield curves, regime splits, and forward-looking stress paths."
-            data={data}
-          />
-        )}
-      </PaywallGuard>
-
-      {/* RISK METRICS (gated) */}
-      <PaywallGuard
-        endpoint="/api/v1/analytics/risk"
-        fallback={({ openPaywall }) => (
-          <BlurredPreview
-            title="Risk Metrics"
-            priceLabel="from ~0.001 ETH"
-            onUnlock={openPaywall}
-          />
-        )}
-      >
-        {(data) => (
-          <GatedAnalyticsPanel
-            title="Risk Metrics"
-            subtitle="Concentration, drawdown bands, and protocol-level risk flags."
-            data={data}
-          />
-        )}
-      </PaywallGuard>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <YieldLadder
+          compact
+          limit={8}
+          showFooterLink
+          benchmarkYield={overview?.avgYieldRate}
+        />
+        <RiskHeatmap compact showFooterLink />
+      </div>
 
       {/* TOP MOVERS + CHARTS */}
       {overviewLoading && !overviewError ? (
@@ -522,6 +476,8 @@ export default function DashboardPage() {
           </div>
         </section>
       ) : null}
+        </div>
+      </div>
 
       {/* RECENT ASSETS */}
       <section>
@@ -529,7 +485,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-bold text-white">Recent Assets</h2>
           <Link
             href="/dashboard/assets"
-            className="inline-flex items-center gap-1 text-sm font-medium text-[#00D4FF] hover:underline"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[var(--accent-amber)] hover:underline"
           >
             View All
             <ArrowUpRight className="size-4" />
@@ -542,7 +498,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => void loadAssets()}
-              className="inline-flex items-center gap-2 rounded-lg border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.08)] px-4 py-2 text-sm font-medium text-[#00D4FF] hover:bg-[rgba(0,212,255,0.14)]"
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--accent-amber)]/35 bg-[var(--accent-amber-dim)] px-4 py-2 text-sm font-medium text-[var(--accent-amber)] hover:bg-[var(--accent-amber)]/20"
             >
               <RefreshCw className="size-4" />
               Retry
@@ -552,14 +508,14 @@ export default function DashboardPage() {
           <div className="overflow-x-auto rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)]">
             <table className="w-full min-w-[800px] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-[rgba(30,42,58,0.8)] text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                  <th className="px-4 py-3">Asset</th>
-                  <th className="px-4 py-3">Protocol</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3 text-right">TVL</th>
-                  <th className="px-4 py-3 text-right">Yield</th>
-                  <th className="px-4 py-3">Risk</th>
-                  <th className="px-4 py-3 text-right">Change</th>
+                <tr className="border-b border-[var(--border-line)]">
+                  <th className="terminal-label px-4 py-2.5">Asset</th>
+                  <th className="terminal-label px-4 py-2.5">Protocol</th>
+                  <th className="terminal-label px-4 py-2.5">Category</th>
+                  <th className="terminal-label px-4 py-2.5 text-right">TVL</th>
+                  <th className="terminal-label px-4 py-2.5 text-right">Yield</th>
+                  <th className="terminal-label px-4 py-2.5">Risk</th>
+                  <th className="terminal-label px-4 py-2.5 text-right">Change</th>
                 </tr>
               </thead>
               <tbody>

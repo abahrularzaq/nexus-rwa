@@ -103,6 +103,18 @@ export interface MarketOverview {
   updatedAt: Date;
 }
 
+export type MarketBriefRiskTone = 'elevated' | 'stable' | 'improving';
+
+/** AI-generated market-wide narrative for dashboard overview. */
+export interface MarketBrief {
+  headline: string;
+  summary: string;
+  whatChanged: string[];
+  watchList: string[];
+  riskTone: MarketBriefRiskTone;
+  generatedAt: string;
+}
+
 export type DataConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface AssetDataMeta {
@@ -182,6 +194,10 @@ export interface AssetInsight {
   risks: string[];
   outlook: InsightOutlook;
   confidence: InsightConfidence;
+  /** Recent yield/TVL/risk shifts for this asset (2–3 bullets). */
+  whatChanged?: string[];
+  /** Items to monitor next (2–3 bullets). */
+  watchList?: string[];
   generatedAt: string;
 }
 
@@ -225,6 +241,7 @@ export const X402_PRICING = {
 
 export const CACHE_TTL = {
   MARKET_OVERVIEW: 60,
+  MARKET_BRIEF: 8 * 60 * 60,
   ASSETS_LIST: 120,
   ASSET_DETAIL: 300,
   YIELD_DATA: 600,

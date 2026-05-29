@@ -1,28 +1,31 @@
 "use client";
 
-import { Sparkles, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { AlertTriangle, Minus, Sparkles, TrendingUp } from "lucide-react";
 import { BlurredPreview } from "@/components/paywall/BlurredPreview";
 import { PaywallGuard } from "@/components/paywall/PaywallGuard";
 import type { ApiResponse, AssetInsight } from "@/lib/shared";
 
 const OUTLOOK_STYLES: Record<
   AssetInsight["outlook"],
-  { label: string; emoji: string; className: string }
+  { label: string; className: string; Icon: typeof Minus }
 > = {
   bullish: {
-    label: "Bullish",
-    emoji: "📈",
-    className: "border-[rgba(0,255,136,0.35)] bg-[rgba(0,255,136,0.1)] text-[#00FF88]",
+    label: "Positive",
+    className:
+      "border-[rgba(61,154,110,0.4)] bg-[rgba(61,154,110,0.12)] text-[var(--data-positive)]",
+    Icon: TrendingUp,
   },
   neutral: {
     label: "Neutral",
-    emoji: "➖",
-    className: "border-[rgba(255,184,0,0.35)] bg-[rgba(255,184,0,0.1)] text-[#FFB800]",
+    className:
+      "border-[var(--border-panel)] bg-[var(--bg-panel)] text-[var(--text-secondary)]",
+    Icon: Minus,
   },
   bearish: {
-    label: "Bearish",
-    emoji: "📉",
-    className: "border-[rgba(255,68,68,0.35)] bg-[rgba(255,68,68,0.1)] text-[#FF8888]",
+    label: "Cautious",
+    className:
+      "border-[rgba(196,92,92,0.4)] bg-[rgba(196,92,92,0.12)] text-[var(--data-negative)]",
+    Icon: AlertTriangle,
   },
 };
 
@@ -34,20 +37,42 @@ function formatHoursAgo(iso: string): string {
   return `${hours} hours ago`;
 }
 
+function BulletList({
+  items,
+  dotClassName,
+}: {
+  items: string[];
+  dotClassName: string;
+}) {
+  return (
+    <ul className="space-y-1.5 text-sm text-[var(--text-secondary)]">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2 leading-snug">
+          <span
+            className={`mt-2 size-1 shrink-0 rounded-full ${dotClassName}`}
+            aria-hidden
+          />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function MockInsightBlurred() {
   return (
     <div className="pointer-events-none select-none space-y-4 blur-[6px]">
-      <div className="h-8 w-28 rounded-full bg-[rgba(0,255,136,0.2)]" />
-      <p className="text-sm text-[#8892A4]">
-        Strong treasury backing and stable yield trajectory support a constructive view
-        on near-term performance…
+      <div className="h-7 w-24 rounded border border-[var(--border-panel)] bg-[var(--bg-panel)]" />
+      <p className="text-sm text-[var(--text-secondary)]">
+        Treasury-backed structure and stable yield trajectory support a constructive
+        near-term view…
       </p>
       <div className="grid gap-4 md:grid-cols-2">
-        <ul className="space-y-2 text-sm text-[#00FF88]">
+        <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
           <li>Yield above category median</li>
           <li>TVL growth over 30d</li>
         </ul>
-        <ul className="space-y-2 text-sm text-[#FF8888]">
+        <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
           <li>Concentration risk signal</li>
           <li>Rate sensitivity</li>
         </ul>
@@ -58,65 +83,64 @@ function MockInsightBlurred() {
 
 function InsightContent({ insight }: { insight: AssetInsight }) {
   const outlook = OUTLOOK_STYLES[insight.outlook];
-  const OutlookIcon =
-    insight.outlook === "bullish"
-      ? TrendingUp
-      : insight.outlook === "bearish"
-        ? TrendingDown
-        : Minus;
+  const OutlookIcon = outlook.Icon;
+  const whatChanged = insight.whatChanged ?? [];
+  const watchList = insight.watchList ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
         <span
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${outlook.className}`}
+          className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${outlook.className}`}
         >
-          <span aria-hidden>{outlook.emoji}</span>
-          <OutlookIcon className="size-4" aria-hidden />
+          <OutlookIcon className="size-3" aria-hidden />
           {outlook.label}
         </span>
-        <span className="text-xs uppercase tracking-wide text-[#8892A4]">
-          Confidence:{" "}
-          <span className="font-medium text-white">{insight.confidence}</span>
+        <span className="terminal-label">
+          Confidence{" "}
+          <span className="text-[var(--text-primary)]">{insight.confidence}</span>
         </span>
       </div>
 
-      <p className="text-sm leading-relaxed text-[#C5CED9]">{insight.summary}</p>
+      <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+        {insight.summary}
+      </p>
+
+      {whatChanged.length > 0 ? (
+        <div>
+          <p className="terminal-label mb-2">What changed</p>
+          <BulletList
+            items={whatChanged}
+            dotClassName="bg-[var(--accent-amber)]"
+          />
+        </div>
+      ) : null}
+
+      {watchList.length > 0 ? (
+        <div>
+          <p className="terminal-label mb-2">Watch</p>
+          <BulletList items={watchList} dotClassName="bg-[var(--text-label)]" />
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-[rgba(0,255,136,0.2)] bg-[rgba(0,255,136,0.04)] p-4">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#00FF88]">
-            Opportunities
-          </h3>
-          <ul className="space-y-2 text-sm text-[#C5CED9]">
-            {insight.opportunities.map((item) => (
-              <li key={item} className="flex gap-2">
-                <span className="text-[#00FF88]" aria-hidden>
-                  •
-                </span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="terminal-panel p-4">
+          <h3 className="terminal-label mb-3">Opportunities</h3>
+          <BulletList
+            items={insight.opportunities}
+            dotClassName="bg-[var(--data-positive)]"
+          />
         </div>
-        <div className="rounded-lg border border-[rgba(255,68,68,0.2)] bg-[rgba(255,68,68,0.04)] p-4">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#FF8888]">
-            Risks
-          </h3>
-          <ul className="space-y-2 text-sm text-[#C5CED9]">
-            {insight.risks.map((item) => (
-              <li key={item} className="flex gap-2">
-                <span className="text-[#FF8888]" aria-hidden>
-                  •
-                </span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="terminal-panel p-4">
+          <h3 className="terminal-label mb-3">Risks</h3>
+          <BulletList
+            items={insight.risks}
+            dotClassName="bg-[var(--data-negative)]"
+          />
         </div>
       </div>
 
-      <p className="text-xs text-[#8892A4]">
+      <p className="terminal-label border-t border-[var(--border-panel)] pt-3">
         Generated by Claude AI • Updated {formatHoursAgo(insight.generatedAt)}
       </p>
     </div>
@@ -133,21 +157,18 @@ export function AIInsightCard({ apiBaseUrl, assetId }: AIInsightCardProps) {
   const endpoint = `${base}/v1/assets/${assetId}/insight`;
 
   return (
-    <section
-      className="rounded-xl border border-[rgba(30,42,58,0.8)] p-6"
-      style={{ background: "rgba(15,22,41,0.65)" }}
-    >
+    <section className="terminal-panel p-6">
       <div className="mb-5 flex items-center gap-3">
         <div
-          className="flex size-10 items-center justify-center rounded-lg border border-[rgba(168,85,247,0.35)] bg-[rgba(168,85,247,0.1)]"
+          className="flex size-10 items-center justify-center rounded-lg border border-[var(--border-panel)] bg-[var(--bg-panel)]"
           aria-hidden
         >
-          <Sparkles className="size-5 text-[#C084FC]" />
+          <Sparkles className="size-5 text-[var(--accent-amber)]" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-white">AI Insight</h2>
-          <p className="text-sm text-[#8892A4]">
-            Claude-powered outlook, opportunities, and risks
+          <h2 className="text-lg font-bold text-white">Asset insight</h2>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Narrative outlook, shifts, and factors to monitor
           </p>
         </div>
       </div>
@@ -159,7 +180,7 @@ export function AIInsightCard({ apiBaseUrl, assetId }: AIInsightCardProps) {
             <MockInsightBlurred />
             <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
               <BlurredPreview
-                title="AI Insight"
+                title="Asset insight"
                 priceLabel="Pro — $0.001 ETH"
                 onUnlock={openPaywall}
                 className="max-w-md border-0 bg-transparent"
@@ -177,7 +198,7 @@ export function AIInsightCard({ apiBaseUrl, assetId }: AIInsightCardProps) {
             !body.success
           ) {
             return (
-              <p className="text-sm text-[#8892A4]">
+              <p className="text-sm text-[var(--text-secondary)]">
                 Insight unavailable, try again later
               </p>
             );

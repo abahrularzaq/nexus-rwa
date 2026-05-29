@@ -1,6 +1,7 @@
-import type { MarketOverview } from '../shared/index.js';
+import type { MarketBrief, MarketOverview } from '../shared/index.js';
 import { CACHE_TTL } from '../shared/index.js';
 import { getCached } from '../lib/redis.js';
+import { getMarketBrief as fetchMarketBrief } from '../lib/marketBrief.js';
 import * as marketRepo from '../repositories/market.repo.js';
 
 const CACHE_KEY = 'nexus:v1:market:overview';
@@ -23,4 +24,12 @@ export async function getMarketOverview(): Promise<{
     CACHE_TTL.MARKET_OVERVIEW,
   );
   return { data: reviveMarketOverview(data), cached };
+}
+
+/** AI market brief (Claude + Redis cache, static fallback if AI unavailable). */
+export async function getMarketBrief(): Promise<{
+  data: MarketBrief;
+  cached: boolean;
+}> {
+  return fetchMarketBrief();
 }

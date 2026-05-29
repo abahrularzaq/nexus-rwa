@@ -10,6 +10,7 @@ import {
   Search,
   SearchX,
 } from "lucide-react";
+import { AssetInsightTeaser } from "@/components/dashboard/AssetInsightTeaser";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
@@ -469,7 +470,7 @@ export default function DashboardAssetsPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredSorted.map((asset) => {
+          {filteredSorted.map((asset, index) => {
             const snapshot = asset.snapshots?.[0];
             const tvl = snapshot?.tvl ?? 0;
             const yieldRate = snapshot?.yieldRate ?? 0;
@@ -543,6 +544,11 @@ export default function DashboardAssetsPage() {
                     {formatChange7d(change7d)}
                   </span>
                 </div>
+
+                <AssetInsightTeaser
+                  assetId={asset.id}
+                  enabled={index < 12}
+                />
 
                 <Link
                   href={`/dashboard/assets/${asset.id}`}

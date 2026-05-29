@@ -21,6 +21,15 @@
   --border-cyan: rgba(0, 212, 255, 0.3);
   --border-purple: rgba(124, 58, 237, 0.3);
 
+  /* Terminal / institutional analytics */
+  --bg-panel: #0d121f;
+  --text-label: #6b7a90;
+  --accent-amber: #e8a317;
+  --accent-amber-dim: rgba(232, 163, 23, 0.15);
+  --border-panel: rgba(30, 42, 58, 0.9);
+  --data-positive: #3d9a6e;
+  --data-negative: #c45c5c;
+
   /* Shadcn mapping */
   --background: #0A0E1A;
   --foreground: #FFFFFF;
@@ -96,6 +105,58 @@ html, body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* Terminal analytics surfaces (dashboard) */
+.terminal-label {
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  font-variant-numeric: tabular-nums;
+}
+.terminal-data {
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.terminal-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: 8px;
+}
+.terminal-accent {
+  color: var(--accent-amber);
+}
+.data-surface {
+  border: 1px solid var(--border-panel);
+  background: var(--bg-panel);
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
+}
+.data-surface:hover {
+  border-color: rgba(232, 163, 23, 0.22);
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+.overview-grid-brief {
+  grid-column: span 12;
+}
+.overview-grid-main {
+  grid-column: span 12;
+}
+@media (min-width: 1024px) {
+  .overview-grid-brief {
+    grid-column: span 4;
+  }
+  .overview-grid-main {
+    grid-column: span 8;
+  }
+}
 .dot-grid {
   background-image: radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -148,7 +209,7 @@ html, body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(0, 212, 255, 0.07),
+    rgba(232, 163, 23, 0.06),
     transparent
   );
   animation: nexus-metric-card-shimmer 1.35s ease-in-out infinite;
@@ -215,6 +276,9 @@ html, body {
   --color-nexus-text-secondary: #8892a4;
   --color-nexus-text-muted: #4a5568;
   --color-nexus-border: #1e2a3a;
+  --color-nexus-bg-panel: var(--bg-panel);
+  --color-nexus-text-label: var(--text-label);
+  --color-nexus-accent-amber: var(--accent-amber);
 }
 
 :root {

@@ -12,6 +12,7 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   'api',
   'market',
   'overview',
+  'brief',
   'assets',
   'search',
   'yield',
@@ -100,6 +101,11 @@ export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>>
   'GET:/v1/market/overview': {
     price: '$0.00',
     description: 'Public market overview snapshot.',
+    isFree: true,
+  },
+  'GET:/v1/market/brief': {
+    price: '$0.00',
+    description: 'AI market brief: headline, summary, 7d changes, watch list.',
     isFree: true,
   },
   'GET:/v1/assets': {

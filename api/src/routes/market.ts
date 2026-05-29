@@ -1,6 +1,6 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
-import type { ApiSuccessResponse } from '../shared/index.js';
+import type { ApiSuccessResponse, MarketBrief } from '../shared/index.js';
 import { createMeta } from '../shared/index.js';
 import { createFreePassMiddleware } from '../middleware/x402/index.js';
 import * as marketService from '../services/market.service.js';
@@ -21,6 +21,14 @@ async function getOverviewHandler(c: Context) {
 }
 
 marketRouter.get('/overview', freePass, getOverviewHandler);
+
+async function getBriefHandler(c: Context) {
+  const { data, cached } = await marketService.getMarketBrief();
+  c.header('X-Cache', cached ? 'HIT' : 'MISS');
+  return c.json(ok<MarketBrief>(data, cached));
+}
+
+marketRouter.get('/brief', freePass, getBriefHandler);
 
 function getAdminApiKey(c: Context): string | undefined {
   const headerKey = c.req.header('x-api-key') ?? c.req.header('X-API-Key');

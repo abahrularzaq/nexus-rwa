@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import type { MarketOverview } from "@/lib/shared";
-import type { AccessTier, X402ErrorResponse } from "@/types/x402";
+import type { X402ErrorResponse } from "@/types/x402";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").replace(
   /\/$/,
@@ -13,7 +13,7 @@ const TIER_AMOUNTS: Record<"pro" | "enterprise", string> = {
   enterprise: "0.01",
 };
 
-function tierForAnalytics(kind: "yield" | "risk"): AccessTier {
+function tierForAnalytics(_kind: "yield" | "risk"): "pro" | "enterprise" {
   return "pro";
 }
 
@@ -179,7 +179,7 @@ export async function handleAnalyticsGet(
       buildX402Required(endpointPath, tier),
     );
     return NextResponse.json(
-      { error: "PAYMENT_VERIFICATION_FAILED", ...required },
+      { ...required, error: "PAYMENT_VERIFICATION_FAILED" },
       { status: 402 },
     );
   }

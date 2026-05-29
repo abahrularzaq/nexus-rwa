@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   ChevronRight,
-  Zap,
   RefreshCw,
 } from "lucide-react";
 
@@ -125,7 +124,7 @@ export default function DashboardLayout({
   const crumbs = breadcrumbsFromPathname(pathname);
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-white">
+    <div className="dashboard-terminal min-h-screen bg-[var(--bg-primary)] text-white">
       {/* Mobile overlay */}
       {sidebarOpen ? (
         <button
@@ -144,7 +143,7 @@ export default function DashboardLayout({
         ].join(" ")}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <div className="border-b border-[rgba(30,42,58,0.8)] px-4 py-4">
+          <div className="border-b border-[var(--border-line)] px-3 py-3">
             <Link
               href="/"
               onClick={closeSidebar}
@@ -164,7 +163,7 @@ export default function DashboardLayout({
             </Link>
           </div>
 
-          <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-4">
+          <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-3">
             {navItems.map(({ label, href, icon: Icon, exact }) => {
               const active = isNavActive(pathname, href, exact);
               return (
@@ -173,10 +172,10 @@ export default function DashboardLayout({
                   href={href}
                   onClick={closeSidebar}
                   className={[
-                    "flex items-center gap-3 rounded-r-md py-2.5 pl-3 pr-3 text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-r-md py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-colors",
                     active
-                      ? "border-l-[3px] border-l-[#00D4FF] bg-[rgba(0,212,255,0.08)] text-[#00D4FF]"
-                      : "border-l-[3px] border-l-transparent text-[#8892A4] hover:bg-[rgba(255,255,255,0.05)] hover:text-white",
+                      ? "border-l-[3px] border-l-[var(--accent-amber)] bg-[var(--accent-amber-dim)] text-[var(--accent-amber)]"
+                      : "border-l-[3px] border-l-transparent text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.04)] hover:text-white",
                   ].join(" ")}
                 >
                   <Icon className="size-[18px] shrink-0 opacity-90" strokeWidth={2} />
@@ -186,7 +185,7 @@ export default function DashboardLayout({
             })}
           </nav>
 
-          <div className="mt-auto space-y-4 border-t border-[rgba(30,42,58,0.8)] px-4 py-4">
+          <div className="mt-auto space-y-3 border-t border-[var(--border-line)] px-3 py-3">
             <div className="flex items-center gap-2 text-xs text-[#8892A4]">
               <span className="size-2 shrink-0 rounded-full bg-[#00FF88] shadow-[0_0_8px_rgba(0,255,136,0.6)]" />
               <span className="text-[#8892A4]">API Connected</span>
@@ -205,7 +204,7 @@ export default function DashboardLayout({
 
       {/* Top bar */}
       <header
-        className="fixed right-0 top-0 z-30 flex h-14 items-center justify-between border-b border-[rgba(30,42,58,0.8)] bg-[rgba(10,14,26,0.9)] px-4 backdrop-blur-md md:left-[240px]"
+        className="fixed right-0 top-0 z-30 flex h-12 items-center justify-between border-b border-[var(--border-line)] bg-[rgba(10,14,26,0.92)] px-3 backdrop-blur-md md:left-[240px]"
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
@@ -228,7 +227,7 @@ export default function DashboardLayout({
                 ) : (
                   <Link
                     href={c.href}
-                    className="truncate transition-colors hover:text-[#00D4FF]"
+                    className="truncate transition-colors hover:text-[var(--accent-amber)]"
                   >
                     {c.label}
                   </Link>
@@ -238,16 +237,7 @@ export default function DashboardLayout({
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <Zap
-            className="size-4 shrink-0 text-[#00D4FF]"
-            aria-hidden
-            strokeWidth={2.25}
-          />
-          <div className="flex items-center gap-2 rounded-md border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.6)] px-2.5 py-1 text-xs font-medium">
-            <span className="size-1.5 shrink-0 rounded-full bg-[#00FF88] shadow-[0_0_6px_rgba(0,255,136,0.5)]" />
-            <span className="text-[#8892A4]">X402 Active</span>
-          </div>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <button
             type="button"
             aria-label="Refresh"
@@ -262,7 +252,7 @@ export default function DashboardLayout({
 
       {/* Main */}
       <main
-        className="min-h-screen bg-[#0A0E1A] px-6 pb-6 pt-[calc(56px+24px)] md:ml-[240px]"
+        className="min-h-screen bg-[var(--bg-primary)] px-4 pb-5 pt-[calc(48px+20px)] md:ml-[240px] md:px-5"
       >
         {children}
       </main>
