@@ -12,11 +12,12 @@ import { logger } from './lib/logger.js';
 import { setupErrorHandlers } from './middleware/error-handler.js';
 import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
 import { startRiskScoreScheduler } from './jobs/updateRiskScores.js';
-import { startSyncScheduler } from './services/sync.service.js';
+import { startSyncCron } from './jobs/cron.js';
 import { gatedRouter } from './routes/gated.js';
 import { sessionRouter } from './routes/session.js';
 import { analyticsRouter, exportRouter } from './routes/enterprise.js';
 import { askRouter } from './routes/ask.js';
+import { adminRouter } from './routes/admin.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
@@ -109,6 +110,7 @@ app.route('/v1/session', sessionRouter);
 app.route('/v1/analytics', analyticsRouter);
 app.route('/v1/export', exportRouter);
 app.route('/v1/ask', askRouter);
+app.route('/v1/admin', adminRouter);
 
 // 404 handler
 app.notFound((c) => c.json({
@@ -122,9 +124,8 @@ setupErrorHandlers(app);
 async function main(): Promise<void> {
   assertX402Env();
   await connectDatabase();
-  // Mulai sync data otomatis setiap 1 jam
-  startSyncScheduler();
-  logger.info('Data sync scheduler started');
+  startSyncCron();
+  logger.info('Data sync cron started (6h full, 1h top-5 market, 24h blockchain)');
   startRiskScoreScheduler();
   logger.info('Risk score scheduler started (every 6h)');
   startYieldHistoryScheduler();

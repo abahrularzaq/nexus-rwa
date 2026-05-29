@@ -19,7 +19,10 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   'holders',
   'risk',
   'history',
+  'events',
+  'full',
   'insight',
+  'admin',
   'ask',
   'analytics',
   'bulk',
@@ -68,6 +71,7 @@ export const TIER_PLANS: Readonly<Record<AccessTier, TierPlan>> = {
  * Paths may be listed with or without the `/api` prefix (normalized away).
  */
 export const ENDPOINT_TIERS: Readonly<Record<string, AccessTier>> = {
+  'GET:/v1/assets/:id/full': 'pro',
   'GET:/v1/assets/:id/history': 'pro',
   'GET:/v1/assets/:id/risk': 'pro',
   'GET:/v1/assets/:id/holders': 'pro',
@@ -122,6 +126,16 @@ export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>>
     price: '$0.00',
     description: 'Current yield snapshot for one asset.',
     isFree: true,
+  },
+  'GET:/v1/assets/:id/events': {
+    price: '$0.00',
+    description: 'Asset events timeline (launches, audits, incidents).',
+    isFree: true,
+  },
+  'GET:/v1/assets/:id/full': {
+    price: '$0.001',
+    description: 'Extended asset profile with Pro layers (yield, reserve, compliance, etc.).',
+    isFree: false,
   },
   'GET:/v1/assets/:id/history': {
     price: '$0.001',

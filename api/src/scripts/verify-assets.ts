@@ -231,7 +231,10 @@ export async function verifyAssets(): Promise<void> {
   let notInDb = 0;
 
   for (const truth of VERIFIED_ASSETS) {
-    const row = await db.asset.findUnique({ where: { id: truth.id } });
+    const row = await db.asset.findUnique({
+      where: { id: truth.id },
+      include: { blockchain: true },
+    });
 
     if (!row) {
       notInDb += 1;
@@ -242,14 +245,19 @@ export async function verifyAssets(): Promise<void> {
       continue;
     }
 
-    if (normAddr(row.contractAddress) !== normAddr(truth.contractAddress)) {
+    const chainRow = row.blockchain.find(
+      (b) => b.chain.toLowerCase() === truth.chain.toLowerCase(),
+    );
+    const dbContract = chainRow?.contractAddress ?? row.blockchain[0]?.contractAddress;
+
+    if (!dbContract || normAddr(dbContract) !== normAddr(truth.contractAddress)) {
       contractMismatch += 1;
       logger.warn(
         {
           id: truth.id,
           symbol: truth.symbol,
           truthContract: truth.contractAddress,
-          dbContract: row.contractAddress,
+          dbContract: dbContract ?? null,
           explorerUrl: truth.explorerUrl,
         },
         'Contract address mismatch: database vs verified source of truth',

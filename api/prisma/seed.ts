@@ -1,410 +1,630 @@
-import { PrismaClient, AssetCategory, Chain, RiskLevel } from "@prisma/client";
+import { createHash } from "node:crypto";
+import { PrismaClient, KeyTier } from "@prisma/client";
+import {
+  MINIMAL_ASSET_SEEDS,
+  TARGET_ASSET_SLUGS,
+  type AssetSeed,
+  type SeedEntry,
+  isFullAssetSeed,
+} from "./seed-helpers.js";
 
 const prisma = new PrismaClient();
 
-type RwaAssetSeed = {
-  id: string;
-  name: string;
-  symbol: string;
-  protocol: string;
-  category: AssetCategory;
-  chain: Chain;
-  contractAddress: string;
-  description: string;
-  snapshotDays?: number;
-  tvlMin?: number;
-  tvlMax?: number;
-  yieldMin?: number;
-  yieldMax?: number;
-};
-
-const RWA_ASSETS: RwaAssetSeed[] = [
+/** Three reference assets with rich static narratives; remaining catalog via seed-helpers. */
+const RICH_ASSETS: AssetSeed[] = [
   {
-    id: "ondo-usdy",
-    name: "Ondo USDY",
-    symbol: "USDY",
-    protocol: "Ondo Finance",
-    category: AssetCategory.TREASURY,
-    chain: Chain.base,
-    contractAddress: "0x96F6ef951840721AdBF46Ac996b59E0235CB985C",
-    description: "US dollar yield-bearing stablecoin backed by US Treasuries",
+    slug: "ondo-ousg",
+    identity: {
+      name: "Ondo OUSG",
+      symbol: "OUSG",
+      fullName: "Ondo US Dollar Yield",
+      category: "Treasury",
+      subcategory: "Short-term Treasury",
+      description: "Tokenized fund providing exposure to short-term US Treasuries",
+      websiteUrl: "https://ondo.finance",
+      twitterUrl: "https://twitter.com/OndoFinance",
+      launchDate: new Date("2023-01-27"),
+      tags: ["institutional", "kyc-required", "audited"],
+    },
+    market: {
+      tvl: 3_690_000_000,
+      tvl7dChange: -1.31,
+      holderCount: 1357,
+      sources: ["defillama"],
+      confidence: "HIGH",
+    },
+    risk: {
+      overallScore: 82,
+      overallLevel: "LOW",
+      smartContractRisk: 75,
+      counterpartyRisk: 85,
+      liquidityRisk: 70,
+      regulatoryRisk: 90,
+      marketRisk: 85,
+      concentrationRisk: 65,
+      riskFactors: ["KYC-gated limits retail access", "Concentrated in single strategy"],
+      mitigants: ["SEC-registered fund", "BNY Mellon custodian", "Monthly audits"],
+      assessmentMethod: "hybrid",
+      lastAssessed: new Date("2025-01-15"),
+    },
+    reserve: {
+      backingType: "US Treasury Bills",
+      backingDescription: "Portfolio of 0-3 month US Treasury bills and repos",
+      collateralizationRatio: 1.0,
+      custodian: "BNY Mellon",
+      hasProofOfReserves: true,
+      auditor: "Deloitte",
+      lastAuditDate: new Date("2024-12-01"),
+      reserveBreakdown: { "90-day T-bills": 70, "Overnight repo": 30 },
+      redemptionAsset: "USD",
+    },
+    yield: {
+      currentYield: 5.2,
+      yieldType: "variable",
+      yieldFrequency: "daily",
+      yieldBenchmark: "Fed Funds Rate",
+      yieldCurrency: "USD",
+    },
+    institutional: {
+      issuerName: "Ondo Finance",
+      issuerType: "protocol_native",
+      issuerCountry: "US",
+      legalStructure: "Delaware LLC",
+      minimumInvestment: 5000,
+      managementFee: 0.15,
+      targetInvestors: "accredited",
+    },
+    blockchain: [
+      {
+        chain: "ethereum",
+        chainId: 1,
+        contractAddress: "0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
+        tokenStandard: "ERC-20",
+        hasWhitelist: true,
+        hasTransferRestrictions: true,
+        isVerified: true,
+        explorerUrl: "https://etherscan.io/token/0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
+      },
+    ],
+    compliance: {
+      regulatoryStatus: "registered",
+      primaryRegulator: "SEC",
+      regulatoryFramework: "Reg D / Reg S",
+      kycRequired: true,
+      accreditedOnly: true,
+      blockedJurisdictions: ["US-retail", "CN", "KP"],
+      sanctionsScreening: true,
+      amlPolicy: "Full OFAC screening",
+    },
+    liquidity: {
+      redemptionType: "T+1",
+      redemptionPeriodDays: 1,
+      lockupPeriodDays: 0,
+      minRedemptionAmount: 5000,
+      liquidityScore: 75,
+      liquidityNotes: "Instant redemption via Flux Finance secondary market",
+    },
+    aiNarrative: {
+      summary:
+        "OUSG is a leading tokenized short-term US Treasury product with strong regulatory backing and institutional custody.",
+      opportunities: ["Fed rate tailwinds", "Growing RWA institutional adoption", "Flux Finance secondary liquidity"],
+      risks: ["Retail access restricted", "Single-strategy concentration"],
+      outlook: "neutral",
+      outlookReason: "Stable yield product with limited upside beyond rate environment",
+      confidence: "high",
+      keyMetrics: { tvl: 3_690_000_000, yield: 5.2, riskScore: 82 },
+      compareTo: ["franklin-benji"],
+      generatedAt: new Date("2025-05-01"),
+      modelVersion: "seed-static-v1",
+    },
+    events: [
+      {
+        title: "Monthly NAV audit completed",
+        description: "Deloitte completed routine monthly audit of underlying Treasury holdings",
+        eventType: "audit",
+        severity: "info",
+        occurredAt: new Date("2024-12-01"),
+        isVerified: true,
+      },
+      {
+        title: "Flux Finance integration live",
+        description: "OUSG enabled as collateral on Flux Finance lending markets",
+        eventType: "partnership",
+        severity: "info",
+        occurredAt: new Date("2023-06-15"),
+        sourceUrl: "https://ondo.finance",
+        isVerified: true,
+      },
+    ],
+    history: [
+      { timestamp: new Date("2025-05-20"), tvl: 3_720_000_000, yield: 5.25, holderCount: 1365, riskScore: 82, source: "seed" },
+      { timestamp: new Date("2025-05-13"), tvl: 3_690_000_000, yield: 5.2, holderCount: 1357, riskScore: 82, source: "seed" },
+      { timestamp: new Date("2025-05-06"), tvl: 3_740_000_000, yield: 5.18, holderCount: 1348, riskScore: 81, source: "seed" },
+    ],
   },
   {
-    id: "maple-usdc",
-    name: "Maple USDC",
-    symbol: "mUSDC",
-    protocol: "Maple Finance",
-    category: AssetCategory.CREDIT,
-    chain: Chain.ethereum,
-    contractAddress: "0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
-    description: "Institutional lending pool for blue-chip crypto companies",
+    slug: "franklin-benji",
+    identity: {
+      name: "Franklin OnChain U.S. Government Money Fund",
+      symbol: "BENJI",
+      fullName: "Franklin OnChain U.S. Government Money Fund (FOBXX)",
+      category: "Treasury",
+      subcategory: "Government Money Market",
+      description:
+        "World's first SEC-registered US government money market fund tokenized on blockchain, with shares represented as BENJI tokens",
+      websiteUrl: "https://digitalassets.franklintempleton.com/benji",
+      twitterUrl: "https://twitter.com/FTI_US",
+      launchDate: new Date("2021-04-21"),
+      tags: ["institutional", "sec-registered", "40-act-fund", "kyc-required"],
+    },
+    market: {
+      tvl: 401_000_000,
+      tvl7dChange: 0.42,
+      tvl30dChange: 2.1,
+      price: 1.0,
+      holderCount: 2840,
+      aumUsd: 401_000_000,
+      lastUpdated: new Date("2025-05-20"),
+      sources: ["defillama", "franklin_templeton"],
+      confidence: "HIGH",
+    },
+    risk: {
+      overallScore: 88,
+      overallLevel: "LOW",
+      smartContractRisk: 80,
+      counterpartyRisk: 92,
+      liquidityRisk: 78,
+      regulatoryRisk: 95,
+      marketRisk: 88,
+      concentrationRisk: 70,
+      riskFactors: ["Permissioned transfer restrictions", "Fund share not freely tradable on DEXs"],
+      mitigants: ["SEC Investment Company Act registered", "BNY Mellon custodian", "Established asset manager since 1947"],
+      assessmentMethod: "hybrid",
+      lastAssessed: new Date("2025-01-20"),
+    },
+    reserve: {
+      backingType: "US Government Securities",
+      backingDescription: "Portfolio of US government securities, repurchase agreements, and cash equivalents per '40 Act MMF rules",
+      collateralizationRatio: 1.0,
+      custodian: "BNY Mellon",
+      custodianUrl: "https://www.bnymellon.com",
+      hasProofOfReserves: true,
+      auditor: "PricewaterhouseCoopers",
+      lastAuditDate: new Date("2024-11-30"),
+      reserveBreakdown: { "US Treasury securities": 45, "Agency securities": 30, "Repurchase agreements": 20, Cash: 5 },
+      redemptionAsset: "USD",
+    },
+    yield: {
+      currentYield: 4.85,
+      yieldType: "variable",
+      yieldFrequency: "daily",
+      yieldBenchmark: "SOFR",
+      yieldVsBenchmark: -15,
+      yieldAvg7d: 4.82,
+      yieldAvg30d: 4.79,
+      yieldCurrency: "USD",
+    },
+    institutional: {
+      issuerName: "Franklin Templeton",
+      issuerType: "asset_manager",
+      issuerCountry: "US",
+      fundManager: "Franklin Templeton Fixed Income",
+      legalStructure: "Delaware Statutory Trust (Registered Investment Company)",
+      minimumInvestment: 20,
+      managementFee: 0.15,
+      targetInvestors: "institutional",
+    },
+    blockchain: [
+      {
+        chain: "polygon",
+        chainId: 137,
+        contractAddress: "0x408a634b8a8f0de729b48574a3a7ec3fe820b00a",
+        tokenStandard: "ERC-20",
+        hasWhitelist: true,
+        hasTransferRestrictions: true,
+        isVerified: true,
+        explorerUrl: "https://polygonscan.com/token/0x408a634b8a8f0de729b48574a3a7ec3fe820b00a",
+      },
+      {
+        chain: "stellar",
+        contractAddress: "GBHNGLLIE3KWGKCHIKMHJ5HVZHYIK7WTBE4QF5PLAKL4CJGSEU7HZIW5",
+        tokenStandard: "Stellar Asset",
+        hasWhitelist: true,
+        hasTransferRestrictions: true,
+        isVerified: true,
+        explorerUrl: "https://stellar.expert/explorer/public/asset/BENJI-GBHNGLLIE3KWGKCHIKMHJ5HVZHYIK7WTBE4QF5PLAKL4CJGSEU7HZIW5",
+      },
+    ],
+    compliance: {
+      regulatoryStatus: "registered",
+      primaryRegulator: "SEC",
+      regulatoryFramework: "Investment Company Act of 1940",
+      kycRequired: true,
+      accreditedOnly: false,
+      blockedJurisdictions: ["CN", "KP", "IR"],
+      sanctionsScreening: true,
+      amlPolicy: "Full OFAC and sanctions screening via Benji Investments platform",
+      lastComplianceCheck: new Date("2025-05-01"),
+    },
+    liquidity: {
+      redemptionType: "T+1",
+      redemptionPeriodDays: 1,
+      lockupPeriodDays: 0,
+      minRedemptionAmount: 20,
+      liquidityScore: 72,
+      liquidityNotes: "Redemptions processed via Benji Investments app; Stellar primary chain with Polygon secondary",
+    },
+    aiNarrative: {
+      summary:
+        "BENJI is the pioneering tokenized SEC-registered money market fund from Franklin Templeton, setting the standard for TradFi-on-chain integration.",
+      opportunities: ["Multi-chain expansion", "Institutional RWA benchmark", "Regulatory clarity as '40 Act fund"],
+      risks: ["Permissioned transfers limit DeFi composability", "Reliance on off-chain fund administration"],
+      outlook: "bullish",
+      outlookReason: "Strong institutional adoption and regulatory precedent for tokenized MMFs",
+      confidence: "high",
+      keyMetrics: { tvl: 401_000_000, yield: 4.85, riskScore: 88 },
+      compareTo: ["ondo-ousg"],
+      generatedAt: new Date("2025-05-01"),
+      modelVersion: "seed-static-v1",
+    },
+    events: [
+      {
+        title: "BENJI token launched on Stellar",
+        description: "Franklin Templeton launched the world's first US-registered MMF on blockchain via Stellar",
+        eventType: "launch",
+        severity: "info",
+        occurredAt: new Date("2021-04-21"),
+        sourceUrl: "https://digitalassets.franklintempleton.com/benji",
+        isVerified: true,
+      },
+      {
+        title: "Polygon deployment live",
+        description: "BENJI fund token deployed on Polygon network for EVM ecosystem access",
+        eventType: "launch",
+        severity: "info",
+        occurredAt: new Date("2023-09-12"),
+        isVerified: true,
+      },
+    ],
+    history: [
+      { timestamp: new Date("2025-05-20"), tvl: 401_000_000, yield: 4.85, holderCount: 2840, riskScore: 88, source: "seed" },
+      { timestamp: new Date("2025-05-13"), tvl: 399_000_000, yield: 4.82, holderCount: 2825, riskScore: 88, source: "seed" },
+      { timestamp: new Date("2025-05-06"), tvl: 395_000_000, yield: 4.79, holderCount: 2810, riskScore: 87, source: "seed" },
+    ],
   },
   {
-    id: "centrifuge-drop",
-    name: "Centrifuge DROP",
-    symbol: "DROP",
-    protocol: "Centrifuge",
-    category: AssetCategory.CREDIT,
-    chain: Chain.ethereum,
-    contractAddress: "0x0C32Fa1FA1513C4C2cB34e0C1e81c5A8D16e3a02",
-    description: "Senior tranche token for real-world asset financing",
-  },
-  {
-    id: "backed-buidl",
-    name: "Backed BUIDL",
-    symbol: "bBUIDL",
-    protocol: "Backed Finance",
-    category: AssetCategory.TREASURY,
-    chain: Chain.ethereum,
-    contractAddress: "0x7712c34205737192402172409a8F7ccef8aA2AEc",
-    description: "Tokenized BlackRock USD Institutional Digital Liquidity Fund",
-  },
-  {
-    id: "openedon-ousg",
-    name: "OpenEden OUSG",
-    symbol: "OUSG",
-    protocol: "OpenEden",
-    category: AssetCategory.TREASURY,
-    chain: Chain.ethereum,
-    contractAddress: "0x4eB405CD7e6AF70E54E4853a81D17A4bF3a0BA78",
-    description: "Tokenized short-term US Treasury Bills",
-  },
-  {
-    id: "ondo-ousg",
-    name: "Ondo OUSG",
-    symbol: "OUSG2",
-    protocol: "Ondo Finance",
-    category: AssetCategory.TREASURY,
-    chain: Chain.ethereum,
-    contractAddress: "0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
-    description: "Ondo Short-Term US Government Bond Fund tokenized",
-  },
-  {
-    id: "realt-token",
-    name: "RealT Token",
-    symbol: "REALT",
-    protocol: "RealT",
-    category: AssetCategory.REAL_ESTATE,
-    chain: Chain.ethereum,
-    contractAddress: "0x9C2023636A4f7a00E85a4C60b27F28bD5Ef24b0d",
-    description: "Fractional ownership of US rental real estate properties",
-  },
-  {
-    id: "goldfinch-gfi",
-    name: "Goldfinch GFI",
-    symbol: "GFI",
-    protocol: "Goldfinch",
-    category: AssetCategory.CREDIT,
-    chain: Chain.ethereum,
-    contractAddress: "0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
-    description: "Decentralized credit protocol for emerging market borrowers",
-  },
-  {
-    id: "franklin-benji",
-    name: "Franklin OnChain U.S. Government Money Fund",
-    symbol: "BENJI",
-    protocol: "Franklin Templeton",
-    category: AssetCategory.TREASURY,
-    chain: Chain.base,
-    contractAddress: "0x59D397F19aE8a7B33B8A89e0FD84b8F9C8C1FE0",
-    description:
-      "Tokenized US government money market fund by Franklin Templeton, one of world's largest asset managers",
-    snapshotDays: 30,
-    tvlMin: 350e6,
-    tvlMax: 450e6,
-    yieldMin: 4.5,
-    yieldMax: 5.5,
-  },
-  {
-    id: "superstate-ustb",
-    name: "Superstate Short Duration US Government Securities Fund",
-    symbol: "USTB",
-    protocol: "Superstate",
-    category: AssetCategory.TREASURY,
-    chain: Chain.ethereum,
-    contractAddress: "0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
-    description:
-      "Tokenized short-duration US Treasury fund by Superstate, founded by Compound Finance creator",
-    snapshotDays: 30,
-    tvlMin: 200e6,
-    tvlMax: 280e6,
-    yieldMin: 4.5,
-    yieldMax: 5.5,
-  },
-  {
-    id: "mountain-usdm",
-    name: "Mountain Protocol USD",
-    symbol: "USDM",
-    protocol: "Mountain Protocol",
-    category: AssetCategory.TREASURY,
-    chain: Chain.ethereum,
-    contractAddress: "0x59D9356E565Ab3A36dD77763Fc0d87fEaf85508C",
-    description: "Yield-bearing stablecoin backed by short-term US Treasury Bills",
-    snapshotDays: 30,
-    tvlMin: 180e6,
-    tvlMax: 220e6,
-    yieldMin: 4.5,
-    yieldMax: 5.5,
-  },
-  {
-    id: "hashnote-usyc",
-    name: "Hashnote US Yield Coin",
-    symbol: "USYC",
-    protocol: "Hashnote",
-    category: AssetCategory.TREASURY,
-    chain: Chain.ethereum,
-    contractAddress: "0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
-    description:
-      "Tokenized short-duration US Treasury and Repo instrument for institutional investors",
-    snapshotDays: 30,
-    tvlMin: 150e6,
-    tvlMax: 200e6,
-    yieldMin: 4.5,
-    yieldMax: 5.5,
-  },
-  {
-    id: "flux-fusdc",
-    name: "Flux USDC",
-    symbol: "fUSDC",
-    protocol: "Flux Finance",
-    category: AssetCategory.CREDIT,
-    chain: Chain.ethereum,
-    contractAddress: "0x465a5a630482f3abD6d3b84B39B29b07214d19e5",
-    description: "Lending protocol for RWA tokens, fork of Compound V2 by Ondo Finance",
-    snapshotDays: 30,
-    tvlMin: 80e6,
-    tvlMax: 120e6,
-    yieldMin: 7,
-    yieldMax: 9,
+    slug: "maple-usdc",
+    identity: {
+      name: "Maple USDC Pool",
+      symbol: "mUSDC",
+      fullName: "Maple Finance Institutional USDC Lending Pool",
+      category: "Credit",
+      subcategory: "Senior Secured Corporate",
+      description:
+        "Institutional overcollateralized lending pool providing USDC yield from secured loans to vetted crypto-native corporates",
+      websiteUrl: "https://maple.finance",
+      twitterUrl: "https://twitter.com/maplefinance",
+      docsUrl: "https://docs.maple.finance",
+      launchDate: new Date("2021-12-01"),
+      tags: ["institutional", "overcollateralized", "defi-credit", "audited"],
+    },
+    market: {
+      tvl: 324_100_000,
+      tvl7dChange: -1.8,
+      tvl30dChange: 4.2,
+      holderCount: 796,
+      aumUsd: 324_100_000,
+      lastUpdated: new Date("2025-05-20"),
+      sources: ["defillama", "maple_finance"],
+      confidence: "HIGH",
+    },
+    risk: {
+      overallScore: 62,
+      overallLevel: "MEDIUM",
+      smartContractRisk: 70,
+      counterpartyRisk: 55,
+      liquidityRisk: 60,
+      regulatoryRisk: 50,
+      marketRisk: 58,
+      concentrationRisk: 45,
+      riskFactors: [
+        "Borrower default risk despite overcollateralization",
+        "Concentration in crypto-native borrowers",
+        "Smart contract dependency",
+      ],
+      mitigants: [
+        "Overcollateralized loans (108%+ coverage)",
+        "Qualified custody for collateral",
+        "Legal recourse via off-chain agreements",
+        "Credit delegate underwriting",
+      ],
+      assessmentMethod: "hybrid",
+      lastAssessed: new Date("2025-01-10"),
+    },
+    reserve: {
+      backingType: "Overcollateralized Corporate Loans",
+      backingDescription:
+        "USDC lent to institutional borrowers secured by liquid digital asset collateral held in qualified custody",
+      collateralizationRatio: 1.088,
+      custodian: "Coinbase Custody",
+      hasProofOfReserves: true,
+      lastAuditDate: new Date("2024-10-15"),
+      auditor: "Trail of Bits (smart contract)",
+      reserveBreakdown: { "Outstanding loans": 85, "Pool cash buffer": 15 },
+      redemptionAsset: "USDC",
+    },
+    yield: {
+      currentYield: 8.91,
+      yieldType: "variable",
+      yieldFrequency: "continuous",
+      yieldBenchmark: "USDC base yield",
+      yieldVsBenchmark: 650,
+      yieldAvg7d: 8.85,
+      yieldAvg30d: 8.72,
+      yieldMin52w: 7.5,
+      yieldMax52w: 16.83,
+      yieldCurrency: "USD",
+    },
+    institutional: {
+      issuerName: "Maple Finance",
+      issuerType: "protocol_native",
+      issuerCountry: "KY",
+      fundManager: "Maple Labs",
+      legalStructure: "Cayman Islands Foundation",
+      minimumInvestment: 100_000,
+      managementFee: 0,
+      performanceFee: 20,
+      targetInvestors: "institutional",
+    },
+    blockchain: [
+      {
+        chain: "ethereum",
+        chainId: 1,
+        contractAddress: "0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
+        tokenStandard: "ERC-20",
+        hasWhitelist: true,
+        hasTransferRestrictions: false,
+        isVerified: true,
+        explorerUrl: "https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
+      },
+    ],
+    compliance: {
+      regulatoryStatus: "unregulated",
+      primaryRegulator: null,
+      regulatoryFramework: "DeFi protocol — no securities registration",
+      kycRequired: true,
+      accreditedOnly: true,
+      blockedJurisdictions: ["US", "CN", "KP"],
+      sanctionsScreening: true,
+      amlPolicy: "Institutional KYC/AML via Maple onboarding",
+    },
+    liquidity: {
+      redemptionType: "instant",
+      redemptionPeriodDays: 0,
+      lockupPeriodDays: 0,
+      minRedemptionAmount: 100_000,
+      liquidityScore: 65,
+      onchainLiquidity: 45_000_000,
+      liquidityNotes: "Withdrawals subject to pool liquidity; 30-day max time to liquidity for full pool",
+    },
+    aiNarrative: {
+      summary:
+        "Maple USDC pool offers institutional-grade overcollateralized lending yields, bridging TradFi credit practices with on-chain capital markets.",
+      opportunities: ["High yield vs Treasury products", "Growing institutional lender base", "Syrup.fi retail expansion"],
+      risks: ["Borrower concentration", "Smart contract risk", "Limited regulatory clarity"],
+      outlook: "neutral",
+      outlookReason: "Strong yields offset by higher credit risk profile vs Treasury RWAs",
+      confidence: "medium",
+      keyMetrics: { tvl: 324_100_000, yield: 8.91, riskScore: 62 },
+      compareTo: ["ondo-ousg"],
+      generatedAt: new Date("2025-05-01"),
+      modelVersion: "seed-static-v1",
+    },
+    events: [
+      {
+        title: "Maple Insto scaled to $310M TVL",
+        description: "Institutional secured lending pool reached $310M in total value locked",
+        eventType: "yield_change",
+        severity: "info",
+        occurredAt: new Date("2024-12-31"),
+        sourceUrl: "https://maple.finance/news/maple-yield-performance-2024",
+        isVerified: true,
+      },
+      {
+        title: "Smart contract audit by Trail of Bits",
+        description: "Core Maple v2 contracts audited with no critical findings",
+        eventType: "audit",
+        severity: "info",
+        occurredAt: new Date("2024-10-15"),
+        isVerified: true,
+      },
+    ],
+    history: [
+      { timestamp: new Date("2025-05-20"), tvl: 324_100_000, yield: 8.91, holderCount: 796, riskScore: 62, source: "seed" },
+      { timestamp: new Date("2025-05-13"), tvl: 330_000_000, yield: 8.95, holderCount: 788, riskScore: 62, source: "seed" },
+      { timestamp: new Date("2025-05-06"), tvl: 318_000_000, yield: 8.85, holderCount: 780, riskScore: 61, source: "seed" },
+    ],
   },
 ];
 
-function rng01(seed: string, salt: number): number {
-  let h = 2166136261;
-  const s = `${seed}:${salt}`;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+const RICH_SLUGS = new Set(RICH_ASSETS.map((a) => a.slug));
+const MINIMAL_FOR_SEED = MINIMAL_ASSET_SEEDS.filter((a) => !RICH_SLUGS.has(a.slug));
+const ASSETS: SeedEntry[] = [...MINIMAL_FOR_SEED, ...RICH_ASSETS];
+
+const API_KEYS = [
+  { name: "Test Free Key", tier: KeyTier.FREE, plainKey: "nexus_test_free_001" },
+  { name: "Test Pro Key", tier: KeyTier.PREMIUM, plainKey: "nexus_test_pro_001" },
+] as const;
+
+function hashApiKey(plainKey: string): string {
+  return createHash("sha256").update(plainKey).digest("hex");
+}
+
+function apiKeyPrefix(plainKey: string): string {
+  return plainKey.slice(0, 12);
+}
+
+function buildAssetCreate(entry: SeedEntry) {
+  const base = {
+    slug: entry.slug,
+    dataVersion: 1,
+    isActive: true,
+    identity: { create: entry.identity },
+    market: { create: entry.market },
+    risk: { create: entry.risk },
+    compliance: { create: entry.compliance },
+    liquidity: { create: entry.liquidity },
+  };
+
+  if (!isFullAssetSeed(entry)) {
+    return base;
   }
-  return (h >>> 0) / 4294967296;
-}
-
-function rangeFromSeed(seed: string, salt: number, min: number, max: number): number {
-  return min + rng01(seed, salt) * (max - min);
-}
-
-function clamp(n: number, lo: number, hi: number): number {
-  return Math.min(hi, Math.max(lo, n));
-}
-
-function startOfUtcDay(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
-}
-
-function categoryRanges(category: AssetCategory): {
-  tvlMin: number;
-  tvlMax: number;
-  yieldMin: number;
-  yieldMax: number;
-  holdersMin: number;
-  holdersMax: number;
-} {
-  switch (category) {
-    case AssetCategory.TREASURY:
-      return { tvlMin: 200e6, tvlMax: 900e6, yieldMin: 4.5, yieldMax: 5.8, holdersMin: 800, holdersMax: 5000 };
-    case AssetCategory.CREDIT:
-      return { tvlMin: 45e6, tvlMax: 350e6, yieldMin: 8.0, yieldMax: 13.0, holdersMin: 200, holdersMax: 1500 };
-    case AssetCategory.REAL_ESTATE:
-      return { tvlMin: 20e6, tvlMax: 80e6, yieldMin: 10.0, yieldMax: 12.5, holdersMin: 100, holdersMax: 800 };
-    default:
-      return { tvlMin: 50e6, tvlMax: 200e6, yieldMin: 5, yieldMax: 10, holdersMin: 300, holdersMax: 2000 };
-  }
-}
-
-function riskConfig(category: AssetCategory): {
-  overall: RiskLevel;
-  subMin: number;
-  subMax: number;
-} {
-  switch (category) {
-    case AssetCategory.TREASURY:
-      return { overall: RiskLevel.LOW, subMin: 0.1, subMax: 0.3 };
-    case AssetCategory.CREDIT:
-      return { overall: RiskLevel.MEDIUM, subMin: 0.4, subMax: 0.6 };
-    case AssetCategory.REAL_ESTATE:
-      return { overall: RiskLevel.HIGH, subMin: 0.6, subMax: 0.8 };
-    default:
-      return { overall: RiskLevel.MEDIUM, subMin: 0.35, subMax: 0.55 };
-  }
-}
-
-function holderTop10Range(category: AssetCategory): { min: number; max: number } {
-  switch (category) {
-    case AssetCategory.TREASURY:
-      return { min: 15, max: 25 };
-    case AssetCategory.CREDIT:
-      return { min: 35, max: 55 };
-    case AssetCategory.REAL_ESTATE:
-      return { min: 55, max: 75 };
-    default:
-      return { min: 30, max: 50 };
-  }
-}
-
-function buildSnapshots(asset: RwaAssetSeed, days: number) {
-  const defaults = categoryRanges(asset.category);
-  const tvlMin = asset.tvlMin ?? defaults.tvlMin;
-  const tvlMax = asset.tvlMax ?? defaults.tvlMax;
-  const yieldMin = asset.yieldMin ?? defaults.yieldMin;
-  const yieldMax = asset.yieldMax ?? defaults.yieldMax;
-  const { holdersMin, holdersMax } = defaults;
-  const baseTvl = rangeFromSeed(asset.id, 1, tvlMin, tvlMax);
-  const baseYield = rangeFromSeed(asset.id, 2, yieldMin, yieldMax);
-  const baseHolders = Math.round(rangeFromSeed(asset.id, 3, holdersMin, holdersMax));
-
-  const today = startOfUtcDay(new Date());
-  const rows: {
-    assetId: string;
-    tvl: number;
-    yieldRate: number;
-    holderCount: number;
-    price: number;
-    timestamp: Date;
-  }[] = [];
-
-  let tvl = baseTvl;
-  let yld = baseYield;
-  let holders = baseHolders;
-
-  for (let i = 0; i < days; i++) {
-    const dayNoise = rng01(asset.id, 1000 + i);
-    const wobble = (dayNoise - 0.5) * 0.04;
-    tvl = clamp(tvl * (1 + wobble), tvlMin * 0.85, tvlMax * 1.15);
-    yld = clamp(yld * (1 + wobble * 0.8), yieldMin * 0.9, yieldMax * 1.1);
-    const hNoise = (rng01(asset.id, 2000 + i) - 0.5) * 0.04;
-    holders = Math.round(clamp(holders * (1 + hNoise), holdersMin, holdersMax));
-
-    const ts = new Date(today);
-    ts.setUTCDate(ts.getUTCDate() - (days - 1 - i));
-
-    const priceJitter = 1 + (rng01(asset.id, 3000 + i) - 0.5) * 0.006;
-
-    rows.push({
-      assetId: asset.id,
-      tvl,
-      yieldRate: Math.round(yld * 1000) / 1000,
-      holderCount: holders,
-      price: Math.round(priceJitter * 10000) / 10000,
-      timestamp: ts,
-    });
-  }
-
-  return rows;
-}
-
-async function seedAsset(asset: RwaAssetSeed) {
-  console.log(`[seed] Processing asset: ${asset.id} (${asset.symbol})`);
-
-  await prisma.asset.upsert({
-    where: { id: asset.id },
-    create: {
-      id: asset.id,
-      name: asset.name,
-      symbol: asset.symbol,
-      protocol: asset.protocol,
-      category: asset.category,
-      chain: asset.chain,
-      contractAddress: asset.contractAddress,
-      description: asset.description,
-      isActive: true,
-    },
-    update: {
-      name: asset.name,
-      symbol: asset.symbol,
-      protocol: asset.protocol,
-      category: asset.category,
-      chain: asset.chain,
-      contractAddress: asset.contractAddress,
-      description: asset.description,
-    },
-  });
-
-  const snapshotDays = asset.snapshotDays ?? 90;
-  await prisma.assetSnapshot.deleteMany({ where: { assetId: asset.id } });
-  const snapshots = buildSnapshots(asset, snapshotDays);
-  await prisma.assetSnapshot.createMany({ data: snapshots });
-
-  await prisma.riskScore.deleteMany({ where: { assetId: asset.id } });
-  const rc = riskConfig(asset.category);
-  await prisma.riskScore.createMany({
-    data: [
-      {
-        assetId: asset.id,
-        overallScore: rc.overall,
-        liquidityScore: Math.round(rangeFromSeed(asset.id, 401, rc.subMin, rc.subMax) * 1000) / 1000,
-        concentrationScore: Math.round(rangeFromSeed(asset.id, 402, rc.subMin, rc.subMax) * 1000) / 1000,
-        protocolAgeScore: Math.round(rangeFromSeed(asset.id, 403, rc.subMin, rc.subMax) * 1000) / 1000,
-        volatilityScore: Math.round(rangeFromSeed(asset.id, 404, rc.subMin, rc.subMax) * 1000) / 1000,
-      },
-    ],
-  });
-
-  await prisma.holderSnapshot.deleteMany({ where: { assetId: asset.id } });
-  const lastHolders = snapshots[snapshots.length - 1]!.holderCount;
-  const whaleLo = 5;
-  const whaleHi = 50;
-  let whaleCount = Math.round(rangeFromSeed(asset.id, 501, whaleLo, whaleHi));
-  whaleCount = Math.min(whaleCount, Math.max(0, lastHolders - 1));
-  const retailCount = Math.max(0, lastHolders - whaleCount);
-  const topR = holderTop10Range(asset.category);
-  const top10Concentration =
-    Math.round(rangeFromSeed(asset.id, 502, topR.min, topR.max) * 100) / 100;
-
-  await prisma.holderSnapshot.create({
-    data: {
-      assetId: asset.id,
-      totalHolders: lastHolders,
-      top10Concentration: top10Concentration,
-      whaleCount,
-      retailCount,
-      timestamp: new Date(),
-    },
-  });
 
   return {
-    snapshots: snapshots.length,
-    riskScores: 1,
-    holderSnapshots: 1,
+    ...base,
+    reserve: { create: entry.reserve },
+    yield: { create: entry.yield },
+    institutional: { create: entry.institutional },
+    blockchain: { create: entry.blockchain },
+    aiNarrative: { create: entry.aiNarrative },
+    events: { create: entry.events },
+    history: { create: entry.history },
   };
 }
 
-async function main() {
-  let totalSnapshots = 0;
-  let totalRisk = 0;
-  let totalHolderSnaps = 0;
-  const assetsTouched = RWA_ASSETS.length;
+function buildAssetUpdate(entry: SeedEntry) {
+  const base = {
+    dataVersion: 1,
+    isActive: true,
+    identity: { upsert: { create: entry.identity, update: entry.identity } },
+    market: { upsert: { create: entry.market, update: entry.market } },
+    risk: { upsert: { create: entry.risk, update: entry.risk } },
+    compliance: { upsert: { create: entry.compliance, update: entry.compliance } },
+    liquidity: { upsert: { create: entry.liquidity, update: entry.liquidity } },
+  };
 
+  if (!isFullAssetSeed(entry)) {
+    return base;
+  }
+
+  return {
+    ...base,
+    reserve: { upsert: { create: entry.reserve, update: entry.reserve } },
+    yield: { upsert: { create: entry.yield, update: entry.yield } },
+    institutional: { upsert: { create: entry.institutional, update: entry.institutional } },
+    aiNarrative: { upsert: { create: entry.aiNarrative, update: entry.aiNarrative } },
+    blockchain: {
+      deleteMany: {},
+      create: entry.blockchain,
+    },
+    events: {
+      deleteMany: {},
+      create: entry.events,
+    },
+    history: {
+      deleteMany: {},
+      create: entry.history,
+    },
+  };
+}
+
+async function seedAsset(asset: SeedEntry) {
+  const kind = isFullAssetSeed(asset) ? "full" : "minimal";
+  console.log(`[seed] Upserting asset (${kind}): ${asset.slug}`);
+
+  await prisma.asset.upsert({
+    where: { slug: asset.slug },
+    create: buildAssetCreate(asset),
+    update: buildAssetUpdate(asset),
+  });
+}
+
+async function deactivateLegacyAssets() {
+  const result = await prisma.asset.updateMany({
+    where: { slug: { notIn: [...TARGET_ASSET_SLUGS] } },
+    data: { isActive: false },
+  });
+  if (result.count > 0) {
+    console.log(`[seed] Deactivated ${result.count} legacy asset(s)`);
+  }
+}
+
+async function verifySeed() {
+  const count = await prisma.asset.count({ where: { isActive: true } });
+  const withLayers = await prisma.asset.findMany({
+    where: { isActive: true },
+    select: {
+      slug: true,
+      identity: { select: { name: true } },
+      compliance: { select: { id: true } },
+      market: { select: { id: true } },
+      risk: { select: { id: true } },
+      liquidity: { select: { id: true } },
+    },
+    orderBy: { slug: "asc" },
+  });
+
+  const missing = withLayers.filter((a) => !a.identity || !a.compliance);
+  console.log(`\n[seed] Verification`);
+  console.log(`  Active assets: ${count}`);
+  console.log(`  With identity + compliance: ${withLayers.length - missing.length}/${withLayers.length}`);
+
+  if (count !== 13) {
+    throw new Error(`Expected 13 active assets, got ${count}`);
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Assets missing identity or compliance: ${missing.map((a) => a.slug).join(", ")}`,
+    );
+  }
+
+  for (const a of withLayers) {
+    const ok =
+      a.identity && a.compliance && a.market && a.risk && a.liquidity ? "✓" : "✗";
+    console.log(`  ${ok} ${a.slug}`);
+  }
+}
+
+async function seedApiKeys() {
+  for (const key of API_KEYS) {
+    const keyHash = hashApiKey(key.plainKey);
+    const prefix = apiKeyPrefix(key.plainKey);
+
+    await prisma.apiKey.upsert({
+      where: { keyHash },
+      create: {
+        keyHash,
+        prefix,
+        name: key.name,
+        tier: key.tier,
+        isActive: true,
+      },
+      update: {
+        prefix,
+        name: key.name,
+        tier: key.tier,
+        isActive: true,
+      },
+    });
+
+    console.log(`[seed] ApiKey "${key.name}" (${key.tier}) → ${key.plainKey}`);
+  }
+}
+
+async function main() {
   try {
-    for (const asset of RWA_ASSETS) {
-      try {
-        const counts = await seedAsset(asset);
-        totalSnapshots += counts.snapshots;
-        totalRisk += counts.riskScores;
-        totalHolderSnaps += counts.holderSnapshots;
-      } catch (inner) {
-        const detail = inner instanceof Error ? inner.message : String(inner);
-        throw new Error(`Seed failed for asset id="${asset.id}": ${detail}`, { cause: inner });
-      }
+    for (const asset of ASSETS) {
+      await seedAsset(asset);
     }
 
+    await deactivateLegacyAssets();
+    await seedApiKeys();
+    await verifySeed();
+
     console.log("\n[seed] Summary");
-    console.log(`  Assets upserted: ${assetsTouched}`);
-    console.log(`  AssetSnapshot rows created: ${totalSnapshots}`);
-    console.log(`  RiskScore rows created: ${totalRisk}`);
-    console.log(`  HolderSnapshot rows created: ${totalHolderSnaps}`);
-    console.log(
-      `  Total new records (snapshots + risk + holders): ${totalSnapshots + totalRisk + totalHolderSnaps}`,
-    );
+    console.log(`  Assets upserted: ${ASSETS.length}`);
+    console.log(`  ApiKeys upserted: ${API_KEYS.length}`);
+    console.log(`  Slugs: ${ASSETS.map((a) => a.slug).join(", ")}`);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("[seed] FAILED:", message);

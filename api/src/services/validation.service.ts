@@ -51,10 +51,10 @@ export async function validateAssetSnapshot(data: AssetSnapshotInput): Promise<V
     errors.push('holderCount must be >= 0');
   }
 
-  const latest = await db.assetSnapshot.findFirst({
+  const latest = await db.assetHistory.findFirst({
     where: { assetId: data.assetId },
     orderBy: { timestamp: 'desc' },
-    select: { tvl: true, yieldRate: true, holderCount: true, timestamp: true },
+    select: { tvl: true, yield: true, holderCount: true, timestamp: true },
   });
 
   const now = Date.now();
@@ -65,7 +65,13 @@ export async function validateAssetSnapshot(data: AssetSnapshotInput): Promise<V
 
   if (latest && within1h) {
     const prevTvl = latest.tvl;
-    if (Number.isFinite(prevTvl) && prevTvl > 0 && Number.isFinite(data.tvl) && data.tvl > 0) {
+    if (
+      prevTvl != null &&
+      Number.isFinite(prevTvl) &&
+      prevTvl > 0 &&
+      Number.isFinite(data.tvl) &&
+      data.tvl > 0
+    ) {
       const rel = Math.abs(data.tvl - prevTvl) / prevTvl;
       if (rel >= TVL_REL_CHANGE_ERROR) {
         errors.push(
@@ -78,8 +84,9 @@ export async function validateAssetSnapshot(data: AssetSnapshotInput): Promise<V
       }
     }
 
-    if (Number.isFinite(latest.yieldRate) && Number.isFinite(data.yieldRate)) {
-      const absDiff = Math.abs(data.yieldRate - latest.yieldRate);
+    const priorYield = latest.yield;
+    if (priorYield != null && Number.isFinite(priorYield) && Number.isFinite(data.yieldRate)) {
+      const absDiff = Math.abs(data.yieldRate - priorYield);
       if (absDiff > YIELD_ABS_CHANGE_WARN_PP) {
         warnings.push(
           `yieldRate changed by ${absDiff.toFixed(2)}pp vs prior snapshot within 1h (>${YIELD_ABS_CHANGE_WARN_PP}pp)`,
@@ -88,7 +95,12 @@ export async function validateAssetSnapshot(data: AssetSnapshotInput): Promise<V
     }
 
     const prevH = latest.holderCount;
-    if (Number.isFinite(prevH) && prevH > 0 && Number.isFinite(data.holderCount)) {
+    if (
+      prevH != null &&
+      Number.isFinite(prevH) &&
+      prevH > 0 &&
+      Number.isFinite(data.holderCount)
+    ) {
       const drop = (prevH - data.holderCount) / prevH;
       if (drop > HOLDER_DROP_ERROR) {
         errors.push(

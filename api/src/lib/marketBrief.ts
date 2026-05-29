@@ -11,7 +11,9 @@ import { CACHE_TTL, PAGINATION } from '../shared/index.js';
 import { getCached } from './redis.js';
 import { claudeComplete, parseJsonFromModelText } from './claude.js';
 import { logger } from './logger.js';
-import { getAssets } from '../services/asset.service.js';
+import { listItemToLegacySummary } from './assetLegacyMapper.js';
+import { getAssetList } from '../services/asset.service.js';
+import type { AssetListItemPro } from '../services/asset.service.js';
 import * as marketRepo from '../repositories/market.repo.js';
 
 const MARKET_OVERVIEW_CACHE_KEY = 'nexus:v1:market:overview';
@@ -75,7 +77,8 @@ function buildDistributions(assets: AssetSummary[]): {
   const categorySums = new Map<AssetCategory, { count: number; yieldSum: number }>();
 
   for (const asset of assets) {
-    riskDistribution[asset.riskScore] = (riskDistribution[asset.riskScore] ?? 0) + 1;
+    const riskKey = asset.riskScore in riskDistribution ? asset.riskScore : 'MEDIUM';
+    riskDistribution[riskKey] = (riskDistribution[riskKey] ?? 0) + 1;
 
     if (asset.category) {
       const prev = categorySums.get(asset.category) ?? { count: 0, yieldSum: 0 };
@@ -100,14 +103,18 @@ function buildDistributions(assets: AssetSummary[]): {
 export async function buildMarketBriefContext(): Promise<MarketBriefContext> {
   const [overview, assetPage] = await Promise.all([
     fetchMarketOverview(),
-    getAssets({ page: 1, limit: PAGINATION.MAX_LIMIT }),
+    getAssetList({ tier: 'pro', limit: PAGINATION.MAX_LIMIT }),
   ]);
 
-  const { riskDistribution, categoryDistribution } = buildDistributions(assetPage.data);
+  const summaries = assetPage.data.map((row) =>
+    listItemToLegacySummary(row as AssetListItemPro),
+  );
+
+  const { riskDistribution, categoryDistribution } = buildDistributions(summaries);
 
   return {
     overview,
-    assets: assetPage.data,
+    assets: summaries,
     riskDistribution,
     categoryDistribution,
   };

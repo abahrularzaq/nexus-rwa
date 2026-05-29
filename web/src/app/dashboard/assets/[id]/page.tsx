@@ -13,6 +13,9 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { ComplianceInfoSection } from "@/components/dashboard/ComplianceInfoSection";
+import { LiquidityInfoSection } from "@/components/dashboard/LiquidityInfoSection";
+import { ReserveInfoSection } from "@/components/dashboard/ReserveInfoSection";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { YieldHistorySection } from "@/components/dashboard/YieldHistorySection";
@@ -22,173 +25,30 @@ import { DataTransparencySection } from "@/components/dashboard/DataTransparency
 import { RelatedAssetsSection } from "@/components/dashboard/RelatedAssetsSection";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 import {
+  fetchAsset,
+  fetchAssetFull,
+  fetchAssetList,
+  formatTvl,
+  formatYield,
+} from "@/lib/api/assets";
+import {
+  getProtocolLabel,
+  normalizeCategory,
+  normalizeRiskLevel,
+  toAssetSummaries,
+} from "@/lib/asset-mapper";
+import {
   categoryAccent,
   formatAssetAge,
   formatCategoryLabel,
   formatChange7d,
   formatMinutesAgo,
-  formatTvl,
-  formatYieldFraction,
-  protocolWebsite,
   categoryAvgYield,
 } from "@/lib/assetDetailUtils";
-import type {
-  ApiResponse,
-  Asset,
-  AssetDataMeta,
-  AssetSnapshot,
-  AssetSummary,
-  HolderData,
-  PaginatedResponse,
-  RiskData,
-} from "@/lib/shared";
+import type { AssetDataMeta, AssetSummary, RiskData } from "@/lib/shared";
+import type { AssetWithLayers } from "@/types/asset";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-function apiKeyHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const apiKey = localStorage.getItem("nexus_api_key");
-  return apiKey ? { "X-API-Key": apiKey } : {};
-}
-
-type AssetDetailPayload = Asset & {
-  snapshot: AssetSnapshot | null;
-  risk: RiskData | null;
-  holder: HolderData | null;
-  _meta?: AssetDataMeta;
-};
-
-const defaultAssetMeta: AssetDataMeta = {
-  sources: ["defillama"],
-  lastUpdated: new Date().toISOString(),
-  confidence: "MEDIUM",
-  methodology: "Latest snapshot from DeFi Llama sync (single_source)",
-};
-
-const mockAssets: Record<string, AssetDetailPayload> = (() => {
-  const now = new Date();
-  const snap = (
-    id: string,
-    tvl: number,
-    yieldRate: number,
-    holderCount: number,
-    risk: AssetSnapshot["riskScore"],
-  ): AssetSnapshot => ({
-    id: `mock-snap-${id}`,
-    assetId: id,
-    tvl,
-    yieldRate,
-    holderCount,
-    riskScore: risk,
-    price: 1,
-    timestamp: now,
-  });
-  const mockMeta: AssetDataMeta = {
-    sources: ["defillama", "rwa_xyz"],
-    lastUpdated: now.toISOString(),
-    confidence: "MEDIUM",
-    methodology: "Mock data for local development (single_source)",
-  };
-
-  const riskBlock = (
-    id: string,
-    level: RiskData["level"],
-    score: number,
-    factors: string[] = [],
-  ): RiskData => ({
-    assetId: id,
-    score,
-    level,
-    factors,
-    updatedAt: now,
-    _meta: mockMeta,
-  });
-
-  return {
-    "franklin-benji": {
-      id: "franklin-benji",
-      name: "Franklin BENJI",
-      symbol: "BENJI",
-      protocol: "Franklin Templeton",
-      category: "TREASURY",
-      chain: "base",
-      contractAddress: "0x60CfC2b186a4CF647486e42c42B11cC6D571d1E4",
-      isActive: true,
-      createdAt: new Date("2024-06-01"),
-      updatedAt: now,
-      snapshot: snap("franklin-benji", 4e8, 5.0, 1200, "LOW"),
-      risk: riskBlock("franklin-benji", "LOW", 82),
-      holder: null,
-      _meta: mockMeta,
-    },
-    "superstate-ustb": {
-      id: "superstate-ustb",
-      name: "Superstate USTB",
-      symbol: "USTB",
-      protocol: "Superstate",
-      category: "TREASURY",
-      chain: "ethereum",
-      contractAddress: "0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
-      isActive: true,
-      createdAt: new Date("2024-03-15"),
-      updatedAt: now,
-      snapshot: snap("superstate-ustb", 2.4e8, 4.8, 900, "LOW"),
-      risk: riskBlock("superstate-ustb", "LOW", 78),
-      holder: null,
-      _meta: mockMeta,
-    },
-    "mountain-usdm": {
-      id: "mountain-usdm",
-      name: "Mountain USDM",
-      symbol: "USDM",
-      protocol: "Mountain Protocol",
-      category: "TREASURY",
-      chain: "ethereum",
-      contractAddress: "0x59D9356E565Ab3A36dD77763Fc0d87fEaf85508C",
-      isActive: true,
-      createdAt: new Date("2024-01-20"),
-      updatedAt: now,
-      snapshot: snap("mountain-usdm", 2e8, 5.1, 850, "LOW"),
-      risk: riskBlock("mountain-usdm", "LOW", 76),
-      holder: null,
-      _meta: mockMeta,
-    },
-    "hashnote-usyc": {
-      id: "hashnote-usyc",
-      name: "Hashnote USYC",
-      symbol: "USYC",
-      protocol: "Hashnote",
-      category: "TREASURY",
-      chain: "ethereum",
-      contractAddress: "0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
-      isActive: true,
-      createdAt: new Date("2023-11-10"),
-      updatedAt: now,
-      snapshot: snap("hashnote-usyc", 1.75e8, 4.9, 700, "LOW"),
-      risk: riskBlock("hashnote-usyc", "LOW", 74),
-      holder: null,
-      _meta: mockMeta,
-    },
-    "flux-fusdc": {
-      id: "flux-fusdc",
-      name: "Flux fUSDC",
-      symbol: "fUSDC",
-      protocol: "Flux Finance",
-      category: "CREDIT",
-      chain: "ethereum",
-      contractAddress: "0x465a5a630482f3abD6d3b84B39B29b07214d19e5",
-      isActive: true,
-      createdAt: new Date("2024-08-01"),
-      updatedAt: now,
-      snapshot: snap("flux-fusdc", 1e8, 8.2, 400, "MEDIUM"),
-      risk: riskBlock("flux-fusdc", "MEDIUM", 58, [
-        "Current yield above 30-day average",
-      ]),
-      holder: null,
-      _meta: mockMeta,
-    },
-  };
-})();
 
 function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
   const u = (s ?? "MEDIUM").toUpperCase();
@@ -206,9 +66,50 @@ function changeTypeFromDelta(
   return "neutral";
 }
 
+function marketMeta(asset: AssetWithLayers): AssetDataMeta {
+  const sources = asset.market?.sources?.length
+    ? asset.market.sources
+    : ["defillama"];
+  const confidence =
+    asset.market?.confidence === "HIGH" ||
+    asset.market?.confidence === "LOW"
+      ? asset.market.confidence
+      : "MEDIUM";
+  return {
+    sources,
+    lastUpdated: asset.market?.lastUpdated ?? new Date().toISOString(),
+    confidence,
+    methodology: "12-layer schema",
+  };
+}
+
+function legacyRiskForGated(
+  asset: AssetWithLayers,
+  meta: AssetDataMeta,
+): RiskData | null {
+  if (!asset.risk) return null;
+  const level = normalizeRiskLevel(asset.risk.overallLevel);
+  const mapped: RiskData["level"] =
+    level === "CRITICAL" || level === "HIGH"
+      ? "HIGH"
+      : level === "LOW"
+        ? "LOW"
+        : "MEDIUM";
+  return {
+    assetId: asset.slug,
+    score: asset.risk.overallScore ?? 50,
+    level: mapped,
+    factors: asset.risk.riskFactors ?? [],
+    updatedAt: asset.risk.lastAssessed ?? null,
+    _meta: meta,
+  };
+}
+
 function sourceAttribution(meta: AssetDataMeta): string {
   const names = meta.sources
-    .map((id) => (id === "defillama" ? "DeFi Llama" : id === "rwa_xyz" ? "rwa.xyz" : id))
+    .map((id) =>
+      id === "defillama" ? "DeFi Llama" : id === "rwa_xyz" ? "rwa.xyz" : id,
+    )
     .join(" + ");
   return names || "Nexus sync";
 }
@@ -216,14 +117,14 @@ function sourceAttribution(meta: AssetDataMeta): string {
 export default function AssetDetailPage() {
   const params = useParams();
   const rawId = params?.id;
-  const id =
+  const slug =
     typeof rawId === "string"
       ? rawId
       : Array.isArray(rawId)
         ? (rawId[0] ?? "")
         : "";
 
-  const [asset, setAsset] = useState<AssetDetailPayload | null>(null);
+  const [asset, setAsset] = useState<AssetWithLayers | null>(null);
   const [listPeers, setListPeers] = useState<AssetSummary[]>([]);
   const [change7d, setChange7d] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -236,110 +137,80 @@ export default function AssetDetailPage() {
   );
 
   useEffect(() => {
-    async function fetchAssetDetail() {
+    async function load() {
+      if (!slug) return;
       setLoading(true);
       try {
         setError(null);
-        const base = apiBase;
-        if (!id || !base) {
-          const fallback = mockAssets[id];
-          if (fallback) {
-            setAsset(fallback);
-            setChange7d(0.012);
-            setError(null);
-            return;
-          }
-          setAsset(null);
-          setError("Failed to load asset");
-          return;
+        const base = await fetchAsset(slug);
+        setAsset(base);
+        setChange7d((base.market?.tvl7dChange ?? 0) / 100);
+
+        try {
+          const full = await fetchAssetFull(slug);
+          setAsset((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  ...full,
+                  reserve: full.reserve ?? prev.reserve,
+                  institutional: full.institutional ?? prev.institutional,
+                  aiNarrative: full.aiNarrative ?? prev.aiNarrative,
+                }
+              : full,
+          );
+        } catch {
+          // PRO /full optional — FREE layers already loaded
         }
-        const res = await fetch(`${base}/v1/assets/${id}`, {
-          headers: { Accept: "application/json", ...apiKeyHeader() },
-        });
-        const json: unknown = await res.json();
-        const body = json as { success?: boolean; data?: AssetDetailPayload };
-        if (!res.ok || !body.success || !body.data) {
-          const fallback = mockAssets[id];
-          if (fallback) {
-            setAsset(fallback);
-            setChange7d(0.012);
-            setError(null);
-            return;
-          }
-          setAsset(null);
-          setError("Failed to load asset");
-          return;
-        }
-        setAsset(body.data);
-        setError(null);
       } catch {
-        const fallback = mockAssets[id];
-        if (fallback) {
-          setAsset(fallback);
-          setChange7d(0.012);
-          setError(null);
-        } else {
-          setError("Failed to load asset");
-          setAsset(null);
-        }
+        setError("Failed to load asset");
+        setAsset(null);
       } finally {
         setLoading(false);
       }
     }
-    if (id) void fetchAssetDetail();
-  }, [id, apiBase]);
+    void load();
+  }, [slug]);
 
   useEffect(() => {
-    async function fetchPeers() {
+    async function loadPeers() {
       setPeersLoading(true);
-      const base = apiBase;
-      if (!base) {
-        setListPeers([]);
-        setPeersLoading(false);
-        return;
-      }
       try {
-        const res = await fetch(`${base}/v1/assets?limit=50&page=1`, {
-          headers: { Accept: "application/json", ...apiKeyHeader() },
-        });
-        const body = (await res.json()) as ApiResponse<PaginatedResponse<AssetSummary>>;
-        if (res.ok && body.success) {
-          setListPeers(body.data.data);
-          const self = body.data.data.find((a) => a.id === id);
-          if (self) setChange7d(self.change7d ?? 0);
-        }
+        const { assets } = await fetchAssetList({ limit: 50, page: 1 });
+        const summaries = toAssetSummaries(assets);
+        setListPeers(summaries);
+        const self = summaries.find((a) => a.id === slug);
+        if (self) setChange7d(self.change7d ?? 0);
       } catch {
         setListPeers([]);
       } finally {
         setPeersLoading(false);
       }
     }
-    if (id) void fetchPeers();
-  }, [id, apiBase]);
+    if (slug) void loadPeers();
+  }, [slug]);
 
-  const snapshot = asset?.snapshot ?? null;
-  const riskLevel = toRiskLevel(asset?.risk?.level ?? snapshot?.riskScore);
-  const accent = asset ? categoryAccent(asset.category) : "#8892A4";
-  const tvl = snapshot?.tvl ?? 0;
-  const yieldRate = snapshot?.yieldRate ?? 0;
-  const yieldFraction = yieldRate > 1 ? yieldRate / 100 : yieldRate;
-  const holders = snapshot?.holderCount ?? 0;
-  const dataMeta = asset?._meta ?? asset?.risk?._meta ?? defaultAssetMeta;
-  const website = asset ? protocolWebsite(asset.protocol) : null;
+  const category = asset
+    ? normalizeCategory(asset.identity?.category)
+    : "TREASURY";
+  const riskLevel = toRiskLevel(normalizeRiskLevel(asset?.risk?.overallLevel));
+  const accent = asset ? categoryAccent(category) : "#8892A4";
+  const dataMeta = asset ? marketMeta(asset) : undefined;
+  const website = asset?.identity?.websiteUrl ?? null;
+  const yieldPct = asset?.yield?.currentYield;
+  const yieldFraction =
+    yieldPct != null && Number.isFinite(yieldPct) ? yieldPct / 100 : 0;
 
   const categoryAvg = useMemo(
-    () =>
-      asset
-        ? categoryAvgYield(listPeers, asset.category)
-        : null,
-    [listPeers, asset],
+    () => (asset ? categoryAvgYield(listPeers, category) : null),
+    [listPeers, asset, category],
   );
 
   const tvlChangePct = change7d * 100 * 0.85;
   const holdersChangePct = change7d * 100 * 0.35;
   const yieldChangePct = change7d * 100;
 
-  if (!id) {
+  if (!slug) {
     return (
       <div className="space-y-4 pb-10">
         <p className="text-[#8892A4]">Invalid asset id.</p>
@@ -370,7 +241,7 @@ export default function AssetDetailPage() {
     );
   }
 
-  if (error || !asset) {
+  if (error || !asset || !dataMeta) {
     return (
       <div className="space-y-6 pb-10">
         <Link
@@ -393,6 +264,9 @@ export default function AssetDetailPage() {
 
   const tvlUp = change7d >= 0;
   const attribution = sourceAttribution(dataMeta);
+  const displayName = asset.identity?.name ?? asset.slug;
+  const protocol = getProtocolLabel(asset);
+  const launchDate = asset.identity?.launchDate;
 
   return (
     <div className="space-y-10 pb-10">
@@ -403,11 +277,10 @@ export default function AssetDetailPage() {
         <ArrowLeft className="size-4" />
         <span>
           Assets <span className="text-[#4A5568]">/</span>{" "}
-          <span className="font-medium text-white">{asset.name}</span>
+          <span className="font-medium text-white">{displayName}</span>
         </span>
       </Link>
 
-      {/* 1. Header (FREE) */}
       <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6 lg:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex min-w-0 flex-1 gap-4">
@@ -419,16 +292,23 @@ export default function AssetDetailPage() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight text-white">
-                  {asset.name}
+                  {displayName}
                 </h1>
                 <RiskBadge level={riskLevel} showDot />
+                {asset.compliance?.kycRequired ? (
+                  <span className="rounded-md border border-[rgba(255,184,0,0.35)] bg-[rgba(255,184,0,0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#FFB800]">
+                    KYC Required
+                  </span>
+                ) : null}
               </div>
-              <p className="mt-1 text-lg text-[#8892A4]">{asset.symbol}</p>
+              <p className="mt-1 text-lg text-[#8892A4]">
+                {asset.identity?.symbol ?? "—"}
+              </p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-medium text-white">{asset.protocol}</span>
+                <span className="font-medium text-white">{protocol}</span>
                 <span className="text-[#4A5568]">·</span>
                 <span className="text-[#8892A4]">
-                  {formatCategoryLabel(asset.category)}
+                  {formatCategoryLabel(category)}
                 </span>
                 {website ? (
                   <>
@@ -461,7 +341,7 @@ export default function AssetDetailPage() {
               Total value locked
             </p>
             <p className="mt-1 text-4xl font-bold tabular-nums text-white lg:text-5xl">
-              {snapshot ? formatTvl(tvl) : "—"}
+              {formatTvl(asset.market?.tvl)}
             </p>
             <p
               className={`mt-2 inline-flex items-center gap-1 text-sm font-semibold tabular-nums ${
@@ -473,19 +353,19 @@ export default function AssetDetailPage() {
               ) : (
                 <TrendingDown className="size-4" />
               )}
-              {formatChange7d(change7d)} <span className="font-normal text-[#8892A4]">7d</span>
+              {formatChange7d(change7d)}{" "}
+              <span className="font-normal text-[#8892A4]">7d</span>
             </p>
           </div>
         </div>
       </section>
 
-      {/* 2. Key metrics (FREE) */}
       <section className="space-y-3">
         <h2 className="text-lg font-bold text-white">Key Metrics</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="TVL"
-            value={snapshot ? formatTvl(tvl) : "—"}
+            value={formatTvl(asset.market?.tvl)}
             change={`${tvlChangePct >= 0 ? "+" : ""}${tvlChangePct.toFixed(2)}%`}
             changeType={changeTypeFromDelta(change7d)}
             subtitle="7d change"
@@ -493,7 +373,7 @@ export default function AssetDetailPage() {
           />
           <MetricCard
             title="Yield"
-            value={snapshot ? formatYieldFraction(yieldFraction) : "—"}
+            value={formatYield(asset.yield?.currentYield)}
             change={`${yieldChangePct >= 0 ? "+" : ""}${yieldChangePct.toFixed(2)}%`}
             changeType={changeTypeFromDelta(change7d)}
             subtitle="7d change"
@@ -501,7 +381,11 @@ export default function AssetDetailPage() {
           />
           <MetricCard
             title="Holders"
-            value={snapshot ? holders.toLocaleString("en-US") : "—"}
+            value={
+              asset.market?.holderCount != null
+                ? asset.market.holderCount.toLocaleString("en-US")
+                : "—"
+            }
             change={`${holdersChangePct >= 0 ? "+" : ""}${holdersChangePct.toFixed(2)}%`}
             changeType={changeTypeFromDelta(change7d * 0.35)}
             subtitle="7d est."
@@ -509,45 +393,79 @@ export default function AssetDetailPage() {
           />
           <MetricCard
             title="Age"
-            value={formatAssetAge(asset.createdAt)}
+            value={
+              launchDate
+                ? formatAssetAge(launchDate)
+                : "—"
+            }
             change="—"
             changeType="neutral"
-            subtitle="Since listing"
+            subtitle="Since launch"
             icon={<Calendar className="text-[#00D4FF]" />}
           />
         </div>
       </section>
 
-      {/* 3. Yield history (GATED) */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-bold text-white">Yield History</h2>
-        <YieldHistorySection apiBaseUrl={apiBase} assetId={asset.id} />
+      <section className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
+          <h2 className="text-lg font-bold text-white">Compliance</h2>
+          <p className="mt-1 text-sm text-[#8892A4]">
+            Regulatory and access requirements
+          </p>
+          <div className="mt-4">
+            <ComplianceInfoSection compliance={asset.compliance} />
+          </div>
+        </div>
+        <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
+          <h2 className="text-lg font-bold text-white">Liquidity</h2>
+          <p className="mt-1 text-sm text-[#8892A4]">
+            Redemption terms and liquidity score
+          </p>
+          <div className="mt-4">
+            <LiquidityInfoSection liquidity={asset.liquidity} />
+          </div>
+        </div>
       </section>
 
-      {/* 4. Risk analysis (GATED) */}
+      <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
+        <h2 className="text-lg font-bold text-white">Reserve & backing</h2>
+        <p className="mt-1 text-sm text-[#8892A4]">
+          Custodian, collateralization, and proof-of-reserves (PRO)
+        </p>
+        <div className="mt-4">
+          <ReserveInfoSection
+            apiBaseUrl={apiBase}
+            assetSlug={asset.slug}
+            reserve={asset.reserve}
+          />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-bold text-white">Yield History</h2>
+        <YieldHistorySection apiBaseUrl={apiBase} assetId={asset.slug} />
+      </section>
+
       <GatedRiskAnalysisSection
         apiBaseUrl={apiBase}
-        assetId={asset.id}
-        yieldPct={yieldRate}
+        assetId={asset.slug}
+        yieldPct={yieldPct ?? yieldFraction * 100}
         categoryAvgPct={categoryAvg}
-        initialRisk={asset.risk}
+        initialRisk={legacyRiskForGated(asset, dataMeta)}
       />
 
-      {/* 4b. AI insight (PRO gated) */}
-      <AIInsightCard apiBaseUrl={apiBase} assetId={asset.id} />
+      <AIInsightCard apiBaseUrl={apiBase} assetId={asset.slug} />
 
-      {/* 5. Data transparency (FREE) */}
       <DataTransparencySection
         meta={dataMeta}
-        protocol={asset.protocol}
-        symbol={asset.symbol}
+        protocol={protocol}
+        symbol={asset.identity?.symbol ?? ""}
       />
 
-      {/* 6. Related assets (FREE) */}
       <RelatedAssetsSection
         assets={listPeers}
-        currentId={asset.id}
-        category={asset.category}
+        currentId={asset.slug}
+        category={category}
         loading={peersLoading}
       />
     </div>

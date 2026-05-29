@@ -2,6 +2,7 @@ import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
 import { resolveAssetMeta, withAssetMeta } from '../lib/dataSources.js';
 import type { YieldHistoryResponse } from '../shared/index.js';
+import { getAssetRepository } from './asset.service.js';
 import {
   fetchAllRwaTvl,
   fetchProtocolDetail,
@@ -37,13 +38,6 @@ export type YieldHistoryPoint = {
 export type YieldHistoryResult = YieldHistoryResponse;
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-
-function periodToStartDate(period: YieldHistoryPeriod): Date {
-  const d = new Date();
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-  d.setTime(d.getTime() - days * 24 * 60 * 60 * 1000);
-  return d;
-}
 
 function normalizeProjectName(name: string): string {
   return name.trim().toLowerCase();
@@ -92,12 +86,12 @@ async function resolveTvlForAsset(
     return { tvl: poolTvl, source: 'defillama' };
   }
 
-  const latest = await db.assetSnapshot.findFirst({
+  const latest = await db.assetHistory.findFirst({
     where: { assetId },
     orderBy: { timestamp: 'desc' },
     select: { tvl: true },
   });
-  if (latest && latest.tvl > 0) {
+  if (latest?.tvl != null && latest.tvl > 0) {
     return { tvl: latest.tvl, source: 'cached' };
   }
 
@@ -105,13 +99,14 @@ async function resolveTvlForAsset(
 }
 
 /**
- * Fetches DeFi Llama yield + TVL for all active assets and appends YieldHistory rows.
+ * Fetches DeFi Llama yield + TVL for all active assets and appends AssetHistory rows.
  */
 export async function captureYieldHistory(): Promise<{
   inserted: number;
   skipped: number;
   errors: number;
 }> {
+  const repo = getAssetRepository();
   const [pools, tvlMap, assets] = await Promise.all([
     fetchYieldPools(),
     fetchAllRwaTvl(),
@@ -151,14 +146,10 @@ export async function captureYieldHistory(): Promise<{
         continue;
       }
 
-      await db.yieldHistory.create({
-        data: {
-          assetId: asset.id,
-          yield: apy,
-          tvl,
-          timestamp: now,
-          source,
-        },
+      await repo.appendHistory(asset.id, {
+        yield: apy,
+        tvl,
+        source,
       });
       inserted += 1;
     } catch (err) {
@@ -176,7 +167,7 @@ export async function captureYieldHistory(): Promise<{
 }
 
 async function computeLimitedHistory(assetId: string): Promise<boolean> {
-  const oldest = await db.yieldHistory.findFirst({
+  const oldest = await db.assetHistory.findFirst({
     where: { assetId },
     orderBy: { timestamp: 'asc' },
     select: { timestamp: true },
@@ -187,7 +178,7 @@ async function computeLimitedHistory(assetId: string): Promise<boolean> {
   return Date.now() - oldest.timestamp.getTime() < SEVEN_DAYS_MS;
 }
 
-/** Historical yield/TVL series for an asset (from YieldHistory table). */
+/** Historical yield/TVL series for an asset (from AssetHistory table). */
 export async function getYieldHistory(
   assetId: string,
   period: YieldHistoryPeriod,
@@ -196,29 +187,31 @@ export async function getYieldHistory(
     where: { id: assetId, isActive: true },
     select: {
       id: true,
-      dataSources: true,
-      dataConfidence: true,
-      dataMethodology: true,
-      dataSourcesUpdatedAt: true,
       updatedAt: true,
-      snapshots: { orderBy: { timestamp: 'desc' }, take: 1, select: { timestamp: true } },
+      market: {
+        select: {
+          sources: true,
+          confidence: true,
+          lastUpdated: true,
+        },
+      },
+      history: { orderBy: { timestamp: 'desc' }, take: 1, select: { timestamp: true } },
     },
   });
   if (!asset) {
     throw new Error('ASSET_NOT_FOUND');
   }
 
-  const meta = resolveAssetMeta(asset);
-
-  const startDate = periodToStartDate(period);
-  const rows = await db.yieldHistory.findMany({
-    where: {
-      assetId,
-      timestamp: { gte: startDate },
-    },
-    orderBy: { timestamp: 'asc' },
-    select: { yield: true, tvl: true, timestamp: true },
+  const meta = resolveAssetMeta({
+    dataSources: asset.market?.sources ?? [],
+    dataConfidence: asset.market?.confidence ?? null,
+    dataMethodology: null,
+    dataSourcesUpdatedAt: asset.market?.lastUpdated ?? null,
+    updatedAt: asset.updatedAt,
+    snapshots: asset.history.map((h) => ({ timestamp: h.timestamp })),
   });
+
+  const rows = await getAssetRepository().getHistory(assetId, period);
 
   const limited_history = await computeLimitedHistory(assetId);
 
@@ -227,11 +220,13 @@ export async function getYieldHistory(
       assetId,
       period,
       limited_history,
-      history: rows.map((r) => ({
-        timestamp: r.timestamp.toISOString(),
-        yield: r.yield,
-        tvl: r.tvl,
-      })),
+      history: rows
+        .filter((r) => r.yield != null && r.tvl != null)
+        .map((r) => ({
+          timestamp: r.timestamp.toISOString(),
+          yield: r.yield!,
+          tvl: r.tvl!,
+        })),
     },
     meta,
   );

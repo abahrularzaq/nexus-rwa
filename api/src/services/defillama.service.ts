@@ -8,21 +8,19 @@ const TIMEOUT_MS = 10_000;
  * Mapping internal protocol key -> DeFi Llama protocol slug.
  */
 export const PROTOCOL_SLUGS: Record<string, string> = {
-  // existing 8
-  'ondo-usdy': 'ondo-finance',
   'ondo-ousg': 'ondo-finance',
-  'maple-usdc': 'maple-finance',
-  'centrifuge-drop': 'centrifuge',
-  'backed-buidl': 'backed-finance',
-  'openedon-ousg': 'openeden',
-  'realt-token': 'realt',
-  'goldfinch-gfi': 'goldfinch',
-  // new 5
+  'ondo-usdy': 'ondo-finance',
   'franklin-benji': 'franklin-templeton',
-  'superstate-ustb': 'superstate',
-  'mountain-usdm': 'mountain-protocol',
-  'hashnote-usyc': 'hashnote',
-  'flux-fusdc': 'flux-finance',
+  'maple-usdc': 'maple-finance',
+  'centrifuge-cfg': 'centrifuge',
+  'goldfinch-gfi': 'goldfinch',
+  'clearpool': 'clearpool',
+  'truefi': 'truefi',
+  'credix': 'credix',
+  'ribbon-finance': 'ribbon-finance',
+  'superstate': 'superstate',
+  'backed-finance': 'backed-finance',
+  'openeden': 'openeden',
 };
 
 export interface DefiLlamaProtocol {

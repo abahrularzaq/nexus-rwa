@@ -1,26 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/lib/api-client';
-import type { Asset, PaginatedResponse } from '@/lib/shared';
+import { fetchAsset, fetchAssetList } from '@/lib/api/assets';
 
 export function useAssets(params?: { page?: number; limit?: number; category?: string }) {
-  const query = new URLSearchParams({
-    page: String(params?.page ?? 1),
-    limit: String(params?.limit ?? 20),
-    ...(params?.category && { category: params.category }),
-  });
-
   return useQuery({
     queryKey: ['assets', params],
-    queryFn: () => apiFetch<PaginatedResponse<Asset>>(`/v1/assets?${query}`),
-    staleTime: 2 * 60 * 1000, // 2 menit
+    queryFn: () =>
+      fetchAssetList({
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 20,
+        category: params?.category,
+      }),
+    staleTime: 2 * 60 * 1000,
   });
 }
 
-export function useAsset(id: string) {
+export function useAsset(slug: string) {
   return useQuery({
-    queryKey: ['asset', id],
-    queryFn: () => apiFetch<Asset>(`/v1/assets/${id}`),
+    queryKey: ['asset', slug],
+    queryFn: () => fetchAsset(slug),
     staleTime: 5 * 60 * 1000,
-    enabled: Boolean(id),
+    enabled: Boolean(slug),
   });
 }

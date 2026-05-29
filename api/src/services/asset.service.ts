@@ -1,23 +1,129 @@
 import type {
-  Asset,
-  AssetDataMeta,
-  AssetSnapshot,
-  AssetSummary,
-  ComputedRiskLevel,
-  HolderData,
-  PaginatedResponse,
-  RiskData,
-  RiskLevel,
-  YieldData,
-  YieldPoint,
-} from '../shared/index.js';
-import { ERROR_CODES, paginate } from '../shared/index.js';
-import type { FindManyAssetsParams, YieldHistoryPeriod } from '../repositories/asset.repository.js';
-import * as assetRepo from '../repositories/asset.repository.js';
-import { getCached } from '../lib/redis.js';
-import { resolveAssetMeta, withAssetMeta } from '../lib/dataSources.js';
+  AssetAiNarrative,
+  AssetBlockchain,
+  AssetCompliance,
+  AssetEvent,
+  AssetHistory,
+  AssetIdentity,
+  AssetInstitutional,
+  AssetLiquidity,
+  AssetMarket,
+  AssetReserve,
+  AssetRisk,
+  AssetYield,
+} from '@prisma/client';
+import { db } from '../lib/database.js';
+import { getCached, redis } from '../lib/redis.js';
+import type { AccessTier } from '../middleware/x402/pricer.js';
+import {
+  AssetRepository,
+  type AssetWithLayers,
+} from '../repositories/asset.repository.js';
+import { fullInclude, type LayerName } from '../types/asset.types.js';
+import { ERROR_CODES } from '../shared/index.js';
 
-const RISK_CACHE_TTL_SECONDS = 60 * 60;
+const LIST_CACHE_TTL = 5 * 60;
+const DETAIL_CACHE_TTL = 10 * 60;
+
+const LIST_LAYERS_FREE: LayerName[] = ['identity', 'market', 'risk'];
+const LIST_LAYERS_PRO: LayerName[] = [
+  'identity',
+  'market',
+  'risk',
+  'yield',
+  'reserve',
+  'compliance',
+];
+const DETAIL_LAYERS_FREE: LayerName[] = [
+  'identity',
+  'market',
+  'risk',
+  'yield',
+  'blockchain',
+  'liquidity',
+  'compliance',
+];
+const DETAIL_LAYERS_PRO: LayerName[] = [
+  'identity',
+  'market',
+  'risk',
+  'yield',
+  'reserve',
+  'institutional',
+  'blockchain',
+  'liquidity',
+  'compliance',
+];
+
+export type AssetAccessTier = AccessTier;
+
+export type AssetListItemFree = {
+  id: string;
+  slug: string;
+  dataVersion: number;
+  identity: Pick<AssetIdentity, 'name' | 'symbol' | 'category' | 'subcategory' | 'logoUrl'> | null;
+  market: Pick<AssetMarket, 'tvl' | 'tvl7dChange' | 'price' | 'holderCount'> | null;
+  risk: { overallLevel: string | null } | null;
+};
+
+export type AssetListItemPro = AssetListItemFree & {
+  yield: Pick<AssetYield, 'currentYield' | 'yieldType' | 'yieldFrequency'> | null;
+  reserve: Pick<AssetReserve, 'backingType' | 'collateralizationRatio' | 'hasProofOfReserves'> | null;
+  compliance: Pick<AssetCompliance, 'regulatoryStatus' | 'kycRequired' | 'accreditedOnly'> | null;
+};
+
+export type AssetListItemEnterprise = AssetWithLayers;
+
+export type AssetListItem =
+  | AssetListItemFree
+  | AssetListItemPro
+  | AssetListItemEnterprise;
+
+export type AssetDetailFree = {
+  id: string;
+  slug: string;
+  dataVersion: number;
+  identity: AssetIdentity | null;
+  market: AssetMarket | null;
+  risk: {
+    overallLevel: string | null;
+    overallScore: number | null;
+  } | null;
+  yield: Pick<
+    AssetYield,
+    'currentYield' | 'yieldType' | 'yieldFrequency' | 'yieldBenchmark'
+  > | null;
+  blockchain: AssetBlockchain[];
+  liquidity: AssetLiquidity | null;
+  compliance: AssetCompliance | null;
+};
+
+export type AssetDetailPro = AssetDetailFree & {
+  risk: AssetRisk | null;
+  yield: AssetYield | null;
+  reserve: AssetReserve | null;
+  institutional: AssetInstitutional | null;
+  blockchain: AssetBlockchain[];
+  liquidity: AssetLiquidity | null;
+  compliance: AssetCompliance | null;
+};
+
+export type AssetDetailEnterprise = AssetWithLayers;
+
+export type AssetDetailResponse = AssetDetailFree | AssetDetailPro | AssetDetailEnterprise;
+
+export type GetAssetListOptions = {
+  category?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+  tier: AssetAccessTier;
+};
+
+export type GetAssetListResult = {
+  data: AssetListItem[];
+  cached: boolean;
+};
 
 /** Application-level error with stable code for HTTP mapping. */
 export class AppError extends Error {
@@ -30,276 +136,306 @@ export class AppError extends Error {
   }
 }
 
-/** Full asset payload for detail endpoints (core asset + latest metrics). */
-export type AssetDetail = Asset & {
-  snapshot: AssetSnapshot | null;
-  risk: RiskData | null;
-  holder: HolderData | null;
-  _meta: AssetDataMeta;
-};
-
-function toFraction(percentYield: number): number {
-  return percentYield / 100;
-}
-
-function parseHistoryPointTs(date: string): number {
-  return new Date(`${date}T00:00:00.000Z`).getTime();
-}
-
-/** Delta: latest yield minus yield at/before ~7d ago (same window logic as movers). */
-function yieldChange7dFromHistory(points: { date: string; yield: number }[]): number {
-  if (points.length === 0) {
-    return 0;
+export class NotFoundError extends AppError {
+  constructor(message = 'Asset tidak ditemukan') {
+    super(ERROR_CODES.ASSET_NOT_FOUND, message);
+    this.name = 'NotFoundError';
   }
-  const sorted = [...points].sort(
-    (a, b) => parseHistoryPointTs(a.date) - parseHistoryPointTs(b.date),
-  );
-  const latest = sorted[sorted.length - 1]!;
-  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  let baseline = sorted[0]!;
-  for (const p of sorted) {
-    if (parseHistoryPointTs(p.date) <= cutoff) {
-      baseline = p;
-    }
-  }
-  return latest.yield - baseline.yield;
 }
 
-function averageYield(points: { yield: number }[]): number {
-  if (points.length === 0) {
-    return 0;
-  }
-  const sum = points.reduce((acc, p) => acc + p.yield, 0);
-  return sum / points.length;
+const repo = new AssetRepository(db);
+
+function listCacheKey(category: string | undefined, tier: AssetAccessTier): string {
+  return `assets:list:${category ?? 'all'}:${tier}`;
 }
 
-function mapPrismaAssetToAsset(
-  row: assetRepo.AssetWithLatestSnapshotAndRisk | assetRepo.AssetWithLatestRelations,
-): Asset {
+function detailCacheKey(slug: string, tier: AssetAccessTier): string {
+  return `asset:${slug}:${tier}`;
+}
+
+function pickIdentitySummary(
+  identity: AssetIdentity | null | undefined,
+): AssetListItemFree['identity'] {
+  if (!identity) return null;
+  return {
+    name: identity.name,
+    symbol: identity.symbol,
+    category: identity.category,
+    subcategory: identity.subcategory,
+    logoUrl: identity.logoUrl,
+  };
+}
+
+function pickMarketSummary(
+  market: AssetMarket | null | undefined,
+): AssetListItemFree['market'] {
+  if (!market) return null;
+  return {
+    tvl: market.tvl,
+    tvl7dChange: market.tvl7dChange,
+    price: market.price,
+    holderCount: market.holderCount,
+  };
+}
+
+function mapListItemFree(row: AssetWithLayers): AssetListItemFree {
   return {
     id: row.id,
-    name: row.name,
-    symbol: row.symbol,
-    protocol: row.protocol,
-    category: row.category,
-    chain: row.chain,
-    contractAddress: row.contractAddress,
-    isActive: row.isActive,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function mapSnapshotToShared(
-  snap: NonNullable<assetRepo.AssetWithLatestRelations['snapshots']>[number],
-  riskFallback: RiskLevel,
-): AssetSnapshot {
-  return {
-    id: snap.id,
-    assetId: snap.assetId,
-    tvl: snap.tvl,
-    yieldRate: snap.yieldRate,
-    holderCount: snap.holderCount,
-    riskScore: riskFallback,
-    price: snap.price,
-    timestamp: snap.timestamp,
-  };
-}
-
-function mapHolderSnapshotToHolderData(
-  row: NonNullable<Awaited<ReturnType<typeof assetRepo.findHolderData>>>,
-): Omit<HolderData, '_meta'> {
-  return {
-    assetId: row.assetId,
-    totalHolders: row.totalHolders,
-    top10Concentration: row.top10Concentration,
-    whaleCount: row.whaleCount,
-    retailCount: row.retailCount,
-    updatedAt: row.timestamp,
-  };
-}
-
-function mapAssetRiskFields(
-  assetId: string,
-  row: {
-    riskScore: number | null;
-    riskLevel: string | null;
-    riskFactors: string[];
-    riskUpdatedAt: Date | null;
-  },
-  meta: AssetDataMeta,
-): RiskData {
-  return {
-    assetId,
-    score: row.riskScore ?? 0,
-    level: (row.riskLevel as ComputedRiskLevel) ?? 'MEDIUM',
-    factors: row.riskFactors ?? [],
-    updatedAt: row.riskUpdatedAt,
-    _meta: meta,
-  };
-}
-
-type AssetMetaSourceRow = Parameters<typeof resolveAssetMeta>[0];
-
-function resolveListRiskLevel(
-  row: assetRepo.AssetWithLatestSnapshotAndRisk | assetRepo.AssetWithLatestRelations,
-): RiskLevel {
-  if (row.riskLevel === 'LOW' || row.riskLevel === 'MEDIUM' || row.riskLevel === 'HIGH') {
-    return row.riskLevel;
-  }
-  const legacy = row.riskScores[0]?.overallScore;
-  if (legacy === 'LOW' || legacy === 'MEDIUM' || legacy === 'HIGH' || legacy === 'CRITICAL') {
-    return legacy;
-  }
-  return 'MEDIUM';
-}
-
-/** Map DB list rows + 7d history to `AssetSummary` (shared search/list shape). */
-export async function summarizeAssetsForList(
-  rows: assetRepo.AssetWithLatestSnapshotAndRisk[],
-): Promise<AssetSummary[]> {
-  const histories7d = await Promise.all(
-    rows.map((row) => assetRepo.findYieldHistory(row.id, '7d')),
-  );
-
-  return rows.map((row, i) => {
-    const snap = row.snapshots[0];
-    const riskLevel = resolveListRiskLevel(row);
-    const history = histories7d[i] ?? [];
-    const change7dRaw = yieldChange7dFromHistory(
-      history.map((h) => ({ date: h.date, yield: h.yield })),
-    );
-
-    const meta = resolveAssetMeta(row as AssetMetaSourceRow);
-
-    return {
-      id: row.id,
-      name: row.name,
-      symbol: row.symbol,
-      protocol: row.protocol,
-      category: row.category,
-      chain: row.chain,
-      tvl: snap?.tvl ?? 0,
-      yieldRate: toFraction(snap?.yieldRate ?? 0),
-      riskScore: riskLevel,
-      change7d: toFraction(change7dRaw),
-      holderCount: snap?.holderCount ?? 0,
-      _meta: meta,
-    };
-  });
-}
-
-/** Paginated list of assets as `AssetSummary` with 7d yield change. */
-export async function getAssets(
-  params: FindManyAssetsParams,
-): Promise<PaginatedResponse<AssetSummary>> {
-  const { data, total } = await assetRepo.findMany(params);
-  const summaries = await summarizeAssetsForList(data);
-  return paginate(summaries, total, { page: params.page, limit: params.limit });
-}
-
-/** Single asset with latest snapshot, risk, and holder blocks. */
-export async function getAssetDetail(id: string): Promise<AssetDetail> {
-  const row = await assetRepo.findById(id);
-  if (!row) {
-    throw new AppError(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan');
-  }
-
-  const snap = row.snapshots[0];
-  const holderRow = row.holders[0];
-  const riskLevel = resolveListRiskLevel(row);
-
-  const asset = mapPrismaAssetToAsset(row);
-  const meta = resolveAssetMeta(row as AssetMetaSourceRow);
-
-  const risk: RiskData | null =
-    row.riskScore != null && row.riskLevel != null
-      ? mapAssetRiskFields(row.id, row, meta)
-      : null;
-
-  return {
-    ...asset,
-    snapshot: snap ? mapSnapshotToShared(snap, riskLevel) : null,
-    risk,
-    holder: holderRow
-      ? { ...mapHolderSnapshotToHolderData(holderRow), _meta: meta }
+    slug: row.slug,
+    dataVersion: row.dataVersion,
+    identity: pickIdentitySummary(row.identity),
+    market: pickMarketSummary(row.market),
+    risk: row.risk
+      ? { overallLevel: row.risk.overallLevel }
       : null,
-    _meta: meta,
   };
 }
 
-/** Yield series for `period` plus rolling averages (7d / 30d / 90d windows). */
-async function loadAssetMeta(id: string): Promise<AssetDataMeta> {
-  const row = await assetRepo.findById(id);
-  if (!row) {
-    throw new AppError(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan');
-  }
-  return resolveAssetMeta(row as AssetMetaSourceRow);
+function mapListItemPro(row: AssetWithLayers): AssetListItemPro {
+  const base = mapListItemFree(row);
+  return {
+    ...base,
+    yield: row.yield
+      ? {
+          currentYield: row.yield.currentYield,
+          yieldType: row.yield.yieldType,
+          yieldFrequency: row.yield.yieldFrequency,
+        }
+      : null,
+    reserve: row.reserve
+      ? {
+          backingType: row.reserve.backingType,
+          collateralizationRatio: row.reserve.collateralizationRatio,
+          hasProofOfReserves: row.reserve.hasProofOfReserves,
+        }
+      : null,
+    compliance: row.compliance
+      ? {
+          regulatoryStatus: row.compliance.regulatoryStatus,
+          kycRequired: row.compliance.kycRequired,
+          accreditedOnly: row.compliance.accreditedOnly,
+        }
+      : null,
+  };
 }
 
-export async function getYieldData(
-  id: string,
-  period: YieldHistoryPeriod,
-): Promise<YieldData> {
-  const meta = await loadAssetMeta(id);
+function mapListItem(row: AssetWithLayers, tier: AssetAccessTier): AssetListItem {
+  if (tier === 'enterprise') {
+    return row;
+  }
+  if (tier === 'pro') {
+    return mapListItemPro(row);
+  }
+  return mapListItemFree(row);
+}
 
-  const [historyPeriod, h7, h30, h90] = await Promise.all([
-    assetRepo.findYieldHistory(id, period),
-    assetRepo.findYieldHistory(id, '7d'),
-    assetRepo.findYieldHistory(id, '30d'),
-    assetRepo.findYieldHistory(id, '90d'),
-  ]);
+function mapDetailFree(row: AssetWithLayers): AssetDetailFree {
+  return {
+    id: row.id,
+    slug: row.slug,
+    dataVersion: row.dataVersion,
+    identity: row.identity ?? null,
+    market: row.market ?? null,
+    risk: row.risk
+      ? {
+          overallLevel: row.risk.overallLevel,
+          overallScore: row.risk.overallScore,
+        }
+      : null,
+    yield: row.yield
+      ? {
+          currentYield: row.yield.currentYield,
+          yieldType: row.yield.yieldType,
+          yieldFrequency: row.yield.yieldFrequency,
+          yieldBenchmark: row.yield.yieldBenchmark,
+        }
+      : null,
+    blockchain: row.blockchain ?? [],
+    liquidity: row.liquidity ?? null,
+    compliance: row.compliance ?? null,
+  };
+}
 
-  const history: YieldPoint[] = historyPeriod.map((p) => ({ date: p.date, yield: p.yield }));
-  const currentYield =
-    historyPeriod.length > 0 ? historyPeriod[historyPeriod.length - 1]!.yield : 0;
+function mapDetailPro(row: AssetWithLayers): AssetDetailPro {
+  const free = mapDetailFree(row);
+  return {
+    ...free,
+    risk: row.risk ?? null,
+    yield: row.yield ?? null,
+    reserve: row.reserve ?? null,
+    institutional: row.institutional ?? null,
+    blockchain: row.blockchain ?? [],
+    liquidity: row.liquidity ?? null,
+    compliance: row.compliance ?? null,
+  };
+}
 
-  return withAssetMeta(
-    {
-      assetId: id,
-      currentYield,
-      avgYield7d: averageYield(h7.map((p) => ({ yield: p.yield }))),
-      avgYield30d: averageYield(h30.map((p) => ({ yield: p.yield }))),
-      avgYield90d: averageYield(h90.map((p) => ({ yield: p.yield }))),
-      history,
-    },
-    meta,
+function mapDetail(row: AssetWithLayers, tier: AssetAccessTier): AssetDetailResponse {
+  if (tier === 'enterprise') {
+    return row;
+  }
+  if (tier === 'pro') {
+    return mapDetailPro(row);
+  }
+  return mapDetailFree(row);
+}
+
+function listLayersForTier(tier: AssetAccessTier): LayerName[] | 'full' {
+  if (tier === 'enterprise') return 'full';
+  if (tier === 'pro') return LIST_LAYERS_PRO;
+  return LIST_LAYERS_FREE;
+}
+
+function detailLayersForTier(tier: AssetAccessTier): LayerName[] | 'full' {
+  if (tier === 'enterprise') return 'full';
+  if (tier === 'pro') return DETAIL_LAYERS_PRO;
+  return DETAIL_LAYERS_FREE;
+}
+
+async function fetchListFromRepo(
+  options: GetAssetListOptions,
+): Promise<AssetWithLayers[]> {
+  const { category, search, limit = 50, offset = 0, tier } = options;
+  const layers = listLayersForTier(tier);
+
+  if (layers === 'full') {
+    const searchTerm = search?.trim();
+    return db.asset.findMany({
+      where: {
+        isActive: true,
+        ...(category !== undefined ? { identity: { category } } : {}),
+        ...(searchTerm
+          ? {
+              OR: [
+                { slug: { contains: searchTerm, mode: 'insensitive' } },
+                { identity: { name: { contains: searchTerm, mode: 'insensitive' } } },
+                { identity: { symbol: { contains: searchTerm, mode: 'insensitive' } } },
+              ],
+            }
+          : {}),
+      },
+      include: fullInclude,
+      orderBy: { market: { tvl: 'desc' } },
+      take: limit,
+      skip: offset,
+    });
+  }
+
+  return repo.findAll({ category, search, limit, offset, layers });
+}
+
+async function fetchDetailFromRepo(
+  slug: string,
+  tier: AssetAccessTier,
+): Promise<AssetWithLayers | null> {
+  const layers = detailLayersForTier(tier);
+  if (layers === 'full') {
+    return repo.findFull(slug);
+  }
+  return repo.findBySlug(slug, layers);
+}
+
+export async function getAssetList(
+  options: GetAssetListOptions,
+): Promise<GetAssetListResult> {
+  const { tier, category } = options;
+  const cacheKey = listCacheKey(category, tier);
+
+  const { data: rows, cached } = await getCached(
+    cacheKey,
+    () => fetchListFromRepo(options),
+    LIST_CACHE_TTL,
   );
+
+  return {
+    data: rows.map((row) => mapListItem(row, tier)),
+    cached,
+  };
 }
 
-/** Latest holder distribution for an asset. */
-export async function getHolderData(id: string): Promise<HolderData> {
-  const meta = await loadAssetMeta(id);
+export async function getAssetDetail(
+  slug: string,
+  tier: AssetAccessTier,
+): Promise<{ data: AssetDetailResponse; cached: boolean }> {
+  const cacheKey = detailCacheKey(slug, tier);
 
-  const row = await assetRepo.findHolderData(id);
-  if (!row) {
-    throw new AppError(ERROR_CODES.DATA_NOT_AVAILABLE, 'Data holder belum tersedia');
-  }
-
-  return { ...mapHolderSnapshotToHolderData(row), _meta: meta };
-}
-
-/** Latest computed risk score for an asset (Redis cache TTL 1 hour). */
-export async function getRiskData(
-  id: string,
-): Promise<{ data: RiskData; cached: boolean }> {
-  const cacheKey = `risk:v1:${id}`;
-
-  const { data, cached } = await getCached(
+  const { data: row, cached } = await getCached(
     cacheKey,
     async () => {
-      const row = await assetRepo.findById(id);
-      if (!row) {
-        throw new AppError(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan');
+      const asset = await fetchDetailFromRepo(slug, tier);
+      if (!asset) {
+        throw new NotFoundError();
       }
-      if (row.riskScore == null || row.riskLevel == null) {
-        throw new AppError(ERROR_CODES.DATA_NOT_AVAILABLE, 'Data risiko belum tersedia');
-      }
-      const meta = resolveAssetMeta(row as AssetMetaSourceRow);
-      return mapAssetRiskFields(id, row, meta);
+      return asset;
     },
-    RISK_CACHE_TTL_SECONDS,
+    DETAIL_CACHE_TTL,
   );
 
-  return { data, cached };
+  return { data: mapDetail(row, tier), cached };
+}
+
+async function deleteRedisKeys(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  try {
+    const client = redis();
+    await client.del(...keys);
+  } catch {
+    // best-effort
+  }
+}
+
+async function deleteRedisPattern(pattern: string): Promise<void> {
+  try {
+    const client = redis();
+    let cursor = '0';
+    const toDelete: string[] = [];
+    do {
+      const [next, keys] = await client.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      cursor = next;
+      toDelete.push(...keys);
+    } while (cursor !== '0');
+    if (toDelete.length > 0) {
+      await client.del(...toDelete);
+    }
+  } catch {
+    // best-effort
+  }
+}
+
+async function invalidateAssetCacheAsync(slug: string): Promise<void> {
+  const tiers: AssetAccessTier[] = ['free', 'pro', 'enterprise'];
+  const detailKeys = tiers.map((tier) => detailCacheKey(slug, tier));
+  await deleteRedisKeys(detailKeys);
+  await deleteRedisPattern('assets:list:*');
+}
+
+/** Clears list + detail cache entries for a slug (fire-and-forget). */
+export function invalidateAssetCache(slug: string): void {
+  void invalidateAssetCacheAsync(slug);
+}
+
+export function getAssetRepository(): AssetRepository {
+  return repo;
+}
+
+/** @deprecated Use `getAssetList` */
+export async function getAssets(params: {
+  page: number;
+  limit: number;
+  category?: string;
+}): Promise<{ data: AssetListItemFree[]; total: number }> {
+  const offset = (params.page - 1) * params.limit;
+  const [list, total] = await Promise.all([
+    getAssetList({
+      tier: 'free',
+      category: params.category,
+      limit: params.limit,
+      offset,
+    }),
+    repo.countActive(params.category),
+  ]);
+  return {
+    data: list.data as AssetListItemFree[],
+    total,
+  };
 }

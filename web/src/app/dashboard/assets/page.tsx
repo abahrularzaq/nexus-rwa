@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   ChevronDown,
   ChevronUp,
@@ -10,19 +9,10 @@ import {
   Search,
   SearchX,
 } from "lucide-react";
-import { AssetInsightTeaser } from "@/components/dashboard/AssetInsightTeaser";
-import { RiskBadge } from "@/components/dashboard/RiskBadge";
-import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
-import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
-import type { AssetDataMeta } from "@/lib/shared";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-function apiKeyHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const apiKey = localStorage.getItem("nexus_api_key");
-  return apiKey ? { "X-API-Key": apiKey } : {};
-}
+import { AssetCard, AssetCardSkeleton } from "@/components/dashboard/AssetCard";
+import { fetchAssetList } from "@/lib/api/assets";
+import { normalizeCategory } from "@/lib/asset-mapper";
+import type { AssetWithLayers } from "@/types/asset";
 
 type AssetCategoryTab =
   | "ALL"
@@ -30,133 +20,6 @@ type AssetCategoryTab =
   | "CREDIT"
   | "REAL_ESTATE"
   | "COMMODITIES";
-
-/** List row shape aligned with API (flat or nested). */
-interface AssetSnapshotRow {
-  tvl: number;
-  yieldRate: number;
-  holderCount: number;
-  riskScore: string;
-}
-
-interface Asset {
-  id: string;
-  name: string;
-  symbol: string;
-  protocol: string;
-  category: string;
-  chain: string;
-  snapshots: AssetSnapshotRow[];
-  riskLevel: string;
-  /** From flat list summary for 7d sort / display. */
-  change7d?: number;
-  _meta?: AssetDataMeta;
-}
-
-const defaultAssetMeta: AssetDataMeta = {
-  sources: ["defillama"],
-  lastUpdated: new Date().toISOString(),
-  confidence: "MEDIUM",
-  methodology: "Latest snapshot from DeFi Llama sync (single_source)",
-};
-
-function parseMeta(raw: Record<string, unknown>): AssetDataMeta {
-  const m = raw._meta;
-  if (!m || typeof m !== "object") return defaultAssetMeta;
-  const o = m as Record<string, unknown>;
-  const sources = Array.isArray(o.sources)
-    ? o.sources.filter((s): s is string => typeof s === "string")
-    : ["defillama"];
-  const confidence =
-    o.confidence === "HIGH" || o.confidence === "MEDIUM" || o.confidence === "LOW"
-      ? o.confidence
-      : "MEDIUM";
-  return {
-    sources,
-    lastUpdated:
-      typeof o.lastUpdated === "string" ? o.lastUpdated : defaultAssetMeta.lastUpdated,
-    confidence,
-    methodology:
-      typeof o.methodology === "string"
-        ? o.methodology
-        : defaultAssetMeta.methodology,
-  };
-}
-
-function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
-  const u = (s ?? "MEDIUM").toUpperCase();
-  if (u === "LOW" || u === "MEDIUM" || u === "HIGH" || u === "CRITICAL") {
-    return u;
-  }
-  return "MEDIUM";
-}
-
-function resolveRiskLevel(raw: Record<string, unknown>): string {
-  const riskObj = raw.risk;
-  if (riskObj && typeof riskObj === "object" && riskObj !== null) {
-    const level = (riskObj as Record<string, unknown>).level;
-    if (typeof level === "string" && level) return level;
-  }
-  if (typeof raw.riskLevel === "string" && raw.riskLevel) {
-    return raw.riskLevel;
-  }
-  return String(raw.riskScore ?? "MEDIUM");
-}
-
-function parseAssetFromApiRow(raw: Record<string, unknown>): Asset {
-  const riskLevel = resolveRiskLevel(raw);
-  const snapshotsRaw = raw.snapshots;
-  const firstSnap =
-    Array.isArray(snapshotsRaw) &&
-    snapshotsRaw.length > 0 &&
-    typeof snapshotsRaw[0] === "object" &&
-    snapshotsRaw[0] !== null
-      ? (snapshotsRaw[0] as Record<string, unknown>)
-      : null;
-
-  if (firstSnap) {
-    return {
-      id: String(raw.id ?? ""),
-      name: String(raw.name ?? ""),
-      symbol: String(raw.symbol ?? ""),
-      protocol: String(raw.protocol ?? ""),
-      category: String(raw.category ?? "TREASURY"),
-      chain: String(raw.chain ?? "base"),
-      snapshots: [
-        {
-          tvl: Number(firstSnap.tvl ?? 0),
-          yieldRate: Number(firstSnap.yieldRate ?? 0),
-          holderCount: Number(firstSnap.holderCount ?? 0),
-          riskScore: String(firstSnap.riskScore ?? riskLevel),
-        },
-      ],
-      riskLevel,
-      change7d:
-        typeof raw.change7d === "number" ? raw.change7d : undefined,
-      _meta: parseMeta(raw),
-    };
-  }
-
-  return {
-    id: String(raw.id ?? ""),
-    name: String(raw.name ?? ""),
-    symbol: String(raw.symbol ?? ""),
-    protocol: String(raw.protocol ?? ""),
-    category: String(raw.category ?? "TREASURY"),
-    chain: String(raw.chain ?? "base"),
-    snapshots: [
-      {
-        tvl: Number(raw.tvl ?? 0),
-        yieldRate: Number(raw.yieldRate ?? 0),
-        holderCount: Number(raw.holderCount ?? 0),
-        riskScore: riskLevel,
-      },
-    ],
-    riskLevel,
-    change7d: Number(raw.change7d ?? 0),
-    _meta: parseMeta(raw),
-  };
-}
 
 const CATEGORY_TABS: { key: AssetCategoryTab; label: string }[] = [
   { key: "ALL", label: "All" },
@@ -169,86 +32,39 @@ const CATEGORY_TABS: { key: AssetCategoryTab; label: string }[] = [
 const SORT_OPTIONS = ["tvl", "yield", "holders", "name", "change7d"] as const;
 type SortKey = (typeof SORT_OPTIONS)[number];
 
-function categoryPillLabel(c: string): string {
-  return c
-    .split("_")
-    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-    .join(" ");
-}
-
-function formatTvl(n: number): string {
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
-  return `$${n.toFixed(0)}`;
-}
-
-function formatHolders(n: number): string {
-  return n.toLocaleString("en-US");
-}
-
-function formatYieldFraction(f: number): string {
-  return `${(f * 100).toFixed(2)}%`;
-}
-
-function formatChange7d(f: number): string {
-  const pct = f * 100;
-  const sign = pct >= 0 ? "+" : "";
-  return `${sign}${pct.toFixed(2)}%`;
-}
-
-function categoryAccent(category: string): string {
-  switch (category) {
-    case "TREASURY":
-      return "#00D4FF";
-    case "CREDIT":
-      return "#7C3AED";
-    case "REAL_ESTATE":
-      return "#00FF88";
-    case "COMMODITIES":
-      return "#FFB800";
-    default:
-      return "#8892A4";
-  }
-}
-
-function compare(a: Asset, b: Asset, sortBy: SortKey, order: "asc" | "desc"): number {
+function compare(
+  a: AssetWithLayers,
+  b: AssetWithLayers,
+  sortBy: SortKey,
+  order: "asc" | "desc",
+): number {
   const dir = order === "asc" ? 1 : -1;
-  const sa = a.snapshots?.[0];
-  const sb = b.snapshots?.[0];
   switch (sortBy) {
     case "tvl":
-      return ((sa?.tvl ?? 0) - (sb?.tvl ?? 0)) * dir;
+      return ((a.market?.tvl ?? 0) - (b.market?.tvl ?? 0)) * dir;
     case "yield":
-      return ((sa?.yieldRate ?? 0) - (sb?.yieldRate ?? 0)) * dir;
+      return (
+        ((a.yield?.currentYield ?? 0) - (b.yield?.currentYield ?? 0)) * dir
+      );
     case "holders":
-      return ((sa?.holderCount ?? 0) - (sb?.holderCount ?? 0)) * dir;
+      return (
+        ((a.market?.holderCount ?? 0) - (b.market?.holderCount ?? 0)) * dir
+      );
     case "name":
-      return a.name.localeCompare(b.name) * dir;
+      return (a.identity?.name ?? a.slug).localeCompare(
+        b.identity?.name ?? b.slug,
+      ) * dir;
     case "change7d":
-      return ((a.change7d ?? 0) - (b.change7d ?? 0)) * dir;
+      return (
+        ((a.market?.tvl7dChange ?? 0) - (b.market?.tvl7dChange ?? 0)) * dir
+      );
     default:
       return 0;
   }
 }
 
-function AssetCardSkeleton() {
-  return (
-    <div className="asset-card-skeleton rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.5)] p-5">
-      <div className="h-10 w-[85%] max-w-md rounded-lg bg-[rgba(30,42,58,0.9)]" />
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
-        <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
-        <div className="h-12 rounded bg-[rgba(30,42,58,0.7)]" />
-      </div>
-      <div className="mt-4 h-8 w-full rounded bg-[rgba(30,42,58,0.7)]" />
-      <div className="mt-4 h-10 w-full rounded-lg bg-[rgba(30,42,58,0.75)]" />
-    </div>
-  );
-}
-
 export default function DashboardAssetsPage() {
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [assets, setAssets] = useState<AssetWithLayers[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -257,35 +73,12 @@ export default function DashboardAssetsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    async function fetchAssets() {
+    async function load() {
       setLoading(true);
       try {
         setError(null);
-        const base = (API_URL ?? "").trim().replace(/\/$/, "");
-        if (!base) {
-          setError("Failed to load assets");
-          setAssets([]);
-          return;
-        }
-        const res = await fetch(`${base}/v1/assets?limit=50&page=1`, {
-          headers: { Accept: "application/json", ...apiKeyHeader() },
-        });
-        const json: unknown = await res.json();
-        const body = json as {
-          success?: boolean;
-          data?: { data?: unknown[] };
-        };
-        if (!res.ok || !body.success || !Array.isArray(body.data?.data)) {
-          setError("Failed to load assets");
-          setAssets([]);
-          return;
-        }
-        setAssets(
-          body.data!.data!.map((row) =>
-            parseAssetFromApiRow(row as Record<string, unknown>),
-          ),
-        );
-        setError(null);
+        const { assets: rows } = await fetchAssetList({ limit: 50, page: 1 });
+        setAssets(rows);
       } catch {
         setError("Failed to load assets");
         setAssets([]);
@@ -293,22 +86,23 @@ export default function DashboardAssetsPage() {
         setLoading(false);
       }
     }
-    void fetchAssets();
+    void load();
   }, []);
 
   const filteredSorted = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     let list = assets.filter((a) => {
-      const catOk =
-        selectedCategory === "ALL" || a.category === selectedCategory;
+      const cat = normalizeCategory(a.identity?.category);
+      const catOk = selectedCategory === "ALL" || cat === selectedCategory;
       if (!catOk) return false;
       if (!q) return true;
-      return (
-        a.name.toLowerCase().includes(q) ||
-        a.symbol.toLowerCase().includes(q)
-      );
+      const name = a.identity?.name?.toLowerCase() ?? "";
+      const symbol = a.identity?.symbol?.toLowerCase() ?? "";
+      return name.includes(q) || symbol.includes(q);
     });
-    const sk = SORT_OPTIONS.includes(sortBy as SortKey) ? (sortBy as SortKey) : "tvl";
+    const sk = SORT_OPTIONS.includes(sortBy as SortKey)
+      ? (sortBy as SortKey)
+      : "tvl";
     list = [...list].sort((x, y) => compare(x, y, sk, sortOrder));
     return list;
   }, [assets, searchQuery, selectedCategory, sortBy, sortOrder]);
@@ -335,7 +129,6 @@ export default function DashboardAssetsPage() {
 
   return (
     <div className="space-y-6">
-      {/* X402 NOTICE */}
       <div
         className="flex gap-3 rounded-xl border border-[rgba(0,212,255,0.2)] px-4 py-3"
         style={{ background: "rgba(0,212,255,0.05)" }}
@@ -357,19 +150,15 @@ export default function DashboardAssetsPage() {
         </div>
       ) : null}
 
-      {/* HEADER */}
       <header>
         <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
           RWA Assets
         </h1>
         <p className="mt-1 text-sm text-[#8892A4]">
-          {loading
-            ? "Loading assets…"
-            : `${assets.length} assets tracked`}
+          {loading ? "Loading assets…" : `${assets.length} assets tracked`}
         </p>
       </header>
 
-      {/* FILTER BAR */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 hidden text-[#8892A4] sm:inline-flex" aria-hidden>
@@ -443,7 +232,6 @@ export default function DashboardAssetsPage() {
         Sorted by {sortLabel} ({sortOrder})
       </p>
 
-      {/* GRID / LOADING / EMPTY */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map((i) => (
@@ -470,95 +258,9 @@ export default function DashboardAssetsPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredSorted.map((asset, index) => {
-            const snapshot = asset.snapshots?.[0];
-            const tvl = snapshot?.tvl ?? 0;
-            const yieldRate = snapshot?.yieldRate ?? 0;
-            const holderCount = snapshot?.holderCount ?? 0;
-            const riskScore = toRiskLevel(
-              asset.riskLevel ?? asset.snapshots?.[0]?.riskScore,
-            );
-            const accent = categoryAccent(asset.category);
-            const change7d = asset.change7d ?? 0;
-            const up = change7d >= 0;
-            const protocolLabel = asset.protocol.trim() ? asset.protocol : "—";
-            const meta = asset._meta ?? defaultAssetMeta;
-            return (
-              <article
-                key={asset.id}
-                className="group flex flex-col rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.65)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-1 hover:border-[rgba(0,212,255,0.45)] hover:shadow-[0_0_24px_rgba(0,212,255,0.12)]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div
-                      className="size-11 shrink-0 rounded-full ring-2 ring-white/10"
-                      style={{ background: accent }}
-                      aria-hidden
-                    />
-                    <div className="min-w-0">
-                      <h2 className="truncate font-bold text-white">{asset.name}</h2>
-                      <p className="text-sm text-[#8892A4]">{asset.symbol}</p>
-                    </div>
-                  </div>
-                  <RiskBadge level={riskScore} showDot />
-                </div>
-
-                <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[rgba(30,42,58,0.6)] pt-4">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                      TVL
-                    </p>
-                    <p className="mt-1 text-sm font-bold tabular-nums text-white">
-                      {formatTvl(tvl)}
-                    </p>
-                    <DataSourceBadge meta={meta} className="mt-1.5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                      Yield
-                    </p>
-                    <p className="mt-1 text-sm font-bold tabular-nums text-[#00FF88]">
-                      {formatYieldFraction(yieldRate)}
-                    </p>
-                    <DataSourceBadge meta={meta} className="mt-1.5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8892A4]">
-                      Holders
-                    </p>
-                    <p className="mt-1 text-sm font-bold tabular-nums text-white">
-                      {formatHolders(holderCount)}
-                    </p>
-                    <DataSourceBadge meta={meta} className="mt-1.5" />
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[rgba(30,42,58,0.6)] pt-4 text-sm">
-                  <span className="font-medium text-white">{protocolLabel}</span>
-                  <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.5)] px-2 py-0.5 text-[11px] font-medium text-[#8892A4]">
-                    {categoryPillLabel(asset.category)}
-                  </span>
-                  <span
-                    className={`ml-auto font-semibold tabular-nums ${up ? "text-[#00FF88]" : "text-[#FF4444]"}`}
-                  >
-                    {formatChange7d(change7d)}
-                  </span>
-                </div>
-
-                <AssetInsightTeaser
-                  assetId={asset.id}
-                  enabled={index < 12}
-                />
-
-                <Link
-                  href={`/dashboard/assets/${asset.id}`}
-                  className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-[rgba(0,212,255,0.25)] bg-[rgba(0,212,255,0.08)] py-2.5 text-sm font-semibold text-[#00D4FF] transition-colors hover:bg-[rgba(0,212,255,0.14)]"
-                >
-                  View Details →
-                </Link>
-              </article>
-            );
-          })}
+          {filteredSorted.map((asset, index) => (
+            <AssetCard key={asset.slug} asset={asset} index={index} />
+          ))}
         </div>
       )}
     </div>

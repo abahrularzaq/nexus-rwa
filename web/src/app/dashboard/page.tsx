@@ -26,14 +26,15 @@ import { YieldLadder } from "@/components/charts/YieldLadder";
 import { MarketBriefCard } from "@/components/dashboard/MarketBriefCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { fetchAssetList, formatTvl } from "@/lib/api/assets";
+import { toAssetSummaries } from "@/lib/asset-mapper";
 import type {
   ApiResponse,
   AssetCategory,
   AssetSummary,
   MarketOverview,
-  PaginatedResponse,
 } from "@/lib/shared";
-import { formatLargeNumber, formatYield } from "@/lib/shared";
+import { formatYield } from "@/lib/shared";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -57,10 +58,6 @@ function fmtChange7d(change7d: number): string {
   const pct = change7d * 100;
   const sign = pct >= 0 ? "+" : "";
   return `${sign}${pct.toFixed(2)}%`;
-}
-
-function fmtTvlUsd(n: number): string {
-  return `$${formatLargeNumber(n)}`;
 }
 
 function parseOverviewPayload(data: MarketOverview): MarketOverview {
@@ -88,23 +85,8 @@ async function fetchMarketOverview(): Promise<MarketOverview> {
 }
 
 async function fetchAssetsList(): Promise<AssetRow[]> {
-  const base = apiBase();
-  const res = await fetch(`${base}/v1/assets?limit=13&page=1`, {
-    headers: { Accept: "application/json", ...apiKeyHeader() },
-    cache: "no-store",
-  });
-  let body: ApiResponse<PaginatedResponse<AssetSummary>>;
-  try {
-    body = (await res.json()) as ApiResponse<PaginatedResponse<AssetSummary>>;
-  } catch {
-    throw new Error("Invalid JSON from assets API");
-  }
-  if (!res.ok || !body.success) {
-    const msg =
-      body.success === false ? body.error.message : res.statusText || "Request failed";
-    throw new Error(msg);
-  }
-  return body.data.data.map((a) => ({ ...a })) as AssetRow[];
+  const { assets } = await fetchAssetList({ limit: 13, page: 1 });
+  return toAssetSummaries(assets) as AssetRow[];
 }
 
 function formatLastUpdated(d: Date): string {
@@ -256,7 +238,7 @@ export default function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="Total TVL"
-            value={overview ? fmtTvlUsd(overview.totalTvl) : 0}
+            value={overview ? formatTvl(overview.totalTvl) : "—"}
             subtitle="Across active assets"
             icon={<Layers className="text-[var(--accent-amber)]" />}
             isLoading={overviewLoading}
@@ -297,7 +279,7 @@ export default function DashboardPage() {
             <div className="data-surface p-4">
               <p className="terminal-label">Total TVL</p>
               <p className="terminal-data mt-2 text-2xl font-semibold">
-                {overviewLoading ? "—" : overview ? fmtTvlUsd(overview.totalTvl) : "—"}
+                {overviewLoading ? "—" : overview ? formatTvl(overview.totalTvl) : "—"}
               </p>
             </div>
             <div className="data-surface p-4">
@@ -562,7 +544,7 @@ export default function DashboardPage() {
                           {categoryLabel(row.category)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-white">
-                          {fmtTvlUsd(row.tvl)}
+                          {formatTvl(row.tvl)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-white">
                           {formatYield(row.yieldRate * 100)}

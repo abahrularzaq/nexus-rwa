@@ -1,11 +1,10 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import type { ApiErrorResponse, ApiSuccessResponse, AssetSummary } from '../shared/index.js';
+import type { ApiErrorResponse, ApiSuccessResponse } from '../shared/index.js';
 import { createMeta, ERROR_CODES } from '../shared/index.js';
 import { createNexusX402Middleware } from '../middleware/x402/index.js';
-import * as assetRepo from '../repositories/asset.repository.js';
-import { summarizeAssetsForList } from '../services/asset.service.js';
+import { getAssetList } from '../services/asset.service.js';
 
 let x402Instance: ReturnType<typeof createNexusX402Middleware> | null = null;
 
@@ -56,9 +55,8 @@ async function getSearchHandler(c: Context) {
 
   const { q, limit } = parsed.data;
   try {
-    const { data } = await assetRepo.findMany({ page: 1, limit, search: q });
-    const summaries: AssetSummary[] = await summarizeAssetsForList(data);
-    return c.json(ok(summaries));
+    const { data } = await getAssetList({ tier: 'free', limit, search: q });
+    return c.json(ok(data));
   } catch (e) {
     return c.json(
       err(

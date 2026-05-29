@@ -10,7 +10,7 @@ import {
   fetchYieldPools,
   PROTOCOL_SLUGS,
 } from '../services/defillama.service.js';
-import { syncTvlData } from '../services/sync.service.js';
+import { getSyncService } from '../services/sync.service.js';
 
 type MarketOverviewResponse = {
   success?: boolean;
@@ -128,9 +128,9 @@ async function main(): Promise<void> {
 
     // TEST 3 — Database Sync
     try {
-      const before = await db.assetSnapshot.count();
-      await syncTvlData();
-      const after = await db.assetSnapshot.count();
+      const before = await db.assetHistory.count();
+      await getSyncService().syncAll();
+      const after = await db.assetHistory.count();
       const created = after - before;
       snapshotsCreatedBySync = created;
       console.log(`✓ Sync completed, ${created} snapshots created`);

@@ -9,11 +9,8 @@ import { useAssetSummaries } from "@/hooks/use-asset-summaries";
 import { useMarketOverview } from "@/hooks/use-market";
 import { categoryDisplayLabel } from "@/lib/risk-heatmap";
 import type { AssetSummary } from "@/lib/shared";
-import { formatLargeNumber, formatYield } from "@/lib/shared";
-
-function fmtTvlUsd(n: number): string {
-  return `$${formatLargeNumber(n)}`;
-}
+import { formatTvl } from "@/lib/api/assets";
+import { formatYield } from "@/lib/shared";
 
 function fmtChange7d(change7d: number): string {
   const pct = change7d * 100;
@@ -188,7 +185,7 @@ function YieldTableRow({
         {asset.category ? categoryDisplayLabel(asset.category) : "—"}
       </td>
       <td className="px-4 py-3 text-right font-mono tabular-nums text-white">
-        {fmtTvlUsd(asset.tvl)}
+        {formatTvl(asset.tvl)}
       </td>
       <td
         className={`px-4 py-3 text-right font-mono tabular-nums ${

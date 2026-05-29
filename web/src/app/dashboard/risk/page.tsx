@@ -12,11 +12,8 @@ import {
   type HeatmapFilter,
 } from "@/lib/risk-heatmap";
 import type { AssetSummary } from "@/lib/shared";
-import { formatLargeNumber, formatYield } from "@/lib/shared";
-
-function fmtTvlUsd(n: number): string {
-  return `$${formatLargeNumber(n)}`;
-}
+import { formatTvl } from "@/lib/api/assets";
+import { formatYield } from "@/lib/shared";
 
 function fmtChange7d(change7d: number): string {
   const pct = change7d * 100;
@@ -164,7 +161,7 @@ export default function RiskPage() {
                             : "—"}
                         </td>
                         <td className="px-4 py-3 text-right font-mono tabular-nums text-white">
-                          {fmtTvlUsd(row.tvl)}
+                          {formatTvl(row.tvl)}
                         </td>
                         <td className="px-4 py-3 text-right font-mono tabular-nums text-white">
                           {formatYield(row.yieldRate * 100)}

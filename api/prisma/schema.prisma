@@ -8,99 +8,280 @@ datasource db {
 }
 
 // ============================================
-// CORE MODELS
+// CORE — 12-layer asset architecture
 // ============================================
 
 model Asset {
-  id              String        @id @default(cuid())
-  name            String
-  symbol          String        @unique
-  protocol        String
-  category        AssetCategory
-  chain           Chain         @default(base)
-  contractAddress String
-  logoUrl         String?
-  description     String?
-  isActive        Boolean       @default(true)
-  riskScore       Int?
-  riskLevel       String?
-  riskFactors     String[]      @default([])
-  riskUpdatedAt   DateTime?
-  dataSources         String[]  @default([])
-  dataConfidence      String?
-  dataMethodology     String?
-  dataSourcesUpdatedAt DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id          String   @id @default(cuid())
+  slug        String   @unique // "ondo-ousg", untuk URL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isActive    Boolean  @default(true)
+  dataVersion Int      @default(1) // increment saat schema berubah
 
-  snapshots     AssetSnapshot[]
-  riskScores    RiskScore[]
-  holders       HolderSnapshot[]
-  yieldHistory  YieldHistory[]
+  // Relations ke semua layer
+  identity      AssetIdentity?
+  market        AssetMarket?
+  risk          AssetRisk?
+  reserve       AssetReserve?
+  yield         AssetYield?
+  institutional AssetInstitutional?
+  blockchain    AssetBlockchain[] // multiple chains
+  compliance    AssetCompliance?
+  liquidity     AssetLiquidity?
+  aiNarrative   AssetAiNarrative?
+  events        AssetEvent[]
+  history       AssetHistory[]
+
+  @@index([isActive])
+  @@index([slug])
+}
+
+// ─── LAYER 1: IDENTITY ───────────────────────────────────
+model AssetIdentity {
+  id          String  @id @default(cuid())
+  assetId     String  @unique
+  asset       Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  name        String
+  symbol      String
+  fullName    String? // "Ondo US Dollar Yield"
+  description String? // max 500 chars
+  category    String // Treasury, Credit, RealEstate, Commodities, Infrastructure, Equities
+  subcategory String? // "Short-term Treasury", "Senior Secured", dll
+  logoUrl     String?
+  websiteUrl  String?
+  docsUrl     String?
+  twitterUrl  String?
+  tags        String[] // ["stablecoin-backed", "institutional", "audited"]
+  launchDate  DateTime?
+  isin        String? // International Securities ID (jika ada)
 
   @@index([category])
+  @@index([symbol])
+}
+
+// ─── LAYER 2: MARKET ─────────────────────────────────────
+model AssetMarket {
+  id                String   @id @default(cuid())
+  assetId           String   @unique
+  asset             Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  tvl               Float? // USD
+  tvl7dChange       Float? // percentage
+  tvl30dChange      Float? // percentage
+  price             Float? // per token USD
+  priceChange24h    Float?
+  marketCap         Float?
+  volume24h         Float?
+  circulatingSupply Float?
+  totalSupply       Float?
+  holderCount       Int?
+  holderChange7d    Int? // delta holder count
+  aumUsd            Float? // Assets Under Management
+  lastUpdated       DateTime?
+  sources           String[] // ["defillama", "rwa_xyz"]
+  confidence        String? // HIGH, MEDIUM, LOW
+}
+
+// ─── LAYER 3: RISK ───────────────────────────────────────
+model AssetRisk {
+  id       String @id @default(cuid())
+  assetId  String @unique
+  asset    Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  overallScore     Int? // 0-100 (100 = safest)
+  overallLevel     String? // LOW, MEDIUM, HIGH
+
+  // Sub-scores (masing-masing 0-100)
+  smartContractRisk Int?
+  counterpartyRisk  Int?
+  liquidityRisk     Int?
+  regulatoryRisk    Int?
+  marketRisk        Int?
+  concentrationRisk Int?
+
+  riskFactors        String[] // ["Yield unusually high", "Single auditor"]
+  mitigants          String[] // ["Chainlink PoR", "Regulated issuer"]
+  lastAssessed       DateTime?
+  assessmentMethod   String? // "algorithmic", "manual", "hybrid"
+}
+
+// ─── LAYER 4: RESERVE / BACKING ──────────────────────────
+model AssetReserve {
+  id     String @id @default(cuid())
+  assetId String @unique
+  asset  Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  backingType            String? // "US Treasury", "Corporate Bonds", "Real Estate", dll
+  backingDescription     String?
+  collateralizationRatio Float? // 1.0 = 100%, 1.05 = 105%
+  custodian              String? // "BNY Mellon", "Coinbase Custody"
+  custodianUrl           String?
+  hasProofOfReserves     Boolean  @default(false)
+  porOracleAddress       String? // Chainlink PoR contract
+  porOracleChain         String?
+  lastAuditDate          DateTime?
+  lastAuditUrl           String?
+  auditor                String?
+  reserveBreakdown       Json? // { "90-day T-bills": 60, "overnight repo": 40 }
+  redemptionAsset        String? // "USD", "USDC", dll
+}
+
+// ─── LAYER 5: YIELD INTELLIGENCE ─────────────────────────
+model AssetYield {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  currentYield     Float? // APY percentage
+  yieldType        String? // "fixed", "variable", "target"
+  yieldFrequency   String? // "daily", "weekly", "monthly"
+  yieldBenchmark   String? // "SOFR", "Fed Funds Rate", "USDC yield"
+  yieldVsBenchmark Float? // spread vs benchmark (bps)
+  yieldAvg7d       Float?
+  yieldAvg30d      Float?
+  yieldAvg90d      Float?
+  yieldMin52w      Float?
+  yieldMax52w      Float?
+  yieldStdDev30d   Float? // volatilitas yield
+  nextYieldDate    DateTime? // kapan yield berikutnya didistribusi
+  yieldCurrency    String    @default("USD")
+}
+
+// ─── LAYER 6: INSTITUTIONAL ──────────────────────────────
+model AssetInstitutional {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  issuerName        String?
+  issuerType        String? // "asset_manager", "bank", "protocol_native"
+  issuerCountry     String? // "US", "SG", "KY"
+  fundManager       String?
+  legalStructure    String? // "Delaware LLC", "Cayman Islands Fund"
+  minimumInvestment Float? // USD
+  managementFee     Float? // percentage per year
+  performanceFee    Float?
+  fundAdmin         String?
+  transferAgent     String?
+  targetInvestors   String? // "retail", "accredited", "institutional"
+  prospectuUrl      String?
+  metadata          Json? // field tambahan yang belum terdefinisi
+}
+
+// ─── LAYER 7: BLOCKCHAIN ─────────────────────────────────
+model AssetBlockchain {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  chain                   String // "ethereum", "base", "polygon", "solana"
+  chainId                 Int?
+  contractAddress         String
+  tokenStandard           String? // "ERC-20", "ERC-1400", "ERC-3643"
+  isTransferable          Boolean @default(true)
+  hasWhitelist            Boolean @default(false)
+  hasTransferRestrictions Boolean @default(false)
+  explorerUrl             String?
+  deployedAt              DateTime?
+  isVerified              Boolean @default(false)
+
+  @@unique([assetId, chain])
   @@index([chain])
-  @@index([isActive])
+  @@index([contractAddress])
 }
 
-model AssetSnapshot {
-  id          String   @id @default(cuid())
-  assetId     String
-  tvl         Float
-  yieldRate   Float
-  holderCount Int
-  price       Float    @default(0)
+// ─── LAYER 8: HISTORICAL ─────────────────────────────────
+model AssetHistory {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
   timestamp   DateTime @default(now())
-
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
-  @@index([assetId])
-  @@index([timestamp])
-  @@index([assetId, timestamp])
-}
-
-model RiskScore {
-  id                  String    @id @default(cuid())
-  assetId             String
-  overallScore        RiskLevel
-  liquidityScore      Float
-  concentrationScore  Float
-  protocolAgeScore    Float
-  volatilityScore     Float
-  calculatedAt        DateTime  @default(now())
-
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
-  @@index([assetId])
-  @@index([calculatedAt])
-}
-
-model YieldHistory {
-  id        String   @id @default(cuid())
-  assetId   String
-  yield     Float
-  tvl       Float
-  timestamp DateTime @default(now())
-  source    String
-
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tvl         Float?
+  yield       Float?
+  price       Float?
+  holderCount Int?
+  riskScore   Int?
+  volume24h   Float?
+  source      String?
 
   @@index([assetId, timestamp])
 }
 
-model HolderSnapshot {
-  id                  String   @id @default(cuid())
-  assetId             String
-  totalHolders        Int
-  top10Concentration  Float
-  whaleCount          Int
-  retailCount         Int
-  timestamp           DateTime @default(now())
+// ─── LAYER 9: AI NARRATIVE ───────────────────────────────
+model AssetAiNarrative {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  summary       String? // 2-3 kalimat
+  opportunities String[]
+  risks         String[]
+  outlook       String? // "bullish", "neutral", "bearish"
+  outlookReason String?
+  confidence    String? // "high", "medium", "low"
+  keyMetrics    Json? // highlight metrics yang AI anggap penting
+  compareTo     String[] // assetId yang comparable
+  generatedAt   DateTime?
+  modelVersion  String? // "claude-sonnet-4-20250514"
+  promptVersion Int      @default(1) // versioning prompt
+}
 
-  @@index([assetId])
-  @@index([timestamp])
+// ─── LAYER 10: EVENT ─────────────────────────────────────
+model AssetEvent {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  eventType   String // "yield_change", "audit", "governance", "incident", "launch", "partnership"
+  severity    String  @default("info") // "info", "warning", "critical"
+  occurredAt  DateTime
+  sourceUrl   String?
+  isVerified  Boolean @default(false)
+  onChainTx   String? // txHash jika event on-chain
+
+  @@index([assetId, occurredAt])
+}
+
+// ─── LAYER 11: COMPLIANCE ────────────────────────────────
+model AssetCompliance {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  regulatoryStatus     String? // "registered", "exempt", "unregulated"
+  primaryRegulator     String? // "SEC", "MAS", "FCA", "FINMA"
+  regulatoryFramework  String? // "Reg D", "Reg S", "MiCA"
+  kycRequired          Boolean  @default(true)
+  accreditedOnly       Boolean  @default(false)
+  blockedJurisdictions String[] // ["US", "CN", "KP"]
+  allowedJurisdictions String[] // kosong = semua (kecuali blocked)
+  sanctionsScreening   Boolean  @default(false)
+  amlPolicy            String?
+  lastComplianceCheck  DateTime?
+  legalOpinionUrl      String?
+}
+
+// ─── LAYER 12: LIQUIDITY ─────────────────────────────────
+model AssetLiquidity {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  redemptionType       String? // "instant", "T+1", "T+3", "weekly", "monthly"
+  redemptionPeriodDays Int? // angka hari untuk redeem
+  lockupPeriodDays     Int? // lock-up setelah invest
+  earlyRedemptionFee   Float? // percentage
+  minRedemptionAmount  Float? // USD
+  dexPairs             Json? // [{ dex: "Uniswap", pair: "OUSG/USDC", tvl: 1000000 }]
+  onchainLiquidity     Float? // total DEX liquidity USD
+  bidAskSpread         Float? // percentage
+  liquidityScore       Int? // 0-100
+  liquidityNotes       String?
 }
 
 // ============================================
@@ -129,15 +310,15 @@ model ApiRequest {
 }
 
 model ApiKey {
-  id          String    @id @default(cuid())
-  keyHash     String    @unique
-  prefix      String
-  name        String
-  tier        KeyTier   @default(STANDARD)
-  isActive    Boolean   @default(true)
-  lastUsedAt  DateTime?
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
+  id         String    @id @default(cuid())
+  keyHash    String    @unique
+  prefix     String
+  name       String
+  tier       KeyTier   @default(STANDARD)
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
 
   @@index([prefix])
   @@index([isActive])
@@ -146,28 +327,6 @@ model ApiKey {
 // ============================================
 // ENUMS
 // ============================================
-
-enum AssetCategory {
-  TREASURY
-  CREDIT
-  REAL_ESTATE
-  COMMODITIES
-  EQUITY
-}
-
-enum Chain {
-  ethereum
-  base
-  polygon
-  arbitrum
-}
-
-enum RiskLevel {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
 
 enum PaymentStatus {
   NONE

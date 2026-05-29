@@ -2,14 +2,15 @@ import { z } from 'zod';
 import { getCached } from './redis.js';
 import { claudeComplete, claudeStream, parseJsonFromModelText } from './claude.js';
 import { logger } from './logger.js';
-import type { AssetInsight, AssetWithHistory } from '../shared/index.js';
+import type { AssetInsight, AssetWithHistory, RiskLevel } from '../shared/index.js';
 import {
   AppError,
   getAssetDetail,
-  getAssets,
-  getRiskData,
+  getAssetList,
+  getAssetRepository,
+  NotFoundError,
+  type AssetDetailPro,
 } from '../services/asset.service.js';
-import { getYieldHistory } from '../services/yieldHistory.service.js';
 import { ERROR_CODES } from '../shared/index.js';
 
 const INSIGHT_CACHE_TTL_SECONDS = 12 * 60 * 60;
@@ -36,32 +37,49 @@ const insightSchema = z.object({
   confidence: z.enum(['high', 'medium', 'low']),
 });
 
-export async function buildAssetWithHistory(assetId: string): Promise<AssetWithHistory> {
-  const [detail, history30, riskResult] = await Promise.all([
-    getAssetDetail(assetId),
-    getYieldHistory(assetId, '30d'),
-    getRiskData(assetId).catch(() => null),
-  ]);
+function isDetailPro(detail: unknown): detail is AssetDetailPro {
+  return (
+    typeof detail === 'object' &&
+    detail !== null &&
+    'yield' in detail &&
+    'risk' in detail &&
+    (detail as AssetDetailPro).risk !== null &&
+    typeof (detail as AssetDetailPro).risk === 'object' &&
+    'smartContractRisk' in ((detail as AssetDetailPro).risk ?? {})
+  );
+}
+
+export async function buildAssetWithHistory(slug: string): Promise<AssetWithHistory> {
+  const { data: detail } = await getAssetDetail(slug, 'pro');
+  const proDetail = isDetailPro(detail) ? detail : null;
+  const historyRows = await getAssetRepository().getHistory(detail.id, '30d');
+
+  const riskLevel = (proDetail?.risk?.overallLevel ?? 'MEDIUM') as RiskLevel;
 
   return {
     id: detail.id,
-    name: detail.name,
-    symbol: detail.symbol,
-    protocol: detail.protocol,
-    category: detail.category,
-    chain: detail.chain,
-    tvl: detail.snapshot?.tvl ?? 0,
-    yieldRate: detail.snapshot?.yieldRate ?? 0,
-    holderCount: detail.snapshot?.holderCount ?? 0,
-    riskScore: detail.risk?.score ?? null,
-    riskLevel: detail.risk?.level ?? detail.snapshot?.riskScore ?? null,
-    riskFactors: detail.risk?.factors ?? [],
-    history: history30.history.map((p) => ({
-      timestamp: p.timestamp,
-      yield: p.yield,
-      tvl: p.tvl,
+    name: detail.identity?.name ?? detail.slug,
+    symbol: detail.identity?.symbol ?? '',
+    protocol: detail.identity?.subcategory ?? detail.slug,
+    category: (detail.identity?.category ?? 'TREASURY') as AssetWithHistory['category'],
+    chain: 'ethereum',
+    tvl: detail.market?.tvl ?? 0,
+    yieldRate: (proDetail?.yield?.currentYield ?? 0) / 100,
+    holderCount: detail.market?.holderCount ?? 0,
+    riskScore: proDetail?.risk?.overallScore ?? null,
+    riskLevel,
+    riskFactors: proDetail?.risk?.riskFactors ?? [],
+    history: historyRows.map((p) => ({
+      timestamp: p.timestamp.toISOString(),
+      yield: (p.yield ?? 0) / 100,
+      tvl: p.tvl ?? 0,
     })),
-    meta: detail._meta,
+    meta: {
+      sources: detail.market?.sources ?? ['defillama'],
+      lastUpdated: detail.market?.lastUpdated?.toISOString() ?? new Date().toISOString(),
+      confidence: (detail.market?.confidence as 'HIGH' | 'MEDIUM' | 'LOW') ?? 'MEDIUM',
+      methodology: '12-layer asset schema',
+    },
   };
 }
 
@@ -108,16 +126,16 @@ export async function generateAssetInsight(
   return data;
 }
 
-export async function getAssetInsightById(assetId: string): Promise<{
+export async function getAssetInsightById(slug: string): Promise<{
   insight: AssetInsight;
   cached: boolean;
 }> {
-  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${assetId}`;
+  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${slug}`;
 
   const { data, cached } = await getCached(
     cacheKey,
     async () => {
-      const asset = await buildAssetWithHistory(assetId);
+      const asset = await buildAssetWithHistory(slug);
       return callClaudeForInsight(asset);
     },
     INSIGHT_CACHE_TTL_SECONDS,
@@ -131,18 +149,17 @@ the provided data. Be concise, factual, cite specific numbers.`;
 
 export async function buildAskContext(assetIds: string[] | undefined): Promise<string> {
   if (!assetIds || assetIds.length === 0) {
-    const market = await getAssets({ page: 1, limit: 25 });
+    const market = await getAssetList({ tier: 'free', limit: 25 });
     return JSON.stringify(
       {
         scope: 'market_overview',
         assets: market.data.map((a) => ({
           id: a.id,
-          name: a.name,
-          category: a.category,
-          tvl: a.tvl,
-          yieldRate: a.yieldRate,
-          riskScore: a.riskScore,
-          change7d: a.change7d,
+          slug: a.slug,
+          name: a.identity?.name,
+          category: a.identity?.category,
+          tvl: a.market?.tvl,
+          riskLevel: a.risk?.overallLevel,
         })),
       },
       null,
@@ -153,11 +170,11 @@ export async function buildAskContext(assetIds: string[] | undefined): Promise<s
   const unique = [...new Set(assetIds)].slice(0, 8);
   const blocks: AssetWithHistory[] = [];
 
-  for (const id of unique) {
+  for (const slug of unique) {
     try {
-      blocks.push(await buildAssetWithHistory(id));
+      blocks.push(await buildAssetWithHistory(slug));
     } catch (e) {
-      if (e instanceof AppError && e.code === ERROR_CODES.ASSET_NOT_FOUND) {
+      if (e instanceof NotFoundError || (e instanceof AppError && e.code === ERROR_CODES.ASSET_NOT_FOUND)) {
         continue;
       }
       throw e;

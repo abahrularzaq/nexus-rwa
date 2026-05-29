@@ -4,7 +4,7 @@ import type { ApiSuccessResponse, MarketBrief } from '../shared/index.js';
 import { createMeta } from '../shared/index.js';
 import { createFreePassMiddleware } from '../middleware/x402/index.js';
 import * as marketService from '../services/market.service.js';
-import { syncAllData } from '../services/sync.service.js';
+import { getSyncService } from '../services/sync.service.js';
 
 const freePass = createFreePassMiddleware();
 
@@ -66,7 +66,12 @@ async function postSyncHandler(c: Context) {
     );
   }
 
-  const result = await syncAllData();
+  const slug = c.req.query('slug');
+  const syncService = getSyncService();
+  const result =
+    typeof slug === 'string' && slug.trim() !== ''
+      ? await syncService.syncSingle(slug.trim())
+      : await syncService.syncAll();
   return c.json(ok(result, false));
 }
 
