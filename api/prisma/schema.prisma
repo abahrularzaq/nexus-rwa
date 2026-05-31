@@ -32,6 +32,8 @@ model Asset {
   aiNarrative   AssetAiNarrative?
   events        AssetEvent[]
   history       AssetHistory[]
+  sources       AssetSource[]
+  grade         AssetGrade?
 
   @@index([isActive])
   @@index([slug])
@@ -282,6 +284,51 @@ model AssetLiquidity {
   bidAskSpread         Float? // percentage
   liquidityScore       Int? // 0-100
   liquidityNotes       String?
+}
+
+model AssetSource {
+  id          String   @id @default(cuid())
+  assetId     String
+  asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  layer       String
+  field       String
+  value       String?
+  sourceUrl   String
+  sourceType  String
+  reliability Int
+  checkedAt   DateTime @default(now())
+  checkedBy   String?
+  notes       String?
+
+  @@index([assetId])
+  @@index([layer])
+  @@index([field])
+  @@index([sourceType])
+}
+
+model AssetGrade {
+  id                String   @id @default(cuid())
+  assetId           String   @unique
+  asset             Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  grade             String
+  score             Int
+  completenessScore Int
+  sourceScore       Int
+  legalScore        Int
+  reserveScore      Int
+  liquidityScore    Int
+  riskScore         Int
+
+  blockers          String[]
+  warnings          String[]
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  updatedAt         DateTime @updatedAt
+
+  @@index([grade])
+  @@index([score])
 }
 
 // ============================================
