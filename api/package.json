@@ -13,6 +13,8 @@
     "test:sync": "node --import tsx/esm src/scripts/test-sync.ts",
     "test:x402": "node --import tsx/esm src/scripts/test-x402.ts",
     "verify:assets": "node --import tsx/esm src/scripts/verify-assets.ts",
+    "import:asset": "node --import tsx/esm src/scripts/import-asset-data.ts",
+    "grade:asset": "node --import tsx/esm src/scripts/import-asset-data.ts",
     "lint": "eslint src --ext .ts"
   },
   "prisma": {
