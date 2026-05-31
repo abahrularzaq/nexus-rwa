@@ -1,0 +1,122 @@
+identity:
+  primary: "https://superstate.com/assets/ustb"
+  docs: "https://docs.superstate.com/superstate-funds/ustb"
+  lastVerified: "2026-05-31"
+  notes: "Official Superstate asset page and Superstate docs were active. Identity fields are primarily supported by Superstate official sources; launchDate is supported by SEC filing; ISIN/CUSIP and Twitter were supported by DeFiLlama/RWA aggregator data in the provided layer."
+
+reserve:
+  primary: "https://superstate.com/assets/ustb"
+  audit: null
+  oracle: null
+  lastVerified: "2026-05-31"
+  notes: "Official Superstate asset page confirms USTB backing, custodian, auditor, redemption assets, and unaudited holdings. No active audit URL or proof-of-reserves oracle URL was provided. Custodian conflict remains between BNY Mellon in the asset page and UMB Bank, N.A. in security documentation."
+
+legal:
+  primary: "https://www.sec.gov/Archives/edgar/data/2004367/000200436724000001/xslFormDX08/primary_doc.xml"
+  offeringMemo: null
+  legalOpinion: null
+  lastVerified: "2026-05-31"
+  notes: "SEC Form D is active and supports exempt Reg D status. Superstate official asset page and onboarding docs support legal structure, investor eligibility, fees, KYC, and allowed jurisdictions. No active public offering memorandum or legal opinion URL was provided."
+
+market:
+  primary: "defillama"
+  defiLlamaProtocol: "superstate-ustb"
+  defiLlamaPool: null
+  fallback: "coingecko"
+  coingeckoId: "superstate-short-duration-us-government-securities-fund-ustb"
+  lastVerified: "2026-05-31"
+  notes: "DeFiLlama protocol page and CoinGecko asset page were active. DeFiLlama pool URL returned an internal error during verification, so defiLlamaPool is set to null for audit-trail safety."
+
+risk:
+  methodology: "ai-assisted"
+  lastAssessed: null
+  reviewer: null
+  nextReviewDate: null
+  notes: "No standalone risk scoring layer was included in this uploaded source bundle. Risk should be reassessed after audit, oracle, concentration, and reviewer fields are completed."
+
+reliabilityScores:
+  identity: 92
+  reserve: 82
+  legal: 90
+  market: 65
+  risk: 50
+
+dataGaps:
+  - layer: "reserve"
+    field: "collateralizationRatio"
+    reason: "Null in reserve.md; no verified collateralization ratio source provided."
+  - layer: "reserve"
+    field: "porOracleAddress"
+    reason: "Null in reserve.md; no proof-of-reserves oracle address verified."
+  - layer: "reserve"
+    field: "porOracleChain"
+    reason: "Null in reserve.md; no proof-of-reserves oracle chain verified."
+  - layer: "reserve"
+    field: "lastAuditDate"
+    reason: "Null in reserve.md; auditor is named but no public audit date was provided."
+  - layer: "reserve"
+    field: "lastAuditUrl"
+    reason: "Null in reserve.md; no active audit report URL was provided."
+  - layer: "reserve"
+    field: "reserveBreakdown"
+    reason: "Null in reserve.md; public holdings table is unaudited and was not normalized into a 100% reserve breakdown."
+  - layer: "legal"
+    field: "prospectusUrl"
+    reason: "Null in legal.md; no public prospectus URL was provided for the private fund structure."
+  - layer: "legal"
+    field: "blockedJurisdictions"
+    reason: "Null in legal.md; no official blocked-jurisdiction ISO list was verified."
+  - layer: "legal"
+    field: "legalOpinionUrl"
+    reason: "Null in legal.md; no public legal opinion URL was provided."
+  - layer: "metadata"
+    field: "externalIds.cmcId"
+    reason: "Null in metadata.json; no CoinMarketCap ID was verified."
+  - layer: "metadata"
+    field: "blockchain[0].deployedAt"
+    reason: "Null in metadata.json; Ethereum deployment date was not verified."
+  - layer: "metadata"
+    field: "blockchain[1].chainId"
+    reason: "Null in metadata.json; Solana does not use an EVM-style numeric chain ID in the same way."
+  - layer: "metadata"
+    field: "blockchain[1].deployedAt"
+    reason: "Null in metadata.json; Solana deployment date was not verified."
+  - layer: "metadata"
+    field: "blockchain[2].deployedAt"
+    reason: "Null in metadata.json; Plume deployment date was not verified."
+  - layer: "metadata"
+    field: "yield.nextYieldDate"
+    reason: "Null in metadata.json; no next yield distribution or calculation date was verified."
+  - layer: "metadata"
+    field: "liquidity.lockupPeriodDays"
+    reason: "Null in metadata.json; no explicit lockup period was verified."
+  - layer: "metadata"
+    field: "liquidity.earlyRedemptionFee"
+    reason: "Null in metadata.json; no explicit early redemption fee was verified."
+  - layer: "metadata"
+    field: "liquidity.minRedemptionAmount"
+    reason: "Null in metadata.json; no minimum redemption amount was verified."
+  - layer: "sources"
+    field: "reserve.audit"
+    reason: "No active public audit report URL was provided."
+  - layer: "sources"
+    field: "reserve.oracle"
+    reason: "No proof-of-reserves oracle URL was verified."
+  - layer: "sources"
+    field: "legal.offeringMemo"
+    reason: "No active public offering memorandum URL was provided."
+  - layer: "sources"
+    field: "legal.legalOpinion"
+    reason: "No active public legal opinion URL was provided."
+  - layer: "sources"
+    field: "market.defiLlamaPool"
+    reason: "DeFiLlama pool URL returned an internal error during verification, so the pool ID was not retained in sources.yaml."
+  - layer: "sources"
+    field: "risk.lastAssessed"
+    reason: "No standalone risk scoring layer was included in this uploaded source bundle."
+  - layer: "sources"
+    field: "risk.reviewer"
+    reason: "No human reviewer was provided."
+  - layer: "sources"
+    field: "risk.nextReviewDate"
+    reason: "No next review date was provided."

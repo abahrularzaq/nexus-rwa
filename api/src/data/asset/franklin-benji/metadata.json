@@ -1,0 +1,140 @@
+{
+  "slug": "franklin-onchain-us-government-money-fund",
+  "isActive": true,
+  "dataVersion": 1,
+  "externalIds": {
+    "defiLlamaProtocol": "franklin-templeton",
+    "defiLlamaPool": null,
+    "coingeckoId": null,
+    "rwaDotXyzId": null,
+    "cmcId": null
+  },
+  "blockchain": [
+    {
+      "chain": "stellar",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "polygon",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "arbitrum",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "avalanche",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "aptos",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "ethereum",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "base",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "solana",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    },
+    {
+      "chain": "canton",
+      "chainId": null,
+      "contractAddress": null,
+      "tokenStandard": null,
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": null,
+      "deployedAt": null,
+      "isVerified": false
+    }
+  ],
+  "yield": {
+    "currentYield": null,
+    "yieldType": "money-market-yield",
+    "yieldFrequency": "daily",
+    "yieldBenchmark": null,
+    "yieldCurrency": "USD",
+    "nextYieldDate": null
+  },
+  "liquidity": {
+    "redemptionType": "direct",
+    "redemptionPeriodDays": null,
+    "lockupPeriodDays": null,
+    "earlyRedemptionFee": null,
+    "minRedemptionAmount": null,
+    "liquidityScore": null,
+    "liquidityNotes": "BENJI is redeemable via KYC-gated primary market with Franklin Templeton. Redemption settlement timeline not specified in provided sources. DEX Active TVL reported as $0 on DeFiLlama; primary liquidity is through issuer redemption, not secondary DEX markets.",
+    "dexPairs": []
+  }
+}

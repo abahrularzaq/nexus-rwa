@@ -1,0 +1,44 @@
+{
+  "slug": "ondo-ousg",
+  "isActive": true,
+  "dataVersion": 1,
+  "externalIds": {
+    "defiLlamaProtocol": "ondo-finance",
+    "defiLlamaPool": "ousg",
+    "coingeckoId": "ousg",
+    "rwaDotXyzId": "ondo-finance",
+    "cmcId": null
+  },
+  "blockchain": [
+    {
+      "chain": "ethereum",
+      "chainId": 1,
+      "contractAddress": "0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+      "tokenStandard": "ERC-20",
+      "isTransferable": true,
+      "hasWhitelist": true,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+      "deployedAt": null,
+      "isVerified": true
+    }
+  ],
+  "yield": {
+    "currentYield": null,
+    "yieldType": "variable",
+    "yieldFrequency": null,
+    "yieldBenchmark": "Short-term U.S. Treasury yield",
+    "yieldCurrency": "USD",
+    "nextYieldDate": null
+  },
+  "liquidity": {
+    "redemptionType": "T+1",
+    "redemptionPeriodDays": 1,
+    "lockupPeriodDays": null,
+    "earlyRedemptionFee": null,
+    "minRedemptionAmount": 100000,
+    "liquidityScore": 78,
+    "liquidityNotes": "OUSG redemptions are processed through issuer-controlled institutional onboarding and treasury settlement infrastructure.",
+    "dexPairs": []
+  }
+}

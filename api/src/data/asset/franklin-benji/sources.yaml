@@ -1,0 +1,193 @@
+identity:
+  primary: https://digitalassets.franklintempleton.com/benji/
+  docs: null
+  lastVerified: 2026-05-31
+  notes: >
+    Official Benji landing page confirms fund name, symbol, FOBXX ticker,
+    "U.S. Government Money Fund" classification, and Trail of Bits/Ancilia
+    auditor names. DeFiLlama supplements with ISIN (US35473R1041), 9-chain
+    deployment, KYC requirements, retail availability on Stellar, and
+    $794.16M onchain marketcap. SEC EDGAR confirms issuer (CIK 0001786958,
+    FL incorporation, San Mateo CA). No docsUrl, twitterUrl, or launchDate
+    found across all five primary sources.
+
+reserve:
+  primary: https://digitalassets.franklintempleton.com/benji/
+  audit: null
+  oracle: null
+  lastVerified: 2026-05-31
+  notes: >
+    Official website confirms "U.S. Government Money Fund" classification.
+    Rule 2a-7 portfolio requirements (99.5% minimum in government securities,
+    60-day WAM, daily/weekly liquidity minimums) are inferred from SEC fund
+    classification, not from a direct reserve report or N-MFP2 filing.
+    Reserve breakdown, custodian identity, collateralization ratio, PoR
+    oracle, and audit report URL are all unavailable from the five primary
+    sources. Investors should consult the fund's latest N-MFP2 filing on
+    SEC EDGAR for current portfolio composition.
+
+legal:
+  primary: https://www.sec.gov/edgar/browse/?CIK=1786958&owner=exclude
+  offeringMemo: null
+  legalOpinion: null
+  lastVerified: 2026-05-31
+  notes: >
+    SEC EDGAR confirms issuer (FRANKLIN TEMPLETON TRUST, CIK 0001786958),
+    state of incorporation (FL), fiscal year end (March 31), and business
+    address (ONE FRANKLIN PARKWAY, SAN MATEO, CA 94403-1906). EDGAR shows
+    Exchange Act registration revoked, Municipal Advisor registration
+    revoked and cancelled. Investment Company Act registration (governing
+    the fund) is separately maintained. Prospectus URL at
+    franklintempleton.com is blocked by cookie consent wall — returns only
+    "Your Privacy" cookie consent content with no fund data retrievable.
+    No legal opinion URL found in any source.
+
+market:
+  primary: defillama
+  defiLlamaProtocol: franklin-templeton
+  defiLlamaPool: null
+  fallback: coingecko
+  coingeckoId: null
+  lastVerified: 2026-05-31
+  notes: >
+    DeFiLlama reports Onchain Marketcap $794.16M, Active Marketcap $794.16M,
+    DeFi Active TVL $0, BENJI Price $1, Chains 9. Protocol slug
+    "franklin-templeton" inferred from DeFiLlama URL structure and
+    metadata.json — protocol page not independently verified in provided
+    search results. No CoinGecko or CoinMarketCap listing identified.
+    app.rwa.xyz page not accessible in search results for cross-reference.
+
+risk:
+  methodology: ai-assisted
+  lastAssessed: 2026-05-31
+  reviewer: null
+  nextReviewDate: null
+  notes: >
+    Risk assessment conducted by AI using data from identity, reserve, and
+    legal layers. No human reviewer. No official risk rating from issuer or
+    third-party rating agency. Overall risk rated LOW (score 77/100) based
+    on SEC registration under Investment Company Act of 1940, Rule 2a-7
+    compliance, and institutional issuer profile.
+
+reliabilityScores:
+  identity: 82
+  reserve: 58
+  legal: 75
+  market: 62
+  risk: 50
+
+dataGaps:
+  - layer: identity
+    field: docsUrl
+    reason: No documentation URL available from official website or any aggregator
+  - layer: identity
+    field: twitterUrl
+    reason: No official Twitter/X handle identified from any provided source
+  - layer: identity
+    field: launchDate
+    reason: Specific BENJI token launch date not disclosed; EDGAR filings start September 2019 but this is trust-level filing date
+  - layer: identity
+    field: "blockchain[].contractAddress"
+    reason: No contract addresses published on any of the five primary sources for any of the 9 chains
+  - layer: identity
+    field: "blockchain[].chainId"
+    reason: Cannot determine without contract addresses; Stellar is non-EVM so numeric chain ID format does not apply
+  - layer: identity
+    field: "blockchain[].tokenStandard"
+    reason: Token standard not specified in any source (ERC-20, SPL, Stellar asset, etc.)
+  - layer: identity
+    field: "blockchain[].explorerUrl"
+    reason: Cannot construct without contract addresses
+  - layer: identity
+    field: "blockchain[].deployedAt"
+    reason: Deployment timestamps not available for any chain
+  - layer: identity
+    field: "blockchain[].isVerified"
+    reason: Cannot verify without contract addresses; set to false as default
+  - layer: identity
+    field: externalIds.defiLlamaPool
+    reason: No DeFiLlama pool ID identified; DeFi Active TVL is $0 indicating no DEX pool
+  - layer: identity
+    field: externalIds.coingeckoId
+    reason: No CoinGecko listing found from provided sources
+  - layer: identity
+    field: externalIds.rwaDotXyzId
+    reason: app.rwa.xyz page not accessible in search results
+  - layer: identity
+    field: externalIds.cmcId
+    reason: No CoinMarketCap listing found from provided sources
+  - layer: reserve
+    field: collateralizationRatio
+    reason: Not disclosed in any source; assumed compliant given SEC Rule 2a-7 registration
+  - layer: reserve
+    field: custodian
+    reason: Custodian bank not identified in any of the five primary sources
+  - layer: reserve
+    field: custodianUrl
+    reason: Cannot construct without custodian identity
+  - layer: reserve
+    field: porOracleAddress
+    reason: No onchain proof-of-reserves oracle referenced in any source
+  - layer: reserve
+    field: porOracleChain
+    reason: No onchain proof-of-reserves oracle referenced in any source
+  - layer: reserve
+    field: lastAuditDate
+    reason: Smart contract audit dates not published in any provided source
+  - layer: reserve
+    field: lastAuditUrl
+    reason: No audit report URL published in any provided source
+  - layer: reserve
+    field: reserveBreakdown
+    reason: Portfolio composition not available; requires fund N-MFP2 filing or fact sheet not among primary sources
+  - layer: legal
+    field: minimumInvestment
+    reason: Not disclosed; prospectus page blocked by cookie consent
+  - layer: legal
+    field: managementFee
+    reason: Not disclosed; prospectus page blocked by cookie consent
+  - layer: legal
+    field: performanceFee
+    reason: Not disclosed; prospectus page blocked by cookie consent
+  - layer: legal
+    field: prospectusUrl
+    reason: franklintempleton.com product page returns only cookie consent content; no prospectus link retrievable
+  - layer: legal
+    field: blockedJurisdictions
+    reason: No blocked jurisdiction list found in any source
+  - layer: legal
+    field: allowedJurisdictions
+    reason: No allowed jurisdiction list found in any source
+  - layer: legal
+    field: sanctionsScreening
+    reason: No sanctions screening policy disclosed in any source
+  - layer: legal
+    field: amlPolicy
+    reason: Specific KYC/AML provider not identified in any source
+  - layer: legal
+    field: legalOpinionUrl
+    reason: No legal opinion document referenced in any source
+  - layer: metadata
+    field: yield.currentYield
+    reason: Current yield/APY not disclosed on official website or DeFiLlama
+  - layer: metadata
+    field: yield.yieldBenchmark
+    reason: No benchmark rate specified in any source
+  - layer: metadata
+    field: yield.nextYieldDate
+    reason: No next yield distribution date available from any source
+  - layer: metadata
+    field: liquidity.redemptionPeriodDays
+    reason: Redemption settlement timeline not specified in any source
+  - layer: metadata
+    field: liquidity.lockupPeriodDays
+    reason: No lockup period specified in any source
+  - layer: metadata
+    field: liquidity.earlyRedemptionFee
+    reason: No early redemption fee specified in any source
+  - layer: metadata
+    field: liquidity.minRedemptionAmount
+    reason: No minimum redemption amount specified in any source
+  - layer: metadata
+    field: liquidity.liquidityScore
+    reason: Cannot compute without redemptionPeriodDays; set to null per mandatory rules

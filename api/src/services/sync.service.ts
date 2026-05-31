@@ -41,6 +41,8 @@ export type SyncResult = {
   success: boolean;
   layersUpdated: string[];
   error?: string;
+  skipped?: boolean;
+  reason?: string;
 };
 
 export type BatchSyncResult = {
@@ -50,6 +52,13 @@ export type BatchSyncResult = {
   durationMs: number;
   results: Array<{ slug: string; success: boolean; error?: string }>;
 };
+
+export type SyncSingleResult = BatchSyncResult & {
+  riskOverwritten: boolean;
+  riskProtected: boolean;
+};
+
+const PROTECTED_RISK_ASSESSMENT_METHODS = ['ai-assisted', 'manual', 'hybrid'] as const;
 
 export type RiskSubScores = {
   smartContractRisk: number;
@@ -343,7 +352,10 @@ export class SyncService {
     }
   }
 
-  async syncRiskScore(slug: string): Promise<SyncResult> {
+  async syncRiskScore(
+    slug: string,
+    options?: { force?: boolean },
+  ): Promise<SyncResult> {
     const layersUpdated: string[] = [];
     let assetId: string | undefined;
 
@@ -354,6 +366,28 @@ export class SyncService {
       }
 
       assetId = asset.id;
+
+      if (!options?.force) {
+        const existingRisk = await db.assetRisk.findUnique({
+          where: { assetId: asset.id },
+          select: { assessmentMethod: true, lastAssessed: true },
+        });
+
+        const method = existingRisk?.assessmentMethod ?? null;
+        if (
+          method != null &&
+          PROTECTED_RISK_ASSESSMENT_METHODS.includes(
+            method as (typeof PROTECTED_RISK_ASSESSMENT_METHODS)[number],
+          )
+        ) {
+          logger.info(
+            { slug, assetId: asset.id, assessmentMethod: method },
+            `[syncRiskScore] Skipping ${slug} — assessmentMethod is "${method}", protected from algorithmic overwrite`,
+          );
+          return { success: true, layersUpdated, skipped: true, reason: 'protected' };
+        }
+      }
+
       const history = await this.repo.getHistory(asset.id, '30d');
 
       const tvl30dChange =
@@ -493,7 +527,7 @@ export class SyncService {
     return batch;
   }
 
-  async syncSingle(slug: string): Promise<BatchSyncResult> {
+  async syncSingle(slug: string, options?: { forceRisk?: boolean }): Promise<SyncSingleResult> {
     const startedAt = Date.now();
     const layersUpdated: string[] = [];
     const errors: string[] = [];
@@ -508,9 +542,12 @@ export class SyncService {
     layersUpdated.push(...yieldDetail.layersUpdated);
     if (!yieldDetail.success && yieldDetail.error) errors.push(yieldDetail.error);
 
-    const risk = await this.syncRiskScore(slug);
+    const risk = await this.syncRiskScore(slug, { force: options?.forceRisk });
     layersUpdated.push(...risk.layersUpdated);
     if (!risk.success && risk.error) errors.push(risk.error);
+
+    const riskProtected = risk.skipped === true && risk.reason === 'protected';
+    const riskOverwritten = risk.layersUpdated.includes('risk');
 
     const blockchain = await this.syncBlockchainData(slug);
     layersUpdated.push(...blockchain.layersUpdated);
@@ -535,6 +572,8 @@ export class SyncService {
       success: ok ? 1 : 0,
       failed: ok ? 0 : 1,
       durationMs,
+      riskOverwritten,
+      riskProtected,
       results: [
         {
           slug,

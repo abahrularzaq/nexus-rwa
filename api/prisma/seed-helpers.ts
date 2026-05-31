@@ -347,6 +347,123 @@ const EMPTY_RISK: RiskInput = {
   lastAssessed: null,
 };
 
+/** Maps seed slug → CATALOG_ASSETS / SUPPLEMENTAL_CATALOG slug when names differ. */
+export const CATALOG_SLUG_ALIASES: Record<string, string> = {
+  superstate: "superstate-ustb",
+  "backed-finance": "backed-buidl",
+  openeden: "openedon-ousg",
+};
+
+/** On-chain + market baselines for minimal slugs not in legacy CATALOG_ASSETS. */
+export const SUPPLEMENTAL_CATALOG: CatalogAssetInput[] = [
+  {
+    slug: "centrifuge-cfg",
+    name: "Centrifuge CFG",
+    symbol: "CFG",
+    protocol: "Centrifuge",
+    category: "Credit",
+    subcategory: "Protocol governance",
+    description:
+      "Governance token for Centrifuge, a decentralized protocol for financing real-world assets on-chain",
+    websiteUrl: "https://centrifuge.io",
+    chain: "ethereum",
+    contractAddress: "0xA1c931D64dBA96fa7393F896faC34f6d18515e4C",
+    explorerUrl: "https://etherscan.io/token/0xA1c931D64dBA96fa7393F896faC34f6d18515e4C",
+    tags: ["governance", "rwa", "defi"],
+    tvl: 95_000_000,
+    tvl7dChange: -0.4,
+    currentYield: 8.5,
+    overallScore: 55,
+    overallLevel: "MEDIUM",
+    holderCount: 8200,
+    compareTo: ["centrifuge-drop", "goldfinch-gfi"],
+  },
+  {
+    slug: "clearpool",
+    name: "Clearpool",
+    symbol: "CPOOL",
+    protocol: "Clearpool",
+    category: "Credit",
+    subcategory: "Institutional lending",
+    description:
+      "Decentralized capital markets protocol for institutional unsecured lending on-chain",
+    websiteUrl: "https://clearpool.finance",
+    chain: "ethereum",
+    contractAddress: "0x0C7B6d9bADAC49D7F1315f9E631c3b2e4D6c4E8a",
+    explorerUrl: "https://etherscan.io/token/0x0C7B6d9bADAC49D7F1315f9E631c3b2e4D6c4E8a",
+    tags: ["lending", "institutional"],
+    tvl: 42_000_000,
+    currentYield: 7.2,
+    overallScore: 56,
+    overallLevel: "MEDIUM",
+    holderCount: 3100,
+    compareTo: ["maple-usdc", "truefi"],
+  },
+  {
+    slug: "truefi",
+    name: "TrueFi",
+    symbol: "TRU",
+    protocol: "TrueFi",
+    category: "Credit",
+    subcategory: "Uncollateralized lending",
+    description:
+      "Uncollateralized lending protocol connecting lenders and borrowers for on-chain credit",
+    websiteUrl: "https://truefi.io",
+    chain: "ethereum",
+    contractAddress: "0x4C5305469cbE09BCAA3dBAB71E60eB37F0f0D692",
+    explorerUrl: "https://etherscan.io/token/0x4C5305469cbE09BCAA3dBAB71E60eB37F0f0D692",
+    tags: ["lending", "uncollateralized"],
+    tvl: 38_000_000,
+    currentYield: 9.1,
+    overallScore: 50,
+    overallLevel: "MEDIUM",
+    holderCount: 18500,
+    compareTo: ["goldfinch-gfi", "clearpool"],
+  },
+  {
+    slug: "credix",
+    name: "Credix",
+    symbol: "CREDIX",
+    protocol: "Credix",
+    category: "Credit",
+    subcategory: "Private credit",
+    description:
+      "Private credit marketplace connecting institutional lenders with borrowers in emerging markets",
+    websiteUrl: "https://credix.finance",
+    chain: "solana",
+    contractAddress: "CREDIXmarketPLACE11111111111111111111111111111",
+    explorerUrl: "https://credix.finance",
+    tags: ["private-credit", "institutional"],
+    tvl: 28_000_000,
+    currentYield: 11.5,
+    overallScore: 48,
+    overallLevel: "MEDIUM",
+    holderCount: 120,
+    compareTo: ["goldfinch-gfi"],
+  },
+  {
+    slug: "ribbon-finance",
+    name: "Ribbon Finance",
+    symbol: "RBN",
+    protocol: "Ribbon Finance",
+    category: "Credit",
+    subcategory: "Structured products",
+    description:
+      "DeFi protocol offering options-based structured products and vault strategies for yield",
+    websiteUrl: "https://ribbon.finance",
+    chain: "ethereum",
+    contractAddress: "0x62Bba8af7035575610845Ef7D27bEF3CECEDb9d4",
+    explorerUrl: "https://etherscan.io/token/0x62Bba8af7035575610845Ef7D27bEF3CECEDb9d4",
+    tags: ["options", "structured-products"],
+    tvl: 55_000_000,
+    currentYield: 8.0,
+    overallScore: 54,
+    overallLevel: "MEDIUM",
+    holderCount: 14200,
+    compareTo: ["maple-usdc"],
+  },
+];
+
 /** Ten minimal catalog assets (sync fills TVL, yield, risk scores). */
 export const MINIMAL_ASSET_SEEDS: MinimalAssetSeed[] = [
   {
@@ -591,7 +708,7 @@ export const MINIMAL_ASSET_SEEDS: MinimalAssetSeed[] = [
   },
 ];
 
-/** Canonical 13 slugs after seed (3 rich + 10 minimal; maple-usdc only in rich set). */
+/** Canonical 13 slugs after seed (3 rich + 10 expanded catalog + maple-usdc in rich set). */
 export const TARGET_ASSET_SLUGS = [
   "ondo-ousg",
   "franklin-benji",
@@ -811,5 +928,85 @@ export const CATALOG_ASSETS: CatalogAssetInput[] = [
     compareTo: ["ondo-ousg", "maple-usdc"],
   },
 ];
+
+function allCatalogInputs(): CatalogAssetInput[] {
+  return [...CATALOG_ASSETS, ...SUPPLEMENTAL_CATALOG];
+}
+
+function resolveCatalogInput(slug: string): CatalogAssetInput | undefined {
+  const catalogSlug = CATALOG_SLUG_ALIASES[slug] ?? slug;
+  return allCatalogInputs().find((c) => c.slug === catalogSlug);
+}
+
+/**
+ * Promotes a minimal seed (identity + compliance + liquidity) to a full 12-layer AssetSeed
+ * using catalog on-chain data and category templates.
+ */
+export function expandMinimalSeedToFull(minimal: MinimalAssetSeed): AssetSeed {
+  const catalog = resolveCatalogInput(minimal.slug);
+  if (!catalog) {
+    throw new Error(
+      `expandMinimalSeedToFull: no catalog entry for slug "${minimal.slug}" (add to CATALOG_ASSETS or SUPPLEMENTAL_CATALOG)`,
+    );
+  }
+
+  const category = (minimal.identity.category ?? catalog.category) as AssetCategoryLabel;
+  const base = buildCatalogAsset({
+    ...catalog,
+    slug: minimal.slug,
+    name: minimal.identity.name ?? catalog.name,
+    symbol: minimal.identity.symbol ?? catalog.symbol,
+    category,
+    subcategory: minimal.identity.subcategory ?? catalog.subcategory,
+    description: minimal.identity.description ?? catalog.description,
+    websiteUrl: minimal.identity.websiteUrl ?? catalog.websiteUrl,
+    tags: minimal.identity.tags ?? catalog.tags,
+    launchDate: minimal.identity.launchDate ?? catalog.launchDate,
+  });
+
+  return {
+    ...base,
+    identity: {
+      ...base.identity,
+      ...minimal.identity,
+      category,
+    },
+    compliance: {
+      ...base.compliance,
+      ...minimal.compliance,
+    },
+    liquidity: {
+      ...base.liquidity,
+      ...minimal.liquidity,
+    },
+    market: {
+      ...base.market,
+      tvl: null,
+      tvl7dChange: null,
+      holderCount: null,
+      aumUsd: null,
+      lastUpdated: null,
+      sources: ["defillama"],
+      confidence: "MEDIUM",
+    },
+    risk: {
+      ...base.risk,
+      overallScore: null,
+      overallLevel: minimal.risk.overallLevel ?? "MEDIUM",
+      smartContractRisk: null,
+      counterpartyRisk: null,
+      liquidityRisk: null,
+      regulatoryRisk: null,
+      marketRisk: null,
+      concentrationRisk: null,
+      assessmentMethod: "algorithmic",
+      lastAssessed: null,
+    },
+  };
+}
+
+/** Full 12-layer seeds derived from MINIMAL_ASSET_SEEDS (sync fills live market/risk). */
+export const EXPANDED_CATALOG_SEEDS: AssetSeed[] =
+  MINIMAL_ASSET_SEEDS.map(expandMinimalSeedToFull);
 
 export const CATALOG_ASSET_SEEDS: AssetSeed[] = CATALOG_ASSETS.map(buildCatalogAsset);

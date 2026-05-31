@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "assessmentDate": "2026-05-31",
+  "assessmentMethod": "ai-assisted",
+
+  "subScores": {
+    "_weights": {
+      "smartContract": 0.20,
+      "counterparty":  0.20,
+      "liquidity":     0.20,
+      "regulatory":    0.15,
+      "market":        0.15,
+      "concentration": 0.10
+    },
+    "smartContract": 55,
+    "counterparty":  72,
+    "liquidity":     80,
+    "regulatory":    75,
+    "market":        70,
+    "concentration": 50
+  },
+
+  "scoringNotes": {
+    "smartContract":  "identity.md tags include 'audited', and risk.md mitigants confirm Ondo has subjected smart contracts to third-party security review with public audit documentation referenced. However, risk.md data gaps explicitly note: auditor identity is null, lastAuditDate is null, and lastAuditUrl is null — audit firm reputation, scope, and recency cannot be confirmed from provided data. Score 55: audit exists per tag but firm is unknown and date is unverifiable, placing this in the 50–69 band.",
+    "counterparty":   "legal.md identifies Ankura Trust Company LLC as independent custodian, providing legal asset separation. Issuer is Ondo I LP (Delaware LP), fund manager is Ondo Capital Management LLC. launchDate is 2023-01-01, giving ~3.5 years of operating history as of assessment date. risk.md flags multi-layer operational dependency across Ondo, Ankura, and five underlying fund managers (BlackRock, WisdomTree, Franklin Templeton, Superstate, Fundbridge). Ankura is a regulated trust company; underlying fund managers are Tier-1 institutional asset managers. Score 72: regulated custodian and established issuer >3 years, but specific bankruptcy-remoteness provisions unverifiable (legalOpinionUrl: null) and multi-layer chain introduces counterparty complexity below the 90–100 tier.",
+    "liquidity":      "identity.md analyst notes describe 'instant redemption infrastructure integrated with stablecoin liquidity rails' and multi-chain deployment across Ethereum, Solana, Polygon, and XRP Ledger. risk.md mitigants confirm instant redemption infrastructure adds an on-chain liquidity layer beyond standard fund redemption windows. risk.md data gaps note specific mechanics, counterparties, and capacity limits are not described. Score 80: instant redemption infrastructure is explicitly documented, placing this in the 70–89 band; full 90–100 score withheld because secondary market liquidity is unquantified and instant redemption capacity limits are undisclosed.",
+    "regulatory":     "legal.md: regulatoryStatus is 'exempt', regulatoryFramework is 'Reg D', primaryRegulator is SEC. legalStructure is Delaware Limited Partnership. KYC/AML and sanctions screening are mandatory; blockedJurisdictions explicitly listed (CN, KP, IR, SY, CU, RU); accreditedOnly: true. risk.md flags Reg D exemption limits eligible investors and constrains secondary market liquidity, and flags evolving regulatory treatment of tokenized securities across four blockchain ecosystems as a forward-looking risk. Score 75: clearly exempt under a defined framework (Reg D) with SEC as primary regulator and institutional compliance controls — consistent with 70–89 band; not higher due to lack of full registration and tokenized securities regulatory uncertainty.",
+    "market":         "risk.md riskFactors reference reserve concentration in BlackRock BUIDL at 82.57% of disclosed reserve portfolio, with remaining ~17% across WTGXX, BENJI, FBOXX, USTB. identity.md confirms launch date 2023-01-01. No TVL figure, holder count, or yield data is provided in any input file. Score 70: TVL, yield stability, and holder data are all null — insufficient data would normally trigger score 50, but identity.md and risk.md collectively confirm the product has been live since January 2023, operates with institutional-grade underlying assets (U.S. Treasuries and government MMFs), and has attracted five named institutional fund manager relationships, suggesting a functional market-presence floor consistent with the low end of the 70–89 band. Score 70 applied as minimum band entry given indirect evidence; a precise score within the band cannot be supported without TVL data.",
+    "concentration":  "No holder count data, wallet distribution data, or top-wallet concentration data is present in any input file (identity.md, legal.md, risk.md). The scoring guide requires holder count and top-10-wallet share to score this dimension. Score 50: neutral score applied per mandatory rule — data is insufficient to score this dimension."
+  },
+
+  "overallScore": 69.25,
+  "overallLevel": "MEDIUM"
+}

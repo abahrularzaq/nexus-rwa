@@ -9,6 +9,7 @@ import {
   invalidateAssetCache,
   NotFoundError,
 } from '../services/asset.service.js';
+import { fetchAllAssetCompleteness } from '../lib/asset-completeness.js';
 import { getSyncService } from '../services/sync.service.js';
 
 export const adminRouter = new Hono();
@@ -50,11 +51,19 @@ adminRouter.post('/assets/:slug/sync', async (c) => {
     );
   }
 
+  const forceRisk =
+    c.req.query('forceRisk') === 'true' || c.req.query('forceRisk') === '1';
+
   try {
-    const result = await getSyncService().syncSingle(parsed.data.slug);
+    const result = await getSyncService().syncSingle(parsed.data.slug, { forceRisk });
     invalidateAssetCache(parsed.data.slug);
 
-    return c.json({ success: true, data: result });
+    return c.json({
+      success: true,
+      data: result,
+      riskOverwritten: result.riskOverwritten,
+      riskProtected: result.riskProtected,
+    });
   } catch (e) {
     if (e instanceof NotFoundError) {
       return c.json({ success: false, error: { code: e.code, message: e.message } }, 404);
@@ -196,6 +205,28 @@ adminRouter.patch('/assets/:slug/institutional', async (c) => {
         error: {
           code: ERROR_CODES.INTERNAL_ERROR,
           message: e instanceof Error ? e.message : 'Institutional update failed',
+        },
+      },
+      500,
+    );
+  }
+});
+
+adminRouter.get('/assets/completeness', async (c) => {
+  try {
+    const slug = c.req.query('slug');
+    const reports = await fetchAllAssetCompleteness({
+      slug: slug || undefined,
+      activeOnly: true,
+    });
+    return c.json({ success: true, data: reports });
+  } catch (e) {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: ERROR_CODES.INTERNAL_ERROR,
+          message: e instanceof Error ? e.message : 'Completeness report failed',
         },
       },
       500,

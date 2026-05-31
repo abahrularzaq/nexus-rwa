@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "assessmentDate": "2026-05-31",
+  "assessmentMethod": "ai-assisted",
+  "subScores": {
+    "_weights": {
+      "smartContract": 0.20,
+      "counterparty": 0.20,
+      "liquidity": 0.20,
+      "regulatory": 0.15,
+      "market": 0.15,
+      "concentration": 0.10
+    },
+    "smartContract": 75,
+    "counterparty": 82,
+    "liquidity": 75,
+    "regulatory": 88,
+    "market": 82,
+    "concentration": 50
+  },
+  "scoringNotes": {
+    "smartContract": "Audited by two reputable firms — Trail of Bits and Ancilia (digitalassets.franklintempleton.com/benji/). No formal verification mentioned. No bug bounty program referenced. No contract addresses available from any source to verify code on-chain. No audit date provided, so recency cannot be assessed. Deployed across 9 chains (Stellar, Polygon, Arbitrum, Avalanche, Aptos, Ethereum, Base, Solana, Canton per DeFiLlama), which expands attack surface. Score 75: fits 70–89 range (audited by 1–2 firms) with downward adjustment for lack of verification, no bug bounty, and unknown audit recency.",
+    "counterparty": "Issuer is Franklin Templeton Trust (SEC EDGAR CIK 0001786958), a registered investment company under the Investment Company Act of 1940. Fund manager is Franklin Templeton, a publicly traded global asset manager (NYSE: BEN) managing $1.5T+ AUM, established in 1947. SEC-registered entity with 158 EDGAR filings since September 2019. However, custodian bank is not disclosed in any provided source (custodian: null in reserve.md). Score 82: fits 70–89 range (regulated custodian, established issuer >3 years) — Tier-1 institutional issuer pushes toward 90, but unidentified custodian prevents it.",
+    "liquidity": "BENJI is redeemable directly from the issuer at $1.00 NAV per share in USD (DeFiLlama: Redeemable: yes; reserve.md: redemptionAsset: USD). Money market fund redemption is typically same-day or T+1, but the specific settlement timeline is not stated in any provided source. DeFi Active TVL reported as $0 on DeFiLlama, indicating no meaningful DEX secondary market liquidity. Onchain Marketcap is $794.16M indicating significant adoption. Score 75: fits 70–89 range — direct issuer redemption at par is strong, but $0 DEX TVL and unspecified settlement timeline prevent a higher score.",
+    "regulatory": "SEC-registered investment company under the Investment Company Act of 1940, classified under Rule 2a-7 for government money market funds (legal.md, DeFiLlama). Primary regulator: SEC. Registered status confirmed. Rule 2a-7 mandates 99.5% minimum in government securities, 60-day WAM limits, and daily/weekly liquidity minimums. However, SEC EDGAR shows Exchange Act registration revoked and Municipal Advisor registration revoked and cancelled for the trust entity (CIK 0001786958). Score 88: near-top of 90–100 range for registered status with full compliance, but entity-level EDGAR flags (Exchange Act revocation) prevent a 90+.",
+    "market": "Onchain Marketcap: $794.16M (DeFiLlama), which exceeds the $500M threshold for the 90–100 tier. Active Marketcap: $794.16M. BENJI Price: $1.00 (stable NAV). Deployed across 9 chains. However, no current yield percentage is provided in any source, no holder count data, and no historical growth metrics. Score 82: fits 70–89 range — TVL >$500M and stable NAV push toward 90, but missing yield data and holder metrics prevent it.",
+    "concentration": "No holder count data provided in any source. No wallet distribution or top-holder concentration data available. 9-chain deployment means holders are spread across Stellar, Polygon, Arbitrum, Avalanche, Aptos, Ethereum, Base, Solana, and Canton, but no per-chain breakdown is available. Score 50: insufficient data — per scoring guide rules, dimensions with insufficient data default to 50 (neutral)."
+  },
+  "overallScore": 77,
+  "overallLevel": "LOW"
+}

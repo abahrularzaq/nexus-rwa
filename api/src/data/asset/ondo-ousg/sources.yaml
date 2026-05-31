@@ -1,0 +1,119 @@
+identity:
+  primary: "https://ondo.finance/ousg"
+  docs: "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency"
+  lastVerified: "2026-05-31"
+  notes: "Official Ondo product and transparency documentation used as primary identity source."
+
+reserve:
+  primary: "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency"
+  audit: "https://docs.ondo.finance/audits"
+  oracle: null
+  lastVerified: "2026-05-31"
+  notes: "Reserve composition validated against Ondo transparency documentation and rwa.xyz protocol data. No on-chain proof-of-reserves oracle identified."
+
+legal:
+  primary: "https://docs.ondo.finance/trust-and-security"
+  offeringMemo: "https://ondo.finance/ousg"
+  legalOpinion: null
+  lastVerified: "2026-05-31"
+  notes: "Legal structure and investor eligibility derived from Ondo trust/security documentation and product onboarding disclosures."
+
+market:
+  primary: "defillama"
+  defiLlamaProtocol: "ondo-finance"
+  defiLlamaPool: "ousg"
+  fallback: "coingecko"
+  coingeckoId: "ousg"
+  lastVerified: "2026-05-31"
+  notes: "Market identifiers cross-checked between DeFiLlama, CoinGecko, and rwa.xyz."
+
+risk:
+  methodology: "ai-assisted"
+  lastAssessed: "2026-05-31"
+  reviewer: null
+  nextReviewDate: null
+  notes: "Risk assessment synthesized from reserve, legal, operational, and transparency disclosures available in official and aggregator sources."
+
+reliabilityScores:
+  identity: 92
+  reserve: 84
+  legal: 81
+  market: 68
+  risk: 74
+
+dataGaps:
+  - layer: "identity"
+    field: "isin"
+    reason: "No ISIN identifier publicly disclosed in provided primary sources."
+
+  - layer: "reserve"
+    field: "collateralizationRatio"
+    reason: "No explicit collateralization ratio published by issuer."
+
+  - layer: "reserve"
+    field: "porOracleAddress"
+    reason: "No on-chain proof-of-reserves oracle identified."
+
+  - layer: "reserve"
+    field: "porOracleChain"
+    reason: "No on-chain proof-of-reserves oracle identified."
+
+  - layer: "reserve"
+    field: "auditor"
+    reason: "No reserve-specific independent auditor identified from provided sources."
+
+  - layer: "reserve"
+    field: "lastAuditDate"
+    reason: "No reserve-specific audit date publicly disclosed."
+
+  - layer: "reserve"
+    field: "lastAuditUrl"
+    reason: "No reserve-specific audit report URL publicly disclosed."
+
+  - layer: "legal"
+    field: "managementFee"
+    reason: "Management fee not disclosed in accessible public sources."
+
+  - layer: "legal"
+    field: "performanceFee"
+    reason: "Performance fee not disclosed in accessible public sources."
+
+  - layer: "legal"
+    field: "legalOpinionUrl"
+    reason: "No public legal opinion document identified."
+
+  - layer: "metadata"
+    field: "cmcId"
+    reason: "CoinMarketCap identifier not verified from provided sources."
+
+  - layer: "metadata"
+    field: "blockchain.deployedAt"
+    reason: "Token deployment date not verified from blockchain explorer."
+
+  - layer: "metadata"
+    field: "yield.currentYield"
+    reason: "Current yield value fluctuates and no official real-time yield source was provided."
+
+  - layer: "metadata"
+    field: "yield.yieldFrequency"
+    reason: "Yield distribution frequency not explicitly disclosed."
+
+  - layer: "metadata"
+    field: "yield.nextYieldDate"
+    reason: "Next yield/payment date not publicly disclosed."
+
+  - layer: "metadata"
+    field: "liquidity.lockupPeriodDays"
+    reason: "No lockup period disclosed in public documentation."
+
+  - layer: "metadata"
+    field: "liquidity.earlyRedemptionFee"
+    reason: "No early redemption fee disclosed in accessible sources."
+
+  - layer: "risk"
+    field: "reviewer"
+    reason: "No named human reviewer assigned."
+
+  - layer: "risk"
+    field: "nextReviewDate"
+    reason: "No scheduled next review date defined."

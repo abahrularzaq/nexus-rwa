@@ -1,0 +1,14 @@
+{
+    "asset_id": "ondo-usdy",
+    "verification": {
+      "identity": "verified",
+      "reserve": "partial_verified",
+      "market": "verified",
+      "legal": "partial_verified"
+    },
+    "risk_score": {
+      "smart_contract": 62,
+      "custody": 71,
+      "regulatory": 48
+    }
+  }

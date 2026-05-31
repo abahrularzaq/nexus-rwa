@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { PrismaClient, KeyTier } from "@prisma/client";
 import {
-  MINIMAL_ASSET_SEEDS,
+  EXPANDED_CATALOG_SEEDS,
   TARGET_ASSET_SLUGS,
   type AssetSeed,
   type SeedEntry,
@@ -15,107 +15,150 @@ const RICH_ASSETS: AssetSeed[] = [
   {
     slug: "ondo-ousg",
     identity: {
-      name: "Ondo OUSG",
+      name: "Ondo Short-Term US Government Treasuries",
       symbol: "OUSG",
-      fullName: "Ondo US Dollar Yield",
+      fullName: "Ondo Short-Term US Government Treasuries",
       category: "Treasury",
-      subcategory: "Short-term Treasury",
-      description: "Tokenized fund providing exposure to short-term US Treasuries",
-      websiteUrl: "https://ondo.finance",
-      twitterUrl: "https://twitter.com/OndoFinance",
-      launchDate: new Date("2023-01-27"),
-      tags: ["institutional", "kyc-required", "audited"],
+      subcategory: "Tokenized US Treasury Fund",
+      description:
+        "Tokenized fund providing on-chain exposure to short-term U.S. Treasury securities and institutional money market instruments",
+      websiteUrl: "https://ondo.finance/ousg",
+      docsUrl: "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+      twitterUrl: "https://x.com/OndoFinance",
+      launchDate: new Date("2023-01-01"),
+      tags: ["institutional", "kyc-required", "audited", "permissioned", "cross-chain"],
     },
     market: {
       tvl: 3_690_000_000,
       tvl7dChange: -1.31,
       holderCount: 1357,
       sources: ["defillama"],
-      confidence: "HIGH",
+      confidence: "MEDIUM",
     },
     risk: {
-      overallScore: 82,
-      overallLevel: "LOW",
-      smartContractRisk: 75,
-      counterpartyRisk: 85,
-      liquidityRisk: 70,
-      regulatoryRisk: 90,
-      marketRisk: 85,
-      concentrationRisk: 65,
-      riskFactors: ["KYC-gated limits retail access", "Concentrated in single strategy"],
-      mitigants: ["SEC-registered fund", "BNY Mellon custodian", "Monthly audits"],
-      assessmentMethod: "hybrid",
-      lastAssessed: new Date("2025-01-15"),
+      overallScore: 69,
+      overallLevel: "MEDIUM",
+      smartContractRisk: 55,
+      counterpartyRisk: 72,
+      liquidityRisk: 80,
+      regulatoryRisk: 75,
+      marketRisk: 70,
+      concentrationRisk: 50,
+      riskFactors: [
+        "Reserve concentration risk: BlackRock BUIDL represents 82.57% of disclosed reserve portfolio",
+        "No on-chain proof-of-reserves oracle",
+        "No independent reserve audit identified",
+        "Regulatory exemption structure under Reg D",
+        "Operational dependency chain across Ankura, fund managers, and Ondo compliance infrastructure",
+      ],
+      mitigants: [
+        "Underlying reserve assets are short-duration U.S. Treasury and government MMF instruments",
+        "Reserve portfolio diversified across five regulated institutional funds",
+        "Ankura Trust Company, LLC serves as independent custodian",
+        "KYC/AML and sanctions screening enforced at onboarding",
+        "Multi-chain deployment and instant redemption infrastructure",
+      ],
+      assessmentMethod: "ai-assisted",
+      lastAssessed: new Date("2026-05-31"),
     },
     reserve: {
-      backingType: "US Treasury Bills",
-      backingDescription: "Portfolio of 0-3 month US Treasury bills and repos",
-      collateralizationRatio: 1.0,
-      custodian: "BNY Mellon",
-      hasProofOfReserves: true,
-      auditor: "Deloitte",
-      lastAuditDate: new Date("2024-12-01"),
-      reserveBreakdown: { "90-day T-bills": 70, "Overnight repo": 30 },
+      backingType: "US Treasury",
+      backingDescription:
+        "Short-term U.S. Treasury securities and related cash-equivalent money market instruments held through regulated institutional funds",
+      collateralizationRatio: null,
+      custodian: "Ankura Trust Company, LLC",
+      custodianUrl: "https://www.ankura.com",
+      hasProofOfReserves: false,
+      auditor: null,
+      lastAuditDate: null,
+      reserveBreakdown: {
+        "BlackRock USD Institutional Digital Liquidity Fund (BUIDL)": 82.57,
+        "WisdomTree Government Money Market Digital Fund (WTGXX)": 8.13,
+        "Franklin OnChain U.S. Government Money Fund (BENJI)": 4.88,
+        "Fundbridge Capital Institutional Funds ICAV (FBOXX)": 2.39,
+        "Superstate Short Duration U.S. Government Securities Fund (USTB)": 2.03,
+      },
       redemptionAsset: "USD",
     },
     yield: {
       currentYield: 5.2,
       yieldType: "variable",
-      yieldFrequency: "daily",
-      yieldBenchmark: "Fed Funds Rate",
+      yieldFrequency: null,
+      yieldBenchmark: "Short-term U.S. Treasury yield",
       yieldCurrency: "USD",
     },
     institutional: {
-      issuerName: "Ondo Finance",
+      issuerName: "Ondo I LP",
       issuerType: "protocol_native",
       issuerCountry: "US",
-      legalStructure: "Delaware LLC",
-      minimumInvestment: 5000,
-      managementFee: 0.15,
+      fundManager: "Ondo Capital Management LLC",
+      legalStructure: "Delaware Limited Partnership",
+      minimumInvestment: 100_000,
+      managementFee: null,
+      performanceFee: null,
       targetInvestors: "accredited",
+      prospectuUrl: "https://ondo.finance/ousg",
+      metadata: {
+        defiLlamaProtocol: "ondo-finance",
+        defiLlamaPool: "ousg",
+        coingeckoId: "ousg",
+        rwaDotXyzId: "ondo-finance",
+      },
     },
     blockchain: [
       {
         chain: "ethereum",
         chainId: 1,
-        contractAddress: "0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
+        contractAddress: "0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
         tokenStandard: "ERC-20",
+        isTransferable: true,
         hasWhitelist: true,
         hasTransferRestrictions: true,
         isVerified: true,
-        explorerUrl: "https://etherscan.io/token/0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
+        explorerUrl: "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
       },
     ],
     compliance: {
-      regulatoryStatus: "registered",
+      regulatoryStatus: "exempt",
       primaryRegulator: "SEC",
-      regulatoryFramework: "Reg D / Reg S",
+      regulatoryFramework: "Reg D",
       kycRequired: true,
       accreditedOnly: true,
-      blockedJurisdictions: ["US-retail", "CN", "KP"],
+      blockedJurisdictions: ["CN", "KP", "IR", "SY", "CU", "RU"],
+      allowedJurisdictions: [],
       sanctionsScreening: true,
-      amlPolicy: "Full OFAC screening",
+      amlPolicy: "Ondo Finance performs KYC/AML screening and sanctions checks for all investors.",
     },
     liquidity: {
       redemptionType: "T+1",
       redemptionPeriodDays: 1,
-      lockupPeriodDays: 0,
-      minRedemptionAmount: 5000,
-      liquidityScore: 75,
-      liquidityNotes: "Instant redemption via Flux Finance secondary market",
+      lockupPeriodDays: null,
+      minRedemptionAmount: 100_000,
+      liquidityScore: 78,
+      dexPairs: [],
+      liquidityNotes:
+        "OUSG redemptions are processed through issuer-controlled institutional onboarding and treasury settlement infrastructure.",
     },
     aiNarrative: {
       summary:
-        "OUSG is a leading tokenized short-term US Treasury product with strong regulatory backing and institutional custody.",
-      opportunities: ["Fed rate tailwinds", "Growing RWA institutional adoption", "Flux Finance secondary liquidity"],
-      risks: ["Retail access restricted", "Single-strategy concentration"],
+        "OUSG is a tokenized short-term U.S. Treasury product from Ondo Finance, positioned for accredited and institutional investors with multi-chain deployment and T+1 redemption.",
+      opportunities: [
+        "Short-duration sovereign-backed yield exposure",
+        "Multi-chain institutional access",
+        "Instant redemption infrastructure via stablecoin rails",
+      ],
+      risks: [
+        "BUIDL reserve concentration above 80%",
+        "No on-chain proof-of-reserves",
+        "Reg D access restrictions",
+      ],
       outlook: "neutral",
-      outlookReason: "Stable yield product with limited upside beyond rate environment",
-      confidence: "high",
-      keyMetrics: { tvl: 3_690_000_000, yield: 5.2, riskScore: 82 },
-      compareTo: ["franklin-benji"],
-      generatedAt: new Date("2025-05-01"),
-      modelVersion: "seed-static-v1",
+      outlookReason: "Conservative Treasury backing offset by disclosure and concentration risks",
+      confidence: "medium",
+      keyMetrics: { riskScore: 69, liquidityScore: 78 },
+      compareTo: ["franklin-benji", "superstate-ustb"],
+      generatedAt: new Date("2026-05-31"),
+      modelVersion: "file-import-v1",
     },
     events: [
       {
@@ -448,8 +491,9 @@ const RICH_ASSETS: AssetSeed[] = [
 ];
 
 const RICH_SLUGS = new Set(RICH_ASSETS.map((a) => a.slug));
-const MINIMAL_FOR_SEED = MINIMAL_ASSET_SEEDS.filter((a) => !RICH_SLUGS.has(a.slug));
-const ASSETS: SeedEntry[] = [...MINIMAL_FOR_SEED, ...RICH_ASSETS];
+/** Former minimal catalog assets — now full 12-layer via expandMinimalSeedToFull. */
+const EXPANDED_FOR_SEED = EXPANDED_CATALOG_SEEDS.filter((a) => !RICH_SLUGS.has(a.slug));
+const ASSETS: SeedEntry[] = [...EXPANDED_FOR_SEED, ...RICH_ASSETS];
 
 const API_KEYS = [
   { name: "Test Free Key", tier: KeyTier.FREE, plainKey: "nexus_test_free_001" },
@@ -555,26 +599,62 @@ async function verifySeed() {
     where: { isActive: true },
     select: {
       slug: true,
-      identity: { select: { name: true } },
-      compliance: { select: { id: true } },
+      identity: { select: { id: true } },
       market: { select: { id: true } },
       risk: { select: { id: true } },
+      reserve: { select: { id: true } },
+      yield: { select: { id: true } },
+      institutional: { select: { id: true } },
+      blockchain: { select: { id: true }, take: 1 },
+      compliance: { select: { id: true } },
       liquidity: { select: { id: true } },
+      aiNarrative: { select: { id: true } },
+      _count: { select: { events: true, history: true } },
     },
     orderBy: { slug: "asc" },
   });
 
-  const missing = withLayers.filter((a) => !a.identity || !a.compliance);
+  const missingCore = withLayers.filter(
+    (a) =>
+      !a.identity ||
+      !a.market ||
+      !a.risk ||
+      !a.reserve ||
+      !a.yield ||
+      !a.institutional ||
+      a.blockchain.length === 0 ||
+      !a.compliance ||
+      !a.liquidity ||
+      !a.aiNarrative,
+  );
+  const missingHistory = withLayers.filter((a) => a._count.history < 1);
+  const missingEvents = withLayers.filter((a) => a._count.events < 1);
+
   console.log(`\n[seed] Verification`);
   console.log(`  Active assets: ${count}`);
-  console.log(`  With identity + compliance: ${withLayers.length - missing.length}/${withLayers.length}`);
+  console.log(
+    `  Full 12-layer core: ${withLayers.length - missingCore.length}/${withLayers.length}`,
+  );
+  console.log(
+    `  With history + events: ${withLayers.filter((a) => a._count.history >= 1 && a._count.events >= 1).length}/${withLayers.length}`,
+  );
 
   if (count !== 13) {
     throw new Error(`Expected 13 active assets, got ${count}`);
   }
-  if (missing.length > 0) {
+  if (missingCore.length > 0) {
     throw new Error(
-      `Assets missing identity or compliance: ${missing.map((a) => a.slug).join(", ")}`,
+      `Assets missing core layers: ${missingCore.map((a) => a.slug).join(", ")}`,
+    );
+  }
+  if (missingHistory.length > 0) {
+    throw new Error(
+      `Assets missing history: ${missingHistory.map((a) => a.slug).join(", ")}`,
+    );
+  }
+  if (missingEvents.length > 0) {
+    throw new Error(
+      `Assets missing events: ${missingEvents.map((a) => a.slug).join(", ")}`,
     );
   }
 

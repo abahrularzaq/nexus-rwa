@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "assessmentDate": "2026-05-31",
+  "assessmentMethod": "ai-assisted",
+  "subScores": {
+    "_weights": {
+      "smartContract": 0.2,
+      "counterparty": 0.2,
+      "liquidity": 0.2,
+      "regulatory": 0.15,
+      "market": 0.15,
+      "concentration": 0.1
+    },
+    "smartContract": 45,
+    "counterparty": 75,
+    "liquidity": 75,
+    "regulatory": 80,
+    "market": 78,
+    "concentration": 45
+  },
+  "scoringNotes": {
+    "smartContract": "Score 45 because Etherscan shows the Ethereum USTB contract as a proxy with source code available as a verified similar match, but also states that no contract security audit was submitted. The input confirms token-level permissioning and multi-network deployment, but no formal audit, bug bounty, formal verification, or exploit-history evidence was found.",
+    "counterparty": "Score 75 because the input identifies institutional service providers including The Bank of New York Mellon as custodian, Ernst & Young LLP as auditor, NAV Fund Services as NAV calculation agent, and Federated Hermes as sub-advisor. The score is capped because reserve.md documents a custodian conflict between The Bank of New York Mellon and UMB Bank, N.A.",
+    "liquidity": "Score 75 because identity.md and reserve.md state subscriptions and redemptions can be made through USD or USDC with liquidity each market day. This supports a daily/T+1-style liquidity profile, but no verified instant redemption plus liquid secondary market data was found.",
+    "regulatory": "Score 80 because legal.md states USTB is exempt under a clear SEC Regulation D framework, specifically Rule 506(c), with Investment Company Act Section 3(c)(1) and 3(c)(7) exclusions. It is not scored as registered because regulatoryStatus is exempt, not registered.",
+    "market": "Score 78 because RWA.xyz reports Total Asset Value of $770.6M, 7D APY of 3.65%, 30D APY of 3.49%, monthly transfer volume of $257.1M, and monthly transfer count of 726, while DeFiLlama reports Active Marketcap of $604.06M and DeFi Active TVL of $125.19M. This supports the 70–89 band for TVL above $100M and normal yield, but not the 90–100 band because stable TVL above $500M and broad holder growth are not fully established.",
+    "concentration": "Score 45 because RWA.xyz reports only 99 total USTB holders across Ethereum, Plume, and Solana, with 89 Ethereum holders, 3 Plume holders, and 7 Solana holders. This falls into the guide's <100 holders range. Top-10 wallet concentration was not available, so the score is kept within the 30–49 band rather than lower."
+  },
+  "overallScore": 67.2,
+  "overallLevel": "MEDIUM"
+}
