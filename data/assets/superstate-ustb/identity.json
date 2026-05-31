@@ -1,1 +1,15 @@
-null
+{
+  "name": "Superstate Short Duration U.S. Government Securities Fund",
+  "symbol": "USTB",
+  "fullName": "Superstate Short Duration U.S. Government Securities Fund",
+  "description": "USTB is a tokenized U.S. government securities fund issued by Superstate, designed to provide blockchain-native exposure to short-duration U.S. Treasury and government securities.",
+  "category": "Treasury",
+  "subcategory": "Tokenized U.S. Treasury Fund",
+  "logoUrl": null,
+  "websiteUrl": "https://superstate.com",
+  "docsUrl": "https://docs.superstate.com",
+  "twitterUrl": null,
+  "tags": ["institutional", "kyc-required", "sec-registered", "permissioned"],
+  "launchDate": null,
+  "isin": null
+}
