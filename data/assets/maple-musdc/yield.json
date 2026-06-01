@@ -1,9 +1,9 @@
 {
   "currentYield": null,
-  "yieldType": null,
-  "yieldFrequency": null,
-  "yieldBenchmark": null,
-  "yieldVsBenchmark": null,
+  "yieldType": "Variable APY",
+  "yieldFrequency": "Compounding / accrual; monthly interest statements available",
+  "yieldBenchmark": "Secured Overnight Financing Rate (SOFR)",
+  "yieldVsBenchmark": "SOFR less Maple Protocol Fees and Borrower Fees totaling 50 bps annualized for USDC lenders",
   "yieldAvg7d": null,
   "yieldAvg30d": null,
   "yieldAvg90d": null,
@@ -11,5 +11,5 @@
   "yieldMax52w": null,
   "yieldStdDev30d": null,
   "nextYieldDate": null,
-  "yieldCurrency": null
+  "yieldCurrency": "USDC"
 }

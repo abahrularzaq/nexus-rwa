@@ -1,13 +1,13 @@
 {
-  "regulatoryStatus": null,
+  "regulatoryStatus": "Exempt / private placement; not confirmed as SEC-registered",
   "primaryRegulator": null,
-  "regulatoryFramework": null,
-  "kycRequired": null,
-  "accreditedOnly": null,
+  "regulatoryFramework": "Regulation S; Section 3(c)(1) of the Investment Company Act; Reg D exemption for U.S.-domiciled accredited investors and entities per Maple announcement",
+  "kycRequired": true,
+  "accreditedOnly": true,
   "blockedJurisdictions": [],
   "allowedJurisdictions": [],
-  "sanctionsScreening": null,
-  "amlPolicy": null,
+  "sanctionsScreening": true,
+  "amlPolicy": "Eligible lenders must satisfy KYC and AML screening obligations. Terms require lenders and related parties not to be Restricted Parties, not to be subject to OFAC or similar sanctions, and to confirm funds are from legal sources and not subject to seizure, forfeiture, or confiscation under anti-terrorism laws.",
   "lastComplianceCheck": null,
   "legalOpinionUrl": null
 }

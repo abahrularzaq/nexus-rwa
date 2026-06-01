@@ -1,9 +1,9 @@
 {
-  "backingType": null,
-  "backingDescription": null,
+  "backingType": "US Treasury",
+  "backingDescription": "Maple Cash Management Pool uses USDC loan proceeds to invest through Room40 Capital’s standalone SPV in U.S. Treasury bills and reverse repurchase agreements fully collateralized by U.S. Treasury bills.",
   "collateralizationRatio": null,
-  "custodian": null,
-  "custodianUrl": null,
+  "custodian": "StoneX",
+  "custodianUrl": "https://www.stonex.com/en-us/business/securities/",
   "hasProofOfReserves": null,
   "porOracleAddress": null,
   "porOracleChain": null,
@@ -11,5 +11,5 @@
   "lastAuditUrl": null,
   "auditor": null,
   "reserveBreakdown": null,
-  "redemptionAsset": null
+  "redemptionAsset": "USDC"
 }

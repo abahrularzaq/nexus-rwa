@@ -3,13 +3,28 @@
   "issuerType": null,
   "issuerCountry": null,
   "fundManager": null,
-  "legalStructure": null,
-  "minimumInvestment": null,
+  "legalStructure": "Maple Cash Management Pool lending arrangement where eligible lenders deposit USDC/USDT and receive LP Tokens; the pool lends to R40-T1 LLC, a standalone single-purpose Delaware SPV of Room40 Capital, with LP Tokens offered under Regulation S and Section 3(c)(1) exemptions.",
+  "minimumInvestment": "$100,000 USDC or USDT",
   "managementFee": null,
   "performanceFee": null,
-  "fundAdmin": null,
+  "fundAdmin": "Protocol Pool Operations Pty Ltd",
   "transferAgent": null,
-  "targetInvestors": null,
-  "prospectuUrl": null,
-  "metadata": {}
+  "targetInvestors": "Accredited non-U.S. persons that can satisfy KYC and AML screening obligations",
+  "prospectuUrl": "https://downloads.eth.maple.finance/docs/legal/abe08ded-5d07-42cf-b435-a0d8d8156ca5/Cash_Mngt_T%26C.pdf",
+  "metadata": {
+    "borrower": "R40-T1 LLC",
+    "borrowerType": "Standalone single-purpose vehicle of Room40 Capital",
+    "borrowerDomicile": "Delaware, United States",
+    "poolDelegate": "Protocol Pool Operations Pty Ltd",
+    "mapleContractingEntity": "Maple Labs Pty Ltd",
+    "securityAgent": "Maple Foundation",
+    "securityAgentDomicile": "Cayman Islands",
+    "securitiesExemptionsReferenced": [
+      "Regulation S under the U.S. Securities Act of 1933",
+      "Section 3(c)(1) of the U.S. Investment Company Act of 1940"
+    ],
+    "transferConsentRequired": true,
+    "usPersonsExcluded": true,
+    "feeDisclosure": "Target net APY is current 4-week U.S. Treasury bill rate less fees and expenses totaling 50 bps for the USDC Cash Management Pool and 100 bps for the USDT Cash Management Pool; not labeled as a management fee."
+  }
 }
