@@ -4,6 +4,7 @@ import type {
   AssetBlockchain,
   AssetCompliance,
   AssetEvent,
+  AssetGrade,
   AssetHistory,
   AssetIdentity,
   AssetInstitutional,
@@ -11,6 +12,7 @@ import type {
   AssetMarket,
   AssetReserve,
   AssetRisk,
+  AssetSource,
   AssetYield,
   Prisma,
 } from '@prisma/client';
@@ -28,6 +30,8 @@ export const LAYER_NAMES = [
   'aiNarrative',
   'events',
   'history',
+  'sources',
+  'grade',
 ] as const;
 
 export type LayerName = (typeof LAYER_NAMES)[number];
@@ -53,6 +57,8 @@ const fullInclude = {
   aiNarrative: true,
   events: { orderBy: { occurredAt: 'desc' as const } },
   history: { orderBy: { timestamp: 'desc' as const } },
+  sources: { orderBy: [{ layer: 'asc' as const }, { field: 'asc' as const }] },
+  grade: true,
 } satisfies Prisma.AssetInclude;
 
 /** Asset + optional layer relations (shape depends on query include). */
@@ -69,12 +75,14 @@ export type AssetWithLayers = Asset & {
   aiNarrative?: AssetAiNarrative | null;
   events?: AssetEvent[];
   history?: AssetHistory[];
+  sources?: AssetSource[];
+  grade?: AssetGrade | null;
 };
 
 /** Identity + Market + Risk for list views. */
 export type AssetSummary = Prisma.AssetGetPayload<{ include: typeof summaryInclude }>;
 
-/** All 12 layers for detail views. */
+/** All 12 layers plus institutional grading metadata for detail views. */
 export type AssetFull = Prisma.AssetGetPayload<{ include: typeof fullInclude }>;
 
 export type HistoryPeriod = '7d' | '30d' | '90d' | '1y';
@@ -102,6 +110,7 @@ export type AppendHistoryData = {
   price?: number;
   holderCount?: number;
   riskScore?: number;
+  volume24h?: number;
   source: string;
 };
 export type AddEventData = Omit<AssetEvent, 'id' | 'assetId' | 'asset'>;
