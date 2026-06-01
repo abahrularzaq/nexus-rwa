@@ -1,0 +1,28 @@
+{
+  "slug": "superstate-ustb",
+  "grade": "analytics",
+  "score": 76,
+  "completenessScore": 100,
+  "sourceScore": 57,
+  "legalScore": 85,
+  "reserveScore": 65,
+  "liquidityScore": 74,
+  "riskScore": 67,
+  "blockers": [],
+  "warnings": [
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity"
+  ],
+  "baselineDate": "2026-06-01",
+  "status": "analytics-grade baseline",
+  "nextActions": [
+    "Find verified legal opinion or offering/legal document URL",
+    "Verify reserve breakdown from official holdings or reports",
+    "Verify whether proof-of-reserves exists",
+    "Find public audit or assurance report URL",
+    "Verify on-chain liquidity from DEX or protocol integrations"
+  ]
+}
