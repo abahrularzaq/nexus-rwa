@@ -1,14 +1,30 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "overallScore": 88,
+  "overallLevel": "LOW",
+  "smartContractRisk": 82,
+  "counterpartyRisk": 92,
+  "liquidityRisk": 74,
+  "regulatoryRisk": 95,
+  "marketRisk": 86,
+  "concentrationRisk": 78,
+  "riskFactors": [
+    "BENJI has limited verified secondary-market or DEX liquidity; DeFiLlama reports no DeFi active TVL/liquidity, so liquidity depends primarily on issuer redemption rather than open secondary markets.",
+    "The asset is permissioned and transfer-restricted, which is appropriate for compliance but limits free market transferability and secondary-market depth.",
+    "Multi-chain deployment across Stellar, Polygon, Arbitrum, Avalanche, Aptos, Ethereum, Base, and Solana increases operational monitoring and cross-chain infrastructure complexity.",
+    "Several non-EVM or secondary-chain deployments have isVerified false because source-code verification or equivalent explorer verification was not clearly represented in the normalized dataset.",
+    "No public legalOpinionUrl is included in the normalized compliance layer, although SEC registration and prospectus filings substantially reduce legal uncertainty.",
+    "On-chain proof-of-reserves oracle fields are null; reserve confidence comes from SEC filings, audited fund statements, and traditional fund reporting rather than cryptographic PoR."
+  ],
+  "mitigants": [
+    "BENJI represents shares of a U.S.-registered government money market fund organized as a series of Franklin Templeton Trust and regulated under the SEC framework.",
+    "The fund invests at least 99.5% of total assets in U.S. government securities, cash, and repurchase agreements collateralized fully by U.S. government securities or cash.",
+    "The fund has audited financial/statement materials, with PricewaterhouseCoopers LLP identified as auditor and JPMorgan Chase Bank identified as custodian/sub-administrator in normalized data.",
+    "Franklin Templeton Investor Services, LLC acts as transfer agent and maintains the official record of share ownership through a blockchain-integrated system.",
+    "The fund has large scale and market presence, with approximately 824.62M USD AUM and 1,107 holders in the normalized dataset.",
+    "Regulatory structure is significantly stronger than offshore or exempt tokenized note products because the fund is registered and operates as a government money market fund under Rule 2a-7.",
+    "Issuer redemption via the Benji App or Institutional Web Portal provides a direct liquidity path even without verified DEX depth.",
+    "Compliance controls, KYC requirements, and permissioned transfer restrictions reduce regulatory and illicit-finance exposure."
+  ],
+  "lastAssessed": "2026-06-01",
+  "assessmentMethod": "ai-assisted"
 }
