@@ -4,7 +4,7 @@
   "issuerCountry": "British Virgin Islands",
   "fundManager": null,
   "legalStructure": "Tokenized secured note issued by Ondo Global Markets (BVI) Limited; USDY provides economic exposure to short-term U.S. Treasuries but does not give holders rights to hold or receive U.S. Treasuries",
-  "minimumInvestment": "1.00 USD for Ondo Global Markets investing/redeeming; 5,000 minimum for minting/redeeming USDY on Sui, Aptos, Stellar, XRP, or Noble; USD bank wires possible for deposits of 100,000 USD or more",
+  "minimumInvestment": 1,
   "managementFee": null,
   "performanceFee": null,
   "fundAdmin": null,
@@ -16,6 +16,11 @@
     "issuerTransitionDate": "2025-12-15",
     "serviceProvider": "Ondo Finance Inc.",
     "serviceProviderRole": "Provides tokenization services to, and is an equity holder of, Ondo Global Markets (BVI) Limited",
+    "minimumInvestmentNotes": [
+      "1.00 USD for Ondo Global Markets investing/redeeming",
+      "5,000 minimum for minting/redeeming USDY on Sui, Aptos, Stellar, XRP, or Noble",
+      "USD bank wires possible for deposits of 100,000 USD or more"
+    ],
     "regulatoryNotes": [
       "USDY tokens have not been registered under the U.S. Securities Act of 1933 or securities laws of any other jurisdiction.",
       "USDY may not be offered or sold in the U.S. or to U.S. persons unless registered or exempt.",
