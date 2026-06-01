@@ -1,17 +1,23 @@
 {
-  "tvl": null,
+  "tvl": 23110000,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": null,
-  "priceChange24h": null,
-  "marketCap": null,
-  "volume24h": null,
-  "circulatingSupply": null,
+  "price": 1.13,
+  "priceChange24h": 0.4,
+  "marketCap": 2141637177,
+  "volume24h": 314707.71,
+  "circulatingSupply": 1900000000,
   "totalSupply": null,
-  "holderCount": null,
+  "holderCount": 14554,
   "holderChange7d": null,
-  "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null
+  "aumUsd": 2143475340,
+  "lastUpdated": "2026-06-01",
+  "sources": [
+    "https://app.rwa.xyz/assets/USDY",
+    "https://defillama.com/rwa/asset/usdy",
+    "https://www.coingecko.com/en/coins/ondo-us-dollar-yield",
+    "https://docs.ondo.finance/general-access-products/usdy/basics",
+    "https://docs.ondo.finance/ondo-global-markets/investing-and-redeeming"
+  ],
+  "confidence": "MEDIUM"
 }

@@ -1,12 +1,53 @@
 {
-  "redemptionType": null,
-  "redemptionPeriodDays": null,
+  "redemptionType": "Instant redemption to USDon; USDC redemption is instant if stablecoin swapper liquidity is available; USD bank-wire redemptions are not currently supported through Ondo Global Markets",
+  "redemptionPeriodDays": 0,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
-  "minRedemptionAmount": null,
-  "dexPairs": [],
-  "onchainLiquidity": null,
+  "minRedemptionAmount": 1,
+  "dexPairs": [
+    {
+      "venue": "Bybit",
+      "type": "CEX",
+      "pair": "USDY/USDT",
+      "price": 1.13,
+      "spread": "0.03%",
+      "volume24h": 1561
+    },
+    {
+      "venue": "Saphyre V2",
+      "type": "DEX",
+      "pair": "USDY/USDC",
+      "price": 1.13,
+      "spread": "0.6%",
+      "volume24h": 230918
+    },
+    {
+      "venue": "Cetus",
+      "type": "DEX",
+      "pair": "USDC/USDY",
+      "price": 0.9998273798905501,
+      "spread": "0.6%",
+      "volume24h": 35280
+    },
+    {
+      "venue": "Orca",
+      "type": "DEX",
+      "pair": "USDY/USDC",
+      "price": 1.14,
+      "spread": "0.6%",
+      "volume24h": 19702
+    },
+    {
+      "venue": "Uniswap V3 Ethereum",
+      "type": "DEX",
+      "pair": "USDY/USDT",
+      "price": 1.13,
+      "spread": "0.61%",
+      "volume24h": 24602
+    }
+  ],
+  "onchainLiquidity": 23110000,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": null
+  "liquidityScore": 85,
+  "liquidityNotes": "Liquidity score is based on official instant redemption language and $1 minimum redemption through Ondo Global Markets, but USDC redemption is conditional on stablecoin swapper liquidity. On-chain secondary liquidity is much smaller than total asset value, so institutional liquidity depends primarily on issuer redemption rather than DEX depth."
 }

@@ -1,1 +1,122 @@
-[]
+[
+    {
+      "chain": "Ethereum",
+      "chainId": 1,
+      "contractAddress": "0x96F6eF951840721AdBF46Ac996b59E0235CB985C",
+      "tokenStandard": "ERC-20",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://etherscan.io/token/0x96F6eF951840721AdBF46Ac996b59E0235CB985C",
+      "deployedAt": "2023-07-11T18:46:23Z",
+      "isVerified": true
+    },
+    {
+      "chain": "Mantle",
+      "chainId": 5000,
+      "contractAddress": "0x5bE26527e817998A7206475496fDE1E68957c5A6",
+      "tokenStandard": "ERC-20",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://explorer.mantle.xyz/token/0x5bE26527e817998A7206475496fDE1E68957c5A6",
+      "deployedAt": null,
+      "isVerified": true
+    },
+    {
+      "chain": "Solana",
+      "chainId": null,
+      "contractAddress": "A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6",
+      "tokenStandard": "SPL Token",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://solscan.io/token/A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6",
+      "deployedAt": null,
+      "isVerified": null
+    },
+    {
+      "chain": "Sui",
+      "chainId": null,
+      "contractAddress": "0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY",
+      "tokenStandard": "Sui Move coin",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://suiscan.xyz/mainnet/coin/0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY",
+      "deployedAt": null,
+      "isVerified": true
+    },
+    {
+      "chain": "Aptos",
+      "chainId": null,
+      "contractAddress": "0xcfea864b32833f157f042618bd845145256b1bf4c0da34a7013b76e42daa53cc::usdy::USDY",
+      "tokenStandard": "Aptos Move coin",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://explorer.aptoslabs.com/coin/0xcfea864b32833f157f042618bd845145256b1bf4c0da34a7013b76e42daa53cc::usdy::USDY",
+      "deployedAt": null,
+      "isVerified": true
+    },
+    {
+      "chain": "Noble",
+      "chainId": null,
+      "contractAddress": "ausdy",
+      "tokenStandard": "Cosmos SDK native denom",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://www.mintscan.io/noble/assets/ausdy",
+      "deployedAt": null,
+      "isVerified": null
+    },
+    {
+      "chain": "Arbitrum",
+      "chainId": 42161,
+      "contractAddress": "0x35e050d3C0eC2d29D269a8EcEa763a183bDF9A9D",
+      "tokenStandard": "ERC-20",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://arbiscan.io/address/0x35e050d3C0eC2d29D269a8EcEa763a183bDF9A9D",
+      "deployedAt": "2024-08-07T19:02:37Z",
+      "isVerified": true
+    },
+    {
+      "chain": "Stellar",
+      "chainId": null,
+      "contractAddress": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+      "tokenStandard": "Stellar issued asset",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://stellar.expert/explorer/public/asset/USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+      "deployedAt": null,
+      "isVerified": null
+    },
+    {
+      "chain": "Plume",
+      "chainId": null,
+      "contractAddress": "0xD2B65e851Be3d80D3c2ce795eB2E78f16cB088b2",
+      "tokenStandard": "ERC-20",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://explorer.plume.org/token/0xD2B65e851Be3d80D3c2ce795eB2E78f16cB088b2",
+      "deployedAt": null,
+      "isVerified": true
+    },
+    {
+      "chain": "Sei",
+      "chainId": null,
+      "contractAddress": "0x54cD901491AeF397084453F4372B93c33260e2A6",
+      "tokenStandard": "ERC-20",
+      "isTransferable": true,
+      "hasWhitelist": null,
+      "hasTransferRestrictions": true,
+      "explorerUrl": "https://seiscan.io/address/0x54cD901491AeF397084453F4372B93c33260e2A6",
+      "deployedAt": null,
+      "isVerified": true
+    }
+  ]

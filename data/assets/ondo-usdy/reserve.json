@@ -1,15 +1,15 @@
 {
-  "backingType": null,
-  "backingDescription": null,
+  "backingType": "Mixed",
+  "backingDescription": "USDY is a tokenized note. Depending on issuance date, USDY may be secured by short-term U.S. Treasuries, shares of iShares Short Treasury Bond ETF, or bank demand deposits. After being folded into Ondo Global Markets, daily collateral reports are reviewed by Ankura Trust Company.",
   "collateralizationRatio": null,
-  "custodian": null,
-  "custodianUrl": null,
-  "hasProofOfReserves": null,
+  "custodian": "One or more U.S.-registered custodial broker-dealers",
+  "custodianUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+  "hasProofOfReserves": true,
   "porOracleAddress": null,
   "porOracleChain": null,
   "lastAuditDate": null,
   "lastAuditUrl": null,
   "auditor": null,
   "reserveBreakdown": null,
-  "redemptionAsset": null
+  "redemptionAsset": "USDC or USD"
 }
