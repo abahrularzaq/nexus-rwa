@@ -3,6 +3,7 @@ import type {
   AssetBlockchain,
   AssetCompliance,
   AssetEvent,
+  AssetGrade,
   AssetHistory,
   AssetIdentity,
   AssetInstitutional,
@@ -10,6 +11,7 @@ import type {
   AssetMarket,
   AssetReserve,
   AssetRisk,
+  AssetSource,
   AssetYield,
 } from '@prisma/client';
 import { db } from '../lib/database.js';
@@ -42,6 +44,7 @@ const DETAIL_LAYERS_FREE: LayerName[] = [
   'blockchain',
   'liquidity',
   'compliance',
+  'grade',
 ];
 const DETAIL_LAYERS_PRO: LayerName[] = [
   'identity',
@@ -53,6 +56,8 @@ const DETAIL_LAYERS_PRO: LayerName[] = [
   'blockchain',
   'liquidity',
   'compliance',
+  'grade',
+  'sources',
 ];
 
 export type AssetAccessTier = AccessTier;
@@ -96,6 +101,7 @@ export type AssetDetailFree = {
   blockchain: AssetBlockchain[];
   liquidity: AssetLiquidity | null;
   compliance: AssetCompliance | null;
+  grade: AssetGrade | null;
 };
 
 export type AssetDetailPro = AssetDetailFree & {
@@ -106,6 +112,7 @@ export type AssetDetailPro = AssetDetailFree & {
   blockchain: AssetBlockchain[];
   liquidity: AssetLiquidity | null;
   compliance: AssetCompliance | null;
+  sources: AssetSource[];
 };
 
 export type AssetDetailEnterprise = AssetWithLayers;
@@ -253,6 +260,7 @@ function mapDetailFree(row: AssetWithLayers): AssetDetailFree {
     blockchain: row.blockchain ?? [],
     liquidity: row.liquidity ?? null,
     compliance: row.compliance ?? null,
+    grade: row.grade ?? null,
   };
 }
 
@@ -267,6 +275,7 @@ function mapDetailPro(row: AssetWithLayers): AssetDetailPro {
     blockchain: row.blockchain ?? [],
     liquidity: row.liquidity ?? null,
     compliance: row.compliance ?? null,
+    sources: row.sources ?? [],
   };
 }
 
