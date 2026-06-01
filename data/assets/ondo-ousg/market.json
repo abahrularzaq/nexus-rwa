@@ -1,17 +1,17 @@
 {
   "tvl": null,
-  "tvl7dChange": null,
-  "tvl30dChange": null,
-  "price": null,
-  "priceChange24h": null,
-  "marketCap": null,
-  "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
+  "tvl7dChange": 0.1,
+  "tvl30dChange": 0.3,
+  "price": 115.42,
+  "priceChange24h": 0,
+  "marketCap": 539474689,
+  "volume24h": 0,
+  "circulatingSupply": 4673956,
+  "totalSupply": 4673956,
   "holderCount": null,
   "holderChange7d": null,
   "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null
+  "lastUpdated": "2026-06-01",
+  "sources": ["coingecko"],
+  "confidence": "MEDIUM"
 }
