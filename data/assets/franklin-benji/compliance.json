@@ -11,7 +11,7 @@
   "allowedJurisdictions": [
     "United States"
   ],
-  "sanctionsScreening": null,
+  "sanctionsScreening": true,
   "amlPolicy": "Before account opening, the Fund collects investor information in accordance with anti-money-laundering and know-your-customer policies and procedures. Investors are also subject to tax certification, backup withholding, and FATCA documentation/reporting requirements where applicable.",
   "lastComplianceCheck": "2026-06-01",
   "legalOpinionUrl": null
