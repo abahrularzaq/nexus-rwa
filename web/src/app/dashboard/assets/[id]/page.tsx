@@ -23,6 +23,7 @@ import { GatedRiskAnalysisSection } from "@/components/dashboard/GatedRiskAnalys
 import { AIInsightCard } from "@/components/dashboard/AIInsightCard";
 import { DataTransparencySection } from "@/components/dashboard/DataTransparencySection";
 import { RelatedAssetsSection } from "@/components/dashboard/RelatedAssetsSection";
+import { AssetGradeCard } from "@/components/dashboard/AssetGradeCard";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 import {
   fetchAsset,
@@ -156,6 +157,7 @@ export default function AssetDetailPage() {
                   reserve: full.reserve ?? prev.reserve,
                   institutional: full.institutional ?? prev.institutional,
                   aiNarrative: full.aiNarrative ?? prev.aiNarrative,
+                  grade: full.grade ?? prev.grade,
                 }
               : full,
           );
@@ -300,6 +302,11 @@ export default function AssetDetailPage() {
                     KYC Required
                   </span>
                 ) : null}
+                {asset.grade ? (
+                  <span className="rounded-md border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#00D4FF]">
+                    {asset.grade.grade} · {asset.grade.score}/100
+                  </span>
+                ) : null}
               </div>
               <p className="mt-1 text-lg text-[#8892A4]">
                 {asset.identity?.symbol ?? "—"}
@@ -405,6 +412,8 @@ export default function AssetDetailPage() {
           />
         </div>
       </section>
+
+      <AssetGradeCard grade={asset.grade} />
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
