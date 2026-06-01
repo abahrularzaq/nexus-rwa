@@ -1,8 +1,8 @@
 {
   "currentYield": null,
-  "yieldType": null,
+  "yieldType": "variable",
   "yieldFrequency": null,
-  "yieldBenchmark": null,
+  "yieldBenchmark": "Short-term U.S. Treasury yield",
   "yieldVsBenchmark": null,
   "yieldAvg7d": null,
   "yieldAvg30d": null,
@@ -11,5 +11,5 @@
   "yieldMax52w": null,
   "yieldStdDev30d": null,
   "nextYieldDate": null,
-  "yieldCurrency": null
+  "yieldCurrency": "USD"
 }
