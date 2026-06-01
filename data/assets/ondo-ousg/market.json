@@ -1,5 +1,5 @@
 {
-  "tvl": null,
+  "tvl": 539474689,
   "tvl7dChange": 0.1,
   "tvl30dChange": 0.3,
   "price": 115.42,
@@ -8,10 +8,10 @@
   "volume24h": 0,
   "circulatingSupply": 4673956,
   "totalSupply": 4673956,
-  "holderCount": null,
+  "holderCount": 50,
   "holderChange7d": null,
-  "aumUsd": null,
+  "aumUsd": 539474689,
   "lastUpdated": "2026-06-01",
-  "sources": ["coingecko"],
+  "sources": ["coingecko", "etherscan"],
   "confidence": "MEDIUM"
 }
