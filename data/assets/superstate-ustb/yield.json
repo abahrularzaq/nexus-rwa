@@ -1,1 +1,15 @@
-{}
+{
+  "currentYield": 3.65,
+  "yieldType": "Treasury bill income",
+  "yieldFrequency": "continuous accrual",
+  "yieldBenchmark": "federal funds rate",
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "USD"
+}
