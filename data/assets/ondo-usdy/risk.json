@@ -1,14 +1,32 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "overallScore": 77,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 74,
+  "counterpartyRisk": 76,
+  "liquidityRisk": 84,
+  "regulatoryRisk": 70,
+  "marketRisk": 86,
+  "concentrationRisk": 68,
+  "riskFactors": [
+    "USDY is an unregistered offshore restricted offering and has not been registered under the U.S. Securities Act of 1933 or securities/financial instrument laws of other jurisdictions.",
+    "USDY is issued by Ondo Global Markets (BVI) Limited, a British Virgin Islands business company that is not registered as an investment company, AIF, UCITS, or equivalent regulated fund vehicle.",
+    "Holders receive tokenized note exposure and do not have direct rights to hold or receive U.S. Treasuries, creating legal-structure and issuer dependency risk.",
+    "Reserve backing is mixed and may depend on issuance date, including short-term U.S. Treasuries, iShares Short Treasury Bond ETF shares, or bank demand deposits.",
+    "Proof-of-reserves is off-chain collateral reporting reviewed by Ankura Trust Company; no on-chain PoR oracle address or PoR chain is identified.",
+    "ReserveBreakdown, collateralizationRatio, auditor, lastAuditDate, and lastAuditUrl are not provided, limiting institutional reserve auditability.",
+    "USDC redemption is conditional on stablecoin swapper liquidity, and on-chain liquidity is materially smaller than total asset value.",
+    "Blocked jurisdictions include the United States and multiple sanctioned or restricted regions, limiting distribution and secondary-market participation.",
+    "The asset is deployed across many chains, increasing operational complexity and cross-chain monitoring requirements."
+  ],
+  "mitigants": [
+    "USDY has large market presence with approximately 2.14B USD market cap/AUM and 14,554 holders in the current normalized dataset.",
+    "Official documentation describes USDY as backed by short-term U.S. Treasury-related collateral, SHV ETF shares, or bank demand deposits depending on issuance date.",
+    "Daily collateral reporting reviewed by Ankura Trust Company provides off-chain reserve oversight, although it is not equivalent to an on-chain proof-of-reserves oracle.",
+    "KYC onboarding, sanctions screening, and jurisdiction restrictions reduce regulatory distribution risk compared with unrestricted retail tokens.",
+    "Instant redemption to USDon and conditional USDC redemption provide a stronger issuer redemption path than assets relying only on secondary-market liquidity.",
+    "USDY has multi-chain availability across Ethereum, Mantle, Solana, Sui, Aptos, Noble, Arbitrum, Stellar, Plume, and Sei, supporting broad access and redundancy.",
+    "The token is designed as an accumulating token whose redemption value increases as yield accrues, with a rebasing version, rUSDY, also available."
+  ],
+  "lastAssessed": "2026-06-01",
+  "assessmentMethod": "ai-assisted"
 }
