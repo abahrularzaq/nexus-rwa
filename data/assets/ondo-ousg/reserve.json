@@ -1,15 +1,21 @@
 {
-  "backingType": null,
-  "backingDescription": null,
+  "backingType": "US Treasury",
+  "backingDescription": "OUSG is backed by short-term U.S. Treasury securities and related cash-equivalent money market instruments held through regulated institutional funds and custodial structures.",
   "collateralizationRatio": null,
-  "custodian": null,
-  "custodianUrl": null,
-  "hasProofOfReserves": null,
+  "custodian": "Ankura Trust Company, LLC",
+  "custodianUrl": "https://www.ankura.com",
+  "hasProofOfReserves": false,
   "porOracleAddress": null,
   "porOracleChain": null,
   "lastAuditDate": null,
   "lastAuditUrl": null,
   "auditor": null,
-  "reserveBreakdown": null,
-  "redemptionAsset": null
+  "reserveBreakdown": {
+    "BlackRock USD Institutional Digital Liquidity Fund (BUIDL)": 82.57,
+    "WisdomTree Government Money Market Digital Fund (WTGXX)": 8.13,
+    "Franklin OnChain U.S. Government Money Fund (BENJI)": 4.88,
+    "Fundbridge Capital Institutional Funds ICAV (FBOXX)": 2.39,
+    "Superstate Short Duration U.S. Government Securities Fund (USTB)": 2.03
+  },
+  "redemptionAsset": "USD"
 }
