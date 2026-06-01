@@ -35,6 +35,15 @@ export function normalizeRiskLevel(raw?: string | null): RiskLevel {
   return "MEDIUM";
 }
 
+export function getProtocolLabel(asset: AssetWithLayers): string {
+  return (
+    asset.identity?.fullName ||
+    asset.identity?.name ||
+    asset.identity?.symbol ||
+    asset.slug
+  );
+}
+
 function buildMeta(market?: AssetWithLayers["market"]): AssetDataMeta {
   const sources = market?.sources?.length ? market.sources : ["defillama"];
   const confidence =
