@@ -1,0 +1,13 @@
+{
+  "regulatoryStatus": null,
+  "primaryRegulator": null,
+  "regulatoryFramework": null,
+  "kycRequired": null,
+  "accreditedOnly": null,
+  "blockedJurisdictions": [],
+  "allowedJurisdictions": [],
+  "sanctionsScreening": null,
+  "amlPolicy": null,
+  "lastComplianceCheck": null,
+  "legalOpinionUrl": null
+}
