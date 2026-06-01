@@ -1,1 +1,19 @@
-{}
+{
+  "issuerName": "Superstate Short Duration US Government Securities Fund, a series of Superstate Asset Trust",
+  "issuerType": "asset_manager",
+  "issuerCountry": "US",
+  "fundManager": "Superstate Inc.",
+  "legalStructure": "Series of a Delaware Statutory Trust",
+  "minimumInvestment": 100000,
+  "managementFee": 0.15,
+  "performanceFee": 0,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "institutional",
+  "prospectuUrl": null,
+  "metadata": {
+    "managementFeeRaw": "0.15% per year",
+    "performanceFeeRaw": "0%",
+    "qualifiedPurchaserOnly": true
+  }
+}
