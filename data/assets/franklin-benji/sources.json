@@ -1,1 +1,272 @@
-[]
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Franklin OnChain U.S. Government Money Fund",
+    "sourceUrl": "https://digitalassets.franklintempleton.com/benji/",
+    "sourceType": "official_website",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Franklin Templeton Benji product page."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "BENJI",
+    "sourceUrl": "https://digitalassets.franklintempleton.com/benji/",
+    "sourceType": "official_website",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Franklin Templeton Benji product page."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "U.S.-registered government money market fund whose shares are represented by BENJI tokens.",
+    "sourceUrl": "https://www.franklintempleton.com/tools-and-resources/lit-preview/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Fund description and investment policy from official Franklin Templeton fund literature."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://digitalassets.franklintempleton.com/benji/",
+    "sourceUrl": "https://digitalassets.franklintempleton.com/benji/",
+    "sourceType": "official_website",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Benji product page."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://www.franklintempleton.com/tools-and-resources/lit-preview/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "sourceUrl": "https://www.franklintempleton.com/tools-and-resources/lit-preview/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Franklin Templeton fund literature page."
+  },
+  {
+    "layer": "identity",
+    "field": "launchDate",
+    "value": "2021-04-06",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm",
+    "sourceType": "legal_filing",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Launch/registration context derived from SEC filing and fund record."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": "794240000",
+    "sourceUrl": "https://defillama.com/rwa/asset/benji",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "Aggregator-sourced TVL/asset value; refresh before production publication."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": "794240000",
+    "sourceUrl": "https://app.rwa.xyz/assets/BENJI",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "Aggregator-sourced market display value; current dataset also includes Franklin fund AUM separately."
+  },
+  {
+    "layer": "market",
+    "field": "aumUsd",
+    "value": "824620000",
+    "sourceUrl": "https://www.franklintempleton.com/investments/options/money-market-funds/products/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Franklin Templeton fund page/literature AUM figure; time-sensitive."
+  },
+  {
+    "layer": "market",
+    "field": "holderCount",
+    "value": "1107",
+    "sourceUrl": "https://app.rwa.xyz/assets/BENJI",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Aggregator-sourced holder count."
+  },
+  {
+    "layer": "yield",
+    "field": "currentYield",
+    "value": "3.52",
+    "sourceUrl": "https://www.franklintempleton.com/investments/options/money-market-funds/products/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "7-day current yield from official Franklin Templeton fund page/literature. Time-sensitive."
+  },
+  {
+    "layer": "yield",
+    "field": "yieldAvg30d",
+    "value": "3.47",
+    "sourceUrl": "https://www.franklintempleton.com/investments/options/money-market-funds/products/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "30-day yield figure from official Franklin Templeton fund data."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "Money Market Fund",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Fund prospectus describes government money market fund investment policy."
+  },
+  {
+    "layer": "reserve",
+    "field": "reserveBreakdown",
+    "value": "U.S. Government and Agency Securities 63.1%; Repurchase Agreements 37.9%; Other Assets less Liabilities -1.0%; Net Assets 100.0%",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/29386-AFSOI",
+    "sourceType": "audit_report",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Reserve breakdown from audited financial/statement materials as of 2026-03-31."
+  },
+  {
+    "layer": "reserve",
+    "field": "custodian",
+    "value": "JPMorgan Chase Bank",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Custodian identified in official fund documents."
+  },
+  {
+    "layer": "reserve",
+    "field": "auditor",
+    "value": "PricewaterhouseCoopers LLP",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/29386-AFSOI",
+    "sourceType": "audit_report",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Auditor from official audited financial/statement materials."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Franklin Templeton Trust",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm",
+    "sourceType": "legal_filing",
+    "reliability": 97,
+    "checkedBy": "manual",
+    "notes": "Issuer/registrant from SEC filing."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "SEC-registered Delaware statutory trust; diversified open-end management investment company",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm",
+    "sourceType": "legal_filing",
+    "reliability": 97,
+    "checkedBy": "manual",
+    "notes": "Legal structure from SEC registration and fund prospectus data."
+  },
+  {
+    "layer": "institutional",
+    "field": "fundManager",
+    "value": "Franklin Advisers, Inc.",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Investment manager from prospectus/fund documents."
+  },
+  {
+    "layer": "institutional",
+    "field": "managementFee",
+    "value": "0.15",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "0.15% annual management fee represented as numeric 0.15 for Prisma compatibility."
+  },
+  {
+    "layer": "institutional",
+    "field": "transferAgent",
+    "value": "Franklin Templeton Investor Services, LLC",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Transfer agent maintains official share ownership record through blockchain-integrated system."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryStatus",
+    "value": "Registered",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm",
+    "sourceType": "legal_filing",
+    "reliability": 97,
+    "checkedBy": "manual",
+    "notes": "Registered fund structure under SEC framework."
+  },
+  {
+    "layer": "compliance",
+    "field": "primaryRegulator",
+    "value": "U.S. Securities and Exchange Commission",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm",
+    "sourceType": "legal_filing",
+    "reliability": 97,
+    "checkedBy": "manual",
+    "notes": "SEC as primary regulator."
+  },
+  {
+    "layer": "compliance",
+    "field": "kycRequired",
+    "value": "true",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Account-opening, AML, KYC, tax certification and FATCA documentation requirements."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "Stellar, Polygon, Arbitrum One, Avalanche C-Chain, Aptos, Ethereum, Base, Solana deployments",
+    "sourceUrl": "https://digitalassets.franklintempleton.com/benji/",
+    "sourceType": "official_website",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Multi-chain deployment list should be cross-checked against each explorer before institutional-grade publication."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "Issuer redemption via Benji App or Institutional Web Portal",
+    "sourceUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+    "sourceType": "legal_filing",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Issuer redemption terms from official fund documents; no verified DEX liquidity used."
+  },
+  {
+    "layer": "liquidity",
+    "field": "onchainLiquidity",
+    "value": "0",
+    "sourceUrl": "https://defillama.com/rwa/asset/benji",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama reports no verified DeFi active TVL/liquidity; liquidity is primarily issuer redemption."
+  }
+]
