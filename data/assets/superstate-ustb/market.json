@@ -1,1 +1,17 @@
-null
+{
+  "tvl": 190420000,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": 11.10,
+  "priceChange24h": null,
+  "marketCap": 554240000,
+  "volume24h": null,
+  "circulatingSupply": 69443970.56,
+  "totalSupply": 69443970.56,
+  "holderCount": 99,
+  "holderChange7d": null,
+  "aumUsd": 770603005,
+  "lastUpdated": "2026-06-01",
+  "sources": ["rwa_xyz", "defillama"],
+  "confidence": "MEDIUM"
+}
