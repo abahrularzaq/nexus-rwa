@@ -1,15 +1,15 @@
 {
-  "name": "Superstate Short Duration U.S. Government Securities Fund",
+  "name": "Superstate Short Duration US Government Securities Fund",
   "symbol": "USTB",
-  "fullName": "Superstate Short Duration U.S. Government Securities Fund",
-  "description": "USTB is a tokenized U.S. government securities fund issued by Superstate, designed to provide blockchain-native exposure to short-duration U.S. Treasury and government securities.",
+  "fullName": "Superstate Short Duration US Government Securities Fund",
+  "description": "USTB is a tokenized private fund from Superstate that gives Qualified Purchasers access to short-duration U.S. Treasury Bills. Shares are represented by USTB tokens on Ethereum, Solana, and Plume, or held in book-entry form. The fund targets current income consistent with liquidity and stability of principal, with returns intended to align with the federal funds rate. Purchases and redemptions are facilitated through USD or USDC, with liquidity each market day.",
   "category": "Treasury",
-  "subcategory": "Tokenized U.S. Treasury Fund",
+  "subcategory": "Tokenized short-duration U.S. Treasury bill fund",
   "logoUrl": null,
-  "websiteUrl": "https://superstate.com",
-  "docsUrl": "https://docs.superstate.com",
-  "twitterUrl": null,
-  "tags": ["institutional", "kyc-required", "sec-registered", "permissioned"],
-  "launchDate": null,
-  "isin": null
+  "websiteUrl": "https://superstate.com/assets/ustb",
+  "docsUrl": "https://docs.superstate.com/superstate-funds/ustb",
+  "twitterUrl": "https://x.com/superstateinc",
+  "tags": ["institutional", "kyc-required", "audited", "sec-registered", "permissioned", "cross-chain"],
+  "launchDate": "2024-01-03",
+  "isin": "86851T204"
 }
