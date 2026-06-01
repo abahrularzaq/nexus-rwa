@@ -1,14 +1,30 @@
 {
   "overallScore": null,
-  "overallLevel": null,
+  "overallLevel": "MEDIUM",
   "smartContractRisk": null,
   "counterpartyRisk": null,
   "liquidityRisk": null,
   "regulatoryRisk": null,
   "marketRisk": null,
   "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "riskFactors": [
+    "Reserve concentration risk: BlackRock BUIDL represents 82.57% of disclosed reserve portfolio, creating single-counterparty dependency on one fund provider.",
+    "No on-chain proof-of-reserves oracle: hasProofOfReserves is false; transparency relies on issuer disclosures and third-party platforms such as rwa.xyz rather than cryptographic attestation.",
+    "No independent reserve audit identified: lastAuditDate and auditor fields are null; no publicly disclosed audit report specific to OUSG reserves was identified.",
+    "Regulatory exemption structure: OUSG operates under a Reg D exemption rather than public registration, limiting eligible investors and potentially constraining secondary market liquidity.",
+    "Operational dependency chain: redemption and custody rely on multiple intermediaries including Ankura Trust, underlying fund managers, and Ondo compliance infrastructure.",
+    "Evolving regulatory treatment of tokenized securities may affect on-chain transfer mechanisms and multi-chain deployment across supported blockchain ecosystems.",
+    "Management fee and performance fee fields are null, so total cost of ownership cannot be fully assessed from provided data."
+  ],
+  "mitigants": [
+    "Underlying reserve assets are short-duration U.S. Treasury securities and government money market instruments, among the lowest credit-risk instruments globally.",
+    "Reserve portfolio is diversified across five regulated institutional funds: BUIDL, WTGXX, BENJI, FBOXX, and USTB, reducing single-fund failure risk despite BUIDL concentration.",
+    "Ankura Trust Company, LLC serves as independent custodian, providing legal separation between issuer and investor assets.",
+    "KYC/AML and sanctions screening are enforced at onboarding; blocked jurisdictions are explicitly listed and accreditedOnly is true.",
+    "Delaware Limited Partnership structure uses an established U.S. legal framework with fund manager accountability through Ondo Capital Management LLC.",
+    "Multi-chain deployment and issuer-controlled redemption infrastructure may reduce liquidity risk relative to single-chain tokenized treasury products.",
+    "Ondo references public audit documentation for smart contracts, reducing smart contract exploit risk relative to unaudited deployments."
+  ],
+  "lastAssessed": "2026-05-31",
+  "assessmentMethod": "ai-assisted"
 }
