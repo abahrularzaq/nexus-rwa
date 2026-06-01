@@ -1,13 +1,7 @@
 {
   "regulatoryStatus": "Registered",
   "primaryRegulator": "U.S. Securities and Exchange Commission",
-  "regulatoryFramework": [
-    "Securities Act of 1933",
-    "Investment Company Act of 1940",
-    "Rule 2a-7 government money market fund",
-    "Subchapter M regulated investment company",
-    "FATCA reporting and withholding requirements"
-  ],
+  "regulatoryFramework": "Securities Act of 1933; Investment Company Act of 1940; Rule 2a-7 government money market fund; Subchapter M regulated investment company; FATCA reporting and withholding requirements",
   "kycRequired": true,
   "accreditedOnly": false,
   "blockedJurisdictions": [
