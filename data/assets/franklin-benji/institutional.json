@@ -1,15 +1,36 @@
 {
-  "issuerName": null,
-  "issuerType": null,
-  "issuerCountry": null,
-  "fundManager": null,
-  "legalStructure": null,
-  "minimumInvestment": null,
-  "managementFee": null,
+  "issuerName": "Franklin Templeton Trust",
+  "issuerType": "SEC-registered Delaware statutory trust; diversified open-end management investment company",
+  "issuerCountry": "United States",
+  "fundManager": "Franklin Advisers, Inc.",
+  "legalStructure": "Franklin OnChain U.S. Government Money Fund is a diversified open-end management investment company, commonly called a mutual fund, organized as a series of Franklin Templeton Trust, a Delaware statutory trust registered with the SEC. The Fund is intended to be a government money market fund under Rule 2a-7 and has elected regulated investment company treatment under Subchapter M of the Internal Revenue Code.",
+  "minimumInvestment": {
+    "Stellar": "$20",
+    "Aptos": "$100",
+    "Base": "$100",
+    "Solana": "$100",
+    "Polygon": "$1,000",
+    "Arbitrum": "$1,000",
+    "Avalanche": "$100,000",
+    "Ethereum": "$5,000,000",
+    "subsequentPurchases": "$0"
+  },
+  "managementFee": "0.15% annually of the Fund's average daily net assets",
   "performanceFee": null,
-  "fundAdmin": null,
-  "transferAgent": null,
-  "targetInvestors": null,
-  "prospectuUrl": null,
-  "metadata": {}
+  "fundAdmin": "Franklin Templeton Services, LLC; sub-administrator: JPMorgan Chase Bank, N.A.",
+  "transferAgent": "Franklin Templeton Investor Services, LLC",
+  "targetInvestors": "U.S. individual investors via the Benji App and institutional investors via the Institutional Web Portal; non-Stellar blockchain access is subject to eligibility and approval by the Fund and transfer agent.",
+  "prospectuUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
+  "metadata": {
+    "fundName": "Franklin OnChain U.S. Government Money Fund",
+    "ticker": "FOBXX",
+    "fundNumber": "BENJI",
+    "cusip": "35473R104",
+    "registrantCik": "0001786958",
+    "secFileNo": "811-23471",
+    "principalUnderwriter": "Franklin Distributors, LLC",
+    "custodian": "JPMorgan Chase Bank",
+    "auditor": "PricewaterhouseCoopers LLP",
+    "blockchainRecordkeeping": "The transfer agent maintains the official record of share ownership through a proprietary blockchain-integrated system."
+  }
 }

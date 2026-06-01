@@ -1,13 +1,24 @@
 {
-  "regulatoryStatus": null,
-  "primaryRegulator": null,
-  "regulatoryFramework": null,
-  "kycRequired": null,
-  "accreditedOnly": null,
-  "blockedJurisdictions": [],
-  "allowedJurisdictions": [],
+  "regulatoryStatus": "Registered",
+  "primaryRegulator": "U.S. Securities and Exchange Commission",
+  "regulatoryFramework": [
+    "Securities Act of 1933",
+    "Investment Company Act of 1940",
+    "Rule 2a-7 government money market fund",
+    "Subchapter M regulated investment company",
+    "FATCA reporting and withholding requirements"
+  ],
+  "kycRequired": true,
+  "accreditedOnly": false,
+  "blockedJurisdictions": [
+    "European Union member countries",
+    "European Economic Area member countries"
+  ],
+  "allowedJurisdictions": [
+    "United States"
+  ],
   "sanctionsScreening": null,
-  "amlPolicy": null,
-  "lastComplianceCheck": null,
+  "amlPolicy": "Before account opening, the Fund collects investor information in accordance with anti-money-laundering and know-your-customer policies and procedures. Investors are also subject to tax certification, backup withholding, and FATCA documentation/reporting requirements where applicable.",
+  "lastComplianceCheck": "2026-06-01",
   "legalOpinionUrl": null
 }

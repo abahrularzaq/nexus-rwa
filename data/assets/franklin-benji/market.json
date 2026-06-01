@@ -1,17 +1,22 @@
 {
-  "tvl": null,
+  "tvl": 794240000,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": null,
+  "price": 1.0,
   "priceChange24h": null,
-  "marketCap": null,
+  "marketCap": 794240000,
   "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
-  "holderCount": null,
+  "circulatingSupply": 813731196.59,
+  "totalSupply": 813731196.59,
+  "holderCount": 1107,
   "holderChange7d": null,
-  "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null
+  "aumUsd": 824620000,
+  "lastUpdated": "2026-06-01",
+  "sources": [
+    "https://www.franklintempleton.com/investments/options/money-market-funds/products/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+    "https://defillama.com/rwa/asset/benji",
+    "https://app.rwa.xyz/assets/BENJI",
+    "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm"
+  ],
+  "confidence": "MEDIUM"
 }

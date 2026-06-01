@@ -1,15 +1,22 @@
 {
-  "name": null,
-  "symbol": null,
-  "fullName": null,
-  "description": null,
-  "category": null,
-  "subcategory": null,
+  "name": "Franklin OnChain U.S. Government Money Fund",
+  "symbol": "BENJI",
+  "fullName": "Franklin OnChain U.S. Government Money Fund",
+  "description": "Franklin OnChain U.S. Government Money Fund is a U.S.-registered government money market fund whose shares are represented by BENJI tokens. The fund invests at least 99.5% of total assets in U.S. government securities, cash, and repurchase agreements collateralized fully by U.S. government securities or cash. Its transfer agent maintains the official record of share ownership through Franklin Templeton’s blockchain-integrated Benji platform.",
+  "category": "Treasury",
+  "subcategory": "Tokenized U.S. Government Money Market Fund",
   "logoUrl": null,
-  "websiteUrl": null,
-  "docsUrl": null,
-  "twitterUrl": null,
-  "tags": [],
-  "launchDate": null,
+  "websiteUrl": "https://digitalassets.franklintempleton.com/benji/",
+  "docsUrl": "https://www.franklintempleton.com/tools-and-resources/lit-preview/29386/SINGLCLASS/franklin-on-chain-u-s-government-money-fund/FOBXX",
+  "twitterUrl": "https://x.com/FTI_US",
+  "tags": [
+    "institutional",
+    "retail",
+    "kyc-required",
+    "sec-registered",
+    "permissioned",
+    "cross-chain"
+  ],
+  "launchDate": "2021-04-06",
   "isin": null
 }

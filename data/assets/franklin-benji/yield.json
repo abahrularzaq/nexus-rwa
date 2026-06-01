@@ -1,15 +1,15 @@
 {
-  "currentYield": null,
-  "yieldType": null,
-  "yieldFrequency": null,
+  "currentYield": 3.52,
+  "yieldType": "7-Day Current Yield",
+  "yieldFrequency": "Daily accrual; dividends generally reinvested monthly or paid as cash depending on account settings",
   "yieldBenchmark": null,
   "yieldVsBenchmark": null,
   "yieldAvg7d": null,
-  "yieldAvg30d": null,
+  "yieldAvg30d": 3.47,
   "yieldAvg90d": null,
   "yieldMin52w": null,
   "yieldMax52w": null,
   "yieldStdDev30d": null,
   "nextYieldDate": null,
-  "yieldCurrency": null
+  "yieldCurrency": "USD"
 }

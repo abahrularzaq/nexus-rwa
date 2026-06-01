@@ -1,15 +1,22 @@
 {
-  "backingType": null,
-  "backingDescription": null,
+  "backingType": "Money Market Fund",
+  "backingDescription": "Franklin OnChain U.S. Government Money Fund invests at least 99.5% of total assets in U.S. government securities, cash, and repurchase agreements collateralized fully by U.S. government securities or cash.",
   "collateralizationRatio": null,
-  "custodian": null,
-  "custodianUrl": null,
+  "custodian": "JPMorgan Chase Bank",
+  "custodianUrl": "https://www.jpmorganchase.com/",
   "hasProofOfReserves": null,
   "porOracleAddress": null,
   "porOracleChain": null,
-  "lastAuditDate": null,
-  "lastAuditUrl": null,
-  "auditor": null,
-  "reserveBreakdown": null,
-  "redemptionAsset": null
+  "lastAuditDate": "2026-05-21",
+  "lastAuditUrl": "https://www.franklintempleton.com/forms-literature/download-preview/29386-AFSOI",
+  "auditor": "PricewaterhouseCoopers LLP",
+  "reserveBreakdown": {
+    "asOf": "2026-03-31",
+    "basis": "percentage_of_net_assets",
+    "U.S. Government and Agency Securities": 63.1,
+    "Repurchase Agreements": 37.9,
+    "Other Assets, less Liabilities": -1.0,
+    "Net Assets": 100.0
+  },
+  "redemptionAsset": "USD"
 }

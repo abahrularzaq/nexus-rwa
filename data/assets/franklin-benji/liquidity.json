@@ -1,12 +1,22 @@
 {
-  "redemptionType": null,
-  "redemptionPeriodDays": null,
+  "redemptionType": "Issuer redemption via Benji App or Institutional Web Portal",
+  "redemptionPeriodDays": 1,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
-  "minRedemptionAmount": null,
+  "minRedemptionAmount": {
+    "Stellar": 20,
+    "Aptos": 100,
+    "Base": 100,
+    "Solana": 100,
+    "Polygon": 1000,
+    "Arbitrum": 1000,
+    "Avalanche": 100000,
+    "Ethereum": 5000000,
+    "subsequentPurchases": 0
+  },
   "dexPairs": [],
-  "onchainLiquidity": null,
+  "onchainLiquidity": 0,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": null
+  "liquidityScore": 70,
+  "liquidityNotes": "BENJI is redeemable directly with the issuer through the Benji App or Institutional Web Portal, normally processed by the next business day when requests are in good order, but redemptions may take up to seven days in certain circumstances. DeFiLlama reports DeFi Active TVL of $0, so there is no verified DEX liquidity used here. Liquidity score is based on issuer redemption access and permissioned transferability, not secondary-market depth."
 }
