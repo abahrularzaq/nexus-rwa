@@ -1,1 +1,212 @@
-[]
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Ondo Short-Term US Government Treasuries",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy identity.md and sources.yaml."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "OUSG",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy identity.md and sources.yaml."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://ondo.finance/ousg",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Ondo OUSG product page."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+    "sourceUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Ondo trust and transparency documentation."
+  },
+  {
+    "layer": "identity",
+    "field": "twitterUrl",
+    "value": "https://x.com/OndoFinance",
+    "sourceUrl": "https://x.com/OndoFinance",
+    "sourceType": "official_social",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Ondo Finance X profile cited in legacy identity.md."
+  },
+  {
+    "layer": "identity",
+    "field": "launchDate",
+    "value": "2023-01-01",
+    "sourceUrl": "https://www.coingecko.com/en/coins/ousg",
+    "sourceType": "market_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Legacy identity.md marked launchDate source confidence as Medium."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "US Treasury",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy reserve.md and sources.yaml."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "OUSG is backed by short-term U.S. Treasury securities and related cash-equivalent money market instruments held through regulated institutional funds and custodial structures.",
+    "sourceUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+    "sourceType": "official_docs",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy reserve.md."
+  },
+  {
+    "layer": "reserve",
+    "field": "custodian",
+    "value": "Ankura Trust Company, LLC",
+    "sourceUrl": "https://docs.ondo.finance/trust-and-security",
+    "sourceType": "official_docs",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "Custodian from legacy reserve.md source table."
+  },
+  {
+    "layer": "reserve",
+    "field": "reserveBreakdown",
+    "value": "BlackRock USD Institutional Digital Liquidity Fund (BUIDL): 82.57; WisdomTree Government Money Market Digital Fund (WTGXX): 8.13; Franklin OnChain U.S. Government Money Fund (BENJI): 4.88; Fundbridge Capital Institutional Funds ICAV (FBOXX): 2.39; Superstate Short Duration U.S. Government Securities Fund (USTB): 2.03",
+    "sourceUrl": "https://app.rwa.xyz/protocols/ondo-finance",
+    "sourceType": "market_aggregator",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "Reserve composition migrated from legacy reserve.md; should be refreshed before production publication because holdings can change."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": "false",
+    "sourceUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+    "sourceType": "official_docs",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "Legacy sources.yaml states no on-chain proof-of-reserves oracle identified."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Ondo I LP",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 81,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy legal.md."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Delaware Limited Partnership",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 81,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy legal.md."
+  },
+  {
+    "layer": "institutional",
+    "field": "fundManager",
+    "value": "Ondo Capital Management LLC",
+    "sourceUrl": "https://docs.ondo.finance/trust-and-security",
+    "sourceType": "official_docs",
+    "reliability": 81,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy legal.md."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryFramework",
+    "value": "Reg D",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 81,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy legal.md and sources.yaml."
+  },
+  {
+    "layer": "compliance",
+    "field": "kycRequired",
+    "value": "true",
+    "sourceUrl": "https://docs.ondo.finance/trust-and-security",
+    "sourceType": "official_docs",
+    "reliability": 81,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy legal.md."
+  },
+  {
+    "layer": "compliance",
+    "field": "blockedJurisdictions",
+    "value": "CN,KP,IR,SY,CU,RU",
+    "sourceUrl": "https://ondo.finance/terms-of-service",
+    "sourceType": "terms_of_service",
+    "reliability": 81,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy legal.md source table."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+    "sourceUrl": "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Ethereum contract from legacy metadata.json."
+  },
+  {
+    "layer": "yield",
+    "field": "yieldBenchmark",
+    "value": "Short-term U.S. Treasury yield",
+    "sourceUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+    "sourceType": "official_docs",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy metadata.json; currentYield remains null because source data did not provide a verified real-time value."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "T+1",
+    "sourceUrl": "https://ondo.finance/ousg",
+    "sourceType": "official_website",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy metadata.json."
+  },
+  {
+    "layer": "risk",
+    "field": "assessmentMethod",
+    "value": "ai-assisted",
+    "sourceUrl": "internal://legacy/api/src/data/asset/ondo-ousg/risk.md",
+    "sourceType": "internal_analysis",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "Risk assessment synthesized from reserve, legal, operational, and transparency disclosures."
+  }
+]
