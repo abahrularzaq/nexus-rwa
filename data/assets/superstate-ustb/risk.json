@@ -1,1 +1,26 @@
-null
+{
+  "overallScore": null,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": null,
+  "counterpartyRisk": null,
+  "liquidityRisk": null,
+  "regulatoryRisk": null,
+  "marketRisk": null,
+  "concentrationRisk": null,
+  "riskFactors": [
+    "No verified collateralizationRatio, audited reserveBreakdown, lastAuditDate, or lastAuditUrl was provided in reserve.md, limiting independent verification of backing quality.",
+    "USTB is not a fully on-chain reserve model; underlying Treasury assets are held off-chain while tokens represent fund share ownership records.",
+    "Official Superstate sources conflict on the named custodian: USTB asset page lists The Bank of New York Mellon, while Superstate security documentation lists UMB Bank, N.A.",
+    "USTB relies on private-fund exemptions, Qualified Purchaser restrictions, KYC/AML onboarding, and allowlisted wallet transfer controls.",
+    "No proof-of-reserves oracle address or chain was verified, and hasProofOfReserves is false."
+  ],
+  "mitigants": [
+    "Underlying exposure is short-duration U.S. Treasury Bills, a conservative asset class compared with credit, real estate, or commodity-backed RWA structures.",
+    "USTB has named institutional service providers including The Bank of New York Mellon as custodian, Ernst & Young LLP as auditor, NAV Fund Services as NAV calculation agent, and Federated Hermes as sub-advisor.",
+    "Investor access is restricted to Qualified Purchasers in supported jurisdictions, with KYC/AML checks, accreditation review, and wallet allowlisting.",
+    "Redemption is supported in USD or USDC with liquidity each market day, reducing liquidity risk relative to long-duration or illiquid private-credit RWAs.",
+    "The legal structure is documented through SEC Form D, Regulation D Rule 506(c), and Investment Company Act Section 3(c)(1)/3(c)(7) exemptions."
+  ],
+  "lastAssessed": "2026-05-31",
+  "assessmentMethod": "ai-assisted"
+}
