@@ -1,0 +1,24 @@
+{
+  "grade": "RESEARCH_GRADE",
+  "score": 58,
+  "completenessScore": 61,
+  "sourceScore": 67,
+  "legalScore": 58,
+  "reserveScore": 62,
+  "liquidityScore": 55,
+  "riskScore": 57,
+  "blockers": [
+    "currentYield, TVL, marketCap, volume24h, 7d/30d yield history, and yield volatility are null or unavailable.",
+    "visible holderCount is only 5 and circulatingSupply / totalSupply are only 290.14, indicating weak observable adoption or stale/limited on-chain coverage.",
+    "reserve.json does not include an independent reserve audit, proof-of-reserves oracle, lastAuditDate, or reserveBreakdown.",
+    "secondary-market liquidity cannot be scored institutionally because dexPairs is empty and onchainLiquidity / bidAskSpread are null.",
+    "regulatoryStatus is exempt / private placement and not confirmed as SEC-registered."
+  ],
+  "warnings": [
+    "This grade is a base dataset grade, not an investment rating.",
+    "The asset may improve to ANALYTICS_GRADE if live TVL/AUM, yield, transfer volume, holder growth, reserve attestations, and redemption evidence are added.",
+    "The product has strong Treasury-style backing characteristics, but institutional-grade publication requires better market, audit, reserve, and source coverage."
+  ],
+  "reviewedBy": "manual-ai-assisted",
+  "reviewedAt": "2026-06-01"
+}
