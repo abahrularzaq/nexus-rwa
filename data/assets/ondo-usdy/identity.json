@@ -1,15 +1,21 @@
 {
-  "name": null,
-  "symbol": null,
-  "fullName": null,
-  "description": null,
-  "category": null,
-  "subcategory": null,
+  "name": "Ondo US Dollar Yield",
+  "symbol": "USDY",
+  "fullName": "Ondo US Dollar Yield Token",
+  "description": "USDY is a tokenized note issued under Ondo Global Markets for qualifying non-US investors. Depending on issuance date, USDY may be secured by short-term US Treasuries, shares of iShares Short Treasury Bond ETF, or bank demand deposits. USDY is designed as an accumulating token whose redemption value increases as yield accrues, with a rebasing version, rUSDY, also available.",
+  "category": "Treasury",
+  "subcategory": "Tokenized note / yield-bearing U.S. Treasury product",
   "logoUrl": null,
-  "websiteUrl": null,
-  "docsUrl": null,
-  "twitterUrl": null,
-  "tags": [],
-  "launchDate": null,
+  "websiteUrl": "https://ondo.finance/usdy",
+  "docsUrl": "https://docs.ondo.finance/general-access-products/usdy/basics",
+  "twitterUrl": "https://x.com/OndoFinance",
+  "tags": [
+    "institutional",
+    "kyc-required",
+    "audited",
+    "permissioned",
+    "cross-chain"
+  ],
+  "launchDate": "2023-08-03",
   "isin": null
 }
