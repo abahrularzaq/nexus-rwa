@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "chain": "ethereum",
+    "chainId": 1,
+    "contractAddress": "0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+    "deployedAt": null,
+    "isVerified": true
+  }
+]
