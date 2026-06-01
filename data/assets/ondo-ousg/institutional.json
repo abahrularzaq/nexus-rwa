@@ -1,15 +1,19 @@
 {
-  "issuerName": null,
-  "issuerType": null,
-  "issuerCountry": null,
-  "fundManager": null,
-  "legalStructure": null,
-  "minimumInvestment": null,
+  "issuerName": "Ondo I LP",
+  "issuerType": "fund_issuer",
+  "issuerCountry": "US",
+  "fundManager": "Ondo Capital Management LLC",
+  "legalStructure": "Delaware Limited Partnership",
+  "minimumInvestment": 100000,
   "managementFee": null,
   "performanceFee": null,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": null,
-  "prospectuUrl": null,
-  "metadata": {}
+  "targetInvestors": "accredited",
+  "prospectuUrl": "https://ondo.finance/ousg",
+  "metadata": {
+    "regulatoryFramework": "Reg D",
+    "accreditedOnly": true,
+    "sourceLayer": "legacy legal.md"
+  }
 }
