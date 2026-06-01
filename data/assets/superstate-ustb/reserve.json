@@ -1,1 +1,15 @@
-{}
+{
+  "backingType": "US Treasury",
+  "backingDescription": "USTB is backed by a private fund portfolio invested in short-duration U.S. Treasury Bills, with fund shares represented as USTB tokens or book-entry shares.",
+  "collateralizationRatio": null,
+  "custodian": "The Bank of New York Mellon",
+  "custodianUrl": "https://www.bny.com/corporate/global/en.html",
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": "Ernst & Young LLP",
+  "reserveBreakdown": null,
+  "redemptionAsset": "USD or USDC"
+}
