@@ -1,14 +1,29 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "overallScore": 57,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 72,
+  "counterpartyRisk": 62,
+  "liquidityRisk": 55,
+  "regulatoryRisk": 58,
+  "marketRisk": 42,
+  "concentrationRisk": 35,
+  "riskFactors": [
+    "Very small visible market footprint: circulatingSupply and totalSupply are 290.14, holderCount is 5, and aumUsd is reported as <0.001 in market.json.",
+    "No currentYield, TVL, marketCap, transfer volume, 7d/30d yield history, or yield volatility data is available in the asset JSON files.",
+    "Single-borrower structure: Room40 Capital's standalone SPV R40-T1 LLC is the sole borrower from the pool.",
+    "No on-chain proof-of-reserves oracle, independent reserve audit, lastAuditDate, or detailed reserveBreakdown is provided in reserve.json.",
+    "Transfers are permissioned and subject to consent; the Terms & Conditions state LP Tokens may not be transferred except by redemption unless prior written consent is obtained.",
+    "Regulatory structure relies on private/exempt offering treatment rather than confirmed SEC registration.",
+    "No DEX pairs, onchainLiquidity, or bidAskSpread are available, limiting secondary-market liquidity assessment."
+  ],
+  "mitigants": [
+    "Underlying cash-management strategy is limited to U.S. Treasury bills and reverse repurchase agreements fully collateralized by U.S. Treasury bills.",
+    "Maple states the borrower portfolio weighted average maturity is capped at 30 days under the Master Loan Agreement.",
+    "Daily primary withdrawal liquidity is described for U.S. banking days, with withdrawals processed within 24 hours and sometimes faster where liquidity is available.",
+    "Eligible lenders must complete KYC and AML screening and are limited to accredited non-U.S. persons under the published Terms & Conditions.",
+    "Borrower uses a regulated broker-dealer / prime brokerage relationship, and StoneX is identified as custodian in reserve.json.",
+    "Ethereum contract is marked verified in blockchain.json."
+  ],
+  "lastAssessed": "2026-06-01",
+  "assessmentMethod": "manual-source-based"
 }
