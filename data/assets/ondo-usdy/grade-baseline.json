@@ -1,0 +1,29 @@
+{
+  "slug": "ondo-usdy",
+  "grade": "analytics",
+  "score": 83,
+  "completenessScore": 96,
+  "sourceScore": 95,
+  "legalScore": 70,
+  "reserveScore": 75,
+  "liquidityScore": 85,
+  "riskScore": 77,
+  "blockers": [],
+  "warnings": [
+    "Missing primary regulator",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "Missing audit/report URL"
+  ],
+  "baselineDate": "2026-06-01",
+  "status": "analytics-grade baseline",
+  "nextActions": [
+    "Clarify whether USDY has a primary regulator or should remain offshore/unregistered with primaryRegulator null",
+    "Find a public legal opinion, offering memorandum, or official legal document URL if available",
+    "Find a current reserve breakdown or collateral report with component-level allocation",
+    "Find a public audit, assurance, or collateral review report URL",
+    "Verify whether off-chain collateral reports reviewed by Ankura should be represented as proof-of-reserves or as reserve reporting only",
+    "Refresh market, yield, holder count, and liquidity data before production publication",
+    "Cross-check all multi-chain USDY contract addresses against official docs and explorers"
+  ]
+}
