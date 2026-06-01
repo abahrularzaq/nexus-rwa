@@ -1,1 +1,112 @@
-[]
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Superstate Short Duration US Government Securities Fund",
+    "sourceUrl": "https://superstate.com/assets/ustb",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy sources.yaml and identity.md."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "USTB",
+    "sourceUrl": "https://superstate.com/assets/ustb",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy sources.yaml and identity.md."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://superstate.com/assets/ustb",
+    "sourceUrl": "https://superstate.com/assets/ustb",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Superstate asset page."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.superstate.com/superstate-funds/ustb",
+    "sourceUrl": "https://docs.superstate.com/superstate-funds/ustb",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Superstate documentation."
+  },
+  {
+    "layer": "identity",
+    "field": "launchDate",
+    "value": "2024-01-03",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1982577/000110465925042142/tm2513524d1_n1a.htm",
+    "sourceType": "regulatory_filing",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "SEC filing cited by legacy identity.md."
+  },
+  {
+    "layer": "identity",
+    "field": "isin",
+    "value": "86851T204",
+    "sourceUrl": "https://defillama.com/rwa/asset/USTB",
+    "sourceType": "market_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "Legacy identity.md marked this source as medium confidence."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
+    "sourceUrl": "https://etherscan.io/address/0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Ethereum contract from legacy metadata.json."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "CCz3SGVziFeLYk2xfEstkiqJfYkjaSWb2GCABYsVcjo2",
+    "sourceUrl": "https://explorer.solana.com/address/CCz3SGVziFeLYk2xfEstkiqJfYkjaSWb2GCABYsVcjo2",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Solana token address from legacy metadata.json."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0xe4fa682f94610ccd170680cc3b045d77d9e528a8",
+    "sourceUrl": "https://phoenix-explorer.plumenetwork.xyz/address/0xe4fa682f94610ccd170680cc3b045d77d9e528a8",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Plume contract from legacy metadata.json."
+  },
+  {
+    "layer": "yield",
+    "field": "currentYield",
+    "value": "3.65",
+    "sourceUrl": "https://superstate.com/assets/ustb",
+    "sourceType": "official_website",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy metadata.json; should be refreshed before production use because yield is time-sensitive."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "USDC redemptions processed immediately when liquidity is available; USD redemptions same day before 1pm ET or T+1 after cutoff",
+    "sourceUrl": "https://superstate.com/assets/ustb",
+    "sourceType": "official_website",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "Migrated from legacy metadata.json and sources.yaml."
+  }
+]
