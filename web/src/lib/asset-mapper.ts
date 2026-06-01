@@ -396,13 +396,13 @@ export function toAssetSummary(asset: AssetWithLayers): AssetSummary {
     name: asset.identity?.name ?? asset.slug,
     symbol: asset.identity?.symbol ?? "",
     category: normalizeCategory(asset.identity?.category),
-    tvl: asset.market?.tvl ?? null,
+    tvl: asset.market?.tvl ?? 0,
     yieldRate:
-      asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : null,
-    risk: normalizeRiskLevel(asset.risk?.overallLevel),
+      asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : 0,
+    riskScore: normalizeRiskLevel(asset.risk?.overallLevel),
     change7d:
-      asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : null,
-    holderCount: asset.market?.holderCount ?? null,
+      asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : 0,
+    holderCount: asset.market?.holderCount ?? undefined,
     _meta: meta,
   };
 }
