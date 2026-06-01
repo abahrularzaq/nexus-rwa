@@ -1,0 +1,25 @@
+{
+  "slug": "franklin-benji",
+  "grade": "institutional",
+  "score": 91,
+  "completenessScore": 100,
+  "sourceScore": 97,
+  "legalScore": 85,
+  "reserveScore": 90,
+  "liquidityScore": 80,
+  "riskScore": 88,
+  "blockers": [],
+  "warnings": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed"
+  ],
+  "baselineDate": "2026-06-01",
+  "status": "institutional-grade baseline",
+  "nextActions": [
+    "Confirm whether a public legal opinion URL exists or whether SEC registration and prospectus should be considered sufficient legal documentation for grading purposes",
+    "Clarify that BENJI has audited fund reporting and SEC filings but no on-chain proof-of-reserves oracle",
+    "Refresh official AUM, yield, holder count, and market values before production publication",
+    "Cross-check all multi-chain BENJI deployments against official Franklin Templeton documentation and explorers",
+    "Consider adjusting the grading logic so SEC-registered audited funds are not penalized the same way as unaudited products for missing on-chain proof-of-reserves"
+  ]
+}
