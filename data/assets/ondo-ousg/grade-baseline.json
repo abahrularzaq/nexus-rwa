@@ -1,0 +1,28 @@
+{
+  "slug": "ondo-ousg",
+  "grade": "analytics",
+  "score": 82,
+  "completenessScore": 85,
+  "sourceScore": 87,
+  "legalScore": 85,
+  "reserveScore": 80,
+  "liquidityScore": 72,
+  "riskScore": 69,
+  "blockers": [],
+  "warnings": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity"
+  ],
+  "baselineDate": "2026-06-01",
+  "status": "analytics-grade baseline",
+  "nextActions": [
+    "Find verified legal opinion or offering/legal document URL",
+    "Verify whether proof-of-reserves exists",
+    "Find public audit or assurance report URL",
+    "Verify on-chain liquidity from DEX or issuer redemption infrastructure",
+    "Refresh market TVL, AUM, current yield, and holder count from live sources",
+    "Verify smart contract audit auditor, scope, and audit date"
+  ]
+}
