@@ -122,6 +122,22 @@ export type AssetAiNarrative = {
   modelVersion?: string | null;
 };
 
+export type AssetGrade = {
+  grade: "research" | "analytics" | "institutional" | string;
+  score: number;
+  completenessScore: number;
+  sourceScore: number;
+  legalScore: number;
+  reserveScore: number;
+  liquidityScore: number;
+  riskScore: number;
+  blockers: string[];
+  warnings: string[];
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  updatedAt?: string | null;
+};
+
 /** Full detail (FREE+); reserve/institutional on `/full` PRO response. */
 export type AssetWithLayers = {
   id: string;
@@ -137,6 +153,7 @@ export type AssetWithLayers = {
   reserve?: AssetReserve | null;
   institutional?: AssetInstitutional | null;
   aiNarrative?: AssetAiNarrative | null;
+  grade?: AssetGrade | null;
 };
 
 /** List row from GET /v1/assets (pro tier layers). */
