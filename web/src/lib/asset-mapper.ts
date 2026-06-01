@@ -86,6 +86,8 @@ function parseIdentity(raw: unknown): AssetWithLayers["identity"] {
     description: o.description != null ? String(o.description) : null,
     logoUrl: o.logoUrl != null ? String(o.logoUrl) : null,
     websiteUrl: o.websiteUrl != null ? String(o.websiteUrl) : null,
+    docsUrl: o.docsUrl != null ? String(o.docsUrl) : null,
+    twitterUrl: o.twitterUrl != null ? String(o.twitterUrl) : null,
     tags: stringArray(o.tags),
     launchDate: o.launchDate != null ? String(o.launchDate) : null,
   };
@@ -104,6 +106,8 @@ function parseMarket(raw: unknown): AssetWithLayers["market"] {
     tvl30dChange: parseOptionalNumber(o.tvl30dChange),
     holderCount: parseOptionalNumber(o.holderCount),
     holderChange7d: parseOptionalNumber(o.holderChange7d),
+    price: parseOptionalNumber(o.price),
+    priceChange24h: parseOptionalNumber(o.priceChange24h),
     sources: stringArray(o.sources).length ? stringArray(o.sources) : ["defillama"],
     confidence: o.confidence != null ? String(o.confidence) : null,
     lastUpdated: o.lastUpdated != null ? String(o.lastUpdated) : null,
@@ -176,9 +180,16 @@ function parseCompliance(raw: unknown): AssetWithLayers["compliance"] {
       o.regulatoryStatus != null ? String(o.regulatoryStatus) : null,
     primaryRegulator:
       o.primaryRegulator != null ? String(o.primaryRegulator) : null,
+    regulatoryFramework:
+      o.regulatoryFramework != null ? String(o.regulatoryFramework) : null,
     kycRequired: Boolean(o.kycRequired),
     accreditedOnly: Boolean(o.accreditedOnly),
     blockedJurisdictions: stringArray(o.blockedJurisdictions),
+    allowedJurisdictions: stringArray(o.allowedJurisdictions),
+    sanctionsScreening: Boolean(o.sanctionsScreening),
+    amlPolicy: o.amlPolicy != null ? String(o.amlPolicy) : null,
+    lastComplianceCheck:
+      o.lastComplianceCheck != null ? String(o.lastComplianceCheck) : null,
   };
 }
 
@@ -198,6 +209,10 @@ function parseLiquidity(raw: unknown): AssetWithLayers["liquidity"] {
       typeof o.liquidityScore === "number" ? o.liquidityScore : null,
     onchainLiquidity:
       typeof o.onchainLiquidity === "number" ? o.onchainLiquidity : null,
+    minRedemptionAmount:
+      typeof o.minRedemptionAmount === "number" ? o.minRedemptionAmount : null,
+    liquidityNotes:
+      o.liquidityNotes != null ? String(o.liquidityNotes) : null,
   };
 }
 
@@ -215,6 +230,8 @@ function parseBlockchain(raw: unknown): AssetWithLayers["blockchain"] {
           o.tokenStandard != null ? String(o.tokenStandard) : null,
         explorerUrl: o.explorerUrl != null ? String(o.explorerUrl) : null,
         isVerified: Boolean(o.isVerified),
+        hasWhitelist: Boolean(o.hasWhitelist),
+        hasTransferRestrictions: Boolean(o.hasTransferRestrictions),
       };
     });
 }
@@ -237,6 +254,7 @@ function parseReserve(raw: unknown): AssetWithLayers["reserve"] {
       o.lastAuditDate != null ? String(o.lastAuditDate) : null,
     lastAuditUrl: o.lastAuditUrl != null ? String(o.lastAuditUrl) : null,
     auditor: o.auditor != null ? String(o.auditor) : null,
+    redemptionAsset: o.redemptionAsset != null ? String(o.redemptionAsset) : null,
   };
 }
 
@@ -251,6 +269,27 @@ function parseInstitutional(raw: unknown): AssetWithLayers["institutional"] {
       o.legalStructure != null ? String(o.legalStructure) : null,
     targetInvestors:
       o.targetInvestors != null ? String(o.targetInvestors) : null,
+  };
+}
+
+function parseGrade(raw: unknown): AssetWithLayers["grade"] {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const score = parseOptionalNumber(o.score) ?? 0;
+  return {
+    grade: o.grade != null ? String(o.grade) : "research",
+    score,
+    completenessScore: parseOptionalNumber(o.completenessScore) ?? 0,
+    sourceScore: parseOptionalNumber(o.sourceScore) ?? 0,
+    legalScore: parseOptionalNumber(o.legalScore) ?? 0,
+    reserveScore: parseOptionalNumber(o.reserveScore) ?? 0,
+    liquidityScore: parseOptionalNumber(o.liquidityScore) ?? 0,
+    riskScore: parseOptionalNumber(o.riskScore) ?? 0,
+    blockers: stringArray(o.blockers),
+    warnings: stringArray(o.warnings),
+    reviewedBy: o.reviewedBy != null ? String(o.reviewedBy) : null,
+    reviewedAt: o.reviewedAt != null ? String(o.reviewedAt) : null,
+    updatedAt: o.updatedAt != null ? String(o.updatedAt) : null,
   };
 }
 
@@ -270,6 +309,7 @@ export function parseAssetWithLayers(raw: Record<string, unknown>): AssetWithLay
       blockchain: parseBlockchain(raw.blockchain),
       reserve: parseReserve(raw.reserve),
       institutional: parseInstitutional(raw.institutional),
+      grade: parseGrade(raw.grade),
     };
   }
 
@@ -318,87 +358,44 @@ export function parseAssetWithLayers(raw: Record<string, unknown>): AssetWithLay
       tvl,
       tvl7dChange: change7d != null ? change7d * 100 : null,
       holderCount,
-      sources: stringArray(
-        (raw._meta as Record<string, unknown> | undefined)?.sources,
-      ).length
-        ? stringArray((raw._meta as Record<string, unknown>).sources)
-        : ["defillama"],
-      confidence: "MEDIUM",
-      lastUpdated:
-        snap?.timestamp != null
-          ? String(snap.timestamp)
-          : riskObj?.updatedAt != null
-            ? String(riskObj.updatedAt)
-            : null,
+      sources: ["defillama"],
     },
     risk: {
       overallLevel: riskLevel,
-      overallScore: parseOptionalNumber(riskObj?.score ?? riskObj?.overallScore),
-      riskFactors: stringArray(riskObj?.factors ?? riskObj?.riskFactors),
-      mitigants: stringArray(riskObj?.mitigants),
-      lastAssessed:
-        riskObj?.updatedAt != null ? String(riskObj.updatedAt) : null,
+      overallScore: parseOptionalNumber(riskObj?.score),
+      riskFactors: stringArray(riskObj?.factors),
+      mitigants: [],
     },
     yield: {
       currentYield: parseYieldFromRate(yieldRate),
     },
-    blockchain: raw.contractAddress
-      ? [
-          {
-            chain: String(raw.chain ?? "ethereum"),
-            contractAddress: String(raw.contractAddress),
-          },
-        ]
-      : [],
-    compliance: null,
-    liquidity: null,
+    grade: parseGrade(raw.grade),
   };
 }
 
-export function getProtocolLabel(asset: AssetWithLayers): string {
-  return (
-    asset.institutional?.issuerName?.trim() ||
-    asset.identity?.name?.trim() ||
-    asset.slug
-  );
+export function parseAssetList(rows: unknown): AssetListItem[] {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .filter((row): row is Record<string, unknown> => row != null && typeof row === "object")
+    .map(parseAssetWithLayers);
 }
 
-export function getContractAddress(asset: AssetWithLayers): string {
-  return asset.blockchain?.[0]?.contractAddress ?? "";
-}
-
-export function getChain(asset: AssetWithLayers): string {
-  return asset.blockchain?.[0]?.chain ?? "ethereum";
-}
-
-/** Flat summary for charts / heatmap / related assets. */
 export function toAssetSummary(asset: AssetWithLayers): AssetSummary {
-  const category = normalizeCategory(asset.identity?.category);
-  const yieldPct = asset.yield?.currentYield;
-  const yieldRate =
-    yieldPct != null && Number.isFinite(yieldPct) ? yieldPct / 100 : 0;
-  const change7d = (asset.market?.tvl7dChange ?? 0) / 100;
-
+  const meta = buildMeta(asset.market);
   return {
     id: asset.slug,
     name: asset.identity?.name ?? asset.slug,
     symbol: asset.identity?.symbol ?? "",
-    protocol: getProtocolLabel(asset),
-    category,
-    chain: getChain(asset) as AssetSummary["chain"],
-    tvl: asset.market?.tvl ?? 0,
-    yieldRate,
-    riskScore: normalizeRiskLevel(asset.risk?.overallLevel),
-    change7d,
-    holderCount: asset.market?.holderCount ?? undefined,
-    _meta: buildMeta(asset.market),
+    category: normalizeCategory(asset.identity?.category),
+    tvl: asset.market?.tvl ?? null,
+    yieldRate:
+      asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : null,
+    risk: normalizeRiskLevel(asset.risk?.overallLevel),
+    change7d:
+      asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : null,
+    holderCount: asset.market?.holderCount ?? null,
+    _meta: meta,
   };
-}
-
-export function parseAssetList(rows: unknown[]): AssetWithLayers[] {
-  return rows.map((row) =>
-    parseAssetWithLayers(row as Record<string, unknown>),
-  );
 }
 
 export function toAssetSummaries(assets: AssetWithLayers[]): AssetSummary[] {
