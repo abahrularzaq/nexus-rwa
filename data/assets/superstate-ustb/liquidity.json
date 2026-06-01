@@ -1,1 +1,12 @@
-{}
+{
+  "redemptionType": "USDC redemptions processed immediately when liquidity is available; USD redemptions same day before 1pm ET or T+1 after cutoff",
+  "redemptionPeriodDays": 1,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": null,
+  "dexPairs": [],
+  "onchainLiquidity": null,
+  "bidAskSpread": null,
+  "liquidityScore": 84,
+  "liquidityNotes": "USTB supports USD or USDC redemption with liquidity each market day; score uses the T+1 band conservatively because USD payouts can be T+1 after cutoff and immediate USDC payout is conditional on available liquidity."
+}
