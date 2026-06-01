@@ -1,12 +1,12 @@
 {
-  "redemptionType": null,
-  "redemptionPeriodDays": null,
+  "redemptionType": "T+1",
+  "redemptionPeriodDays": 1,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
-  "minRedemptionAmount": null,
+  "minRedemptionAmount": 100000,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": null
+  "liquidityScore": 78,
+  "liquidityNotes": "OUSG redemptions are processed through issuer-controlled institutional onboarding and treasury settlement infrastructure."
 }
