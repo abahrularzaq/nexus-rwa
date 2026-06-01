@@ -4,7 +4,7 @@
   "collateralizationRatio": null,
   "custodian": "JPMorgan Chase Bank",
   "custodianUrl": "https://www.jpmorganchase.com/",
-  "hasProofOfReserves": null,
+  "hasProofOfReserves": false,
   "porOracleAddress": null,
   "porOracleChain": null,
   "lastAuditDate": "2026-05-21",
