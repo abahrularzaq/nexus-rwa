@@ -1,26 +1,27 @@
 {
-  "issuer": "BlackRock USD Institutional Digital Liquidity Fund Ltd.",
+  "issuerName": "BlackRock USD Institutional Digital Liquidity Fund Ltd.",
+  "issuerType": "Exempt offering issuer; Section 3(c)(7) private fund",
+  "issuerCountry": "British Virgin Islands",
   "fundManager": "BlackRock",
-  "tokenizationProvider": "Securitize",
-  "transferAgent": "Securitize",
-  "administrator": null,
-  "custodian": "BNY Mellon",
-  "auditor": null,
-  "attestationProvider": null,
-  "investorType": "U.S. Qualified Purchaser",
+  "legalStructure": "Exempt offering of securities under Securities Act Rule 506(c); issuer states it is excluded from Investment Company Act registration under Section 3(c)(7).",
   "minimumInvestment": 100000,
-  "managementFee": "0.20-0.50%",
-  "aumUsd": 2415026981,
-  "institutionalScore": null,
-  "notes": "Issuer, exemption, and minimum investment are anchored to SEC Form D. RWA.xyz identifies BlackRock as manager, Securitize as platform, U.S. Qualified Purchaser eligibility, management fee range, and Total Asset Value. Financial Times reports Securitize as transfer agent/tokenization platform/placement agent and BNY Mellon as custodian of T-bills. Auditor, administrator, and attestation provider were not found in public sources listed in source-discovery.md, so they remain null. A secondary WSJ source reports a $5,000,000 minimum for qualified purchasers via Securitize, but this file uses the SEC Form D minimum investment of $100,000 because it is the higher-priority official filing.",
-  "lastUpdated": "2026-06-02",
-  "sources": [
-    "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
-    "https://securitize.io/blackrock/buidl",
-    "https://securitize.io/learn/press/blackrock-launches-first-tokenized-fund-buidl-on-the-ethereum-network",
-    "https://app.rwa.xyz/assets/BUIDL",
-    "https://www.ft.com/content/58e3e9a1-ecf2-4a3a-b301-1cd4e6aeb330",
-    "https://www.wsj.com/livecoverage/fed-meeting-fomc-interest-rate-decision-march-2024/card/blackrock-launches-first-tokenized-fund-on-ethereum-blockchain-nzDSJjH5mEijUzKO24T4"
-  ],
-  "confidence": 0.78
+  "managementFee": 0.2,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": "Securitize",
+  "targetInvestors": "U.S. Qualified Purchasers",
+  "prospectusUrl": null,
+  "metadata": {
+    "tokenizationProvider": "Securitize",
+    "custodian": "BNY Mellon",
+    "aumUsd": 2415026981,
+    "managementFeeRaw": "0.20-0.50%",
+    "managementFeeNote": "Guide requires a number or null; the lower bound of the RWA.xyz reported fee range is stored in managementFee and the raw range is retained here.",
+    "minimumInvestmentConflict": "SEC Form D lists minimum outside investment as 100000 USD; RWA.xyz primary-market terms have been observed with higher minimum investment figures. SEC Form D is retained as the primary legal source for minimumInvestment.",
+    "dataGaps": [
+      "No public prospectus/private placement memorandum URL found.",
+      "No public primary confirmation for fund administrator found.",
+      "No public attestation provider found."
+    ]
+  }
 }
