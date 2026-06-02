@@ -1,0 +1,27 @@
+{
+  "slug": "blackrock-buidl",
+  "grade": "analytics",
+  "score": 81,
+  "completenessScore": 96,
+  "sourceScore": 81,
+  "legalScore": 85,
+  "reserveScore": 65,
+  "liquidityScore": 80,
+  "riskScore": 76,
+  "blockers": [],
+  "warnings": [
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL"
+  ],
+  "baselineDate": "2026-06-02",
+  "status": "analytics-grade baseline",
+  "nextActions": [
+    "Find a public legal opinion, prospectus, private placement memorandum, or equivalent legal document URL if available.",
+    "Find a primary reserve breakdown or official fund reporting source that can support reserve composition fields.",
+    "Confirm whether any public proof-of-reserves or attestation source exists; keep hasProofOfReserves false until explicit evidence is found.",
+    "Find a public audit/report URL or primary auditor confirmation source for the fund.",
+    "Refresh market, AUM, yield, holder count, and liquidity values before production publication."
+  ]
+}
