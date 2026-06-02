@@ -1,0 +1,366 @@
+{
+  "asset": "blackrock-buidl",
+  "lastUpdated": "2026-06-02",
+  "sources": [
+    {
+      "id": "blackrock-official-buidl",
+      "name": "BlackRock BUIDL Official Page",
+      "url": null,
+      "type": "primary",
+      "tier": 1,
+      "layers": ["identity", "institutional", "reserve"],
+      "reliabilityScore": 0,
+      "notes": "No dedicated BlackRock-hosted public BUIDL product page was found in source-discovery.md. Keep url null until a direct BlackRock source is verified."
+    },
+    {
+      "id": "sec-edgar-buidl-form-d",
+      "name": "SEC Form D — BlackRock USD Institutional Digital Liquidity Fund Ltd.",
+      "url": "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["identity", "institutional", "compliance", "risk"],
+      "reliabilityScore": 98,
+      "notes": "Canonical legal and compliance source. Supports issuer legal name, jurisdiction, exempt offering status, Rule 506(c), Investment Company Act Section 3(c)(7), minimum outside investment, and Securitize Markets sales compensation recipient."
+    },
+    {
+      "id": "sec-edgar-buidl-index",
+      "name": "SEC EDGAR Filing Index — CIK 0002013810",
+      "url": "https://www.sec.gov/Archives/edgar/data/2013810/0002014390-24-000001-index.htm",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["identity", "institutional", "compliance"],
+      "reliabilityScore": 96,
+      "notes": "Official filing index and audit trail for the raw Form D filing."
+    },
+    {
+      "id": "securitize-buidl-product",
+      "name": "Securitize Official BUIDL Product Page",
+      "url": "https://securitize.io/blackrock/buidl",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["identity", "institutional", "compliance", "liquidity", "yield"],
+      "reliabilityScore": 92,
+      "notes": "Official product access page for BUIDL through Securitize. Supports product identity, access channel, investor onboarding context, and primary market workflow."
+    },
+    {
+      "id": "securitize-buidl-launch-ethereum",
+      "name": "Securitize Press Release — BUIDL Launch on Ethereum",
+      "url": "https://securitize.io/learn/press/blackrock-launches-first-tokenized-fund-buidl-on-the-ethereum-network",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["identity", "institutional", "reserve", "blockchain", "compliance", "liquidity"],
+      "reliabilityScore": 90,
+      "notes": "Official launch source. Useful for initial Ethereum deployment context, BlackRock-Securitize relationship, and high-level reserve/product description."
+    },
+    {
+      "id": "securitize-buidl-multichain",
+      "name": "Securitize Press Release — BUIDL Share Classes Across Multiple Blockchains",
+      "url": "https://securitize.io/learn/press/blackRock-launches-new-buidl-share-classes-across-multiple-blockchains",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["blockchain", "institutional", "liquidity", "market"],
+      "reliabilityScore": 90,
+      "notes": "Official multichain expansion source. Use to justify checking BUIDL deployments beyond Ethereum."
+    },
+    {
+      "id": "etherscan-buidl-token",
+      "name": "Etherscan — BUIDL Token Contract",
+      "url": "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["blockchain", "market", "liquidity", "risk"],
+      "reliabilityScore": 94,
+      "notes": "Canonical Ethereum explorer page for the original BUIDL token. Supports token address, token standard, verified/proxy status, transfers, supply, and holder count."
+    },
+    {
+      "id": "etherscan-buidl-address",
+      "name": "Etherscan — BUIDL Contract Address Page",
+      "url": "https://etherscan.io/address/0x7712c34205737192402172409a8f7ccef8aa2aec",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["blockchain", "risk"],
+      "reliabilityScore": 94,
+      "notes": "Contract-level source for proxy, ownership, read/write functions, and source-code inspection."
+    },
+    {
+      "id": "etherscan-buidl-i-token",
+      "name": "Etherscan — BUIDL-I Token Contract",
+      "url": "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
+      "type": "primary",
+      "tier": 1,
+      "layers": ["blockchain", "market", "risk"],
+      "reliabilityScore": 94,
+      "notes": "Ethereum explorer source for BUIDL-I. Kept separate from original BUIDL token to avoid merging different share/token classes."
+    },
+    {
+      "id": "rwa-xyz-buidl",
+      "name": "RWA.xyz — BUIDL Asset Page",
+      "url": "https://app.rwa.xyz/assets/BUIDL",
+      "type": "secondary",
+      "tier": 2,
+      "layers": ["identity", "institutional", "reserve", "blockchain", "liquidity", "market", "yield", "risk"],
+      "reliabilityScore": 84,
+      "notes": "Specialized RWA aggregator. Supports AUM/Total Asset Value, NAV-style price, APY, investor type, management fee range, custodian/auditor fields, redemption terms, and multichain token list. Not a legal source of record."
+    },
+    {
+      "id": "defillama-blackrock-buidl",
+      "name": "DeFiLlama — BlackRock BUIDL Protocol Page",
+      "url": "https://defillama.com/protocol/blackrock-buidl",
+      "type": "secondary",
+      "tier": 2,
+      "layers": ["blockchain", "liquidity", "market", "yield", "risk"],
+      "reliabilityScore": 82,
+      "notes": "Market and liquidity aggregator. Supports protocol TVL, chain distribution, 24h volume, CEX/DEX volume, and on-chain liquidity. Values are snapshots and should be refreshed by sync jobs."
+    },
+    {
+      "id": "defillama-buidl-i-asset",
+      "name": "DeFiLlama — BUIDL-I RWA Asset Page",
+      "url": "https://defillama.com/rwa/asset/buidl-i",
+      "type": "secondary",
+      "tier": 2,
+      "layers": ["identity", "market", "yield", "liquidity"],
+      "reliabilityScore": 78,
+      "notes": "Useful only when modeling BUIDL-I separately. Do not merge with original BUIDL unless aggregation rules are explicit."
+    },
+    {
+      "id": "coingecko-buidl",
+      "name": "CoinGecko — BlackRock USD Institutional Digital Liquidity Fund",
+      "url": "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+      "type": "secondary",
+      "tier": 2,
+      "layers": ["market", "liquidity", "blockchain", "risk"],
+      "reliabilityScore": 76,
+      "notes": "Market-data cross-check for price, market cap, supply, volume, token contracts, and low-liquidity warning. Not used for legal/compliance facts."
+    },
+    {
+      "id": "wsj-buidl-launch",
+      "name": "Wall Street Journal — BlackRock Launches First Tokenized Fund",
+      "url": "https://www.wsj.com/livecoverage/fed-meeting-fomc-interest-rate-decision-march-2024/card/blackrock-launches-first-tokenized-fund-on-ethereum-blockchain-nzDSJjH5mEijUzKO24T4",
+      "type": "context",
+      "tier": 3,
+      "layers": ["institutional", "reserve", "market"],
+      "reliabilityScore": 68,
+      "notes": "Used only for contextual reserve and launch details when primary fund documents are not publicly available. Do not use as canonical source when SEC/Securitize/RWA.xyz provide the field."
+    },
+    {
+      "id": "axios-buidl-market-context",
+      "name": "Axios — BlackRock Tokenized Fund Overtakes Franklin Templeton",
+      "url": "https://www.axios.com/2024/05/01/blackrock-tokenized-treasury-fund-franklin-templeton",
+      "type": "context",
+      "tier": 3,
+      "layers": ["market", "institutional"],
+      "reliabilityScore": 62,
+      "notes": "Market adoption and narrative context only. Not used for canonical field values."
+    },
+    {
+      "id": "theblock-buidl-multichain-context",
+      "name": "The Block — BUIDL Multichain Expansion Coverage",
+      "url": "https://www.theblock.co/post/326288/blackrock-buidl-aptos-arbitrum-avalanche-optimism-polygon",
+      "type": "context",
+      "tier": 3,
+      "layers": ["blockchain", "market"],
+      "reliabilityScore": 62,
+      "notes": "Multichain context only. Prefer Securitize multichain press release and official explorers for production data."
+    },
+    {
+      "id": "avalanche-buidl-blog",
+      "name": "Avalanche Official Blog — BUIDL on Avalanche via Securitize",
+      "url": "https://www.avax.network/about/blog/blackrock-launches-digital-liquidity-fund-buidl-on-avalanche-via-securitize",
+      "type": "secondary",
+      "tier": 2,
+      "layers": ["blockchain", "institutional"],
+      "reliabilityScore": 72,
+      "notes": "Official Avalanche ecosystem context for Avalanche deployment. Use only for chain-specific context, not fund legal/compliance data."
+    },
+    {
+      "id": "coindesk-moodys-buidl-context",
+      "name": "CoinDesk — Moody's Awards Top Rating Coverage",
+      "url": "https://www.coindesk.com/markets/2026/05/14/moody-s-awards-top-rating-to-fidelity-and-blackrock-s-tokenized-money-market-funds",
+      "type": "context",
+      "tier": 3,
+      "layers": ["institutional", "reserve", "risk"],
+      "reliabilityScore": 60,
+      "notes": "Context for Moody's assessment only. Use Moody's primary report if accessible before adding rating fields."
+    },
+    {
+      "id": "cranedata-moodys-buidl-context",
+      "name": "Crane Data — Moody's Rates BlackRock BUIDL and Fidelity USD Digital Funds",
+      "url": "https://cranedata.com/archives/all-articles/11348/",
+      "type": "context",
+      "tier": 3,
+      "layers": ["institutional", "reserve", "risk"],
+      "reliabilityScore": 58,
+      "notes": "Money-market industry context for Moody's rating. Not a substitute for Moody's primary report."
+    },
+    {
+      "id": "ft-buidl-context",
+      "name": "Financial Times — BlackRock BUIDL Context",
+      "url": "https://www.ft.com/content/58e3e9a1-ecf2-4a3a-b301-1cd4e6aeb330",
+      "type": "context",
+      "tier": 3,
+      "layers": ["institutional", "reserve", "market"],
+      "reliabilityScore": 70,
+      "notes": "Used for context on Securitize role and BNY Mellon custody where public primary fund documentation was not available. May be paywalled; prefer primary source confirmation if found."
+    }
+  ],
+  "dataGaps": [
+    {
+      "field": "blackrockOfficialProductPage",
+      "layers": ["identity", "institutional", "reserve"],
+      "status": "missing",
+      "notes": "No direct BlackRock-hosted public BUIDL product page was found. Securitize is currently the strongest public product source."
+    },
+    {
+      "field": "docsUrl",
+      "layers": ["identity"],
+      "status": "missing",
+      "notes": "No public prospectus, private placement memorandum, or official fund documentation URL was found."
+    },
+    {
+      "field": "administrator",
+      "layers": ["institutional"],
+      "status": "missing",
+      "notes": "No public source in source-discovery.md confirmed the fund administrator."
+    },
+    {
+      "field": "auditorPrimaryConfirmation",
+      "layers": ["institutional", "reserve"],
+      "status": "partial",
+      "notes": "RWA.xyz lists PricewaterhouseCoopers as auditor, but no primary audit report URL or issuer document confirming auditor was found."
+    },
+    {
+      "field": "attestationProvider",
+      "layers": ["institutional", "reserve"],
+      "status": "missing",
+      "notes": "No public attestation provider source found."
+    },
+    {
+      "field": "amlPolicyUrl",
+      "layers": ["compliance"],
+      "status": "missing",
+      "notes": "No standalone public AML policy URL found from approved sources."
+    },
+    {
+      "field": "sanctionsScreening",
+      "layers": ["compliance"],
+      "status": "missing",
+      "notes": "No explicit public sanctions-screening source found."
+    },
+    {
+      "field": "legalOpinionUrl",
+      "layers": ["compliance"],
+      "status": "missing",
+      "notes": "No public legal opinion URL found."
+    },
+    {
+      "field": "reserveBreakdown",
+      "layers": ["reserve"],
+      "status": "missing",
+      "notes": "No public machine-readable reserve composition or percentage breakdown found."
+    },
+    {
+      "field": "collateralizationRatio",
+      "layers": ["reserve"],
+      "status": "missing",
+      "notes": "No verified collateralization ratio found."
+    },
+    {
+      "field": "proofOfReservesUrl",
+      "layers": ["reserve"],
+      "status": "missing",
+      "notes": "No public proof-of-reserves URL found."
+    },
+    {
+      "field": "lastAuditDate",
+      "layers": ["reserve"],
+      "status": "missing",
+      "notes": "No latest public audit date found."
+    },
+    {
+      "field": "lastAuditUrl",
+      "layers": ["reserve"],
+      "status": "missing",
+      "notes": "No public audit report URL found."
+    },
+    {
+      "field": "smartContractAudits",
+      "layers": ["blockchain", "risk"],
+      "status": "missing",
+      "notes": "No public smart-contract audit report was found in source-discovery.md or explorer audit tabs."
+    },
+    {
+      "field": "deployedAt",
+      "layers": ["blockchain"],
+      "status": "missing",
+      "notes": "Deployment timestamps were not collected from approved public sources for all chains."
+    },
+    {
+      "field": "bidAskSpread",
+      "layers": ["liquidity"],
+      "status": "missing",
+      "notes": "No verified bid-ask spread source found."
+    },
+    {
+      "field": "yieldBenchmark",
+      "layers": ["yield"],
+      "status": "missing",
+      "notes": "No explicit benchmark such as SOFR, Fed Funds, or Treasury bill yield was found in approved sources."
+    },
+    {
+      "field": "yieldFrequency",
+      "layers": ["yield"],
+      "status": "missing",
+      "notes": "No verified public distribution frequency was found."
+    },
+    {
+      "field": "yieldHistoricalMetrics",
+      "layers": ["yield"],
+      "status": "partial",
+      "notes": "RWA.xyz provided 7D and 30D APY snapshots, but 90D, 52-week min/max, standard deviation, and next yield date were not found."
+    }
+  ],
+  "conflictNotes": [
+    {
+      "topic": "minimumInvestment",
+      "sources": [
+        "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
+        "https://app.rwa.xyz/assets/BUIDL",
+        "https://www.wsj.com/livecoverage/fed-meeting-fomc-interest-rate-decision-march-2024/card/blackrock-launches-first-tokenized-fund-on-ethereum-blockchain-nzDSJjH5mEijUzKO24T4"
+      ],
+      "notes": "SEC Form D lists minimum outside investment as 100,000 USD. RWA.xyz/secondary context report higher operational access or qualified-purchaser minimums. Institutional layer uses SEC value for legal minimumInvestment and liquidity layer uses RWA.xyz minimumRedemptionAmount for redemption terms."
+    },
+    {
+      "topic": "aumVsTvl",
+      "sources": [
+        "https://app.rwa.xyz/assets/BUIDL",
+        "https://defillama.com/protocol/blackrock-buidl"
+      ],
+      "notes": "RWA.xyz Total Asset Value/AUM and DeFiLlama protocol TVL are different metrics and must not be summed. Market layer stores both separately as aumUsd and tvl."
+    },
+    {
+      "topic": "buidlVsBuidlI",
+      "sources": [
+        "https://app.rwa.xyz/assets/BUIDL",
+        "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+        "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041"
+      ],
+      "notes": "Original Ethereum BUIDL and Ethereum BUIDL-I are separate token rows/contracts. Supply, holders, and chain metrics should not be merged unless an aggregation rule is explicitly defined."
+    },
+    {
+      "topic": "custodianAndAuditorPrimaryEvidence",
+      "sources": [
+        "https://app.rwa.xyz/assets/BUIDL",
+        "https://www.ft.com/content/58e3e9a1-ecf2-4a3a-b301-1cd4e6aeb330"
+      ],
+      "notes": "RWA.xyz lists Bank of New York Mellon as custodian and PricewaterhouseCoopers as auditor; FT provides context for BNY Mellon custody. Primary issuer/fund documents were not found, so confidence is below Tier 1."
+    },
+    {
+      "topic": "transferRestrictions",
+      "sources": [
+        "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+        "https://securitize.io/blackrock/buidl"
+      ],
+      "notes": "Explorer/source-code references and Securitize access model support transfer-restricted/permissioned treatment, but detailed rule logic should be reviewed at implementation-contract level before final smart-contract risk scoring."
+    }
+  ]
+}
