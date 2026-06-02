@@ -1,0 +1,22 @@
+{
+  "currentYield": 3.4,
+  "yieldType": "distribution",
+  "yieldFrequency": null,
+  "yieldBenchmark": null,
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": 3.4,
+  "yieldAvg30d": 2.49,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "USD",
+  "lastUpdated": "2026-06-02",
+  "sources": [
+    "https://app.rwa.xyz/assets/BUIDL",
+    "https://defillama.com/protocol/blackrock-buidl",
+    "https://securitize.io/blackrock/buidl"
+  ],
+  "confidence": 0.74
+}
