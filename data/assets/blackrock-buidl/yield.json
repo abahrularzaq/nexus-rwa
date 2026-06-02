@@ -11,12 +11,5 @@
   "yieldMax52w": null,
   "yieldStdDev30d": null,
   "nextYieldDate": null,
-  "yieldCurrency": "USD",
-  "lastUpdated": "2026-06-02",
-  "sources": [
-    "https://app.rwa.xyz/assets/BUIDL",
-    "https://defillama.com/protocol/blackrock-buidl",
-    "https://securitize.io/blackrock/buidl"
-  ],
-  "confidence": 0.74
+  "yieldCurrency": "USD"
 }
