@@ -4,11 +4,9 @@
   "lockupPeriodDays": null,
   "earlyRedemptionFee": 0,
   "minRedemptionAmount": 250000,
-  "primaryRedemptionChannel": "Securitize website / Transfer Agent redemption workflow",
-  "secondaryLiquidity": "Limited secondary liquidity. DeFiLlama reports 24h BUIDL volume of $0, CEX volume of $0, DEX volume of $0, and on-chain liquidity of $320,081 on Raydium AMM. CoinGecko also reports $0 24h trading volume and warns that token liquidity is likely to be low.",
   "dexPairs": [
     {
-      "chain": "solana",
+      "chain": "Solana",
       "dex": "Raydium AMM",
       "liquidityUsd": 320081,
       "volume24hUsd": 0,
@@ -18,15 +16,5 @@
   "onchainLiquidity": 320081,
   "bidAskSpread": null,
   "liquidityScore": 70,
-  "liquidityNotes": "BUIDL has daily primary-market redemption through the Securitize / Transfer Agent workflow, with tokens required to be received in the Transfer Agent redemption wallet before 3:00 PM ET and USD redemptions processed through the BUIDL fund. RWA.xyz lists minimum redemption amount as 250,000 USD and redemption fee as 0%. Liquidity score is set at the lower bound of the T+1/daily redemption band because redemption is not permissionless instant liquidity, investor access is restricted to U.S. Qualified Purchasers, transfer/whitelist controls exist, and secondary market liquidity is very limited with $0 reported 24h volume. SEC Form D lists minimum outside investment as 100,000 USD, while RWA.xyz primary-market terms list minimum investment as 5,000,000 USD and minimum redemption as 250,000 USD; this file uses RWA.xyz for operational redemption terms and SEC for legal offering context.",
-  "lastUpdated": "2026-06-02",
-  "sources": [
-    "https://app.rwa.xyz/assets/BUIDL",
-    "https://defillama.com/protocol/blackrock-buidl",
-    "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
-    "https://securitize.io/blackrock/buidl",
-    "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
-    "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec"
-  ],
-  "confidence": 0.76
+  "liquidityNotes": "BUIDL has daily primary-market redemption through the Securitize / Transfer Agent workflow. RWA.xyz lists minimum redemption amount as 250000 USD and redemption fee as 0%. Liquidity score is set at the lower bound of the T+1/daily redemption band because redemption is not permissionless instant liquidity, investor access is restricted to U.S. Qualified Purchasers, transfer/whitelist controls exist, and secondary-market liquidity is limited."
 }
