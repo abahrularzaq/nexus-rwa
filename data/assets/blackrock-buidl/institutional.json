@@ -10,7 +10,7 @@
   "fundAdmin": null,
   "transferAgent": "Securitize",
   "targetInvestors": "U.S. Qualified Purchasers",
-  "prospectusUrl": null,
+  "prospectuUrl": null,
   "metadata": {
     "tokenizationProvider": "Securitize",
     "custodian": "BNY Mellon",
