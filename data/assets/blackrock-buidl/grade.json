@@ -1,0 +1,26 @@
+{
+  "grade": "ANALYTICS",
+  "score": 76,
+  "completenessScore": 82,
+  "sourceScore": 74,
+  "legalScore": 82,
+  "reserveScore": 70,
+  "liquidityScore": 70,
+  "riskScore": 76,
+  "blockers": [
+    "No public BlackRock-hosted BUIDL product page, prospectus, private placement memorandum, or full fund documentation was found in the current source set.",
+    "No public proof-of-reserves URL, reserve attestation cadence, detailed reserve breakdown, collateralization ratio, or latest audit report URL was found.",
+    "No public smart-contract audit report was found for the BUIDL contracts in the approved source set.",
+    "Custodian and auditor fields rely mainly on RWA.xyz and contextual media rather than a primary issuer/fund document."
+  ],
+  "warnings": [
+    "BUIDL has strong issuer and legal signals through SEC Form D, BlackRock association, Securitize infrastructure, and Treasury/cash-equivalent reserve assets, but current public documentation is not sufficient for final institutional-grade classification.",
+    "BUIDL and BUIDL-I are separate token rows/contracts and should not be aggregated without an explicit aggregation rule.",
+    "AUM/Total Asset Value from RWA.xyz and TVL from DeFiLlama are different metrics and must not be summed.",
+    "Secondary market liquidity is limited despite large AUM/TVL; DeFiLlama reported 0 USD 24h volume at the recorded snapshot.",
+    "Transfer restrictions, whitelist controls, and proxy/admin controls require implementation-level review before final smart-contract scoring.",
+    "Minimum investment figures differ by source context: SEC Form D lists 100,000 USD minimum outside investment, while RWA.xyz/secondary context report higher operational access or redemption thresholds."
+  ],
+  "reviewedBy": "ai-assisted",
+  "reviewedAt": "2026-06-02"
+}
