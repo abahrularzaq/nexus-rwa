@@ -1,138 +1,110 @@
-{
-  "chains": [
-    {
-      "chain": "ethereum",
-      "chainId": 1,
-      "contractAddress": "0x7712c34205737192402172409a8f7ccef8aa2aec",
-      "tokenStandard": "ERC-20",
-      "isVerified": true,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
-      "deployedAt": null
-    },
-    {
-      "chain": "ethereum",
-      "chainId": 1,
-      "contractAddress": "0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
-      "tokenStandard": "ERC-20",
-      "isVerified": true,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
-      "deployedAt": null
-    },
-    {
-      "chain": "solana",
-      "chainId": 101,
-      "contractAddress": "GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr",
-      "tokenStandard": "token-2022",
-      "isVerified": null,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://solscan.io/account/GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr",
-      "deployedAt": null
-    },
-    {
-      "chain": "avalanche",
-      "chainId": 43114,
-      "contractAddress": "0x53fc82f14f009009b440a706e31c9021e1196a2f",
-      "tokenStandard": "ERC-20",
-      "isVerified": null,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://snowtrace.io/token/0x53fc82f14f009009b440a706e31c9021e1196a2f?chainid=43114&type=erc20",
-      "deployedAt": null
-    },
-    {
-      "chain": "aptos",
-      "chainId": 1,
-      "contractAddress": "0x50038be55be5b964cfa32cf128b5cf05f123959f286b4cc02b86cafd48945f89",
-      "tokenStandard": "Aptos-FA",
-      "isVerified": null,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://aptoscan.com/fungible-asset/0x50038be55be5b964cfa32cf128b5cf05f123959f286b4cc02b86cafd48945f89",
-      "deployedAt": null
-    },
-    {
-      "chain": "bnb-chain",
-      "chainId": 56,
-      "contractAddress": "0x2d5bdc96d9c8aabbdb38c9a27398513e7e5ef84f",
-      "tokenStandard": "BEP-20",
-      "isVerified": true,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://bscscan.com/token/0x2d5bdc96d9c8aabbdb38c9a27398513e7e5ef84f",
-      "deployedAt": null
-    },
-    {
-      "chain": "optimism",
-      "chainId": 10,
-      "contractAddress": "0xa1cdab15bba75a80df4089cafba013e376957cf5",
-      "tokenStandard": "ERC-20",
-      "isVerified": true,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://optimistic.etherscan.io/token/0xa1cdab15bba75a80df4089cafba013e376957cf5",
-      "deployedAt": null
-    },
-    {
-      "chain": "arbitrum",
-      "chainId": 42161,
-      "contractAddress": "0xa6525ae43edcd03dc08e775774dcabd3bb925872",
-      "tokenStandard": "ERC-20",
-      "isVerified": true,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://arbiscan.io/token/0xa6525ae43edcd03dc08e775774dcabd3bb925872",
-      "deployedAt": null
-    },
-    {
-      "chain": "polygon",
-      "chainId": 137,
-      "contractAddress": "0x2893Ef551B6dD69F661Ac00F11D93E5Dc5Dc0e99",
-      "tokenStandard": "ERC-20",
-      "isVerified": null,
-      "isTransferable": true,
-      "hasWhitelist": true,
-      "hasTransferRestrictions": true,
-      "explorerUrl": "https://polygonscan.com/token/0x2893Ef551B6dD69F661Ac00F11D93E5Dc5Dc0e99",
-      "deployedAt": null
-    }
-  ],
-  "smartContractAudits": [],
-  "adminControls": [
-    "EVM deployments use proxy contracts, including ERC1967Proxy patterns on BUIDL-I and several non-Ethereum deployments.",
-    "Ethereum BUIDL legacy proxy exposes owner, setOwner, target, and setTarget functions on the proxy contract.",
-    "Explorer source code references compliance, whitelist, lock manager, wallet manager, registry, and token service components in the Securitize DS token stack."
-  ],
-  "upgradeability": "Proxy-based upgradeability observed on EVM deployments. Ethereum BUIDL uses a proxy with owner-controlled target updates; BUIDL-I and several non-Ethereum EVM deployments use ERC1967Proxy-style contracts with implementation addresses shown by explorers.",
-  "mintBurnMechanism": "Primary-market workflow indicates the Transfer Agent mints BUIDL tokens to an approved investor wallet after funds are received, and redemption requires tokens to be sent to the Transfer Agent redemption wallet before USD redemption is processed. Public explorer pages show token supply and transfer activity, but role-level mint/burn permissions should be reviewed from the implementation contracts before production scoring.",
-  "notes": "RWA.xyz and CoinGecko show active BUIDL deployments across Ethereum, Solana, Avalanche, Aptos, BNB Chain, Optimism, Arbitrum, and Polygon. RWA.xyz separately lists two Ethereum token rows: the original BUIDL token and BUIDL-I. DeFiLlama confirms TVL across Ethereum, Aptos, Solana, Avalanche, BSC, OP Mainnet, Arbitrum, and Polygon. EVM explorer pages label BUIDL as a Security Token and show proxy source-code pages; Ethereum, BNB Chain, Optimism, and Arbitrum explorer pages were readable and show holder counts, source-code/proxy status, and no submitted contract security audit. Snowtrace and Polygonscan returned access errors through the browsing tool, so their isVerified values are null even though contract URLs were obtained from CoinGecko/RWA.xyz. Solana and Aptos verification semantics differ from EVM source-code verification, so isVerified is null for those chains. Deployed-at timestamps were not collected from accessible source-discovery sources, so deployedAt remains null.",
-  "lastUpdated": "2026-06-02",
-  "sources": [
-    "https://app.rwa.xyz/assets/BUIDL",
-    "https://defillama.com/protocol/blackrock-buidl",
-    "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
-    "https://securitize.io/learn/press/blackRock-launches-new-buidl-share-classes-across-multiple-blockchains",
-    "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
-    "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
-    "https://bscscan.com/token/0x2d5bdc96d9c8aabbdb38c9a27398513e7e5ef84f",
-    "https://optimistic.etherscan.io/token/0xa1cdab15bba75a80df4089cafba013e376957cf5",
-    "https://arbiscan.io/token/0xa6525ae43edcd03dc08e775774dcabd3bb925872",
-    "https://solscan.io/account/GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr",
-    "https://aptoscan.com/fungible-asset/0x50038be55be5b964cfa32cf128b5cf05f123959f286b4cc02b86cafd48945f89",
-    "https://snowtrace.io/token/0x53fc82f14f009009b440a706e31c9021e1196a2f?chainid=43114&type=erc20",
-    "https://polygonscan.com/token/0x2893Ef551B6dD69F661Ac00F11D93E5Dc5Dc0e99"
-  ],
-  "confidence": 0.79
-}
+[
+  {
+    "chain": "Ethereum",
+    "chainId": 1,
+    "contractAddress": "0x7712c34205737192402172409a8f7ccef8aa2aec",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Ethereum",
+    "chainId": 1,
+    "contractAddress": "0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Solana",
+    "chainId": 101,
+    "contractAddress": "GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr",
+    "tokenStandard": "Token-2022",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://solscan.io/account/GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "Avalanche",
+    "chainId": 43114,
+    "contractAddress": "0x53fc82f14f009009b440a706e31c9021e1196a2f",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://snowtrace.io/token/0x53fc82f14f009009b440a706e31c9021e1196a2f?chainid=43114&type=erc20",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "Aptos",
+    "chainId": 1,
+    "contractAddress": "0x50038be55be5b964cfa32cf128b5cf05f123959f286b4cc02b86cafd48945f89",
+    "tokenStandard": "Aptos Fungible Asset",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://aptoscan.com/fungible-asset/0x50038be55be5b964cfa32cf128b5cf05f123959f286b4cc02b86cafd48945f89",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "BNB Chain",
+    "chainId": 56,
+    "contractAddress": "0x2d5bdc96d9c8aabbdb38c9a27398513e7e5ef84f",
+    "tokenStandard": "BEP-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://bscscan.com/token/0x2d5bdc96d9c8aabbdb38c9a27398513e7e5ef84f",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Optimism",
+    "chainId": 10,
+    "contractAddress": "0xa1cdab15bba75a80df4089cafba013e376957cf5",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://optimistic.etherscan.io/token/0xa1cdab15bba75a80df4089cafba013e376957cf5",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Arbitrum",
+    "chainId": 42161,
+    "contractAddress": "0xa6525ae43edcd03dc08e775774dcabd3bb925872",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://arbiscan.io/token/0xa6525ae43edcd03dc08e775774dcabd3bb925872",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Polygon",
+    "chainId": 137,
+    "contractAddress": "0x2893Ef551B6dD69F661Ac00F11D93E5Dc5Dc0e99",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://polygonscan.com/token/0x2893Ef551B6dD69F661Ac00F11D93E5Dc5Dc0e99",
+    "deployedAt": null,
+    "isVerified": false
+  }
+]
