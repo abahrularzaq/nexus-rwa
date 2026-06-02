@@ -1,0 +1,52 @@
+{
+  "overallRiskScore": 76,
+  "smartContractRisk": 62,
+  "reserveRisk": 78,
+  "legalRisk": 82,
+  "marketRisk": 74,
+  "liquidityRisk": 70,
+  "concentrationRisk": 58,
+  "issuerRisk": 88,
+  "riskFactors": [
+    "No public smart-contract audit report was found for BUIDL contracts in the approved source set.",
+    "EVM deployments use proxy-based upgradeability and admin-controlled components, including owner-controlled target updates on the original Ethereum BUIDL proxy.",
+    "Token transfers are permissioned/restricted through whitelist and compliance controls, reducing secondary-market liquidity and increasing operational dependency on Securitize/Transfer Agent infrastructure.",
+    "No public proof-of-reserves URL, attestation cadence, full reserve breakdown, collateralization ratio, or latest audit report URL was found in approved sources.",
+    "Reserve custodian and auditor are supported mainly by RWA.xyz and contextual media rather than a public primary fund document.",
+    "Secondary market liquidity is thin: DeFiLlama reports 24h volume of 0 USD and on-chain liquidity of 320,081 USD on Raydium AMM at the recorded snapshot.",
+    "Ethereum original BUIDL holder count is 109, indicating limited on-chain holder distribution for that contract and potential concentration risk.",
+    "BUIDL and BUIDL-I are separate token rows/contracts; incorrect aggregation can overstate supply, holders, liquidity, or chain coverage."
+  ],
+  "mitigants": [
+    "Issuer identity and offering framework are anchored by SEC Form D, including Rule 506(c) and Investment Company Act Section 3(c)(7).",
+    "Issuer is associated with BlackRock, a large regulated asset manager, and product access is operated through Securitize.",
+    "Underlying reserve asset classes are cash, U.S. Treasury bills, and repurchase agreements, which are short-duration cash-equivalent and sovereign-linked instruments.",
+    "RWA.xyz reports Bank of New York Mellon as custodian and PricewaterhouseCoopers as auditor, although primary confirmation is still needed.",
+    "BUIDL has daily primary-market redemption through Securitize / Transfer Agent workflow, with 0% redemption fee and USD redemption processing through the fund according to the liquidity layer.",
+    "Multichain deployment across Ethereum, Solana, Avalanche, Aptos, BNB Chain, Optimism, Arbitrum, and Polygon reduces single-chain availability dependency, although operational controls remain permissioned.",
+    "Original Ethereum BUIDL and BUIDL-I contracts are verified on Etherscan, and several EVM deployments have readable explorer pages."
+  ],
+  "redFlags": [
+    "No BlackRock-hosted public BUIDL product page, prospectus, private placement memorandum, or full fund documentation was found in the current source-discovery set.",
+    "No public proof-of-reserves or detailed holdings breakdown was found.",
+    "No public smart-contract audit report was found.",
+    "Transfer restrictions, whitelist controls, and proxy/admin controls require deeper implementation-level review before final production smart-contract scoring.",
+    "Public secondary liquidity is very limited despite large AUM/TVL figures.",
+    "Custodian and auditor fields need primary-source confirmation before institutional-grade finalization."
+  ],
+  "analystNotes": "Scores are evidence-weighted quality scores where higher means lower observed risk / stronger mitigants. BUIDL receives strong issuer and legal scores due to SEC Form D, BlackRock association, Securitize infrastructure, and Treasury/cash-equivalent reserve profile. Scores are capped by missing primary fund documentation, lack of public proof-of-reserves or reserve breakdown, no public smart-contract audit report, proxy/admin controls, whitelist-based transfer restrictions, thin secondary liquidity, and low Ethereum original holder count. Do not treat TVL/AUM as liquidity; market size is large but secondary tradability is limited. Final production scoring should be revisited after primary fund documents, audit reports, attestation details, and implementation-level contract permissions are verified.",
+  "lastUpdated": "2026-06-02",
+  "sources": [
+    "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
+    "https://securitize.io/blackrock/buidl",
+    "https://securitize.io/learn/press/blackrock-launches-first-tokenized-fund-buidl-on-the-ethereum-network",
+    "https://securitize.io/learn/press/blackRock-launches-new-buidl-share-classes-across-multiple-blockchains",
+    "https://app.rwa.xyz/assets/BUIDL",
+    "https://defillama.com/protocol/blackrock-buidl",
+    "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+    "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+    "https://etherscan.io/address/0x7712c34205737192402172409a8f7ccef8aa2aec",
+    "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041"
+  ],
+  "confidence": 0.76
+}
