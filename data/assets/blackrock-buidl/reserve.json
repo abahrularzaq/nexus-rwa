@@ -1,29 +1,15 @@
 {
-  "backingType": "Cash, U.S. Treasury bills, and repurchase agreements",
-  "backingDescription": "BlackRock BUIDL is reported to invest all of its assets in cash, U.S. Treasury bills, and repurchase agreements, with the product categorized as U.S. Treasury Debt on RWA.xyz.",
+  "backingType": "U.S. Treasury Debt",
+  "backingDescription": "BUIDL is reported to invest in cash, U.S. Treasury bills, and repurchase agreements, and is categorized by RWA.xyz as U.S. Treasury Debt.",
   "collateralizationRatio": null,
-  "reserveAssets": [
-    "Cash",
-    "U.S. Treasury bills",
-    "Repurchase agreements"
-  ],
   "custodian": "Bank of New York Mellon",
-  "hasProofOfReserves": null,
-  "proofOfReservesUrl": null,
-  "attestationFrequency": null,
-  "auditor": "PricewaterhouseCoopers",
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
   "lastAuditDate": null,
   "lastAuditUrl": null,
-  "reserveBreakdown": {},
-  "redemptionAsset": "USD",
-  "notes": "Reserve asset types are sourced from the WSJ launch coverage listed in source-discovery.md and cross-checked against RWA.xyz asset class classification. RWA.xyz lists Bank of New York Mellon as custodian and PricewaterhouseCoopers as auditor. No public primary source in source-discovery.md provides exact reserve percentages, collateralization ratio, proof-of-reserves URL, attestation cadence, latest audit report URL, or last audit date; those fields remain null or empty. RWA.xyz primary-market text states USD redemptions are processed through the BUIDL fund; USD is therefore used as redemptionAsset.",
-  "lastUpdated": "2026-06-02",
-  "sources": [
-    "https://www.wsj.com/livecoverage/fed-meeting-fomc-interest-rate-decision-march-2024/card/blackrock-launches-first-tokenized-fund-on-ethereum-blockchain-nzDSJjH5mEijUzKO24T4",
-    "https://app.rwa.xyz/assets/BUIDL",
-    "https://securitize.io/blackrock/buidl",
-    "https://securitize.io/learn/press/blackrock-launches-first-tokenized-fund-buidl-on-the-ethereum-network",
-    "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml"
-  ],
-  "confidence": 0.72
+  "auditor": "PricewaterhouseCoopers",
+  "reserveBreakdown": null,
+  "redemptionAsset": "USD"
 }
