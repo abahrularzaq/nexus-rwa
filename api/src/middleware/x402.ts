@@ -171,7 +171,11 @@ function tierPayload(config: EndpointAccessConfig) {
   if (config.tier === 'free') return null;
   return {
     tier: config.tier,
+    label: config.label,
     price: config.priceEth,
+    priceEth: config.priceEth,
+    priceUsd: config.priceUsd,
+    displayPrice: config.displayPrice,
     duration: config.duration,
   };
 }
@@ -185,6 +189,15 @@ function paymentRequiredJson(path: string, config: EndpointAccessConfig) {
     x402Version: 1,
     error: 'Payment required',
     ...(tierInfo ? { tier: tierInfo } : {}),
+    pricing: {
+      tier: config.tier,
+      label: config.label,
+      displayPrice: config.displayPrice,
+      priceUsd: config.priceUsd,
+      priceEth: config.priceEth,
+      duration: config.duration || undefined,
+      description: config.description,
+    },
     x402: {
       price: config.priceEth,
       currency: 'ETH',
@@ -209,7 +222,10 @@ function paymentRequiredJson(path: string, config: EndpointAccessConfig) {
           name: 'USD Coin',
           version: '2',
           tier: config.tier,
+          label: config.label,
           priceEth: config.priceEth,
+          priceUsd: config.priceUsd,
+          displayPrice: config.displayPrice,
           duration: config.duration,
         },
       },
@@ -425,14 +441,5 @@ export function createGatedTxPaymentMiddleware(): MiddlewareHandler {
 export function createFreePassMiddleware(): MiddlewareHandler {
   return async (_c: Context, next) => {
     await next();
-  };
-}
-
-export function getX402Config() {
-  return {
-    receivingAddress: getReceivingAddress(),
-    network: getX402Network(),
-    usdcAddress: getUsdcAddress(),
-    tiers: TIER_PLANS,
   };
 }

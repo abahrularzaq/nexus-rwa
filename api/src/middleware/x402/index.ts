@@ -4,7 +4,6 @@ export {
   createFreePassMiddleware,
   createGatedTxPaymentMiddleware,
   createNexusX402Middleware,
-  getX402Config,
   getX402Network,
   verifyPayment,
   type VerifyPaymentResult,
@@ -13,6 +12,7 @@ export {
 export {
   ENDPOINT_PRICING,
   ENDPOINT_TIERS,
+  PRODUCT_PRICING,
   TIER_PLANS,
   getEndpointAccessConfig,
   getEndpointPrice,
