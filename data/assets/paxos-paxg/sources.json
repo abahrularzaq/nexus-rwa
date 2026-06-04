@@ -1,1 +1,647 @@
-[]
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Pax Gold",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Paxos PAXG product page supports product name and positioning."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "PAXG",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official product page and Paxos documentation use PAXG as the asset symbol."
+  },
+  {
+    "layer": "identity",
+    "field": "fullName",
+    "value": "Pax Gold",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Paxos product name."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "Pax Gold (PAXG) is a Paxos-issued digital asset backed by one fine troy ounce of London Good Delivery gold.",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official product page describes PAXG as allocated gold ownership using London Good Delivery gold."
+  },
+  {
+    "layer": "identity",
+    "field": "category",
+    "value": "Commodities",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Category is derived from official gold-backed product disclosure; PAXG is not a Treasury, credit, or fund product."
+  },
+  {
+    "layer": "identity",
+    "field": "subcategory",
+    "value": "Tokenized Gold",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Subtype based on official gold-backed token description."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://www.paxos.com/pax-gold",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official PAXG product page."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.paxos.com/guides/dashboard/paxg",
+    "sourceUrl": "https://docs.paxos.com/guides/dashboard/paxg",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official Paxos documentation for PAXG dashboard/account flows."
+  },
+  {
+    "layer": "identity",
+    "field": "twitterUrl",
+    "value": "https://x.com/Paxos",
+    "sourceUrl": "https://www.paxos.com/company",
+    "sourceType": "official_website",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Official Paxos social profile reference."
+  },
+  {
+    "layer": "identity",
+    "field": "tags",
+    "value": [
+      "institutional",
+      "retail",
+      "kyc-required",
+      "audited"
+    ],
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Tags reflect Paxos product positioning, verified-customer direct access, and available attestations."
+  },
+  {
+    "layer": "identity",
+    "field": "launchDate",
+    "value": "2019-09-05",
+    "sourceUrl": "https://www.dfs.ny.gov/reports_and_publications/press_releases/pr1909051",
+    "sourceType": "regulator_press_release",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "NYDFS announced authorization for Paxos to offer PAX Gold on September 5, 2019."
+  },
+  {
+    "layer": "blockchain",
+    "field": "chain",
+    "value": "Ethereum",
+    "sourceUrl": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceType": "block_explorer",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Etherscan token tracker confirms Ethereum mainnet token."
+  },
+  {
+    "layer": "blockchain",
+    "field": "chainId",
+    "value": 1,
+    "sourceUrl": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceType": "block_explorer",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Ethereum mainnet chain ID."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x45804880De22913dAFE09f4980848ECE6EcbAf78",
+    "sourceUrl": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceType": "block_explorer",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Etherscan verified contract/token address for PAXG."
+  },
+  {
+    "layer": "blockchain",
+    "field": "tokenStandard",
+    "value": "ERC-20",
+    "sourceUrl": "https://www.paxos.com/newsroom/paxos-launches-pax-gold-physical-gold-on-the-blockchain",
+    "sourceType": "official_announcement",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Paxos launch announcement describes PAXG as an ERC-20 token."
+  },
+  {
+    "layer": "blockchain",
+    "field": "isTransferable",
+    "value": true,
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "PAXG Terms describe transfers and user holding/transfer mechanics."
+  },
+  {
+    "layer": "blockchain",
+    "field": "hasTransferRestrictions",
+    "value": true,
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "PAXG Terms state Paxos may freeze, upgrade, or restrict PAXG as required by law or legal directives."
+  },
+  {
+    "layer": "blockchain",
+    "field": "explorerUrl",
+    "value": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceUrl": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceType": "block_explorer",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Etherscan contract page."
+  },
+  {
+    "layer": "blockchain",
+    "field": "isVerified",
+    "value": true,
+    "sourceUrl": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78#code",
+    "sourceType": "block_explorer",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Etherscan code tab indicates source-code verification status."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "Commodity",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAXG is backed by physical gold."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "PAXG is backed by allocated London Good Delivery gold and represents ownership of one fine troy ounce per token.",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official product page and legal terms support one fine troy ounce backing."
+  },
+  {
+    "layer": "reserve",
+    "field": "collateralizationRatio",
+    "value": 1,
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Derived from official one PAXG equals one fine troy ounce of London Good Delivery gold disclosure."
+  },
+  {
+    "layer": "reserve",
+    "field": "custodian",
+    "value": "Paxos Trust",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAXG Terms state gold bars are held by Paxos Trust on a segregated basis for PAXG holders."
+  },
+  {
+    "layer": "reserve",
+    "field": "custodianUrl",
+    "value": "https://www.paxos.com/pax-gold",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official product page for custody/backing context."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": false,
+    "sourceUrl": "https://www.paxos.com/paxg-transparency",
+    "sourceType": "official_transparency_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Paxos provides attestations/transparency reports; no explicit on-chain proof-of-reserves oracle was identified."
+  },
+  {
+    "layer": "reserve",
+    "field": "lastAuditUrl",
+    "value": "https://www.paxos.com/paxg-transparency",
+    "sourceUrl": "https://www.paxos.com/paxg-transparency",
+    "sourceType": "official_transparency_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Paxos transparency page for PAXG attestation reports."
+  },
+  {
+    "layer": "reserve",
+    "field": "auditor",
+    "value": "KPMG LLP",
+    "sourceUrl": "https://www.paxos.com/paxg-transparency",
+    "sourceType": "official_transparency_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAXG transparency/attestation materials identify KPMG LLP as attestation provider."
+  },
+  {
+    "layer": "reserve",
+    "field": "reserveBreakdown",
+    "value": {
+      "London Good Delivery allocated gold": 100
+    },
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Reserve composition represented as 100% allocated London Good Delivery gold based on official product/legal disclosure."
+  },
+  {
+    "layer": "reserve",
+    "field": "redemptionAsset",
+    "value": [
+      "USD",
+      "Unallocated Gold",
+      "Allocated Gold"
+    ],
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAXG Terms describe conversion/redemption options into USD, unallocated gold, and allocated physical gold."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Paxos Trust Company, N.A.",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAXG Terms identify Paxos Trust Company, N.A. as manager/issuer entity for PAXG."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerType",
+    "value": "OCC-regulated national trust bank / trust company",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/general-terms-and-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Paxos General Terms identify Paxos Trust Company, N.A. as a national banking association regulated by the OCC."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerCountry",
+    "value": "United States",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/general-terms-and-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Paxos Trust Company, N.A. is a U.S. national banking association."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Gold-denominated and gold-backed token managed by Paxos Trust Company, N.A.; PAXG represents fractional ownership of London Good Delivery gold bars held by Paxos Trust on a segregated basis for the benefit of PAXG holders.",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official PAXG Terms define ownership and custody structure."
+  },
+  {
+    "layer": "institutional",
+    "field": "targetInvestors",
+    "value": "Registered Paxos customers and institutional investors; PAXG is also available through supported secondary-market venues and crypto ecosystem platforms, subject to jurisdictional restrictions.",
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Paxos product page references institutional use cases and broader exchange availability; direct Paxos access is customer-account based."
+  },
+  {
+    "layer": "institutional",
+    "field": "prospectuUrl",
+    "value": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official PAX Gold Terms and Conditions used as primary legal document; this is not a fund prospectus."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.legalDocumentLastModified",
+    "value": "2025-12-12",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAX Gold Terms page states last modified date."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.minimumPurchaseReference",
+    "value": {
+      "amount": 0.01,
+      "unit": "fine troy ounce / PAXG",
+      "approximateUsd": "~20"
+    },
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Kept in metadata because top-level minimumInvestment unit is ambiguous."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.regulatoryContext.nydfsAuthorization",
+    "value": "NYDFS authorized Paxos Trust Company LLC to offer PAX Gold in 2019.",
+    "sourceUrl": "https://www.dfs.ny.gov/reports_and_publications/press_releases/pr1909051",
+    "sourceType": "regulator_press_release",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "NYDFS authorization at launch."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.regulatoryContext.occStatus",
+    "value": "OCC conditionally approved Paxos Trust Company, National Association conversion from state trust company to national trust bank in 2025.",
+    "sourceUrl": "https://www.occ.gov/news-issuances/news-releases/2025/nr-occ-2025-125.html",
+    "sourceType": "regulator_press_release",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "OCC announcement provides current federal trust-bank context."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryStatus",
+    "value": "Authorized gold-backed virtual currency / gold-backed digital asset issued by Paxos Trust Company, N.A.; originally authorized by NYDFS for Paxos Trust Company LLC and later supported by OCC conditional approval for Paxos Trust Company, National Association.",
+    "sourceUrl": "https://www.dfs.ny.gov/reports_and_publications/press_releases/pr1909051",
+    "sourceType": "regulator_press_release",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "NYDFS source supports original PAXG authorization; OCC source supports current Paxos Trust Company, N.A. regulatory context."
+  },
+  {
+    "layer": "compliance",
+    "field": "primaryRegulator",
+    "value": "Office of the Comptroller of the Currency (OCC); New York State Department of Financial Services (NYDFS) authorization at launch",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/general-terms-and-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Paxos General Terms identify OCC regulation; NYDFS authorization remains important launch/regulatory context."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryFramework",
+    "value": "OCC-regulated national trust bank framework; NYDFS virtual currency / limited purpose trust company authorization; Paxos AML/KYC program; OFAC sanctions screening; customer identification program",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/aml-kyc",
+    "sourceType": "official_compliance_disclosure",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "AML/KYC disclosure supports compliance program details; regulator sources support trust/virtual-currency context."
+  },
+  {
+    "layer": "compliance",
+    "field": "kycRequired",
+    "value": true,
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Direct purchase, redemption, or conversion through Paxos requires verified customer status."
+  },
+  {
+    "layer": "compliance",
+    "field": "accreditedOnly",
+    "value": false,
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "No reviewed official source states PAXG is accredited-investor-only; direct Paxos access still requires verification."
+  },
+  {
+    "layer": "compliance",
+    "field": "sanctionsScreening",
+    "value": true,
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/aml-kyc",
+    "sourceType": "official_compliance_disclosure",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "AML/KYC disclosure describes OFAC and government watchlist screening."
+  },
+  {
+    "layer": "compliance",
+    "field": "amlPolicy",
+    "value": "Paxos maintains an AML/KYC program with internal controls, independent AML testing, a designated compliance officer, employee AML training, customer identification procedures, OFAC and government watchlist screening, identity verification, beneficial-owner checks for institutions, customer due diligence, and transaction monitoring.",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/aml-kyc",
+    "sourceType": "official_compliance_disclosure",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Summary of Paxos AML/KYC disclosure."
+  },
+  {
+    "layer": "compliance",
+    "field": "lastComplianceCheck",
+    "value": "2026-06-04",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/aml-kyc",
+    "sourceType": "internal_analysis",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Analyst timestamp for Nexus RWA compliance layer review."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": 2050736907,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "CoinGecko displayed TVL attributed to DeFiLlama; do not treat as official reserve AUM."
+  },
+  {
+    "layer": "market",
+    "field": "price",
+    "value": 4452.1,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive market price captured on layer lastUpdated date."
+  },
+  {
+    "layer": "market",
+    "field": "priceChange24h",
+    "value": 0.3,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive 24h price change from CoinGecko."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": 2052982755,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Aggregator market cap, not official reserve AUM."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": 182200945,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "24h trading volume from CoinGecko."
+  },
+  {
+    "layer": "market",
+    "field": "circulatingSupply",
+    "value": 460964,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Circulating supply from CoinGecko."
+  },
+  {
+    "layer": "market",
+    "field": "totalSupply",
+    "value": 460964.775,
+    "sourceUrl": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Ethereum token supply from Etherscan."
+  },
+  {
+    "layer": "market",
+    "field": "holderCount",
+    "value": 89683,
+    "sourceUrl": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Ethereum-specific holder count from Etherscan."
+  },
+  {
+    "layer": "market",
+    "field": "lastUpdated",
+    "value": "2026-06-04",
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "internal_analysis",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Market-data capture date for Nexus RWA layer."
+  },
+  {
+    "layer": "market",
+    "field": "confidence",
+    "value": "MEDIUM",
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "internal_analysis",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Market values are mostly aggregator-derived and time-sensitive; totalSupply and holderCount are stronger explorer-derived values."
+  },
+  {
+    "layer": "yield",
+    "field": "currentYield",
+    "value": null,
+    "sourceUrl": "https://www.paxos.com/pax-gold",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "PAXG is a tokenized physical gold asset and does not provide native yield."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "Account-based redemption through Paxos for USD, unallocated gold, or allocated physical London Good Delivery gold; secondary-market liquidity available through supported centralized and decentralized markets.",
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "PAXG Terms describe Paxos account-based conversion and redemption pathways."
+  },
+  {
+    "layer": "liquidity",
+    "field": "minRedemptionAmount",
+    "value": 430,
+    "sourceUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+    "sourceType": "official_legal_terms",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Allocated physical gold redemption requires 430 PAXG plus applicable fees per London Good Delivery gold bar."
+  },
+  {
+    "layer": "liquidity",
+    "field": "bidAskSpread",
+    "value": 0.01,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Representative spread from CoinGecko market table; time-sensitive and exchange-specific."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityScore",
+    "value": 82,
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "internal_analysis",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Analyst score reflecting strong secondary-market availability but account-based redemption and high allocated-gold physical redemption minimum."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityNotes",
+    "value": "PAXG has strong secondary-market liquidity across major centralized exchanges and on-chain transferability. CoinGecko tracks PAXG across 77 exchanges and 144 markets. Physical allocated-gold redemption has a high minimum and direct Paxos redemption requires an account.",
+    "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Liquidity note combines CoinGecko market availability with Paxos legal redemption terms."
+  }
+]
