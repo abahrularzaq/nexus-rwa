@@ -7,14 +7,16 @@ function normalizeWallet(header: string | undefined): string | null {
   return raw && raw.length > 0 ? raw : null;
 }
 
-/** Effective API tier: endpoint requirement, payment header, or wallet session. */
+/**
+ * Resolve the effective API tier for a request.
+ *
+ * IMPORTANT: Do not trust client-provided X-Payment-Tier headers.
+ * Premium access must come from a verified wallet session, verified payment,
+ * API key entitlement, or another server-side authorization source.
+ */
 export async function resolveRequestTier(c: Context): Promise<AccessTier> {
-  const headerTier = c.req.header('X-Payment-Tier')?.trim().toLowerCase();
-  if (headerTier === 'enterprise' || headerTier === 'pro' || headerTier === 'free') {
-    return headerTier;
-  }
-
   const wallet = normalizeWallet(c.req.header('X-Wallet-Address'));
+
   if (wallet) {
     const session = await getActiveSession(wallet);
     if (session?.tier === 'enterprise') return 'enterprise';
