@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { FieldInfo } from "@/components/common/FieldInfo";
 import type { FieldKey } from "@/lib/field-definitions";
 
@@ -69,7 +70,7 @@ export function MetricField({
 }
 
 type MetricGridProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   columns?: 1 | 2 | 3 | 4;
   className?: string;
 };
@@ -88,13 +89,19 @@ export function MetricGrid({ children, columns = 3, className = "" }: MetricGrid
 type MetricSectionProps = {
   title: string;
   description?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 };
 
 export function MetricSection({ title, description, children, className = "" }: MetricSectionProps) {
   return (
-    <section className={`rounded-2xl p-5 ${className}`} style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+    <section
+      className={`rounded-2xl p-5 ${className}`}
+      style={{
+        background: "rgba(15,22,41,0.62)",
+        border: "1px solid var(--border-line)",
+      }}
+    >
       <div className="mb-4">
         <h3 className="text-lg font-bold text-white">{title}</h3>
         {description ? (
