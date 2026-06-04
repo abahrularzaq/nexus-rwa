@@ -4,6 +4,7 @@ import type { ApiErrorResponse, ApiSuccessResponse } from '../shared/index.js';
 import { createMeta, ERROR_CODES, paginate } from '../shared/index.js';
 import { createNexusX402Middleware } from '../middleware/x402/index.js';
 import { resolveRequestTier } from '../lib/request-tier.js';
+import { getAssetInsightById } from '../lib/aiInsights.js';
 import { getAssetsSchema, getAssetSlugSchema, getHistorySchema } from '../validators/asset.validator.js';
 import {
   AppError,
@@ -80,14 +81,13 @@ async function getAssetListHandler(c: Context) {
 
   try {
     const tier = await resolveRequestTier(c);
-    const listTier = tier === 'enterprise' ? 'enterprise' : 'pro';
     const offset = (parsed.data.page - 1) * parsed.data.limit;
     const { data, cached } = await getAssetList({
       category: parsed.data.category,
       search: parsed.data.search,
       limit: parsed.data.limit,
       offset,
-      tier: listTier,
+      tier,
     });
     const total = await getAssetRepository().countActive(parsed.data.category);
     const maxVersion = data.reduce(
@@ -226,6 +226,98 @@ async function getAssetHistoryHandler(c: Context) {
   }
 }
 
+/** GET /:slug/risk — PRO gated risk breakdown */
+async function getAssetRiskHandler(c: Context) {
+  const parsed = getAssetSlugSchema.safeParse({ slug: c.req.param('slug') });
+  if (!parsed.success) {
+    return c.json(
+      err(ERROR_CODES.INVALID_PARAMS, 'Parameter slug tidak valid', {
+        issues: parsed.error.flatten(),
+      }),
+      400,
+    );
+  }
+
+  try {
+    const asset = await getAssetRepository().findBySlug(parsed.data.slug, ['risk', 'grade']);
+    if (!asset) {
+      return c.json(err(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan'), 404);
+    }
+
+    setDataVersionHeader(c, asset.dataVersion);
+    return c.json(ok({ risk: asset.risk ?? null, grade: asset.grade ?? null }, false));
+  } catch (e: unknown) {
+    return c.json(
+      err(
+        ERROR_CODES.INTERNAL_ERROR,
+        e instanceof Error ? e.message : 'Terjadi kesalahan internal',
+      ),
+      500,
+    );
+  }
+}
+
+/** GET /:slug/sources — PRO gated field-level source trail */
+async function getAssetSourcesHandler(c: Context) {
+  const parsed = getAssetSlugSchema.safeParse({ slug: c.req.param('slug') });
+  if (!parsed.success) {
+    return c.json(
+      err(ERROR_CODES.INVALID_PARAMS, 'Parameter slug tidak valid', {
+        issues: parsed.error.flatten(),
+      }),
+      400,
+    );
+  }
+
+  try {
+    const asset = await getAssetRepository().findBySlug(parsed.data.slug, ['sources']);
+    if (!asset) {
+      return c.json(err(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan'), 404);
+    }
+
+    setDataVersionHeader(c, asset.dataVersion);
+    return c.json(ok(asset.sources ?? [], false));
+  } catch (e: unknown) {
+    return c.json(
+      err(
+        ERROR_CODES.INTERNAL_ERROR,
+        e instanceof Error ? e.message : 'Terjadi kesalahan internal',
+      ),
+      500,
+    );
+  }
+}
+
+/** GET /:slug/insight — PRO gated AI-generated asset insight */
+async function getAssetInsightHandler(c: Context) {
+  const parsed = getAssetSlugSchema.safeParse({ slug: c.req.param('slug') });
+  if (!parsed.success) {
+    return c.json(
+      err(ERROR_CODES.INVALID_PARAMS, 'Parameter slug tidak valid', {
+        issues: parsed.error.flatten(),
+      }),
+      400,
+    );
+  }
+
+  try {
+    const { insight, cached } = await getAssetInsightById(parsed.data.slug);
+    c.header('X-Cache', cached ? 'HIT' : 'MISS');
+    return c.json(ok(insight, cached));
+  } catch (e: unknown) {
+    if (e instanceof NotFoundError || e instanceof AppError) {
+      return c.json(err(e.code, e.message), appErrorStatus(e.code));
+    }
+    return c.json(
+      err(
+        ERROR_CODES.INTERNAL_ERROR,
+        e instanceof Error ? e.message : 'Terjadi kesalahan internal',
+      ),
+      500,
+    );
+  }
+}
+
 /** GET /:slug/events — FREE */
 async function getAssetEventsHandler(c: Context) {
   const parsed = getAssetSlugSchema.safeParse({ slug: c.req.param('slug') });
@@ -260,5 +352,8 @@ async function getAssetEventsHandler(c: Context) {
 assetsRouter.get('/', (c, next) => getX402Middleware()(c, next), getAssetListHandler);
 assetsRouter.get('/:slug/full', (c, next) => getX402Middleware()(c, next), getAssetDetailProHandler);
 assetsRouter.get('/:slug/history', (c, next) => getX402Middleware()(c, next), getAssetHistoryHandler);
+assetsRouter.get('/:slug/risk', (c, next) => getX402Middleware()(c, next), getAssetRiskHandler);
+assetsRouter.get('/:slug/sources', (c, next) => getX402Middleware()(c, next), getAssetSourcesHandler);
+assetsRouter.get('/:slug/insight', (c, next) => getX402Middleware()(c, next), getAssetInsightHandler);
 assetsRouter.get('/:slug/events', getAssetEventsHandler);
 assetsRouter.get('/:slug', (c, next) => getX402Middleware()(c, next), getAssetDetailFreeHandler);

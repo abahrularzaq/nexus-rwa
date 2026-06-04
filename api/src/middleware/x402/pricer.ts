@@ -21,6 +21,7 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   'history',
   'events',
   'full',
+  'sources',
   'insight',
   'admin',
   'ask',
@@ -74,6 +75,7 @@ export const ENDPOINT_TIERS: Readonly<Record<string, AccessTier>> = {
   'GET:/v1/assets/:id/full': 'pro',
   'GET:/v1/assets/:id/history': 'pro',
   'GET:/v1/assets/:id/risk': 'pro',
+  'GET:/v1/assets/:id/sources': 'pro',
   'GET:/v1/assets/:id/holders': 'pro',
   'GET:/v1/assets/:id/insight': 'pro',
   'GET:/v1/analytics/bulk': 'enterprise',
@@ -150,6 +152,11 @@ export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>>
   'GET:/v1/assets/:id/risk': {
     price: '$0.001',
     description: 'Risk scoring, factor breakdown, and category benchmark (Pro).',
+    isFree: false,
+  },
+  'GET:/v1/assets/:id/sources': {
+    price: '$0.001',
+    description: 'Field-level source trail and reliability metadata (Pro).',
     isFree: false,
   },
   'GET:/v1/assets/:id/insight': {
