@@ -4,6 +4,7 @@ import { Ticker } from "@/components/landing/Ticker";
 import { MetricsBar } from "@/components/landing/MetricsBar";
 import { AssetsTable } from "@/components/landing/AssetsTable";
 import { DashboardPreview } from "@/components/landing/DashboardPreview";
+import { AssetDetailMetricsPreview } from "@/components/landing/AssetDetailMetricsPreview";
 import { X402Section } from "@/components/landing/X402Section";
 import { ApiFeatures } from "@/components/landing/ApiFeatures";
 import { Pricing } from "@/components/landing/Pricing";
@@ -24,6 +25,7 @@ export default function HomePage() {
         <MetricsBar />
         <AssetsTable />
         <DashboardPreview />
+        <AssetDetailMetricsPreview />
         <X402Section />
         <ApiFeatures />
         <Pricing />
