@@ -48,7 +48,7 @@ export default function MarketPage() {
 
   const totalTvl = assets.reduce((sum, asset) => sum + (asset.tvl ?? 0), 0);
   const totalHolders = assets.reduce(
-    (sum, asset) => sum + (asset.holders ?? 0),
+    (sum, asset) => sum + (asset.holderCount ?? 0),
     0,
   );
   const avgYield =
@@ -238,7 +238,7 @@ function MarketTableRow({
         {formatYield(asset.yieldRate * 100)}
       </td>
       <td className="px-4 py-3 text-right font-mono tabular-nums text-white">
-        {(asset.holders ?? 0).toLocaleString("en-US")}
+        {(asset.holderCount ?? 0).toLocaleString("en-US")}
       </td>
       <td className="px-4 py-3">
         <RiskBadge level={toBadgeLevel(String(asset.riskScore))} showDot />
