@@ -4,39 +4,55 @@ import { useState } from "react";
 import { FadeUp } from "@/components/landing/primitives";
 
 const endpoints = [
-  { method: "GET", path: "/v1/market/overview", price: "FREE" },
-  { method: "GET", path: "/v1/assets", price: "$0.0005" },
-  { method: "GET", path: "/v1/assets/:id", price: "$0.001" },
-  { method: "GET", path: "/v1/assets/:id/yield", price: "$0.005" },
-  { method: "GET", path: "/v1/assets/:id/holders", price: "$0.005" },
-  { method: "GET", path: "/v1/assets/:id/risk", price: "Free" },
-  { method: "GET", path: "/v1/search", price: "$0.001" },
+  { method: "GET", path: "/v1/market/overview", price: "Free", tier: "Public" },
+  { method: "GET", path: "/v1/assets", price: "Free", tier: "Public" },
+  { method: "GET", path: "/v1/assets/:slug", price: "Free", tier: "Public" },
+  { method: "GET", path: "/v1/assets/:slug/events", price: "Free", tier: "Public" },
+  { method: "GET", path: "/v1/assets/:slug/full", price: "$3 / 24h", tier: "Pro" },
+  { method: "GET", path: "/v1/assets/:slug/risk", price: "$3 / 24h", tier: "Pro" },
+  { method: "GET", path: "/v1/assets/:slug/sources", price: "$3 / 24h", tier: "Pro" },
+  { method: "GET", path: "/v1/assets/:slug/insight", price: "$3 / 24h", tier: "Pro" },
+  { method: "GET", path: "/v1/export", price: "$29 / 7d", tier: "Enterprise" },
+  { method: "POST", path: "/v1/ask", price: "$29 / 7d", tier: "Enterprise" },
 ];
 
 const responseSample = `{
-  "success": true,
-  "data": {
-    "assetId": "ondo-usdy",
-    "name": "Ondo USDY",
-    "currentYield": "5.42",
-    "avgYield7d": "5.39",
-    "avgYield30d": "5.38",
-    "avgYield90d": "5.29",
-    "yieldHistory": [
-      { "date": "2026-05-02", "yield": "5.42" },
-      { "date": "2026-05-01", "yield": "5.39" },
-      { "date": "2026-04-30", "yield": "5.41" }
-    ]
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "x402Version": 1,
+  "error": "Payment required",
+  "tier": {
+    "tier": "pro",
+    "label": "Pro 24h Pass",
+    "displayPrice": "$3 / 24h",
+    "priceUsd": "3.00",
+    "priceEth": "0.001",
+    "duration": "24h"
   },
-  "meta": {
-    "timestamp": "2026-05-02T15:00:00Z",
-    "requestId": "req_01hw8x9kp3...",
-    "cached": false
+  "pricing": {
+    "tier": "pro",
+    "label": "Pro 24h Pass",
+    "displayPrice": "$3 / 24h",
+    "priceUsd": "3.00",
+    "priceEth": "0.001",
+    "duration": "24h"
+  },
+  "x402": {
+    "price": "0.001",
+    "currency": "ETH",
+    "network": "base-sepolia",
+    "tier": "pro"
   }
 }`;
 
+const tierStyle: Record<string, { bg: string; color: string }> = {
+  Public: { bg: "rgba(0,255,136,0.15)", color: "var(--accent-green)" },
+  Pro: { bg: "rgba(0,212,255,0.15)", color: "var(--accent-cyan)" },
+  Enterprise: { bg: "rgba(124,58,237,0.18)", color: "#A78BFA" },
+};
+
 export function ApiReference() {
-  const [active, setActive] = useState(3);
+  const [active, setActive] = useState(4);
   return (
     <section className="py-24 px-6">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[2fr_3fr] gap-8 items-start">
@@ -71,9 +87,17 @@ export function ApiReference() {
                       {e.path}
                     </span>
                   </div>
-                  <span className="text-[11px] tabular shrink-0" style={{ color: "var(--text-muted)" }}>
-                    {e.price}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      style={tierStyle[e.tier]}
+                    >
+                      {e.tier}
+                    </span>
+                    <span className="text-[11px] tabular" style={{ color: "var(--text-muted)" }}>
+                      {e.price}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -84,12 +108,12 @@ export function ApiReference() {
           <div className="flex items-center gap-3 mb-3">
             <span
               className="px-2 py-0.5 text-[10px] font-bold rounded"
-              style={{ background: "rgba(0,255,136,0.15)", color: "var(--accent-green)" }}
+              style={tierStyle[endpoints[active].tier]}
             >
-              200 OK
+              {endpoints[active].tier}
             </span>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              12ms
+              {endpoints[active].price}
             </span>
             <span className="text-xs font-mono ml-auto" style={{ color: "var(--text-secondary)" }}>
               {endpoints[active].path}
