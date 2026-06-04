@@ -61,7 +61,7 @@ function BulletList({
 
 function MockInsightBlurred() {
   return (
-    <div className="pointer-events-none select-none space-y-4 blur-[6px]">
+    <div className="pointer-events-none select-none space-y-4 blur-[4px]">
       <div className="h-7 w-24 rounded border border-[var(--border-panel)] bg-[var(--bg-panel)]" />
       <p className="text-sm text-[var(--text-secondary)]">
         Treasury-backed structure and stable yield trajectory support a constructive
@@ -97,8 +97,7 @@ function InsightContent({ insight }: { insight: AssetInsight }) {
           {outlook.label}
         </span>
         <span className="terminal-label">
-          Confidence{" "}
-          <span className="text-[var(--text-primary)]">{insight.confidence}</span>
+          Confidence <span className="text-[var(--text-primary)]">{insight.confidence}</span>
         </span>
       </div>
 
@@ -109,10 +108,7 @@ function InsightContent({ insight }: { insight: AssetInsight }) {
       {whatChanged.length > 0 ? (
         <div>
           <p className="terminal-label mb-2">What changed</p>
-          <BulletList
-            items={whatChanged}
-            dotClassName="bg-[var(--accent-amber)]"
-          />
+          <BulletList items={whatChanged} dotClassName="bg-[var(--accent-amber)]" />
         </div>
       ) : null}
 
@@ -126,17 +122,11 @@ function InsightContent({ insight }: { insight: AssetInsight }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="terminal-panel p-4">
           <h3 className="terminal-label mb-3">Opportunities</h3>
-          <BulletList
-            items={insight.opportunities}
-            dotClassName="bg-[var(--data-positive)]"
-          />
+          <BulletList items={insight.opportunities} dotClassName="bg-[var(--data-positive)]" />
         </div>
         <div className="terminal-panel p-4">
           <h3 className="terminal-label mb-3">Risks</h3>
-          <BulletList
-            items={insight.risks}
-            dotClassName="bg-[var(--data-negative)]"
-          />
+          <BulletList items={insight.risks} dotClassName="bg-[var(--data-negative)]" />
         </div>
       </div>
 
@@ -176,16 +166,13 @@ export function AIInsightCard({ apiBaseUrl, assetId }: AIInsightCardProps) {
       <PaywallGuard
         endpoint={endpoint}
         fallback={({ openPaywall }) => (
-          <div className="relative">
+          <div className="space-y-4">
             <MockInsightBlurred />
-            <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
-              <BlurredPreview
-                title="Asset insight"
-                priceLabel="Pro — $0.001 ETH"
-                onUnlock={openPaywall}
-                className="max-w-md border-0 bg-transparent"
-              />
-            </div>
+            <BlurredPreview
+              title="Asset insight"
+              priceLabel="Pro — $0.001 ETH"
+              onUnlock={openPaywall}
+            />
           </div>
         )}
       >

@@ -83,7 +83,7 @@ function MockRiskPanel({
   categoryAvgPct: number | null;
 }) {
   return (
-    <div className="pointer-events-none select-none blur-[6px]">
+    <div className="pointer-events-none select-none blur-[4px]">
       <div className="flex flex-wrap gap-8">
         <RiskGauge score={62} level="MEDIUM" />
         <div className="min-w-0 flex-1 space-y-3">
@@ -235,19 +235,16 @@ export function GatedRiskAnalysisSection({
       <PaywallGuard
         endpoint={endpoint}
         fallback={({ openPaywall }) => (
-          <div className="relative">
+          <div className="space-y-4">
             <MockRiskPanel
               yieldPct={yieldPct}
               categoryAvgPct={categoryAvgPct}
             />
-            <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
-              <BlurredPreview
-                title="Risk Analysis"
-                priceLabel="$0.005 USDC"
-                onUnlock={openPaywall}
-                className="max-w-md border-0 bg-transparent"
-              />
-            </div>
+            <BlurredPreview
+              title="Risk Analysis"
+              priceLabel="$0.005 USDC"
+              onUnlock={openPaywall}
+            />
           </div>
         )}
       >
@@ -258,9 +255,7 @@ export function GatedRiskAnalysisSection({
               ? body.data
               : initialRisk;
           if (!risk) {
-            return (
-              <p className="text-sm text-[#8892A4]">Risk data unavailable.</p>
-            );
+            return <p className="text-sm text-[#8892A4]">Risk data unavailable.</p>;
           }
           return (
             <RiskAnalysisContent
