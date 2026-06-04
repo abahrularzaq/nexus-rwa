@@ -24,9 +24,9 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { YieldHistorySection } from "@/components/dashboard/YieldHistorySection";
 import { GatedRiskAnalysisSection } from "@/components/dashboard/GatedRiskAnalysisSection";
 import { AIInsightCard } from "@/components/dashboard/AIInsightCard";
-import { DataTransparencySection } from "@/components/dashboard/DataTransparencySection";
 import { RelatedAssetsSection } from "@/components/dashboard/RelatedAssetsSection";
 import { AssetGradeCard } from "@/components/dashboard/AssetGradeCard";
+import { AssetSourcesTab } from "@/components/dashboard/asset-tabs/AssetSourcesTab";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 import {
   fetchAsset,
@@ -692,14 +692,12 @@ export default function AssetDetailPage() {
       ) : null}
 
       {activeTab === "sources" ? (
-        <div className="space-y-6">
-          <DataTransparencySection meta={dataMeta} protocol={protocol} symbol={asset.identity?.symbol ?? ""} />
-          <SectionShell title="Source trail" subtitle="Field-level sources are part of the Pro evidence layer">
-            <p className="text-sm leading-relaxed text-[#8892A4]">
-              Nexus RWA uses the source layer as an audit trail for every non-null asset field. This page currently shows market-source attribution; the next step is to expose field-level URLs, source tiers, last verified dates, and data gaps here.
-            </p>
-          </SectionShell>
-        </div>
+        <AssetSourcesTab
+          asset={asset}
+          meta={dataMeta}
+          protocol={protocol}
+          symbol={asset.identity?.symbol ?? ""}
+        />
       ) : null}
 
       {activeTab === "events" ? (
