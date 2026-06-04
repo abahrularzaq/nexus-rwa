@@ -27,7 +27,7 @@ import { ERROR_CODES } from '../shared/index.js';
 const LIST_CACHE_TTL = 5 * 60;
 const DETAIL_CACHE_TTL = 10 * 60;
 
-const LIST_LAYERS_FREE: LayerName[] = ['identity', 'market', 'risk'];
+const LIST_LAYERS_FREE: LayerName[] = ['identity', 'market', 'risk', 'yield', 'grade'];
 const LIST_LAYERS_PRO: LayerName[] = [
   'identity',
   'market',
@@ -35,16 +35,17 @@ const LIST_LAYERS_PRO: LayerName[] = [
   'yield',
   'reserve',
   'compliance',
+  'liquidity',
+  'grade',
 ];
 const DETAIL_LAYERS_FREE: LayerName[] = [
   'identity',
   'market',
-  'risk',
   'yield',
+  'risk',
   'blockchain',
-  'liquidity',
-  'compliance',
   'grade',
+  'events',
 ];
 const DETAIL_LAYERS_PRO: LayerName[] = [
   'identity',
@@ -58,6 +59,9 @@ const DETAIL_LAYERS_PRO: LayerName[] = [
   'compliance',
   'grade',
   'sources',
+  'events',
+  'history',
+  'aiNarrative',
 ];
 
 export type AssetAccessTier = AccessTier;
@@ -68,13 +72,15 @@ export type AssetListItemFree = {
   dataVersion: number;
   identity: Pick<AssetIdentity, 'name' | 'symbol' | 'category' | 'subcategory' | 'logoUrl'> | null;
   market: Pick<AssetMarket, 'tvl' | 'tvl7dChange' | 'price' | 'holderCount'> | null;
+  yield: Pick<AssetYield, 'currentYield' | 'yieldType' | 'yieldFrequency'> | null;
   risk: { overallLevel: string | null } | null;
+  grade: Pick<AssetGrade, 'grade' | 'score'> | null;
 };
 
 export type AssetListItemPro = AssetListItemFree & {
-  yield: Pick<AssetYield, 'currentYield' | 'yieldType' | 'yieldFrequency'> | null;
   reserve: Pick<AssetReserve, 'backingType' | 'collateralizationRatio' | 'hasProofOfReserves'> | null;
   compliance: Pick<AssetCompliance, 'regulatoryStatus' | 'kycRequired' | 'accreditedOnly'> | null;
+  liquidity: Pick<AssetLiquidity, 'redemptionType' | 'redemptionPeriodDays' | 'liquidityScore'> | null;
 };
 
 export type AssetListItemEnterprise = AssetWithLayers;
@@ -89,22 +95,38 @@ export type AssetDetailFree = {
   slug: string;
   dataVersion: number;
   identity: AssetIdentity | null;
-  market: AssetMarket | null;
-  risk: {
-    overallLevel: string | null;
-    overallScore: number | null;
-  } | null;
+  market: Pick<
+    AssetMarket,
+    | 'tvl'
+    | 'tvl7dChange'
+    | 'price'
+    | 'marketCap'
+    | 'holderCount'
+    | 'aumUsd'
+    | 'lastUpdated'
+    | 'sources'
+    | 'confidence'
+  > | null;
   yield: Pick<
     AssetYield,
-    'currentYield' | 'yieldType' | 'yieldFrequency' | 'yieldBenchmark'
+    'currentYield' | 'yieldType' | 'yieldFrequency' | 'yieldBenchmark' | 'yieldCurrency'
   > | null;
-  blockchain: AssetBlockchain[];
-  liquidity: AssetLiquidity | null;
-  compliance: AssetCompliance | null;
-  grade: AssetGrade | null;
+  risk: {
+    overallLevel: string | null;
+  } | null;
+  blockchain: Array<Pick<
+    AssetBlockchain,
+    'chain' | 'chainId' | 'contractAddress' | 'tokenStandard' | 'explorerUrl'
+  >>;
+  grade: Pick<AssetGrade, 'grade' | 'score'> | null;
+  events: Array<Pick<
+    AssetEvent,
+    'title' | 'eventType' | 'severity' | 'occurredAt' | 'sourceUrl' | 'isVerified'
+  >>;
 };
 
 export type AssetDetailPro = AssetDetailFree & {
+  market: AssetMarket | null;
   risk: AssetRisk | null;
   yield: AssetYield | null;
   reserve: AssetReserve | null;
@@ -112,7 +134,11 @@ export type AssetDetailPro = AssetDetailFree & {
   blockchain: AssetBlockchain[];
   liquidity: AssetLiquidity | null;
   compliance: AssetCompliance | null;
+  grade: AssetGrade | null;
   sources: AssetSource[];
+  events: AssetEvent[];
+  history: AssetHistory[];
+  aiNarrative: AssetAiNarrative | null;
 };
 
 export type AssetDetailEnterprise = AssetWithLayers;
@@ -185,6 +211,93 @@ function pickMarketSummary(
   };
 }
 
+function pickYieldSummary(
+  assetYield: AssetYield | null | undefined,
+): AssetListItemFree['yield'] {
+  if (!assetYield) return null;
+  return {
+    currentYield: assetYield.currentYield,
+    yieldType: assetYield.yieldType,
+    yieldFrequency: assetYield.yieldFrequency,
+  };
+}
+
+function pickGradeSummary(
+  grade: AssetGrade | null | undefined,
+): AssetListItemFree['grade'] {
+  if (!grade) return null;
+  return {
+    grade: grade.grade,
+    score: grade.score,
+  };
+}
+
+function pickLiquiditySummary(
+  liquidity: AssetLiquidity | null | undefined,
+): AssetListItemPro['liquidity'] {
+  if (!liquidity) return null;
+  return {
+    redemptionType: liquidity.redemptionType,
+    redemptionPeriodDays: liquidity.redemptionPeriodDays,
+    liquidityScore: liquidity.liquidityScore,
+  };
+}
+
+function pickMarketFreeDetail(
+  market: AssetMarket | null | undefined,
+): AssetDetailFree['market'] {
+  if (!market) return null;
+  return {
+    tvl: market.tvl,
+    tvl7dChange: market.tvl7dChange,
+    price: market.price,
+    marketCap: market.marketCap,
+    holderCount: market.holderCount,
+    aumUsd: market.aumUsd,
+    lastUpdated: market.lastUpdated,
+    sources: market.sources,
+    confidence: market.confidence,
+  };
+}
+
+function pickYieldFreeDetail(
+  assetYield: AssetYield | null | undefined,
+): AssetDetailFree['yield'] {
+  if (!assetYield) return null;
+  return {
+    currentYield: assetYield.currentYield,
+    yieldType: assetYield.yieldType,
+    yieldFrequency: assetYield.yieldFrequency,
+    yieldBenchmark: assetYield.yieldBenchmark,
+    yieldCurrency: assetYield.yieldCurrency,
+  };
+}
+
+function pickBlockchainFreeDetail(
+  blockchain: AssetBlockchain[] | undefined,
+): AssetDetailFree['blockchain'] {
+  return (blockchain ?? []).map((row) => ({
+    chain: row.chain,
+    chainId: row.chainId,
+    contractAddress: row.contractAddress,
+    tokenStandard: row.tokenStandard,
+    explorerUrl: row.explorerUrl,
+  }));
+}
+
+function pickEventsFreeDetail(
+  events: AssetEvent[] | undefined,
+): AssetDetailFree['events'] {
+  return (events ?? []).map((event) => ({
+    title: event.title,
+    eventType: event.eventType,
+    severity: event.severity,
+    occurredAt: event.occurredAt,
+    sourceUrl: event.sourceUrl,
+    isVerified: event.isVerified,
+  }));
+}
+
 function mapListItemFree(row: AssetWithLayers): AssetListItemFree {
   return {
     id: row.id,
@@ -192,9 +305,11 @@ function mapListItemFree(row: AssetWithLayers): AssetListItemFree {
     dataVersion: row.dataVersion,
     identity: pickIdentitySummary(row.identity),
     market: pickMarketSummary(row.market),
+    yield: pickYieldSummary(row.yield),
     risk: row.risk
       ? { overallLevel: row.risk.overallLevel }
       : null,
+    grade: pickGradeSummary(row.grade),
   };
 }
 
@@ -202,13 +317,6 @@ function mapListItemPro(row: AssetWithLayers): AssetListItemPro {
   const base = mapListItemFree(row);
   return {
     ...base,
-    yield: row.yield
-      ? {
-          currentYield: row.yield.currentYield,
-          yieldType: row.yield.yieldType,
-          yieldFrequency: row.yield.yieldFrequency,
-        }
-      : null,
     reserve: row.reserve
       ? {
           backingType: row.reserve.backingType,
@@ -223,6 +331,7 @@ function mapListItemPro(row: AssetWithLayers): AssetListItemPro {
           accreditedOnly: row.compliance.accreditedOnly,
         }
       : null,
+    liquidity: pickLiquiditySummary(row.liquidity),
   };
 }
 
@@ -242,25 +351,16 @@ function mapDetailFree(row: AssetWithLayers): AssetDetailFree {
     slug: row.slug,
     dataVersion: row.dataVersion,
     identity: row.identity ?? null,
-    market: row.market ?? null,
+    market: pickMarketFreeDetail(row.market),
     risk: row.risk
       ? {
           overallLevel: row.risk.overallLevel,
-          overallScore: row.risk.overallScore,
         }
       : null,
-    yield: row.yield
-      ? {
-          currentYield: row.yield.currentYield,
-          yieldType: row.yield.yieldType,
-          yieldFrequency: row.yield.yieldFrequency,
-          yieldBenchmark: row.yield.yieldBenchmark,
-        }
-      : null,
-    blockchain: row.blockchain ?? [],
-    liquidity: row.liquidity ?? null,
-    compliance: row.compliance ?? null,
-    grade: row.grade ?? null,
+    yield: pickYieldFreeDetail(row.yield),
+    blockchain: pickBlockchainFreeDetail(row.blockchain),
+    grade: pickGradeSummary(row.grade),
+    events: pickEventsFreeDetail(row.events),
   };
 }
 
@@ -268,6 +368,7 @@ function mapDetailPro(row: AssetWithLayers): AssetDetailPro {
   const free = mapDetailFree(row);
   return {
     ...free,
+    market: row.market ?? null,
     risk: row.risk ?? null,
     yield: row.yield ?? null,
     reserve: row.reserve ?? null,
@@ -275,7 +376,11 @@ function mapDetailPro(row: AssetWithLayers): AssetDetailPro {
     blockchain: row.blockchain ?? [],
     liquidity: row.liquidity ?? null,
     compliance: row.compliance ?? null,
+    grade: row.grade ?? null,
     sources: row.sources ?? [],
+    events: row.events ?? [],
+    history: row.history ?? [],
+    aiNarrative: row.aiNarrative ?? null,
   };
 }
 
