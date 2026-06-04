@@ -3,9 +3,16 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { FadeUp } from "@/components/landing/primitives";
+import { FieldInfo } from "@/components/common/FieldInfo";
+import type { FieldKey } from "@/lib/field-definitions";
 
 type Cat = "Treasury" | "Credit" | "Real Estate" | "Commodities";
 type Risk = "LOW" | "MEDIUM" | "HIGH";
+
+type HeaderCell = {
+  label: string;
+  fieldKey?: FieldKey;
+};
 
 const rows: {
   n: number;
@@ -44,6 +51,18 @@ const riskStyle: Record<Risk, { bg: string; color: string }> = {
 };
 
 const filters = ["All", "Treasury", "Credit", "Real Estate", "Commodities"] as const;
+
+const headers: HeaderCell[] = [
+  { label: "#" },
+  { label: "Asset", fieldKey: "name" },
+  { label: "Protocol" },
+  { label: "Category", fieldKey: "category" },
+  { label: "TVL", fieldKey: "tvl" },
+  { label: "Yield (APY)", fieldKey: "currentYield" },
+  { label: "Risk", fieldKey: "riskScore" },
+  { label: "7D Change", fieldKey: "marketCap" },
+  { label: "Action" },
+];
 
 export function AssetsTable() {
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
@@ -121,17 +140,15 @@ export function AssetsTable() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: "rgba(10,14,26,0.6)" }}>
-                  {["#", "Asset", "Protocol", "Category", "TVL", "Yield (APY)", "Risk", "7D Change", "Action"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="px-5 py-3 text-left text-[11px] label-eyebrow"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {headers.map((h) => (
+                    <th
+                      key={h.label}
+                      className="px-5 py-3 text-left text-[11px] label-eyebrow"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {h.fieldKey ? <FieldInfo fieldKey={h.fieldKey} label={h.label} /> : h.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
