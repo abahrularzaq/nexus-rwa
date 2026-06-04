@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { MetricField, MetricGrid, MetricSection } from "@/components/common/MetricField";
 import type { LocalAssetMetrics } from "@/lib/local-assets";
 
@@ -47,6 +48,8 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
           </div>
         </div>
       ) : null}
+
+      <DisclaimerBanner variant="asset" />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MetricSection title="Identity" description="Core asset identity, classification, and official references.">
