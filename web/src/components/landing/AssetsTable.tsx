@@ -60,7 +60,7 @@ const headers: HeaderCell[] = [
   { label: "TVL", fieldKey: "tvl" },
   { label: "Yield (APY)", fieldKey: "currentYield" },
   { label: "Risk", fieldKey: "riskScore" },
-  { label: "7D Change", fieldKey: "marketCap" },
+  { label: "7D Change", fieldKey: "change7d" },
   { label: "Action" },
 ];
 
