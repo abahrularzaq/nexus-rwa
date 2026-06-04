@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { MetricField, MetricGrid, MetricSection } from "@/components/common/MetricField";
+import { getGradeDisclaimer } from "@/lib/disclaimers";
 import type { LocalAssetMetrics } from "@/lib/local-assets";
 
 type AssetMetricSectionsProps = {
@@ -15,6 +16,7 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
   const grade = asset.gradeBaseline.grade ?? "research";
   const warnings = asset.gradeBaseline.warnings ?? [];
   const blockers = asset.gradeBaseline.blockers ?? [];
+  const gradeDisclaimer = getGradeDisclaimer(grade);
 
   return (
     <div className="space-y-6">
@@ -49,7 +51,10 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
         </div>
       ) : null}
 
-      <DisclaimerBanner variant="asset" />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DisclaimerBanner variant="asset" />
+        <DisclaimerBanner disclaimer={gradeDisclaimer} />
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MetricSection title="Identity" description="Core asset identity, classification, and official references.">
