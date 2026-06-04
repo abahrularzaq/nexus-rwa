@@ -34,7 +34,12 @@ export type AccessTier = 'free' | 'pro' | 'enterprise';
 
 export interface TierPlan {
   tier: AccessTier;
-  /** Display ETH amount, e.g. `"0.001"`. */
+  label: string;
+  /** User-facing USD price for product/UI copy. */
+  priceUsd: string;
+  /** User-facing display price for product/UI copy. */
+  displayPrice: string;
+  /** Current x402 settlement amount in native ETH. */
   priceEth: string;
   /** Human duration label for 402 payloads, e.g. `"24h"`. */
   duration: string;
@@ -46,24 +51,70 @@ export interface TierPlan {
 export const TIER_PLANS: Readonly<Record<AccessTier, TierPlan>> = {
   free: {
     tier: 'free',
+    label: 'Free',
+    priceUsd: '0.00',
+    displayPrice: '$0',
     priceEth: '0',
     duration: '',
     ttlSeconds: 0,
-    description: 'Public tier — TVL, basic yield, risk level, asset list.',
+    description: 'Public discovery tier — asset catalog, public market snapshot, current yield, risk level, and grade label.',
   },
   pro: {
     tier: 'pro',
+    label: 'Pro 24h Pass',
+    priceUsd: '3.00',
+    displayPrice: '$3 / 24h',
     priceEth: '0.001',
     duration: '24h',
     ttlSeconds: 86_400,
-    description: 'Pro session — yield history, risk detail, holder intel (24h).',
+    description: 'Pro analyst pass — full asset profile, risk breakdown, reserve, compliance, liquidity, source trail, history, and AI insight for 24h.',
   },
   enterprise: {
     tier: 'enterprise',
+    label: 'Enterprise 7d Pass',
+    priceUsd: '29.00',
+    displayPrice: '$29 / 7d',
     priceEth: '0.01',
     duration: '7d',
     ttlSeconds: 604_800,
-    description: 'Enterprise session — raw API, bulk export, all assets, priority RPC (7d).',
+    description: 'Enterprise API pass — full raw dataset, bulk export, Ask Nexus, commercial API workflows, and machine-readable access for 7d.',
+  },
+} as const;
+
+/**
+ * Suggested subscription pricing for frontend/payment-page copy.
+ * These are product packages, while `TIER_PLANS.priceEth` remains the current x402 settlement amount.
+ */
+export const PRODUCT_PRICING = {
+  free: {
+    label: 'Free',
+    price: '$0',
+    cadence: 'forever',
+    description: 'Public RWA discovery dashboard.',
+  },
+  proEarlyAccess: {
+    label: 'Pro Early Access',
+    price: '$9',
+    cadence: 'month',
+    description: 'Full analyst-grade asset profiles for individual researchers.',
+  },
+  payPerReport: {
+    label: 'Asset Report',
+    price: '$1',
+    cadence: 'one-time',
+    description: 'Unlock one full institutional asset report.',
+  },
+  apiStarter: {
+    label: 'API Starter',
+    price: '$99',
+    cadence: 'month',
+    description: 'Machine-readable RWA dataset access for builders and AI agents.',
+  },
+  enterprise: {
+    label: 'Enterprise',
+    price: 'Custom',
+    cadence: 'contract',
+    description: 'Custom data licensing, higher rate limits, and priority asset coverage.',
   },
 } as const;
 
@@ -91,6 +142,9 @@ export interface EndpointPrice {
 
 export interface EndpointAccessConfig extends EndpointPrice {
   tier: AccessTier;
+  label: string;
+  priceUsd: string;
+  displayPrice: string;
   priceEth: string;
   priceWei: string;
   duration: string;
@@ -98,90 +152,90 @@ export interface EndpointAccessConfig extends EndpointPrice {
 }
 
 export const DEFAULT_ENDPOINT_PRICE: EndpointPrice = {
-  price: '$0.001',
-  description: 'Standard rate for routes not listed in the X402 Nexus RWA price catalog.',
+  price: '$3 / 24h',
+  description: 'Standard Pro analyst access for routes not listed in the Nexus RWA price catalog.',
   isFree: false,
 } as const;
 
 export const ENDPOINT_PRICING: Readonly<Record<string, Readonly<EndpointPrice>>> = {
   'GET:/v1/market/overview': {
-    price: '$0.00',
+    price: '$0',
     description: 'Public market overview snapshot.',
     isFree: true,
   },
   'GET:/v1/market/brief': {
-    price: '$0.00',
-    description: 'AI market brief: headline, summary, 7d changes, watch list.',
+    price: '$0',
+    description: 'Public market brief: headline, summary, 7d changes, and watch list.',
     isFree: true,
   },
   'GET:/v1/assets': {
-    price: '$0.00',
-    description: 'Paginated list of tokenized real-world assets.',
+    price: '$0',
+    description: 'Public paginated catalog of tokenized real-world assets.',
     isFree: true,
   },
   'GET:/v1/assets/:id': {
-    price: '$0.00',
-    description: 'Single asset profile and metadata.',
+    price: '$0',
+    description: 'Public asset profile with market summary, current yield, risk level, grade label, and public events.',
     isFree: true,
   },
   'GET:/v1/assets/:id/yield': {
-    price: '$0.00',
+    price: '$0',
     description: 'Current yield snapshot for one asset.',
     isFree: true,
   },
   'GET:/v1/assets/:id/events': {
-    price: '$0.00',
-    description: 'Asset events timeline (launches, audits, incidents).',
+    price: '$0',
+    description: 'Public asset events timeline such as launches, audits, and incidents.',
     isFree: true,
   },
   'GET:/v1/assets/:id/full': {
-    price: '$0.001',
-    description: 'Extended asset profile with Pro layers (yield, reserve, compliance, etc.).',
+    price: '$3 / 24h',
+    description: 'Full Pro asset profile with reserve, compliance, liquidity, risk, sources, history, and AI narrative.',
     isFree: false,
   },
   'GET:/v1/assets/:id/history': {
-    price: '$0.001',
-    description: 'Time-series yield and TVL history for one asset (Pro).',
+    price: '$3 / 24h',
+    description: 'Pro time-series yield, TVL, holder, and risk history for one asset.',
     isFree: false,
   },
   'GET:/v1/assets/:id/holders': {
-    price: '$0.001',
-    description: 'Holder distribution and concentration metrics (Pro).',
+    price: '$3 / 24h',
+    description: 'Pro holder distribution and concentration metrics.',
     isFree: false,
   },
   'GET:/v1/assets/:id/risk': {
-    price: '$0.001',
-    description: 'Risk scoring, factor breakdown, and category benchmark (Pro).',
+    price: '$3 / 24h',
+    description: 'Pro risk scoring, factor breakdown, mitigants, and grade context.',
     isFree: false,
   },
   'GET:/v1/assets/:id/sources': {
-    price: '$0.001',
-    description: 'Field-level source trail and reliability metadata (Pro).',
+    price: '$3 / 24h',
+    description: 'Pro field-level source trail and reliability metadata.',
     isFree: false,
   },
   'GET:/v1/assets/:id/insight': {
-    price: '$0.001',
-    description: 'Claude-generated RWA insight: outlook, opportunities, risks (Pro).',
+    price: '$3 / 24h',
+    description: 'Pro AI-generated RWA insight with outlook, opportunities, risks, and watch list.',
     isFree: false,
   },
   'GET:/v1/search': {
-    price: '$0.00',
-    description: 'Full-text and faceted search across catalog fields.',
+    price: '$0',
+    description: 'Public full-text and faceted search across catalog fields.',
     isFree: true,
   },
   'GET:/v1/analytics/bulk': {
-    price: '$0.01',
-    description: 'Bulk analytics export across all assets (Enterprise).',
+    price: '$29 / 7d',
+    description: 'Enterprise bulk analytics snapshot across all assets.',
     isFree: false,
   },
   'GET:/v1/export': {
-    price: '$0.01',
-    description: 'Full dataset bulk export (Enterprise).',
+    price: '$29 / 7d',
+    description: 'Enterprise full dataset export for machine-readable workflows.',
     isFree: false,
   },
   'POST:/v1/ask': {
-    price: '$0.01',
-    description: 'Natural-language Q&A over RWA data with streaming (Enterprise).',
+    price: '$29 / 7d',
+    description: 'Enterprise natural-language Q&A over RWA data with streaming.',
     isFree: false,
   },
 } as const;
@@ -245,7 +299,6 @@ export function getEndpointPrice(method: string, path: string): EndpointPrice {
 
 /** Full tier + pricing config for middleware (tier from {@link ENDPOINT_TIERS}, not hardcoded). */
 export function getEndpointAccessConfig(method: string, path: string): EndpointAccessConfig {
-  const key = lookupKey(method, path);
   const tier = getEndpointTier(method, path);
   const plan = TIER_PLANS[tier];
   const priced = getEndpointPrice(method, path);
@@ -256,6 +309,9 @@ export function getEndpointAccessConfig(method: string, path: string): EndpointA
 
   return {
     tier,
+    label: plan.label,
+    priceUsd: plan.priceUsd,
+    displayPrice: plan.displayPrice,
     priceEth,
     priceWei,
     duration: plan.duration,
