@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { MetricField, MetricGrid, MetricSection } from "@/components/common/MetricField";
 import type { LocalAssetMetrics } from "@/lib/local-assets";
@@ -106,7 +107,7 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
+function Badge({ children }: { children: ReactNode }) {
   return (
     <span
       className="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold capitalize"
