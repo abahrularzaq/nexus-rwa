@@ -73,8 +73,7 @@ function ReserveContent({ reserve }: { reserve: AssetReserve }) {
           )}
         </span>
         <span className="text-[#8892A4]">
-          Last audit:{" "}
-          <span className="text-white">{formatDate(reserve.lastAuditDate)}</span>
+          Last audit: <span className="text-white">{formatDate(reserve.lastAuditDate)}</span>
           {reserve.auditor ? (
             <span className="text-[#8892A4]">
               {" "}
@@ -86,8 +85,7 @@ function ReserveContent({ reserve }: { reserve: AssetReserve }) {
 
       {reserve.backingType ? (
         <p className="text-sm text-[#8892A4]">
-          Backing:{" "}
-          <span className="text-white">{reserve.backingType}</span>
+          Backing: <span className="text-white">{reserve.backingType}</span>
         </p>
       ) : null}
     </div>
@@ -96,7 +94,7 @@ function ReserveContent({ reserve }: { reserve: AssetReserve }) {
 
 function MockReservePreview() {
   return (
-    <div className="pointer-events-none select-none blur-[6px]">
+    <div className="pointer-events-none select-none blur-[4px]">
       <ReserveContent
         reserve={{
           custodian: "Institutional custodian",
@@ -131,16 +129,13 @@ export function ReserveInfoSection({
     <PaywallGuard
       endpoint={endpoint}
       fallback={({ openPaywall }) => (
-        <div className="relative">
+        <div className="space-y-4">
           <MockReservePreview />
-          <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
-            <BlurredPreview
-              title="Reserve & backing"
-              priceLabel="$0.01 USDC"
-              onUnlock={openPaywall}
-              className="max-w-md border-0 bg-transparent"
-            />
-          </div>
+          <BlurredPreview
+            title="Reserve & backing"
+            priceLabel="$0.01 USDC"
+            onUnlock={openPaywall}
+          />
         </div>
       )}
     >
