@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useState } from "react";
 import { ChevronDown, ChevronRight, Code2, Sparkles } from "lucide-react";
 
 const BASE = "https://api.nexusrwa.xyz/v1";
+
+type Access = "free" | "pro" | "enterprise";
 
 type ParamRow = {
   name: string;
@@ -15,584 +17,327 @@ type ParamRow = {
 
 type EndpointDoc = {
   id: string;
-  title: string;
-  badge: string;
-  badgeFree?: boolean;
+  method: "GET" | "POST";
+  path: string;
+  access: Access;
   description: string;
   curl: string;
-  response: ReactNode;
+  response: string;
   params?: ParamRow[];
   x402?: string;
 };
 
-function Jp({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#8892A4]">{children}</span>;
-}
-function Jk({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#A78BFA]">{children}</span>;
-}
-function Js({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#00FF88]">{children}</span>;
-}
-function Jn({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#00D4FF]">{children}</span>;
-}
-function Jb({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#FFB800]">{children}</span>;
-}
+const accessMeta: Record<Access, { badge: string; className: string }> = {
+  free: {
+    badge: "FREE",
+    className:
+      "shrink-0 rounded-full bg-[rgba(0,255,136,0.12)] px-2.5 py-0.5 text-xs font-bold text-[#00FF88] ring-1 ring-[rgba(0,255,136,0.35)]",
+  },
+  pro: {
+    badge: "PRO · $3 / 24h",
+    className:
+      "shrink-0 rounded-full bg-[rgba(0,212,255,0.1)] px-2.5 py-0.5 text-xs font-bold text-[#00D4FF] ring-1 ring-[rgba(0,212,255,0.3)]",
+  },
+  enterprise: {
+    badge: "ENTERPRISE · $29 / 7d",
+    className:
+      "shrink-0 rounded-full bg-[rgba(255,184,0,0.12)] px-2.5 py-0.5 text-xs font-bold text-[#FFB800] ring-1 ring-[rgba(255,184,0,0.35)]",
+  },
+};
+
+const idParam: ParamRow = {
+  name: "id",
+  in: "path",
+  type: "string",
+  required: "required",
+  example: "paxos-paxg",
+};
 
 const ENDPOINTS: EndpointDoc[] = [
   {
     id: "market-overview",
-    title: "GET /v1/market/overview",
-    badge: "FREE",
-    badgeFree: true,
-    description: "Market-wide RWA statistics",
+    method: "GET",
+    path: "/v1/market/overview",
+    access: "free",
+    description: "Public market-wide RWA statistics and aggregate dashboard metrics.",
     curl: `curl ${BASE}/market/overview`,
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;totalTvl&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>2847300000</Jn>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;totalAssets&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>8</Jn>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;avgYieldRate&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>6.73</Jn>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
+    x402: "No payment required.",
+    response: `{
+  "success": true,
+  "data": {
+    "totalTvl": 2847300000,
+    "totalAssets": 13,
+    "avgYieldRate": 6.73,
+    "updatedAt": "2026-06-04T00:00:00.000Z"
+  }
+}`,
   },
   {
     id: "market-brief",
-    title: "GET /v1/market/brief",
-    badge: "FREE",
-    badgeFree: true,
-    description:
-      "AI-generated market narrative: headline, summary, 7d changes, and watch list (Redis-cached ~8h)",
+    method: "GET",
+    path: "/v1/market/brief",
+    access: "free",
+    description: "Public AI-generated market brief with headline, summary, 7d changes, and watch list.",
     curl: `curl ${BASE}/market/brief`,
-    x402: "No payment required — public market intelligence brief",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;headline&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;RWA yields compress as treasury tokens lead inflows&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;summary&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;Aggregate TVL rose 2.1% while average yield ticked down 12 bps…&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;whatChanged&quot;</Jk>
-        <Jp>: [</Jp>
-        <Js>&quot;Credit basket yield −18 bps 7d&quot;</Js>
-        <Jp>],</Jp>
-        {"\n    "}
-        <Jk>&quot;watchList&quot;</Jk>
-        <Jp>: [</Jp>
-        <Js>&quot;Fed path and short-duration RWAs&quot;</Js>
-        <Jp>],</Jp>
-        {"\n    "}
-        <Jk>&quot;riskTone&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;stable&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;generatedAt&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;2026-05-29T12:00:00.000Z&quot;</Js>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
+    x402: "No payment required — public market intelligence brief.",
+    response: `{
+  "success": true,
+  "data": {
+    "headline": "RWA yields compress as treasury tokens lead inflows",
+    "summary": "Aggregate TVL rose while average yield ticked down.",
+    "whatChanged": ["Credit basket yield -18 bps 7d"],
+    "watchList": ["Fed path and short-duration RWAs"],
+    "riskTone": "stable",
+    "generatedAt": "2026-06-04T00:00:00.000Z"
+  }
+}`,
   },
   {
     id: "assets-list",
-    title: "GET /v1/assets",
-    badge: "$0.0005",
-    description: "Paginated list of tokenized real-world assets",
-    curl: `curl ${BASE}/assets?page=1&limit=20`,
+    method: "GET",
+    path: "/v1/assets",
+    access: "free",
+    description: "Public paginated catalog of tokenized real-world assets.",
+    curl: `curl "${BASE}/assets?page=1&limit=20"`,
     params: [
-      {
-        name: "page",
-        in: "query",
-        type: "number",
-        required: "optional",
-        example: "1",
-      },
-      {
-        name: "limit",
-        in: "query",
-        type: "number",
-        required: "optional",
-        example: "20",
-      },
-      {
-        name: "category",
-        in: "query",
-        type: "string",
-        required: "optional",
-        example: "TREASURY",
-      },
-      {
-        name: "chain",
-        in: "query",
-        type: "string",
-        required: "optional",
-        example: "base",
-      },
-      {
-        name: "search",
-        in: "query",
-        type: "string",
-        required: "optional",
-        example: "ondo",
-      },
+      { name: "page", in: "query", type: "number", required: "optional", example: "1" },
+      { name: "limit", in: "query", type: "number", required: "optional", example: "20" },
+      { name: "category", in: "query", type: "string", required: "optional", example: "TREASURY" },
+      { name: "search", in: "query", type: "string", required: "optional", example: "paxg" },
     ],
-    x402: "This endpoint requires X402 payment of $0.0005 USDC",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: [</Jp>
-        {"\n      "}
-        <Jp>{"{"}</Jp>
-        {"\n        "}
-        <Jk>&quot;id&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;ondo-usdy&quot;</Js>
-        <Jp>,</Jp>
-        {"\n        "}
-        <Jk>&quot;symbol&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;USDY&quot;</Js>
-        {"\n      "}
-        <Jp>{"}"}</Jp>
-        {"\n    "}
-        <Jp>],</Jp>
-        {"\n    "}
-        <Jk>&quot;pagination&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {" \"page\": 1, \"total\": 8 "}
-        <Jp>{"}"}</Jp>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
+    x402: "No payment required — public asset discovery endpoint.",
+    response: `{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "slug": "paxos-paxg",
+        "identity": { "name": "Paxos Gold", "symbol": "PAXG" },
+        "market": { "tvl": 0, "holderCount": 0 }
+      }
+    ],
+    "pagination": { "page": 1, "limit": 20, "total": 13 }
+  }
+}`,
   },
   {
     id: "asset-detail",
-    title: "GET /v1/assets/:id",
-    badge: "$0.001",
-    description: "Single asset profile and metadata",
-    curl: `curl ${BASE}/assets/ondo-usdy`,
-    params: [
-      {
-        name: "id",
-        in: "path",
-        type: "string",
-        required: "required",
-        example: "ondo-usdy",
-      },
-    ],
-    x402: "This endpoint requires X402 payment of $0.001 USDC",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;id&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;ondo-usdy&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;name&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;Ondo USDY&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;protocol&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;Ondo Finance&quot;</Js>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
+    method: "GET",
+    path: "/v1/assets/:id",
+    access: "free",
+    description: "Public asset profile with market summary, current yield, risk level, grade label, and public events.",
+    curl: `curl ${BASE}/assets/paxos-paxg`,
+    params: [idParam],
+    x402: "No payment required — this is the public asset detail layer.",
+    response: `{
+  "success": true,
+  "data": {
+    "slug": "paxos-paxg",
+    "identity": { "name": "Paxos Gold", "symbol": "PAXG" },
+    "market": { "tvl": 0 },
+    "grade": { "grade": "research", "score": 0 }
+  }
+}`,
   },
   {
-    id: "asset-yield",
-    title: "GET /v1/assets/:id/yield",
-    badge: "$0.005",
-    description: "Historical yield data for one asset",
-    curl: `curl ${BASE}/assets/ondo-usdy/yield?period=7d`,
-    params: [
-      {
-        name: "id",
-        in: "path",
-        type: "string",
-        required: "required",
-        example: "ondo-usdy",
-      },
-      {
-        name: "period",
-        in: "query",
-        type: "string",
-        required: "optional",
-        example: "7d | 30d | 90d | 365d",
-      },
-    ],
-    x402: "This endpoint requires X402 payment of $0.005 USDC",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;assetId&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;ondo-usdy&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;currentYield&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>4.82</Jn>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;history&quot;</Jk>
-        <Jp>: [ ... ]</Jp>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
-  },
-  {
-    id: "asset-history",
-    title: "GET /v1/assets/:id/history",
-    badge: "$0.005",
-    description: "Time-series yield and TVL history (6h snapshots)",
-    curl: `curl ${BASE}/assets/ondo-usdy/history?period=30d`,
-    params: [
-      {
-        name: "id",
-        in: "path",
-        type: "string",
-        required: "required",
-        example: "ondo-usdy",
-      },
-      {
-        name: "period",
-        in: "query",
-        type: "string",
-        required: "optional",
-        example: "7d | 30d | 90d",
-      },
-    ],
-    x402: "This endpoint requires X402 payment of $0.005 USDC",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;limited_history&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;history&quot;</Jk>
-        <Jp>: [{"{"} </Jp>
-        <Jk>&quot;timestamp&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;2026-05-29T00:00:00.000Z&quot;</Js>
-        <Jp>, </Jp>
-        <Jk>&quot;yield&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>5.2</Jn>
-        <Jp>, </Jp>
-        <Jk>&quot;tvl&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>892400000</Jn>
-        <Jp> {"}"}]</Jp>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
-  },
-  {
-    id: "asset-holders",
-    title: "GET /v1/assets/:id/holders",
-    badge: "$0.005",
-    description: "Holder distribution and concentration metrics",
-    curl: `curl ${BASE}/assets/ondo-usdy/holders`,
-    params: [
-      {
-        name: "id",
-        in: "path",
-        type: "string",
-        required: "required",
-        example: "ondo-usdy",
-      },
-    ],
-    x402: "This endpoint requires X402 payment of $0.005 USDC",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;totalHolders&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>128400</Jn>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;top10Concentration&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>34.2</Jn>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
-  },
-  {
-    id: "asset-risk",
-    title: "GET /v1/assets/:id/risk",
-    badge: "Free",
-    description: "Risk scoring and factor breakdown for one asset (no X402 payment)",
-    curl: `curl ${BASE}/assets/ondo-usdy/risk`,
-    params: [
-      {
-        name: "id",
-        in: "path",
-        type: "string",
-        required: "required",
-        example: "ondo-usdy",
-      },
-    ],
-    x402: "No payment required — public risk overview hook",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;assetId&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;ondo-usdy&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;score&quot;</Jk>
-        <Jp>: </Jp>
-        <Jn>72</Jn>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;level&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;LOW&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;factors&quot;</Jk>
-        <Jp>: []</Jp>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
-  },
-  {
-    id: "asset-insight",
-    title: "GET /v1/assets/:id/insight",
-    badge: "$0.001",
-    description:
-      "Claude-generated asset insight: summary, outlook, opportunities, risks, what changed, watch list (Pro session)",
-    curl: `curl ${BASE}/assets/ondo-usdy/insight`,
-    params: [
-      {
-        name: "id",
-        in: "path",
-        type: "string",
-        required: "required",
-        example: "ondo-usdy",
-      },
-    ],
-    x402:
-      "Requires Pro session ($0.001 ETH / 24h) or per-request X402 payment — include X-Wallet-Address when session is active",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;assetId&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;ondo-usdy&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;summary&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;Stable yield with modest TVL growth…&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;outlook&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;bullish&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;confidence&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;high&quot;</Js>
-        <Jp>,</Jp>
-        {"\n    "}
-        <Jk>&quot;whatChanged&quot;</Jk>
-        <Jp>: [</Jp>
-        <Js>&quot;Yield +6 bps vs 7d ago&quot;</Js>
-        <Jp>],</Jp>
-        {"\n    "}
-        <Jk>&quot;watchList&quot;</Jk>
-        <Jp>: [</Jp>
-        <Js>&quot;Issuer redemption window&quot;</Js>
-        <Jp>],</Jp>
-        {"\n    "}
-        <Jk>&quot;generatedAt&quot;</Jk>
-        <Jp>: </Jp>
-        <Js>&quot;2026-05-29T12:00:00.000Z&quot;</Js>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
+    id: "asset-events",
+    method: "GET",
+    path: "/v1/assets/:id/events",
+    access: "free",
+    description: "Public asset events timeline such as launches, audits, incidents, and major updates.",
+    curl: `curl ${BASE}/assets/paxos-paxg/events`,
+    params: [idParam],
+    x402: "No payment required.",
+    response: `{
+  "success": true,
+  "data": []
+}`,
   },
   {
     id: "search",
-    title: "GET /v1/search",
-    badge: "$0.001",
-    description: "Full-text and faceted search across catalog fields",
-    curl: `curl "${BASE}/search?q=usdy&limit=10"`,
+    method: "GET",
+    path: "/v1/search",
+    access: "free",
+    description: "Public full-text and faceted search across catalog fields.",
+    curl: `curl "${BASE}/search?q=paxg&limit=10"`,
     params: [
-      {
-        name: "q",
-        in: "query",
-        type: "string",
-        required: "required",
-        example: "usdy",
-      },
-      {
-        name: "limit",
-        in: "query",
-        type: "number",
-        required: "optional",
-        example: "10",
-      },
+      { name: "q", in: "query", type: "string", required: "required", example: "paxg" },
+      { name: "limit", in: "query", type: "number", required: "optional", example: "10" },
     ],
-    x402: "This endpoint requires X402 payment of $0.001 USDC",
-    response: (
-      <>
-        <Jp>{"{"}</Jp>
-        {"\n  "}
-        <Jk>&quot;success&quot;</Jk>
-        <Jp>: </Jp>
-        <Jb>true</Jb>
-        <Jp>,</Jp>
-        {"\n  "}
-        <Jk>&quot;data&quot;</Jk>
-        <Jp>: {"{"}</Jp>
-        {"\n    "}
-        <Jk>&quot;hits&quot;</Jk>
-        <Jp>: [ ... ]</Jp>
-        {"\n  "}
-        <Jp>{"}"}</Jp>
-        {"\n"}
-        <Jp>{"}"}</Jp>
-      </>
-    ),
+    x402: "No payment required.",
+    response: `{
+  "success": true,
+  "data": {
+    "hits": [
+      { "slug": "paxos-paxg", "name": "Paxos Gold", "symbol": "PAXG" }
+    ]
+  }
+}`,
+  },
+  {
+    id: "asset-full",
+    method: "GET",
+    path: "/v1/assets/:id/full",
+    access: "pro",
+    description: "Full Pro asset profile with reserve, compliance, liquidity, risk, sources, history, and AI narrative.",
+    curl: `curl ${BASE}/assets/paxos-paxg/full`,
+    params: [idParam],
+    x402: "Requires Pro 24h pass. If not unlocked, the API returns HTTP 402 with X402 payment metadata.",
+    response: `{
+  "success": true,
+  "data": {
+    "slug": "paxos-paxg",
+    "reserve": { "backingType": "Commodity", "custodian": "Paxos" },
+    "compliance": { "kycRequired": true },
+    "liquidity": { "redemptionType": "issuer" },
+    "sources": []
+  }
+}`,
+  },
+  {
+    id: "asset-history",
+    method: "GET",
+    path: "/v1/assets/:id/history",
+    access: "pro",
+    description: "Pro time-series yield, TVL, holder, and risk history for one asset.",
+    curl: `curl "${BASE}/assets/paxos-paxg/history?period=30d"`,
+    params: [
+      idParam,
+      { name: "period", in: "query", type: "string", required: "optional", example: "7d | 30d | 90d" },
+    ],
+    x402: "Requires Pro 24h pass.",
+    response: `{
+  "success": true,
+  "data": {
+    "limited_history": false,
+    "history": [
+      { "timestamp": "2026-06-04T00:00:00.000Z", "yield": 0, "tvl": 0 }
+    ]
+  }
+}`,
+  },
+  {
+    id: "asset-risk",
+    method: "GET",
+    path: "/v1/assets/:id/risk",
+    access: "pro",
+    description: "Pro risk scoring, factor breakdown, mitigants, and grade context.",
+    curl: `curl ${BASE}/assets/paxos-paxg/risk`,
+    params: [idParam],
+    x402: "Requires Pro 24h pass.",
+    response: `{
+  "success": true,
+  "data": {
+    "risk": { "overallScore": 72, "overallLevel": "LOW", "riskFactors": [] },
+    "grade": { "grade": "research", "score": 72 }
+  }
+}`,
+  },
+  {
+    id: "asset-sources",
+    method: "GET",
+    path: "/v1/assets/:id/sources",
+    access: "pro",
+    description: "Pro field-level source trail and reliability metadata.",
+    curl: `curl ${BASE}/assets/paxos-paxg/sources`,
+    params: [idParam],
+    x402: "Requires Pro 24h pass.",
+    response: `{
+  "success": true,
+  "data": [
+    { "field": "reserve.custodian", "url": "https://...", "tier": "Tier 1" }
+  ]
+}`,
+  },
+  {
+    id: "asset-holders",
+    method: "GET",
+    path: "/v1/assets/:id/holders",
+    access: "pro",
+    description: "Pro holder distribution and concentration metrics.",
+    curl: `curl ${BASE}/assets/paxos-paxg/holders`,
+    params: [idParam],
+    x402: "Requires Pro 24h pass. Note: keep this doc entry only if the backend route is enabled in the current deployment.",
+    response: `{
+  "success": true,
+  "data": {
+    "totalHolders": 128400,
+    "top10Concentration": 34.2
+  }
+}`,
+  },
+  {
+    id: "asset-insight",
+    method: "GET",
+    path: "/v1/assets/:id/insight",
+    access: "pro",
+    description: "Pro AI-generated RWA insight with outlook, opportunities, risks, and watch list.",
+    curl: `curl ${BASE}/assets/paxos-paxg/insight`,
+    params: [idParam],
+    x402: "Requires Pro 24h pass. Include X-Wallet-Address when a Pro session is active.",
+    response: `{
+  "success": true,
+  "data": {
+    "assetId": "paxos-paxg",
+    "summary": "Asset insight summary...",
+    "outlook": "neutral",
+    "confidence": "medium",
+    "opportunities": [],
+    "risks": [],
+    "watchList": []
+  }
+}`,
+  },
+  {
+    id: "analytics-bulk",
+    method: "GET",
+    path: "/v1/analytics/bulk",
+    access: "enterprise",
+    description: "Enterprise bulk analytics snapshot across all assets.",
+    curl: `curl ${BASE}/analytics/bulk`,
+    x402: "Requires Enterprise 7d pass.",
+    response: `{
+  "success": true,
+  "data": {
+    "assets": [],
+    "generatedAt": "2026-06-04T00:00:00.000Z"
+  }
+}`,
+  },
+  {
+    id: "export",
+    method: "GET",
+    path: "/v1/export",
+    access: "enterprise",
+    description: "Enterprise full dataset export for machine-readable workflows.",
+    curl: `curl ${BASE}/export`,
+    x402: "Requires Enterprise 7d pass.",
+    response: `{
+  "success": true,
+  "data": {
+    "downloadUrl": "https://...",
+    "expiresAt": "2026-06-05T00:00:00.000Z"
+  }
+}`,
+  },
+  {
+    id: "ask",
+    method: "POST",
+    path: "/v1/ask",
+    access: "enterprise",
+    description: "Enterprise natural-language Q&A over the Nexus RWA dataset.",
+    curl: `curl -X POST ${BASE}/ask -H "Content-Type: application/json" -d '{"question":"Compare PAXG reserve transparency"}'`,
+    params: [
+      { name: "question", in: "body", type: "string", required: "required", example: "Compare PAXG reserve transparency" },
+    ],
+    x402: "Requires Enterprise 7d pass.",
+    response: `{
+  "success": true,
+  "data": {
+    "answer": "...",
+    "sources": []
+  }
+}`,
   },
 ];
 
@@ -605,6 +350,8 @@ function EndpointCard({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const meta = accessMeta[ep.access];
+
   return (
     <article
       id={`ep-${ep.id}`}
@@ -613,29 +360,21 @@ function EndpointCard({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 border-b border-[rgba(30,42,58,0.6)] px-4 py-4 text-left transition-colors hover:bg-[rgba(255,255,255,0.03)]"
-        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-3 border-b border-[rgba(30,42,58,0.75)] px-4 py-3 text-left transition-colors hover:bg-[rgba(255,255,255,0.03)]"
       >
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {expanded ? (
             <ChevronDown className="size-5 shrink-0 text-[#00D4FF]" />
           ) : (
             <ChevronRight className="size-5 shrink-0 text-[#8892A4]" />
           )}
           <span className="truncate font-mono text-sm font-semibold text-white md:text-base">
-            {ep.title}
+            {ep.method} {ep.path}
           </span>
         </div>
-        <span
-          className={
-            ep.badgeFree
-              ? "shrink-0 rounded-full bg-[rgba(0,255,136,0.12)] px-2.5 py-0.5 text-xs font-bold text-[#00FF88] ring-1 ring-[rgba(0,255,136,0.35)]"
-              : "shrink-0 rounded-full bg-[rgba(0,212,255,0.1)] px-2.5 py-0.5 text-xs font-bold text-[#00D4FF] ring-1 ring-[rgba(0,212,255,0.3)]"
-          }
-        >
-          {ep.badge}
-        </span>
+        <span className={meta.className}>{meta.badge}</span>
       </button>
+
       {expanded ? (
         <div className="space-y-4 px-4 py-4">
           <p className="text-sm text-[#8892A4]">{ep.description}</p>
@@ -655,7 +394,7 @@ function EndpointCard({
                 <tbody>
                   {ep.params.map((row) => (
                     <tr
-                      key={row.name}
+                      key={`${ep.id}-${row.name}`}
                       className="border-b border-[rgba(30,42,58,0.5)] last:border-0"
                     >
                       <td className="px-3 py-2 font-mono text-[#00D4FF]">{row.name}</td>
@@ -695,7 +434,7 @@ function EndpointCard({
               Response
             </p>
             <pre className="max-h-[360px] overflow-auto rounded-lg border border-[rgba(30,42,58,0.8)] bg-[#0A0E1A] p-4">
-              <code className="block font-mono text-[11px] leading-relaxed whitespace-pre">
+              <code className="block whitespace-pre font-mono text-[11px] leading-relaxed text-[#C5CDD8]">
                 {ep.response}
               </code>
             </pre>
@@ -721,7 +460,6 @@ export default function ApiDocsPage() {
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-      {/* SIDEBAR */}
       <aside className="lg:sticky lg:top-24 lg:w-56 lg:shrink-0">
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[#4A5568]">
           Endpoints
@@ -737,27 +475,40 @@ export default function ApiDocsPage() {
               }}
               className="whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-left text-xs text-[#8892A4] transition-colors hover:border-[rgba(30,42,58,0.8)] hover:bg-[rgba(15,22,41,0.6)] hover:text-white lg:text-sm"
             >
-              {ep.title.replace("GET ", "")}
+              {ep.path}
             </button>
           ))}
         </nav>
       </aside>
 
       <div className="min-w-0 flex-1 space-y-10">
-        {/* HEADER */}
         <header>
           <h1 className="text-3xl font-bold tracking-tight text-white md:text-[32px]">
             API Reference
           </h1>
           <p className="mt-2 text-sm text-[#8892A4]">
-            Powered by X402 Protocol — pay per request
+            Public discovery endpoints are free. Pro and Enterprise endpoints use X402 session-based access.
           </p>
           <div className="mt-4 inline-flex items-center rounded-lg border border-[rgba(0,212,255,0.3)] bg-[rgba(0,212,255,0.08)] px-3 py-1.5 font-mono text-xs font-medium text-[#00D4FF]">
             api.nexusrwa.xyz/v1
           </div>
         </header>
 
-        {/* ENDPOINT CARDS */}
+        <section className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-[rgba(0,255,136,0.22)] bg-[rgba(0,255,136,0.06)] p-4">
+            <p className="text-sm font-bold text-[#00FF88]">Free</p>
+            <p className="mt-1 text-xs text-[#8892A4]">Catalog, public asset detail, market overview, events, and search.</p>
+          </div>
+          <div className="rounded-xl border border-[rgba(0,212,255,0.22)] bg-[rgba(0,212,255,0.06)] p-4">
+            <p className="text-sm font-bold text-[#00D4FF]">Pro · $3 / 24h</p>
+            <p className="mt-1 text-xs text-[#8892A4]">Full asset layers, history, sources, risk breakdown, holders, and AI insight.</p>
+          </div>
+          <div className="rounded-xl border border-[rgba(255,184,0,0.22)] bg-[rgba(255,184,0,0.06)] p-4">
+            <p className="text-sm font-bold text-[#FFB800]">Enterprise · $29 / 7d</p>
+            <p className="mt-1 text-xs text-[#8892A4]">Bulk analytics, export, and Ask Nexus API workflows.</p>
+          </div>
+        </section>
+
         <section className="space-y-4">
           <h2 className="sr-only">Endpoints</h2>
           {ENDPOINTS.map((ep) => (
@@ -772,51 +523,42 @@ export default function ApiDocsPage() {
 
         <hr className="border-[rgba(30,42,58,0.8)]" />
 
-        {/* X402 GUIDE */}
         <section>
           <h2 className="text-xl font-bold text-white">How X402 Works</h2>
           <ol className="mt-6 space-y-6">
             <li className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.4)] p-4">
               <p className="text-sm font-semibold text-[#00D4FF]">Step 1</p>
-              <p className="mt-1 text-sm text-[#8892A4]">Make request → get HTTP 402 Payment Required</p>
+              <p className="mt-1 text-sm text-[#8892A4]">Request a Pro or Enterprise endpoint. If your session is not active, the API returns HTTP 402 Payment Required.</p>
               <pre className="mt-3 overflow-x-auto rounded-lg border border-[rgba(30,42,58,0.8)] bg-[#0A0E1A] p-3">
                 <code className="font-mono text-[11px] text-[#8892A4]">
-                  {`const res = await fetch("${BASE}/assets/ondo-usdy/yield");\nconsole.log(res.status); // 402`}
+                  {`const res = await fetch("${BASE}/assets/paxos-paxg/full");
+console.log(res.status); // 402 if locked`}
                 </code>
               </pre>
             </li>
             <li className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.4)] p-4">
               <p className="text-sm font-semibold text-[#00D4FF]">Step 2</p>
               <p className="mt-1 text-sm text-[#8892A4]">
-                Read payment instructions from the response body (amount, payTo, asset, network).
+                Read the X402 payment metadata from the response body, including amount, network, asset, and recipient.
               </p>
-              <pre className="mt-3 overflow-x-auto rounded-lg border border-[rgba(30,42,58,0.8)] bg-[#0A0E1A] p-3">
-                <code className="font-mono text-[11px] text-[#8892A4]">
-                  {`const body = await res.json();\n// x402Requirements, maxAmountRequired, payTo, ...`}
-                </code>
-              </pre>
             </li>
             <li className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.4)] p-4">
               <p className="text-sm font-semibold text-[#00D4FF]">Step 3</p>
-              <p className="mt-1 text-sm text-[#8892A4]">Pay USDC on Base (exact amount) to the provided address.</p>
-            </li>
-            <li className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.4)] p-4">
-              <p className="text-sm font-semibold text-[#00D4FF]">Step 4</p>
-              <p className="mt-1 text-sm text-[#8892A4]">Retry the same URL with proof in the X-Payment header.</p>
+              <p className="mt-1 text-sm text-[#8892A4]">Complete payment and retry the same request with the payment proof/session header.</p>
               <pre className="mt-3 overflow-x-auto rounded-lg border border-[rgba(30,42,58,0.8)] bg-[#0A0E1A] p-3">
                 <code className="font-mono text-[11px] text-[#8892A4]">
-                  {`fetch(url, {\n  headers: {\n    "X-Payment": JSON.stringify({ /* proof */ }),\n  },\n});`}
+                  {`fetch(url, {
+  headers: {
+    "X-Payment-Tx": "0x...",
+    "X-Wallet-Address": "0x..."
+  }
+});`}
                 </code>
               </pre>
-            </li>
-            <li className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.4)] p-4">
-              <p className="text-sm font-semibold text-[#00D4FF]">Step 5</p>
-              <p className="mt-1 text-sm text-[#8892A4]">Receive 200 JSON with your data.</p>
             </li>
           </ol>
         </section>
 
-        {/* SDK */}
         <section>
           <h2 className="text-xl font-bold text-white">SDKs &amp; plugins</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

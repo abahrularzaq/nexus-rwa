@@ -135,8 +135,8 @@ export default function DashboardAssetsPage() {
       >
         <Info className="mt-0.5 size-5 shrink-0 text-[#00D4FF]" aria-hidden />
         <p className="text-sm leading-relaxed text-[#8892A4]">
-          Asset list and risk scores are free. Yield history and holder
-          intelligence require X402 micropayment.
+          Asset discovery and public asset profiles are free. Full risk breakdown, yield history,
+          holder intelligence, source trail, and reserve evidence require Pro access.
         </p>
       </div>
 
