@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { FadeUp } from "@/components/landing/primitives";
 import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
@@ -12,7 +13,7 @@ type AssetDetailMetricsPreviewProps = {
 type ProLockedSectionProps = {
   title: string;
   description: string;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 function ProLockedSection({ title, description, children }: ProLockedSectionProps) {
