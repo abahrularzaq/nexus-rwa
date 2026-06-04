@@ -1,5 +1,7 @@
 import { FadeUp } from "@/components/landing/primitives";
+import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { MetricField, MetricGrid, MetricSection } from "@/components/common/MetricField";
+import { getGradeDisclaimer } from "@/lib/disclaimers";
 import type { LocalAssetMetrics } from "@/lib/local-assets";
 
 type AssetDetailMetricsPreviewProps = {
@@ -10,6 +12,7 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
   const displayName = asset.identity.name ?? asset.slug;
   const symbol = asset.identity.symbol ? ` (${asset.identity.symbol})` : "";
   const grade = asset.gradeBaseline.grade ?? "research";
+  const gradeDisclaimer = getGradeDisclaimer(grade);
 
   return (
     <section className="py-24 px-6">
@@ -55,6 +58,11 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
               >
                 {grade} grade
               </div>
+            </div>
+
+            <div className="mb-6 grid gap-4 lg:grid-cols-2">
+              <DisclaimerBanner variant="asset" compact />
+              <DisclaimerBanner disclaimer={gradeDisclaimer} compact />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
