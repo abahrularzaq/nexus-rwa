@@ -10,7 +10,7 @@
   "fundAdmin": null,
   "transferAgent": null,
   "targetInvestors": "Registered Paxos customers and institutional investors; PAXG is also available through supported secondary-market venues and crypto ecosystem platforms, subject to jurisdictional restrictions.",
-  "prospectuUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+  "prospectusUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
   "metadata": {
     "legalDocumentType": "PAX Gold Terms and Conditions",
     "legalDocumentLastModified": "2025-12-12",
