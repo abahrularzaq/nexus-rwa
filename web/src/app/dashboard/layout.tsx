@@ -6,14 +6,16 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Layers,
-  TrendingUp,
-  Shield,
-  Users,
+  BarChart3,
+  ShieldCheck,
   Code,
   Menu,
   X,
   ChevronRight,
   RefreshCw,
+  Search,
+  Database,
+  Library,
 } from "lucide-react";
 
 import { DashboardWalletButton } from "@/components/dashboard/DashboardWalletButton";
@@ -34,21 +36,33 @@ const navItems = [
     exact: false,
   },
   {
-    label: "Yield",
-    href: "/dashboard/yield",
-    icon: TrendingUp,
+    label: "Screener",
+    href: "/dashboard/screener",
+    icon: Search,
     exact: false,
   },
   {
-    label: "Risk",
-    href: "/dashboard/risk",
-    icon: Shield,
+    label: "Layers",
+    href: "/dashboard/layers",
+    icon: Database,
     exact: false,
   },
   {
-    label: "Holders",
-    href: "/dashboard/holders",
-    icon: Users,
+    label: "Market",
+    href: "/dashboard/market",
+    icon: BarChart3,
+    exact: false,
+  },
+  {
+    label: "Risk & Grade",
+    href: "/dashboard/risk-grade",
+    icon: ShieldCheck,
+    exact: false,
+  },
+  {
+    label: "Sources",
+    href: "/dashboard/sources",
+    icon: Library,
     exact: false,
   },
   {
