@@ -23,7 +23,7 @@ function basescanTxUrl(txHash: string): string {
 
 function formatTime(ts: number | null): string {
   if (ts == null) return "—";
-  return new Date(ts).toLocaleString("id-ID", {
+  return new Date(ts).toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -59,7 +59,7 @@ export function PaymentHistory() {
           Payments
         </p>
         <p className="mt-1 text-xs text-[#8892A4]">
-          Belum ada pembayaran X402 di sesi ini.
+          No X402 payments in this session.
         </p>
       </div>
     );
