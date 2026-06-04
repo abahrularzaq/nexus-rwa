@@ -272,7 +272,86 @@ Do not make that migration until payment verification and session grant logic ar
 
 ---
 
-## 9. Security Rules
+## 9. API Key Entitlements
+
+API keys are an alternative entitlement mechanism for partners, testers, and enterprise users.
+
+Supported headers:
+
+```txt
+X-API-Key: <raw-api-key>
+Authorization: Bearer <raw-api-key>
+```
+
+The backend never trusts `X-Payment-Tier` from the client. API key tier is resolved from the database using the SHA-256 hash of the raw key.
+
+### Key tier mapping
+
+| Prisma `KeyTier` | Access tier |
+|---|---|
+| `FREE` | `free` |
+| `STANDARD` | `pro` |
+| `PREMIUM` | `enterprise` |
+
+This mapping lets existing `ApiKey` schema support Free / Pro / Enterprise without adding a new enum value yet.
+
+### Create an API key
+
+Create a Pro-equivalent API key:
+
+```bash
+npm run create:api-key --workspace=api -- --name="Partner Pro Tester" --tier=STANDARD
+```
+
+Create an Enterprise-equivalent API key:
+
+```bash
+npm run create:api-key --workspace=api -- --name="Enterprise Tester" --tier=PREMIUM
+```
+
+Optional expiration:
+
+```bash
+npm run create:api-key --workspace=api -- --name="Trial Key" --tier=STANDARD --expiresAt=2026-12-31T23:59:59Z
+```
+
+The command prints the raw key once. Store it securely. The database stores only `keyHash`, not the raw key.
+
+### Test API key access
+
+Pro endpoint with Standard key:
+
+```bash
+curl "http://localhost:3001/v1/assets/ondo-ousg/sources" \
+  -H "X-API-Key: <raw-api-key>"
+```
+
+Expected:
+
+```txt
+200 OK
+X-Payment-Status: api-key
+X-Payment-Tier: pro
+```
+
+Enterprise endpoint with Premium key:
+
+```bash
+curl "http://localhost:3001/v1/export" \
+  -H "X-API-Key: <raw-api-key>"
+```
+
+Expected:
+
+```txt
+200 OK
+X-Payment-Status: api-key
+X-Payment-Tier: enterprise
+```
+
+---
+
+## 10. Security Rules
 
 The backend must not trust client-provided tier headers.
 
@@ -296,7 +375,7 @@ Current tier resolution defaults unauthenticated requests to Free.
 
 ---
 
-## 10. Manual Test Checklist
+## 11. Manual Test Checklist
 
 Run build:
 
@@ -359,25 +438,40 @@ Expected:
 402 Payment Required
 ```
 
+Test Pro API key entitlement:
+
+```bash
+npm run create:api-key --workspace=api -- --name="Local Pro Test" --tier=STANDARD
+curl "http://localhost:3001/v1/assets/ondo-ousg/sources" -H "X-API-Key: <raw-api-key>"
+```
+
+Expected:
+
+```txt
+200 OK
+```
+
 ---
 
-## 11. Implementation Reference
+## 12. Implementation Reference
 
 Relevant files:
 
 | File | Purpose |
 |---|---|
 | `api/src/lib/request-tier.ts` | Resolves effective Free / Pro / Enterprise tier |
+| `api/src/lib/api-key-entitlement.ts` | Resolves API key entitlement from hashed keys |
 | `api/src/services/asset.service.ts` | Maps asset layers by tier |
 | `api/src/routes/assets.ts` | Asset routes and Pro endpoint handlers |
 | `api/src/middleware/x402/pricer.ts` | Endpoint tier and pricing catalog |
-| `api/src/middleware/x402.ts` | x402 payment-required response and session bypass logic |
+| `api/src/middleware/x402.ts` | x402 payment-required response, API-key bypass, and session bypass logic |
+| `api/src/scripts/create-api-key.ts` | Creates hashed API keys for testers and partners |
 | `api/src/routes/enterprise.ts` | Bulk analytics and export endpoints |
 | `api/src/routes/ask.ts` | Ask Nexus endpoint |
 
 ---
 
-## 12. Current Batch Status
+## 13. Current Batch Status
 
 | Batch | Status | Description |
 |---|---:|---|
@@ -386,16 +480,16 @@ Relevant files:
 | Batch 3 | ✅ Done | Add Pro modular endpoints |
 | Batch 4 | ✅ Done | Add pricing metadata while preserving x402 settlement |
 | Batch 5 | ✅ Done | Document pricing and access matrix |
+| Batch 6 | ✅ Done | Frontend UI gating and pricing cards |
+| Batch 7 | ✅ Done | API key entitlement model |
 
 ---
 
-## 13. Next Recommended Work
+## 14. Next Recommended Work
 
 Recommended next steps:
 
 ```txt
-Batch 6: Frontend UI gating and pricing cards
-Batch 7: API key entitlement model
 Batch 8: Stablecoin-denominated settlement cleanup
 Batch 9: Rate limits by tier
 Batch 10: Usage analytics and audit logs
