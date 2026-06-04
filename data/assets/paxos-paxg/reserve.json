@@ -1,15 +1,21 @@
 {
-  "backingType": null,
-  "backingDescription": null,
-  "collateralizationRatio": null,
-  "custodian": null,
-  "custodianUrl": null,
+  "backingType": "Commodity",
+  "backingDescription": "PAXG is backed by allocated physical gold. Each PAXG token is equal to one fine troy ounce of London Good Delivery gold, with PAXG representing fractional ownership of London Good Delivery gold bars held by Paxos Trust on a segregated basis for the benefit of PAXG holders.",
+  "collateralizationRatio": 1.0,
+  "custodian": "Paxos Trust",
+  "custodianUrl": "https://www.paxos.com/pax-gold",
   "hasProofOfReserves": false,
   "porOracleAddress": null,
   "porOracleChain": null,
   "lastAuditDate": null,
-  "lastAuditUrl": null,
-  "auditor": null,
-  "reserveBreakdown": null,
-  "redemptionAsset": null
+  "lastAuditUrl": "https://www.paxos.com/paxg-transparency",
+  "auditor": "KPMG LLP",
+  "reserveBreakdown": {
+    "London Good Delivery allocated gold": 100
+  },
+  "redemptionAsset": [
+    "USD",
+    "Unallocated Gold",
+    "Allocated Gold"
+  ]
 }

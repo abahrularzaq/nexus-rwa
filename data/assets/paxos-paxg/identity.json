@@ -1,15 +1,20 @@
 {
-  "name": null,
-  "symbol": null,
-  "fullName": null,
-  "description": null,
-  "category": null,
-  "subcategory": null,
+  "name": "Pax Gold",
+  "symbol": "PAXG",
+  "fullName": "Pax Gold",
+  "description": "Pax Gold (PAXG) is a Paxos-issued digital asset backed by one fine troy ounce of London Good Delivery gold. It is designed to provide blockchain-based ownership and transferability of physical gold, with redemption options governed by Paxos terms.",
+  "category": "Commodities",
+  "subcategory": "Tokenized Gold",
   "logoUrl": null,
-  "websiteUrl": null,
-  "docsUrl": null,
-  "twitterUrl": null,
-  "tags": [],
-  "launchDate": null,
+  "websiteUrl": "https://www.paxos.com/pax-gold",
+  "docsUrl": "https://docs.paxos.com/guides/dashboard/paxg",
+  "twitterUrl": "https://x.com/Paxos",
+  "tags": [
+    "institutional",
+    "retail",
+    "kyc-required",
+    "audited"
+  ],
+  "launchDate": "2019-09-05",
   "isin": null
 }
