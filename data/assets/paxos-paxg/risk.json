@@ -1,14 +1,30 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "overallScore": 84,
+  "overallLevel": "strong",
+  "smartContractRisk": 76,
+  "counterpartyRisk": 88,
+  "liquidityRisk": 82,
+  "regulatoryRisk": 90,
+  "marketRisk": 84,
+  "concentrationRisk": 68,
+  "riskFactors": [
+    "No explicit on-chain proof-of-reserves oracle was identified; reserve verification relies on Paxos transparency and attestation reporting rather than live on-chain PoR.",
+    "No standalone public legal opinion URL was found; legal evidence relies on Paxos Terms and Conditions plus regulator materials from NYDFS and OCC.",
+    "No dedicated smart-contract audit report URL was identified in the current layer set; smartContractRisk remains below institutional-grade despite verified Etherscan code.",
+    "Holder concentration data beyond Ethereum holder count is not included; concentrationRisk remains conservative.",
+    "Direct purchase, conversion, and redemption through Paxos are account-based and subject to verification, jurisdictional restrictions, and Paxos terms.",
+    "Market data is time-sensitive and mostly aggregator-derived; price, market cap, volume, and TVL should be refreshed before production publication.",
+    "Allocated physical gold redemption has a high threshold of 430 PAXG plus applicable fees, which limits direct physical redemption accessibility for smaller holders."
+  ],
+  "mitigants": [
+    "PAXG is issued and managed by Paxos Trust Company, N.A., with strong regulatory context from OCC and NYDFS materials.",
+    "PAXG is backed by allocated physical London Good Delivery gold, with each PAXG representing one fine troy ounce of gold according to official Paxos disclosures.",
+    "Paxos provides an official PAXG transparency page and attestation reports, with KPMG LLP identified as attestation provider in the current source trail.",
+    "PAXG has a verified Ethereum ERC-20 contract and a public Etherscan token tracker for supply, holder count, and activity review.",
+    "PAXG has strong secondary-market liquidity across major centralized exchanges and tracked market venues.",
+    "Paxos discloses AML/KYC, OFAC/government watchlist screening, customer due diligence, and transaction monitoring controls.",
+    "PAXG Terms define account-based redemption/conversion pathways into USD, unallocated gold, and allocated physical gold."
+  ],
+  "lastAssessed": "2026-06-04",
+  "assessmentMethod": "Evidence-based Nexus RWA manual risk assessment using completed identity, blockchain, reserve, institutional, compliance, market, yield, liquidity, and sources layers. Scores are conservative where public smart-contract audit, on-chain proof-of-reserves oracle, legal opinion, or holder concentration evidence is incomplete."
 }
