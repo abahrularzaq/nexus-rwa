@@ -19,6 +19,7 @@
     "import:asset-files": "node --import tsx/esm src/scripts/import-from-files.ts",
     "report:completeness": "node --import tsx/esm src/scripts/asset-completeness.ts",
     "create:api-key": "node --import tsx/esm src/scripts/create-api-key.ts",
+    "check:api-key": "node --import tsx/esm src/scripts/check-api-key.ts",
     "lint": "eslint src --ext .ts"
   },
   "prisma": {
