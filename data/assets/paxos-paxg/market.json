@@ -1,17 +1,21 @@
 {
-  "tvl": null,
+  "tvl": 2050736907,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": null,
-  "priceChange24h": null,
-  "marketCap": null,
-  "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
-  "holderCount": null,
+  "price": 4452.1,
+  "priceChange24h": 0.3,
+  "marketCap": 2052982755,
+  "volume24h": 182200945,
+  "circulatingSupply": 460964,
+  "totalSupply": 460964.775,
+  "holderCount": 89683,
   "holderChange7d": null,
   "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null
+  "lastUpdated": "2026-06-04",
+  "sources": [
+    "https://www.coingecko.com/en/coins/pax-gold",
+    "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "https://www.paxos.com/pax-gold"
+  ],
+  "confidence": "MEDIUM"
 }

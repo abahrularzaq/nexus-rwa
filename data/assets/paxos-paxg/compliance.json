@@ -1,13 +1,13 @@
 {
-  "regulatoryStatus": null,
-  "primaryRegulator": null,
-  "regulatoryFramework": null,
-  "kycRequired": false,
+  "regulatoryStatus": "Authorized gold-backed virtual currency / gold-backed digital asset issued by Paxos Trust Company, N.A.; originally authorized by NYDFS for Paxos Trust Company LLC and later supported by OCC conditional approval for Paxos Trust Company, National Association.",
+  "primaryRegulator": "Office of the Comptroller of the Currency (OCC); New York State Department of Financial Services (NYDFS) authorization at launch",
+  "regulatoryFramework": "OCC-regulated national trust bank framework; NYDFS virtual currency / limited purpose trust company authorization; Paxos AML/KYC program; OFAC sanctions screening; customer identification program",
+  "kycRequired": true,
   "accreditedOnly": false,
   "blockedJurisdictions": [],
   "allowedJurisdictions": [],
-  "sanctionsScreening": false,
-  "amlPolicy": null,
-  "lastComplianceCheck": null,
+  "sanctionsScreening": true,
+  "amlPolicy": "Paxos maintains an AML/KYC program with internal controls, independent AML testing, a designated compliance officer, employee AML training, customer identification procedures, OFAC and government watchlist screening, identity verification, beneficial-owner checks for institutions, customer due diligence, and transaction monitoring.",
+  "lastComplianceCheck": "2026-06-04",
   "legalOpinionUrl": null
 }

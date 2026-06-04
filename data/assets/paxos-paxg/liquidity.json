@@ -1,12 +1,12 @@
 {
-  "redemptionType": null,
+  "redemptionType": "Account-based redemption through Paxos for USD, unallocated gold, or allocated physical London Good Delivery gold; secondary-market liquidity available through supported centralized and decentralized markets.",
   "redemptionPeriodDays": null,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
-  "minRedemptionAmount": null,
+  "minRedemptionAmount": 430,
   "dexPairs": [],
   "onchainLiquidity": null,
-  "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": null
+  "bidAskSpread": 0.01,
+  "liquidityScore": 82,
+  "liquidityNotes": "PAXG has strong secondary-market liquidity across major centralized exchanges and on-chain transferability. CoinGecko tracks PAXG across 77 exchanges and 144 markets. The listed minRedemptionAmount of 430 refers specifically to allocated physical gold bar redemption under Paxos Terms, not ordinary exchange trading or possible USD/unallocated-gold conversion. Paxos may require minimum amounts for conversion and may update them over time. Redemption or conversion through Paxos requires a Paxos account and may take up to several business days depending on the method."
 }

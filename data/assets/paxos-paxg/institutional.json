@@ -1,15 +1,36 @@
 {
-  "issuerName": null,
-  "issuerType": null,
-  "issuerCountry": null,
+  "issuerName": "Paxos Trust Company, N.A.",
+  "issuerType": "OCC-regulated national trust bank / trust company",
+  "issuerCountry": "United States",
   "fundManager": null,
-  "legalStructure": null,
+  "legalStructure": "Gold-denominated and gold-backed token managed by Paxos Trust Company, N.A.; PAXG represents fractional ownership of London Good Delivery gold bars held by Paxos Trust on a segregated basis for the benefit of PAXG holders.",
   "minimumInvestment": null,
   "managementFee": null,
   "performanceFee": null,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": null,
-  "prospectusUrl": null,
-  "metadata": {}
+  "targetInvestors": "Registered Paxos customers and institutional investors; PAXG is also available through supported secondary-market venues and crypto ecosystem platforms, subject to jurisdictional restrictions.",
+  "prospectuUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+  "metadata": {
+    "legalDocumentType": "PAX Gold Terms and Conditions",
+    "legalDocumentLastModified": "2025-12-12",
+    "isFund": false,
+    "fundManagerApplicability": "Not applicable; PAXG is a gold-backed token, not a fund.",
+    "minimumPurchaseReference": {
+      "amount": 0.01,
+      "unit": "fine troy ounce / PAXG",
+      "approximateUsd": "~20",
+      "sourceNote": "Official Paxos product page compares Pax Gold minimum purchase as 0.01 t oz, approximately $20. Kept out of minimumInvestment because schema does not specify unit."
+    },
+    "custodyStructure": "PAXG represents fractional ownership of London Good Delivery gold bars held by Paxos Trust on a segregated basis for PAXG holders.",
+    "reseller": "Paxos Global serves as a reseller of PAXG.",
+    "regulatoryContext": {
+      "nydfsAuthorization": "NYDFS authorized Paxos Trust Company LLC to offer PAX Gold in 2019.",
+      "occStatus": "OCC conditionally approved Paxos Trust Company, National Association conversion from state trust company to national trust bank in 2025."
+    },
+    "jurisdictionNotes": [
+      "PAXG is currently unavailable in the EU according to the Paxos product page.",
+      "Restrictions may apply in accordance with applicable law."
+    ]
+  }
 }
