@@ -5,7 +5,14 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { HexLogo } from "@/components/landing/primitives";
 
-const links = ["Dashboard", "Assets", "Analytics", "API", "Pricing"];
+const links = [
+  { label: "Dashboard", href: "#" },
+  { label: "Assets", href: "#" },
+  { label: "Analytics", href: "#" },
+  { label: "Glossary", href: "/glossary" },
+  { label: "API", href: "#" },
+  { label: "Pricing", href: "#" },
+];
 
 export function Nav() {
   const [open, setOpen] = useState(false);
@@ -21,7 +28,7 @@ export function Nav() {
         }}
       >
         <div className="h-full max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between">
-          <a href="#" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5">
             <HexLogo size={28} />
             <span className="text-base font-bold tracking-tight">
               <span className="text-white">NEXUS</span>{" "}
@@ -37,39 +44,66 @@ export function Nav() {
             >
               BETA
             </span>
-          </a>
+          </Link>
 
           <nav className="hidden lg:flex items-center gap-8">
-            {links.map((l) => (
-              <button
-                key={l}
-                onClick={() => setActive(l)}
-                className={`relative text-sm font-medium transition-colors ${
-                  active === l ? "text-white" : "text-text-secondary hover:text-white"
-                }`}
-                style={active === l ? { color: "#fff" } : { color: "#8892A4" }}
-              >
-                {l}
-                {active === l && (
-                  <span
-                    className="absolute -bottom-[22px] left-0 right-0 h-[2px]"
-                    style={{ background: "var(--accent-cyan)" }}
-                  />
-                )}
-              </button>
-            ))}
+            {links.map((l) => {
+              const isActive = active === l.label;
+
+              if (l.href.startsWith("/")) {
+                return (
+                  <Link
+                    key={l.label}
+                    href={l.href}
+                    onClick={() => setActive(l.label)}
+                    className={`relative text-sm font-medium transition-colors ${
+                      isActive ? "text-white" : "text-text-secondary hover:text-white"
+                    }`}
+                    style={isActive ? { color: "#fff" } : { color: "#8892A4" }}
+                  >
+                    {l.label}
+                    {isActive && (
+                      <span
+                        className="absolute -bottom-[22px] left-0 right-0 h-[2px]"
+                        style={{ background: "var(--accent-cyan)" }}
+                      />
+                    )}
+                  </Link>
+                );
+              }
+
+              return (
+                <button
+                  key={l.label}
+                  onClick={() => setActive(l.label)}
+                  className={`relative text-sm font-medium transition-colors ${
+                    isActive ? "text-white" : "text-text-secondary hover:text-white"
+                  }`}
+                  style={isActive ? { color: "#fff" } : { color: "#8892A4" }}
+                >
+                  {l.label}
+                  {isActive && (
+                    <span
+                      className="absolute -bottom-[22px] left-0 right-0 h-[2px]"
+                      style={{ background: "var(--accent-cyan)" }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-3">
-            <button
+            <Link
+              href="/glossary"
               className="hidden sm:inline-flex text-sm font-semibold px-5 py-2 rounded-lg transition-all"
               style={{
                 border: "1px solid rgba(0,212,255,0.4)",
                 color: "var(--accent-cyan)",
               }}
             >
-              API Docs
-            </button>
+              Glossary
+            </Link>
             <Link
               href="/dashboard"
               className="text-sm font-bold px-5 py-2 rounded-lg text-white transition-transform hover:-translate-y-0.5"
@@ -106,14 +140,17 @@ export function Nav() {
           </div>
           <nav className="flex flex-col items-center gap-8 mt-12">
             {links.map((l) => (
-              <a
-                key={l}
-                href="#"
-                onClick={() => setOpen(false)}
+              <Link
+                key={l.label}
+                href={l.href}
+                onClick={() => {
+                  setActive(l.label);
+                  setOpen(false);
+                }}
                 className="text-2xl font-semibold text-white"
               >
-                {l}
-              </a>
+                {l.label}
+              </Link>
             ))}
           </nav>
         </div>
