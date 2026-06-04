@@ -1,27 +1,16 @@
 import { FadeUp } from "@/components/landing/primitives";
 import { MetricField, MetricGrid, MetricSection } from "@/components/common/MetricField";
+import type { LocalAssetMetrics } from "@/lib/local-assets";
 
-const sampleAsset = {
-  name: "Franklin BENJI",
-  dataQualityGrade: "institutional",
-  kycRequired: true,
-  accreditedOnly: false,
-  transferRestricted: true,
-  sanctionsScreening: true,
-  redemptionType: "Issuer-supported",
-  redemptionPeriodDays: 1,
-  lockupPeriodDays: null,
-  liquidityScore: 80,
-  backingType: "Money Market Fund",
-  custodian: "Qualified custodian / fund infrastructure",
-  hasProofOfReserves: false,
-  reserveScore: 90,
-  sourceScore: 97,
-  completenessScore: 100,
-  riskScore: 88,
+type AssetDetailMetricsPreviewProps = {
+  asset: LocalAssetMetrics;
 };
 
-export function AssetDetailMetricsPreview() {
+export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewProps) {
+  const displayName = asset.identity.name ?? asset.slug;
+  const symbol = asset.identity.symbol ? ` (${asset.identity.symbol})` : "";
+  const grade = asset.gradeBaseline.grade ?? "research";
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-[1400px] mx-auto">
@@ -50,9 +39,11 @@ export function AssetDetailMetricsPreview() {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
               <div>
                 <div className="text-sm label-eyebrow" style={{ color: "var(--text-secondary)" }}>
-                  Asset Detail Preview
+                  Live Asset Detail Preview · Local Dataset
                 </div>
-                <h3 className="mt-2 text-2xl font-extrabold text-white">{sampleAsset.name}</h3>
+                <h3 className="mt-2 text-2xl font-extrabold text-white">
+                  {displayName}{symbol}
+                </h3>
               </div>
               <div
                 className="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold capitalize"
@@ -62,7 +53,7 @@ export function AssetDetailMetricsPreview() {
                   border: "1px solid rgba(0,255,136,0.25)",
                 }}
               >
-                {sampleAsset.dataQualityGrade} grade
+                {grade} grade
               </div>
             </div>
 
@@ -72,10 +63,10 @@ export function AssetDetailMetricsPreview() {
                 description="Investor eligibility, transfer controls, and screening signals."
               >
                 <MetricGrid columns={2}>
-                  <MetricField fieldKey="kycRequired" value={sampleAsset.kycRequired} variant="card" />
-                  <MetricField fieldKey="accreditedOnly" value={sampleAsset.accreditedOnly} variant="card" />
-                  <MetricField fieldKey="transferRestricted" value={sampleAsset.transferRestricted} variant="card" />
-                  <MetricField fieldKey="sanctionsScreening" value={sampleAsset.sanctionsScreening} variant="card" />
+                  <MetricField fieldKey="kycRequired" value={asset.compliance.kycRequired} variant="card" />
+                  <MetricField fieldKey="accreditedOnly" value={asset.compliance.accreditedOnly} variant="card" />
+                  <MetricField fieldKey="regulatoryStatus" value={asset.compliance.regulatoryStatus} variant="card" />
+                  <MetricField fieldKey="sanctionsScreening" value={asset.compliance.sanctionsScreening} variant="card" />
                 </MetricGrid>
               </MetricSection>
 
@@ -84,10 +75,10 @@ export function AssetDetailMetricsPreview() {
                 description="Redemption access, lock-up constraints, and exit quality."
               >
                 <MetricGrid columns={2}>
-                  <MetricField fieldKey="redemptionType" value={sampleAsset.redemptionType} variant="card" />
-                  <MetricField fieldKey="redemptionPeriodDays" value={sampleAsset.redemptionPeriodDays} valueSuffix=" day" variant="card" />
-                  <MetricField fieldKey="lockupPeriodDays" value={sampleAsset.lockupPeriodDays} valueSuffix=" days" variant="card" />
-                  <MetricField fieldKey="liquidityScore" value={sampleAsset.liquidityScore} valueSuffix=" / 100" variant="card" />
+                  <MetricField fieldKey="redemptionType" value={asset.liquidity.redemptionType} variant="card" />
+                  <MetricField fieldKey="redemptionPeriodDays" value={asset.liquidity.redemptionPeriodDays} valueSuffix=" day" variant="card" />
+                  <MetricField fieldKey="lockupPeriodDays" value={asset.liquidity.lockupPeriodDays} valueSuffix=" days" variant="card" />
+                  <MetricField fieldKey="liquidityScore" value={asset.gradeBaseline.liquidityScore ?? asset.liquidity.liquidityScore} valueSuffix=" / 100" variant="card" />
                 </MetricGrid>
               </MetricSection>
 
@@ -96,10 +87,10 @@ export function AssetDetailMetricsPreview() {
                 description="Backing, custody, and reserve transparency indicators."
               >
                 <MetricGrid columns={2}>
-                  <MetricField fieldKey="backingType" value={sampleAsset.backingType} variant="card" />
-                  <MetricField fieldKey="custodian" value={sampleAsset.custodian} variant="card" />
-                  <MetricField fieldKey="hasProofOfReserves" value={sampleAsset.hasProofOfReserves} variant="card" />
-                  <MetricField fieldKey="reserveScore" value={sampleAsset.reserveScore} valueSuffix=" / 100" variant="card" />
+                  <MetricField fieldKey="backingType" value={asset.reserve.backingType} variant="card" />
+                  <MetricField fieldKey="custodian" value={asset.reserve.custodian} variant="card" />
+                  <MetricField fieldKey="hasProofOfReserves" value={asset.reserve.hasProofOfReserves} variant="card" />
+                  <MetricField fieldKey="reserveScore" value={asset.gradeBaseline.reserveScore} valueSuffix=" / 100" variant="card" />
                 </MetricGrid>
               </MetricSection>
 
@@ -108,10 +99,10 @@ export function AssetDetailMetricsPreview() {
                 description="Evidence quality, completeness, and final data quality signals."
               >
                 <MetricGrid columns={2}>
-                  <MetricField fieldKey="sourceScore" value={sampleAsset.sourceScore} valueSuffix=" / 100" variant="card" />
-                  <MetricField fieldKey="completenessScore" value={sampleAsset.completenessScore} valueSuffix=" / 100" variant="card" />
-                  <MetricField fieldKey="riskScore" value={sampleAsset.riskScore} valueSuffix=" / 100" variant="card" />
-                  <MetricField fieldKey="dataQualityGrade" value={sampleAsset.dataQualityGrade} variant="card" />
+                  <MetricField fieldKey="sourceScore" value={asset.gradeBaseline.sourceScore} valueSuffix=" / 100" variant="card" />
+                  <MetricField fieldKey="completenessScore" value={asset.gradeBaseline.completenessScore} valueSuffix=" / 100" variant="card" />
+                  <MetricField fieldKey="riskScore" value={asset.gradeBaseline.riskScore} valueSuffix=" / 100" variant="card" />
+                  <MetricField fieldKey="dataQualityGrade" value={grade} variant="card" />
                 </MetricGrid>
               </MetricSection>
             </div>
