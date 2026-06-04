@@ -13,9 +13,5 @@
   "reserveBreakdown": {
     "London Good Delivery allocated gold": 100
   },
-  "redemptionAsset": [
-    "USD",
-    "Unallocated Gold",
-    "Allocated Gold"
-  ]
+  "redemptionAsset": "USD; Unallocated Gold; Allocated Gold"
 }
