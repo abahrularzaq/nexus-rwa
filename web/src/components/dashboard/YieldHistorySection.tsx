@@ -52,40 +52,35 @@ export function YieldHistorySection({
       </div>
 
       <div
-        className="relative rounded-xl border border-[rgba(30,42,58,0.8)] p-5"
+        className="rounded-xl border border-[rgba(30,42,58,0.8)] p-5"
         style={{ background: "rgba(15,22,41,0.65)" }}
       >
         <PaywallGuard
           endpoint={endpoint}
           fallback={({ openPaywall }) => (
-            <div className="relative">
-              <YieldChart
-                data={buildMockYieldHistory(period)}
-                period={period}
-                isLocked
-              />
-              <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
-                <BlurredPreview
-                  title="Yield & TVL History"
-                  priceLabel="$0.005 USDC"
-                  onUnlock={openPaywall}
-                  className="max-w-md border-0 bg-transparent"
+            <div className="space-y-4">
+              <div className="pointer-events-none select-none blur-[3px]">
+                <YieldChart
+                  data={buildMockYieldHistory(period)}
+                  period={period}
+                  isLocked
                 />
               </div>
+              <BlurredPreview
+                title="Yield & TVL history"
+                priceLabel="$0.005 USDC"
+                onUnlock={openPaywall}
+              />
             </div>
           )}
         >
           {(payload) => {
             const body = payload as ApiResponse<YieldHistoryResponse>;
             if (!body || typeof body !== "object" || !("success" in body)) {
-              return (
-                <YieldChart data={[]} period={period} isLocked={false} />
-              );
+              return <YieldChart data={[]} period={period} isLocked={false} />;
             }
             if (!body.success) {
-              return (
-                <p className="text-sm text-[#FF8888]">{body.error.message}</p>
-              );
+              return <p className="text-sm text-[#FF8888]">{body.error.message}</p>;
             }
             return (
               <YieldChart
