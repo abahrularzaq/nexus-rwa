@@ -1,12 +1,19 @@
+import { createHash } from 'node:crypto';
 import type { Context, MiddlewareHandler } from 'hono';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { redis as getRedisClient } from '../lib/redis.js';
+import type { AccessTier } from './x402/pricer.js';
+import { resolveApiKeyEntitlement } from '../lib/api-key-entitlement.js';
+import { getActiveSession, normalizeWallet } from '../lib/x402-session.js';
 
-const MEMORY_WINDOW_MS = 60_000;
-const MEMORY_LIMIT = 200;
-
-const REDIS_LIMIT = 200;
+const WINDOW_MS = 60_000;
 const REDIS_TTL_SECONDS = 120;
+
+export const RATE_LIMITS_BY_TIER: Readonly<Record<AccessTier, number>> = {
+  free: 200,
+  pro: 2_000,
+  enterprise: 20_000,
+} as const;
 
 const memoryStore = new Map<string, { count: number; resetAt: number }>();
 
@@ -15,6 +22,12 @@ type RateLimitOutcome = {
   count: number;
   resetAt: number;
   limit: number;
+};
+
+type RateLimitSubject = {
+  tier: AccessTier;
+  id: string;
+  kind: 'api-key' | 'wallet' | 'ip';
 };
 
 function getClientIp(c: Context): string {
@@ -40,55 +53,97 @@ function getClientIp(c: Context): string {
   return 'unknown';
 }
 
-function checkInMemory(ip: string): RateLimitOutcome {
+function hashSubject(value: string): string {
+  return createHash('sha256').update(value).digest('hex').slice(0, 24);
+}
+
+function memoryKey(subject: RateLimitSubject): string {
+  return `${subject.tier}:${subject.kind}:${hashSubject(subject.id)}`;
+}
+
+function checkInMemory(subject: RateLimitSubject): RateLimitOutcome {
   const now = Date.now();
-  let entry = memoryStore.get(ip);
+  const limit = RATE_LIMITS_BY_TIER[subject.tier];
+  const key = memoryKey(subject);
+  let entry = memoryStore.get(key);
   if (!entry || now >= entry.resetAt) {
-    entry = { count: 0, resetAt: now + MEMORY_WINDOW_MS };
-    memoryStore.set(ip, entry);
+    entry = { count: 0, resetAt: now + WINDOW_MS };
+    memoryStore.set(key, entry);
   }
   entry.count += 1;
   return {
-    allowed: entry.count <= MEMORY_LIMIT,
+    allowed: entry.count <= limit,
     count: entry.count,
     resetAt: entry.resetAt,
-    limit: MEMORY_LIMIT,
+    limit,
   };
 }
 
-function redisKeyForIp(ip: string, windowMinute: number): string {
-  const safeIp = ip.replace(/:/g, '-');
-  return `nexus:rl:${safeIp}:${windowMinute}`;
+function redisKeyForSubject(subject: RateLimitSubject, windowMinute: number): string {
+  return `nexus:rl:${subject.tier}:${subject.kind}:${hashSubject(subject.id)}:${windowMinute}`;
 }
 
-async function checkRedis(ip: string): Promise<RateLimitOutcome | null> {
+async function checkRedis(subject: RateLimitSubject): Promise<RateLimitOutcome | null> {
   try {
     const client = getRedisClient();
     const windowMinute = Math.floor(Date.now() / 60_000);
-    const key = redisKeyForIp(ip, windowMinute);
+    const key = redisKeyForSubject(subject, windowMinute);
+    const limit = RATE_LIMITS_BY_TIER[subject.tier];
     const count = await client.incr(key);
     if (count === 1) {
       await client.expire(key, REDIS_TTL_SECONDS);
     }
     const resetAt = (windowMinute + 1) * 60_000;
     return {
-      allowed: count <= REDIS_LIMIT,
+      allowed: count <= limit,
       count,
       resetAt,
-      limit: REDIS_LIMIT,
+      limit,
     };
   } catch {
     return null;
   }
 }
 
+async function resolveRateLimitSubject(c: Context): Promise<RateLimitSubject> {
+  const apiKey = await resolveApiKeyEntitlement(c);
+  if (apiKey) {
+    return {
+      tier: apiKey.accessTier,
+      id: apiKey.id,
+      kind: 'api-key',
+    };
+  }
+
+  const walletHeader = c.req.header('X-Wallet-Address')?.trim();
+  const wallet = walletHeader ? normalizeWallet(walletHeader) : null;
+  if (wallet) {
+    const session = await getActiveSession(wallet);
+    if (session?.tier === 'enterprise' || session?.tier === 'pro') {
+      return {
+        tier: session.tier,
+        id: wallet,
+        kind: 'wallet',
+      };
+    }
+  }
+
+  return {
+    tier: 'free',
+    id: getClientIp(c),
+    kind: 'ip',
+  };
+}
+
 export function createRateLimiter(): MiddlewareHandler {
   return async (c, next) => {
-    const ip = getClientIp(c);
-    const redisOutcome = await checkRedis(ip);
-    const outcome = redisOutcome ?? checkInMemory(ip);
+    const subject = await resolveRateLimitSubject(c);
+    const redisOutcome = await checkRedis(subject);
+    const outcome = redisOutcome ?? checkInMemory(subject);
 
     c.header('X-RateLimit-Limit', String(outcome.limit));
+    c.header('X-RateLimit-Tier', subject.tier);
+    c.header('X-RateLimit-Subject', subject.kind);
 
     if (!outcome.allowed) {
       c.header('X-RateLimit-Remaining', '0');
@@ -100,12 +155,19 @@ export function createRateLimiter(): MiddlewareHandler {
             code: 'RATE_LIMITED',
             message: 'Too many requests. Please slow down.',
           },
+          meta: {
+            tier: subject.tier,
+            subject: subject.kind,
+            limit: outcome.limit,
+            resetAt: outcome.resetAt,
+          },
         },
         429,
       );
     }
 
     c.header('X-RateLimit-Remaining', String(Math.max(0, outcome.limit - outcome.count)));
+    c.header('X-RateLimit-Reset', String(outcome.resetAt));
     await next();
   };
 }
