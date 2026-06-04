@@ -11,8 +11,11 @@ import { Pricing } from "@/components/landing/Pricing";
 import { UseCases } from "@/components/landing/UseCases";
 import { ApiReference } from "@/components/landing/ApiReference";
 import { CTASection, Footer } from "@/components/landing/CTAFooter";
+import { getLocalAssetMetrics } from "@/lib/local-assets";
 
 export default function HomePage() {
+  const benjiMetrics = getLocalAssetMetrics("franklin-benji");
+
   return (
     <div
       className="min-h-screen"
@@ -25,7 +28,7 @@ export default function HomePage() {
         <MetricsBar />
         <AssetsTable />
         <DashboardPreview />
-        <AssetDetailMetricsPreview />
+        <AssetDetailMetricsPreview asset={benjiMetrics} />
         <X402Section />
         <ApiFeatures />
         <Pricing />
