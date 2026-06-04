@@ -13,6 +13,10 @@ import {
   hasTierAccess,
   normalizeWallet,
 } from '../lib/x402-session.js';
+import {
+  hasAccessTier,
+  resolveApiKeyEntitlement,
+} from '../lib/api-key-entitlement.js';
 
 const USDC_SEPOLIA = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const USDC_MAINNET = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
@@ -239,6 +243,22 @@ function walletFromContext(c: Context): string | null {
   return null;
 }
 
+async function tryApiKeyBypass(
+  c: Context,
+  config: EndpointAccessConfig,
+  next: () => Promise<void>,
+): Promise<boolean> {
+  const entitlement = await resolveApiKeyEntitlement(c);
+  if (!entitlement) return false;
+  if (!hasAccessTier(entitlement.accessTier, config.tier)) return false;
+
+  c.header('X-Payment-Status', 'api-key');
+  c.header('X-Payment-Tier', entitlement.accessTier);
+  c.header('X-Api-Key-Prefix', entitlement.prefix);
+  await next();
+  return true;
+}
+
 async function trySessionBypass(
   c: Context,
   config: EndpointAccessConfig,
@@ -302,6 +322,10 @@ export function createNexusX402Middleware(): MiddlewareHandler {
 
       if (config.isFree) {
         await next();
+        return;
+      }
+
+      if (await tryApiKeyBypass(c, config, next)) {
         return;
       }
 
@@ -400,6 +424,10 @@ export function createGatedTxPaymentMiddleware(): MiddlewareHandler {
     try {
       const path = c.req.path;
       const config = getEndpointAccessConfig(c.req.method, path);
+
+      if (await tryApiKeyBypass(c, config, next)) {
+        return;
+      }
 
       if (await trySessionBypass(c, config, next)) {
         return;
