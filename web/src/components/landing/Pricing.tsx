@@ -15,77 +15,114 @@ type Tier = {
   highlight?: boolean;
 };
 
-const ppr: Tier[] = [
+const passes: Tier[] = [
   {
-    name: "Public Data",
+    name: "Free",
     price: "$0",
-    per: "/request",
-    badge: "FREE FOREVER",
+    per: "forever",
+    badge: "PUBLIC DISCOVERY",
     features: [
-      { t: "Market overview endpoint", ok: true },
-      { t: "Protocol directory", ok: true },
-      { t: "Public asset list (basic)", ok: true },
-      { t: "System health status", ok: true },
-      { t: "Historical data", ok: false },
-      { t: "Risk scoring", ok: false },
-      { t: "Holder data", ok: false },
+      { t: "Public asset catalog", ok: true },
+      { t: "Market summary and current yield", ok: true },
+      { t: "Risk level and grade label", ok: true },
+      { t: "Public asset events", ok: true },
+      { t: "Reserve, compliance, and source trail", ok: false },
+      { t: "Historical data and AI insight", ok: false },
     ],
     cta: "Start Free",
   },
   {
-    name: "Standard Data",
-    price: "$0.001",
-    per: "/request",
-    sub: "≈ $1 per 1,000 calls",
-    badge: "MOST POPULAR",
+    name: "Pro 24h Pass",
+    price: "$3",
+    per: "/24h",
+    sub: "Current x402 settlement: 0.001 ETH",
+    badge: "ANALYST ACCESS",
     highlight: true,
     features: [
       { t: "Everything in Free", ok: true },
-      { t: "Asset detail endpoint", ok: true },
-      { t: "Current yield rates", ok: true },
-      { t: "Basic risk scores", ok: true },
-      { t: "Real-time TVL data", ok: true },
-      { t: "Historical analysis", ok: false },
-      { t: "Holder intelligence", ok: false },
+      { t: "Full 12-layer asset profile", ok: true },
+      { t: "Risk breakdown and grade context", ok: true },
+      { t: "Reserve, compliance, liquidity", ok: true },
+      { t: "Field-level source trail", ok: true },
+      { t: "History and AI asset insight", ok: true },
     ],
-    cta: "Start Building",
+    cta: "Unlock Pro",
   },
   {
-    name: "Deep Analytics",
-    price: "$0.005",
-    per: "/request",
-    sub: "≈ $5 per 1,000 calls",
+    name: "Enterprise 7d Pass",
+    price: "$29",
+    per: "/7d",
+    sub: "Current x402 settlement: 0.01 ETH",
     features: [
-      { t: "Everything in Standard", ok: true },
-      { t: "90-day yield history", ok: true },
-      { t: "Holder distribution", ok: true },
-      { t: "Advanced risk engine", ok: true },
-      { t: "Whale alerts", ok: true },
-      { t: "Search endpoint", ok: true },
+      { t: "Everything in Pro", ok: true },
+      { t: "Bulk analytics endpoint", ok: true },
+      { t: "Full dataset export", ok: true },
+      { t: "Ask Nexus API", ok: true },
+      { t: "Machine-readable workflows", ok: true },
+      { t: "Commercial integration path", ok: true },
     ],
-    cta: "Go Premium",
+    cta: "Start API Access",
   },
 ];
 
-const monthly: Tier[] = [
-  { name: "Starter", price: "$49", per: "/mo", badge: "FOR INDIE BUILDERS", features: [{ t: "10K requests / month", ok: true }, { t: "All public endpoints", ok: true }, { t: "Email support", ok: true }, { t: "Historical data", ok: false }, { t: "Risk scoring", ok: false }], cta: "Start Free Trial" },
-  { name: "Growth", price: "$199", per: "/mo", sub: "Most teams pick this", badge: "MOST POPULAR", highlight: true, features: [{ t: "100K requests / month", ok: true }, { t: "All endpoints incl. risk", ok: true }, { t: "Priority support", ok: true }, { t: "WebSocket streams", ok: true }, { t: "Dedicated account mgr", ok: false }], cta: "Start Free Trial" },
-  { name: "Enterprise", price: "Custom", per: "", features: [{ t: "Unlimited requests", ok: true }, { t: "Custom SLAs", ok: true }, { t: "On-prem option", ok: true }, { t: "Dedicated support", ok: true }, { t: "Custom integrations", ok: true }], cta: "Contact Sales" },
+const subscriptions: Tier[] = [
+  {
+    name: "Pro Early Access",
+    price: "$9",
+    per: "/mo",
+    badge: "FOR RESEARCHERS",
+    highlight: true,
+    features: [
+      { t: "Full analyst-grade asset profiles", ok: true },
+      { t: "Reserve, compliance, liquidity", ok: true },
+      { t: "Source trail and AI insights", ok: true },
+      { t: "Individual research workflow", ok: true },
+      { t: "Bulk API export", ok: false },
+    ],
+    cta: "Join Early Access",
+  },
+  {
+    name: "API Starter",
+    price: "$99",
+    per: "/mo",
+    badge: "FOR BUILDERS",
+    features: [
+      { t: "Machine-readable RWA dataset", ok: true },
+      { t: "API integration workflow", ok: true },
+      { t: "Bulk asset access", ok: true },
+      { t: "AI-agent friendly endpoints", ok: true },
+      { t: "Custom SLA", ok: false },
+    ],
+    cta: "Request API Access",
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    per: "",
+    features: [
+      { t: "Commercial data licensing", ok: true },
+      { t: "Custom asset coverage", ok: true },
+      { t: "Higher rate limits", ok: true },
+      { t: "Priority support", ok: true },
+      { t: "Dedicated integration path", ok: true },
+    ],
+    cta: "Contact Sales",
+  },
 ];
 
 export function Pricing() {
-  const [mode, setMode] = useState<"ppr" | "sub">("ppr");
-  const tiers = mode === "ppr" ? ppr : monthly;
+  const [mode, setMode] = useState<"passes" | "sub">("passes");
+  const tiers = mode === "passes" ? passes : subscriptions;
 
   return (
     <section className="py-24 px-6">
       <div className="max-w-[1400px] mx-auto">
         <FadeUp className="text-center mb-10">
           <h2 className="text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            Simple, Transparent Pricing
+            Pricing Built Around Access
           </h2>
-          <p className="mt-3 text-base" style={{ color: "var(--text-secondary)" }}>
-            Pay per request with X402, or subscribe for predictable costs
+          <p className="mt-3 text-base max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
+            Free for discovery, Pro for analyst-grade profiles, and Enterprise for API, export, and AI-agent workflows.
           </p>
         </FadeUp>
 
@@ -94,7 +131,7 @@ export function Pricing() {
             className="inline-flex p-1 rounded-full"
             style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-line)" }}
           >
-            {(["ppr", "sub"] as const).map((m) => (
+            {(["passes", "sub"] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
@@ -105,7 +142,7 @@ export function Pricing() {
                   boxShadow: mode === m ? "0 0 20px rgba(0,212,255,0.3)" : "none",
                 }}
               >
-                {m === "ppr" ? "Pay Per Request" : "Monthly Subscription"}
+                {m === "passes" ? "x402 Access Passes" : "Subscriptions"}
               </button>
             ))}
           </div>
@@ -127,7 +164,7 @@ export function Pricing() {
                     className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold text-white"
                     style={{ background: "linear-gradient(135deg,#00D4FF,#7C3AED)" }}
                   >
-                    MOST POPULAR
+                    {t.badge ?? "MOST POPULAR"}
                   </div>
                 )}
                 {!t.highlight && t.badge && (
@@ -203,11 +240,10 @@ export function Pricing() {
           >
             <Bot size={22} style={{ color: "var(--accent-cyan)" }} className="shrink-0" />
             <p className="text-sm" style={{ color: "#CBD5E1" }}>
-              <strong className="text-white">Building an AI Agent?</strong> X402 Protocol handles
-              payments automatically — no API keys, no credit cards, no human intervention required.{" "}
-              <a className="font-semibold" style={{ color: "var(--accent-cyan)" }} href="#">
-                Learn about X402 →
-              </a>
+              <strong className="text-white">Building an AI Agent?</strong> Enterprise unlocks bulk export,
+              Ask Nexus, and machine-readable institutional RWA data. Current x402 responses also expose
+              <span className="font-mono"> pricing.displayPrice</span> and <span className="font-mono">priceUsd</span>
+              for clean frontend display.
             </p>
           </div>
         </FadeUp>
