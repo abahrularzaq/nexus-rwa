@@ -6,8 +6,11 @@ import { useParams } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
+  CheckCircle2,
+  CircleDashed,
   ExternalLink,
   Layers,
+  Lock,
   Percent,
   TrendingDown,
   TrendingUp,
@@ -50,6 +53,29 @@ import type { AssetDataMeta, AssetSummary, RiskData } from "@/lib/shared";
 import type { AssetWithLayers } from "@/types/asset";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+type AssetTabId =
+  | "overview"
+  | "issuer"
+  | "reserve"
+  | "market"
+  | "liquidity"
+  | "blockchain"
+  | "risk"
+  | "sources"
+  | "events";
+
+const ASSET_TABS: { id: AssetTabId; label: string; layers: string }[] = [
+  { id: "overview", label: "Overview", layers: "Summary + Grade" },
+  { id: "issuer", label: "Issuer & Legal", layers: "Identity · Institutional · Compliance" },
+  { id: "reserve", label: "Reserve", layers: "Reserve & custody" },
+  { id: "market", label: "Market & Yield", layers: "Market · Yield" },
+  { id: "liquidity", label: "Liquidity", layers: "Redemption & exit" },
+  { id: "blockchain", label: "Blockchain", layers: "Contracts & chains" },
+  { id: "risk", label: "Risk & Grade", layers: "Risk · Grade" },
+  { id: "sources", label: "Sources", layers: "Evidence trail" },
+  { id: "events", label: "Events", layers: "Timeline" },
+];
 
 function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
   const u = (s ?? "MEDIUM").toUpperCase();
@@ -115,6 +141,145 @@ function sourceAttribution(meta: AssetDataMeta): string {
   return names || "Nexus sync";
 }
 
+function displayValue(value: unknown): string {
+  if (value == null || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return Number.isFinite(value) ? value.toLocaleString("en-US") : "—";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "—";
+  return String(value);
+}
+
+function FieldRow({ label, value }: { label: string; value: unknown }) {
+  return (
+    <div className="rounded-lg border border-[rgba(30,42,58,0.8)] bg-[rgba(10,14,26,0.45)] px-4 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8892A4]">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium text-white">
+        {displayValue(value)}
+      </p>
+    </div>
+  );
+}
+
+function SectionShell({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
+      <h2 className="text-lg font-bold text-white">{title}</h2>
+      {subtitle ? <p className="mt-1 text-sm text-[#8892A4]">{subtitle}</p> : null}
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+type LayerStatus = "complete" | "partial" | "pro" | "missing";
+
+function statusClass(status: LayerStatus): string {
+  if (status === "complete") return "text-[#00FF88] bg-[rgba(0,255,136,0.08)] border-[rgba(0,255,136,0.25)]";
+  if (status === "pro") return "text-[#00D4FF] bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.25)]";
+  if (status === "partial") return "text-[#FFB800] bg-[rgba(255,184,0,0.08)] border-[rgba(255,184,0,0.25)]";
+  return "text-[#8892A4] bg-[rgba(136,146,164,0.06)] border-[rgba(136,146,164,0.18)]";
+}
+
+function statusIcon(status: LayerStatus) {
+  if (status === "complete") return <CheckCircle2 className="size-4" />;
+  if (status === "pro") return <Lock className="size-4" />;
+  return <CircleDashed className="size-4" />;
+}
+
+function LayerCompletenessMatrix({ asset }: { asset: AssetWithLayers }) {
+  const rows: { layer: string; status: LayerStatus; note: string }[] = [
+    { layer: "Identity", status: asset.identity ? "complete" : "missing", note: "Public profile" },
+    { layer: "Institutional", status: asset.institutional ? "complete" : "pro", note: "Issuer and structure" },
+    { layer: "Compliance", status: asset.compliance ? "complete" : "partial", note: "KYC and restrictions" },
+    { layer: "Reserve", status: asset.reserve ? "complete" : "pro", note: "Backing and custody" },
+    { layer: "Blockchain", status: asset.blockchain?.length ? "complete" : "partial", note: "Chains and contracts" },
+    { layer: "Liquidity", status: asset.liquidity ? "complete" : "pro", note: "Redemption and exit" },
+    { layer: "Market", status: asset.market ? "complete" : "missing", note: "TVL, holders, price" },
+    { layer: "Yield", status: asset.yield?.currentYield != null ? "complete" : "partial", note: "Current and history" },
+    { layer: "Risk", status: asset.risk ? "complete" : "pro", note: "Factors and score" },
+    { layer: "Sources", status: "pro", note: "Field-level trail" },
+    { layer: "Events", status: "missing", note: "Timeline planned" },
+    { layer: "Grade", status: asset.grade ? "complete" : "partial", note: "Baseline score" },
+  ];
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {rows.map((row) => (
+        <div
+          key={row.layer}
+          className={`rounded-lg border px-4 py-3 ${statusClass(row.status)}`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-white">{row.layer}</p>
+            <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide">
+              {statusIcon(row.status)}
+              {row.status}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-[#8892A4]">{row.note}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BlockchainTab({ asset }: { asset: AssetWithLayers }) {
+  const rows = asset.blockchain ?? [];
+  if (!rows.length) {
+    return (
+      <SectionShell title="Blockchain" subtitle="Chains, contracts, token standard, verification, and transfer controls">
+        <p className="text-sm text-[#8892A4]">Blockchain deployment data is not available for this asset yet.</p>
+      </SectionShell>
+    );
+  }
+
+  return (
+    <SectionShell title="Blockchain" subtitle="Chains, contracts, token standard, verification, and transfer controls">
+      <div className="overflow-x-auto rounded-lg border border-[rgba(30,42,58,0.8)]">
+        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-[rgba(30,42,58,0.8)] bg-[rgba(10,14,26,0.5)] text-[#8892A4]">
+              <th className="px-4 py-2.5">Chain</th>
+              <th className="px-4 py-2.5">Contract</th>
+              <th className="px-4 py-2.5">Standard</th>
+              <th className="px-4 py-2.5">Verified</th>
+              <th className="px-4 py-2.5">Whitelist</th>
+              <th className="px-4 py-2.5">Restrictions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={`${row.chain}-${row.contractAddress}`} className="border-b border-[rgba(30,42,58,0.5)] last:border-0">
+                <td className="px-4 py-3 font-medium text-white">{row.chain}</td>
+                <td className="px-4 py-3 font-mono text-xs text-[#00D4FF]">
+                  {row.explorerUrl ? (
+                    <a href={row.explorerUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {row.contractAddress}
+                    </a>
+                  ) : row.contractAddress}
+                </td>
+                <td className="px-4 py-3 text-[#8892A4]">{displayValue(row.tokenStandard)}</td>
+                <td className="px-4 py-3 text-[#8892A4]">{displayValue(row.isVerified)}</td>
+                <td className="px-4 py-3 text-[#8892A4]">{displayValue(row.hasWhitelist)}</td>
+                <td className="px-4 py-3 text-[#8892A4]">{displayValue(row.hasTransferRestrictions)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </SectionShell>
+  );
+}
+
 export default function AssetDetailPage() {
   const params = useParams();
   const rawId = params?.id;
@@ -131,6 +296,7 @@ export default function AssetDetailPage() {
   const [loading, setLoading] = useState(true);
   const [peersLoading, setPeersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AssetTabId>("overview");
 
   const apiBase = useMemo(
     () => (API_URL ?? "").trim().replace(/\/$/, ""),
@@ -271,7 +437,7 @@ export default function AssetDetailPage() {
   const launchDate = asset.identity?.launchDate;
 
   return (
-    <div className="space-y-10 pb-10">
+    <div className="space-y-8 pb-10">
       <Link
         href="/dashboard/assets"
         className="inline-flex items-center gap-2 text-sm text-[#8892A4] transition-colors hover:text-[#00D4FF]"
@@ -333,10 +499,7 @@ export default function AssetDetailPage() {
                 ) : null}
               </div>
               <p className="mt-4 text-xs text-[#8892A4]">
-                Last updated:{" "}
-                <span className="text-white">
-                  {formatMinutesAgo(dataMeta.lastUpdated)}
-                </span>
+                Last updated: <span className="text-white">{formatMinutesAgo(dataMeta.lastUpdated)}</span>
                 <span className="text-[#4A5568]"> · </span>
                 <span>via {attribution}</span>
               </p>
@@ -355,121 +518,197 @@ export default function AssetDetailPage() {
                 tvlUp ? "text-[#00FF88]" : "text-[#FF4444]"
               }`}
             >
-              {tvlUp ? (
-                <TrendingUp className="size-4" />
-              ) : (
-                <TrendingDown className="size-4" />
-              )}
-              {formatChange7d(change7d)}{" "}
-              <span className="font-normal text-[#8892A4]">7d</span>
+              {tvlUp ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
+              {formatChange7d(change7d)} <span className="font-normal text-[#8892A4]">7d</span>
             </p>
           </div>
         </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-bold text-white">Key Metrics</h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            title="TVL"
-            value={formatTvl(asset.market?.tvl)}
-            change={`${tvlChangePct >= 0 ? "+" : ""}${tvlChangePct.toFixed(2)}%`}
-            changeType={changeTypeFromDelta(change7d)}
-            subtitle="7d change"
-            icon={<Layers className="text-[#00D4FF]" />}
-          />
-          <MetricCard
-            title="Yield"
-            value={formatYield(asset.yield?.currentYield)}
-            change={`${yieldChangePct >= 0 ? "+" : ""}${yieldChangePct.toFixed(2)}%`}
-            changeType={changeTypeFromDelta(change7d)}
-            subtitle="7d change"
-            icon={<Percent className="text-[#00D4FF]" />}
-          />
-          <MetricCard
-            title="Holders"
-            value={
-              asset.market?.holderCount != null
-                ? asset.market.holderCount.toLocaleString("en-US")
-                : "—"
-            }
-            change={`${holdersChangePct >= 0 ? "+" : ""}${holdersChangePct.toFixed(2)}%`}
-            changeType={changeTypeFromDelta(change7d * 0.35)}
-            subtitle="7d est."
-            icon={<Users className="text-[#00D4FF]" />}
-          />
-          <MetricCard
-            title="Age"
-            value={
-              launchDate
-                ? formatAssetAge(launchDate)
-                : "—"
-            }
-            change="—"
-            changeType="neutral"
-            subtitle="Since launch"
-            icon={<Calendar className="text-[#00D4FF]" />}
-          />
+      <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.42)] p-2">
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {ASSET_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={[
+                "min-w-fit rounded-lg px-3 py-2 text-left transition-colors",
+                activeTab === tab.id
+                  ? "bg-[rgba(0,212,255,0.12)] text-[#00D4FF] ring-1 ring-[rgba(0,212,255,0.28)]"
+                  : "text-[#8892A4] hover:bg-[rgba(255,255,255,0.04)] hover:text-white",
+              ].join(" ")}
+            >
+              <span className="block text-xs font-semibold">{tab.label}</span>
+              <span className="mt-0.5 hidden text-[10px] text-[#4A5568] sm:block">{tab.layers}</span>
+            </button>
+          ))}
         </div>
-      </section>
+      </div>
 
-      <AssetGradeCard grade={asset.grade} />
+      {activeTab === "overview" ? (
+        <div className="space-y-8">
+          <section className="space-y-3">
+            <h2 className="text-lg font-bold text-white">Key Metrics</h2>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard
+                title="TVL"
+                value={formatTvl(asset.market?.tvl)}
+                change={`${tvlChangePct >= 0 ? "+" : ""}${tvlChangePct.toFixed(2)}%`}
+                changeType={changeTypeFromDelta(change7d)}
+                subtitle="7d change"
+                icon={<Layers className="text-[#00D4FF]" />}
+              />
+              <MetricCard
+                title="Yield"
+                value={formatYield(asset.yield?.currentYield)}
+                change={`${yieldChangePct >= 0 ? "+" : ""}${yieldChangePct.toFixed(2)}%`}
+                changeType={changeTypeFromDelta(change7d)}
+                subtitle="7d change"
+                icon={<Percent className="text-[#00D4FF]" />}
+              />
+              <MetricCard
+                title="Holders"
+                value={
+                  asset.market?.holderCount != null
+                    ? asset.market.holderCount.toLocaleString("en-US")
+                    : "—"
+                }
+                change={`${holdersChangePct >= 0 ? "+" : ""}${holdersChangePct.toFixed(2)}%`}
+                changeType={changeTypeFromDelta(change7d * 0.35)}
+                subtitle="7d est."
+                icon={<Users className="text-[#00D4FF]" />}
+              />
+              <MetricCard
+                title="Age"
+                value={launchDate ? formatAssetAge(launchDate) : "—"}
+                change="—"
+                changeType="neutral"
+                subtitle="Since launch"
+                icon={<Calendar className="text-[#00D4FF]" />}
+              />
+            </div>
+          </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
-          <h2 className="text-lg font-bold text-white">Compliance</h2>
-          <p className="mt-1 text-sm text-[#8892A4]">
-            Regulatory and access requirements
-          </p>
-          <div className="mt-4">
+          <AssetGradeCard grade={asset.grade} />
+
+          <SectionShell title="Layer completeness" subtitle="12-layer coverage status for this asset">
+            <LayerCompletenessMatrix asset={asset} />
+          </SectionShell>
+
+          <AIInsightCard apiBaseUrl={apiBase} assetId={asset.slug} />
+        </div>
+      ) : null}
+
+      {activeTab === "issuer" ? (
+        <div className="space-y-6">
+          <SectionShell title="Identity" subtitle="Core public profile, official references, and asset classification">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <FieldRow label="Name" value={asset.identity?.name} />
+              <FieldRow label="Symbol" value={asset.identity?.symbol} />
+              <FieldRow label="Full name" value={asset.identity?.fullName} />
+              <FieldRow label="Category" value={asset.identity?.category} />
+              <FieldRow label="Subcategory" value={asset.identity?.subcategory} />
+              <FieldRow label="Launch date" value={asset.identity?.launchDate} />
+              <FieldRow label="Tags" value={asset.identity?.tags} />
+            </div>
+            {asset.identity?.description ? (
+              <p className="mt-4 text-sm leading-relaxed text-[#8892A4]">{asset.identity.description}</p>
+            ) : null}
+          </SectionShell>
+
+          <SectionShell title="Institutional" subtitle="Issuer, structure, target investors, and institutional counterparties">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <FieldRow label="Issuer" value={asset.institutional?.issuerName} />
+              <FieldRow label="Issuer type" value={asset.institutional?.issuerType} />
+              <FieldRow label="Issuer country" value={asset.institutional?.issuerCountry} />
+              <FieldRow label="Legal structure" value={asset.institutional?.legalStructure} />
+              <FieldRow label="Target investors" value={asset.institutional?.targetInvestors} />
+            </div>
+          </SectionShell>
+
+          <SectionShell title="Compliance" subtitle="Regulatory and access requirements">
             <ComplianceInfoSection compliance={asset.compliance} />
-          </div>
+          </SectionShell>
         </div>
-        <div className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
-          <h2 className="text-lg font-bold text-white">Liquidity</h2>
-          <p className="mt-1 text-sm text-[#8892A4]">
-            Redemption terms and liquidity score
-          </p>
-          <div className="mt-4">
-            <LiquidityInfoSection liquidity={asset.liquidity} />
-          </div>
-        </div>
-      </section>
+      ) : null}
 
-      <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
-        <h2 className="text-lg font-bold text-white">Reserve & backing</h2>
-        <p className="mt-1 text-sm text-[#8892A4]">
-          Custodian, collateralization, and proof-of-reserves (PRO)
-        </p>
-        <div className="mt-4">
-          <ReserveInfoSection
+      {activeTab === "reserve" ? (
+        <SectionShell title="Reserve & backing" subtitle="Custodian, collateralization, audit trail, and proof-of-reserves">
+          <ReserveInfoSection apiBaseUrl={apiBase} assetSlug={asset.slug} reserve={asset.reserve} />
+        </SectionShell>
+      ) : null}
+
+      {activeTab === "market" ? (
+        <div className="space-y-6">
+          <SectionShell title="Market" subtitle="TVL, price, holders, supply, and adoption signals">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <FieldRow label="TVL" value={formatTvl(asset.market?.tvl)} />
+              <FieldRow label="7D TVL change" value={asset.market?.tvl7dChange != null ? `${asset.market.tvl7dChange}%` : null} />
+              <FieldRow label="30D TVL change" value={asset.market?.tvl30dChange != null ? `${asset.market.tvl30dChange}%` : null} />
+              <FieldRow label="Price" value={asset.market?.price} />
+              <FieldRow label="24H price change" value={asset.market?.priceChange24h != null ? `${asset.market.priceChange24h}%` : null} />
+              <FieldRow label="Holders" value={asset.market?.holderCount} />
+              <FieldRow label="Holder 7D change" value={asset.market?.holderChange7d} />
+              <FieldRow label="Confidence" value={asset.market?.confidence} />
+            </div>
+          </SectionShell>
+
+          <SectionShell title="Yield" subtitle="Current yield, benchmark, frequency, and Pro time-series history">
+            <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <FieldRow label="Current yield" value={formatYield(asset.yield?.currentYield)} />
+              <FieldRow label="Yield type" value={asset.yield?.yieldType} />
+              <FieldRow label="Frequency" value={asset.yield?.yieldFrequency} />
+              <FieldRow label="Benchmark" value={asset.yield?.yieldBenchmark} />
+              <FieldRow label="7D avg" value={asset.yield?.yieldAvg7d} />
+              <FieldRow label="30D avg" value={asset.yield?.yieldAvg30d} />
+              <FieldRow label="52W min" value={asset.yield?.yieldMin52w} />
+              <FieldRow label="52W max" value={asset.yield?.yieldMax52w} />
+            </div>
+            <YieldHistorySection apiBaseUrl={apiBase} assetId={asset.slug} />
+          </SectionShell>
+        </div>
+      ) : null}
+
+      {activeTab === "liquidity" ? (
+        <SectionShell title="Liquidity" subtitle="Redemption terms, exit quality, and liquidity score">
+          <LiquidityInfoSection liquidity={asset.liquidity} />
+        </SectionShell>
+      ) : null}
+
+      {activeTab === "blockchain" ? <BlockchainTab asset={asset} /> : null}
+
+      {activeTab === "risk" ? (
+        <div className="space-y-6">
+          <AssetGradeCard grade={asset.grade} />
+          <GatedRiskAnalysisSection
             apiBaseUrl={apiBase}
-            assetSlug={asset.slug}
-            reserve={asset.reserve}
+            assetId={asset.slug}
+            yieldPct={yieldPct ?? yieldFraction * 100}
+            categoryAvgPct={categoryAvg}
+            initialRisk={legacyRiskForGated(asset, dataMeta)}
           />
         </div>
-      </section>
+      ) : null}
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-bold text-white">Yield History</h2>
-        <YieldHistorySection apiBaseUrl={apiBase} assetId={asset.slug} />
-      </section>
+      {activeTab === "sources" ? (
+        <div className="space-y-6">
+          <DataTransparencySection meta={dataMeta} protocol={protocol} symbol={asset.identity?.symbol ?? ""} />
+          <SectionShell title="Source trail" subtitle="Field-level sources are part of the Pro evidence layer">
+            <p className="text-sm leading-relaxed text-[#8892A4]">
+              Nexus RWA uses the source layer as an audit trail for every non-null asset field. This page currently shows market-source attribution; the next step is to expose field-level URLs, source tiers, last verified dates, and data gaps here.
+            </p>
+          </SectionShell>
+        </div>
+      ) : null}
 
-      <GatedRiskAnalysisSection
-        apiBaseUrl={apiBase}
-        assetId={asset.slug}
-        yieldPct={yieldPct ?? yieldFraction * 100}
-        categoryAvgPct={categoryAvg}
-        initialRisk={legacyRiskForGated(asset, dataMeta)}
-      />
-
-      <AIInsightCard apiBaseUrl={apiBase} assetId={asset.slug} />
-
-      <DataTransparencySection
-        meta={dataMeta}
-        protocol={protocol}
-        symbol={asset.identity?.symbol ?? ""}
-      />
+      {activeTab === "events" ? (
+        <SectionShell title="Events" subtitle="Launches, audits, integrations, incidents, migrations, and major updates">
+          <p className="text-sm leading-relaxed text-[#8892A4]">
+            Event timeline is planned for this asset. Until field-level events are available, use Sources and official issuer updates for audit and launch history.
+          </p>
+        </SectionShell>
+      ) : null}
 
       <RelatedAssetsSection
         assets={listPeers}
