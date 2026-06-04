@@ -1,6 +1,7 @@
 "use client";
 
 import { FadeUp, HexLogo } from "@/components/landing/primitives";
+import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { BookOpen, MessageCircle } from "lucide-react";
 
 /** lucide-react v1.x does not ship a GitHub brand icon; inline SVG keeps Vercel builds stable. */
@@ -194,8 +195,11 @@ export function Footer() {
           </div>
         ))}
       </div>
+      <div className="mt-10 max-w-[1400px] mx-auto">
+        <DisclaimerBanner variant="global" compact />
+      </div>
       <div
-        className="mt-12 pt-6 max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-[13px]"
+        className="mt-8 pt-6 max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-[13px]"
         style={{ borderTop: "1px solid var(--border-line)", color: "var(--text-secondary)" }}
       >
         <p>© 2026 Nexus RWA. All rights reserved.</p>
