@@ -97,7 +97,15 @@ export type AssetDetailFree = {
   identity: AssetIdentity | null;
   market: Pick<
     AssetMarket,
-    'tvl' | 'tvl7dChange' | 'price' | 'marketCap' | 'holderCount' | 'aumUsd' | 'lastUpdated'
+    | 'tvl'
+    | 'tvl7dChange'
+    | 'price'
+    | 'marketCap'
+    | 'holderCount'
+    | 'aumUsd'
+    | 'lastUpdated'
+    | 'sources'
+    | 'confidence'
   > | null;
   yield: Pick<
     AssetYield,
@@ -247,6 +255,8 @@ function pickMarketFreeDetail(
     holderCount: market.holderCount,
     aumUsd: market.aumUsd,
     lastUpdated: market.lastUpdated,
+    sources: market.sources,
+    confidence: market.confidence,
   };
 }
 
