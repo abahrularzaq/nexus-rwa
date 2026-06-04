@@ -101,7 +101,9 @@ export function PaywallGuard({
                 parsed.x402.tier ??
                 (parsed.x402.price === "0.01" ? "enterprise" : "pro"),
             );
-            setModalOpen(true);
+            // Keep gated content visible without interrupting the user.
+            // The payment modal should only open after an explicit click.
+            setModalOpen(false);
             setPayload(null);
             setStatus("gated");
             return;
