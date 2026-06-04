@@ -1,0 +1,15 @@
+{
+  "backingType": null,
+  "backingDescription": null,
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null
+}
