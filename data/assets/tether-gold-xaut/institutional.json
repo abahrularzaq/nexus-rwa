@@ -1,19 +1,26 @@
 {
-  "issuerName": null,
+  "issuerName": "Tether Holdings",
   "issuerType": null,
-  "issuerCountry": null,
-  "fundManager": null,
+  "issuerCountry": "El Salvador",
+  "fundManager": "Tether",
   "legalStructure": null,
-  "minimumInvestment": null,
-  "managementFee": null,
-  "performanceFee": null,
+  "minimumInvestment": 200000,
+  "managementFee": 0,
+  "performanceFee": 0,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": null,
-  "prospectusUrl": null,
+  "targetInvestors": "Non-U.S. Investor",
+  "prospectuUrl": null,
   "metadata": {
     "assetType": "tokenized_physical_gold",
     "expectedYieldBearing": false,
-    "verificationStatus": "source-discovery-baseline"
+    "tokenizationType": "Distributed",
+    "sourceReliabilityNote": "Institutional fields are primarily from RWA.xyz secondary data because official Tether Gold legal pages are JavaScript-rendered in automated fetches. Verify against official legal/terms/fees pages before production grading.",
+    "subscriptionFee": 0.0025,
+    "redemptionFee": 0.0025,
+    "physicalDeliveryMinimumXaut": 430,
+    "directPurchaseMinimumDescription": "RWA.xyz states direct purchase from Tether Gold verified users requires a minimum of 50 fine troy oz of gold, i.e. 50 XAUt tokens, and lists Min. Investment as 200,000 USD.",
+    "regulatoryFrameworkCandidate": "El Salvador Digital Asset Law (LEAD); CNAD - El Salvador National Commission of Digital Assets",
+    "verificationStatus": "secondary-source-baseline"
   }
 }
