@@ -295,6 +295,82 @@ model AssetGrade {
   @@index([score])
 }
 
+model DataHealthCheck {
+  id            String   @id @default(cuid())
+  assetSlug     String
+  layer         String
+  status        String
+  severity      String
+  reason        String?
+  lastCheckedAt DateTime @default(now())
+  nextCheckAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([assetSlug])
+  @@index([layer])
+  @@index([status])
+  @@index([severity])
+  @@index([lastCheckedAt])
+}
+
+model SourceHealth {
+  id            String   @id @default(cuid())
+  assetSlug     String
+  layer         String
+  field         String?
+  url           String
+  sourceType    String?
+  reliability   Int?
+  status        String
+  httpStatus    Int?
+  errorMessage  String?
+  lastCheckedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([assetSlug])
+  @@index([layer])
+  @@index([status])
+  @@index([lastCheckedAt])
+}
+
+model SyncLog {
+  id            String   @id @default(cuid())
+  assetSlug     String
+  layer         String
+  provider      String?
+  status        String
+  fieldsUpdated Json?
+  fieldsFailed  Json?
+  errorMessage  String?
+  startedAt     DateTime
+  finishedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([assetSlug])
+  @@index([layer])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model ReviewTask {
+  id         String    @id @default(cuid())
+  assetSlug  String
+  layer      String
+  priority   String
+  reason     String
+  status     String    @default("open")
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([assetSlug])
+  @@index([layer])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
 model ApiRequest {
   id            String        @id @default(cuid())
   requestId     String        @unique
