@@ -30,5 +30,15 @@
   "sanctionsScreening": true,
   "amlPolicy": "Ondo Global Markets imposes jurisdictional and eligibility restrictions to comply with sanctions, anti-money laundering, counter-financing of terrorism, securities, and other laws. Purchasers and redeemers must complete onboarding, including KYC review, and Ondo states it uses technical tools for wallet and transaction screening.",
   "lastComplianceCheck": null,
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

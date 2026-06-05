@@ -26,5 +26,15 @@
     "transferConsentRequired": true,
     "usPersonsExcluded": true,
     "feeDisclosure": "Target net APY is current 4-week U.S. Treasury bill rate less fees and expenses totaling 50 bps for the USDC Cash Management Pool and 100 bps for the USDT Cash Management Pool; not labeled as a management fee."
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
   }
 }

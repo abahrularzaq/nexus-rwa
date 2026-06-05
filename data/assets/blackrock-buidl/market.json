@@ -2,8 +2,8 @@
   "tvl": 2972036988,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": 1.0,
-  "priceChange24h": 0.0,
+  "price": 1,
+  "priceChange24h": 0,
   "marketCap": 2428983972,
   "volume24h": 0,
   "circulatingSupply": 2428983972,
@@ -18,5 +18,16 @@
     "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
     "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec"
   ],
-  "confidence": "MEDIUM"
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

@@ -17,5 +17,16 @@
     "https://etherscan.io/token/0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
     "https://basescan.org/token/0xdd5bb9acf5e02089735a33344c6e3a8bb0d4075d"
   ],
-  "confidence": "MEDIUM"
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

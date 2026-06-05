@@ -2,7 +2,7 @@
   "tvl": 190420000,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": 11.10,
+  "price": 11.1,
   "priceChange24h": null,
   "marketCap": 554240000,
   "volume24h": null,
@@ -12,6 +12,20 @@
   "holderChange7d": null,
   "aumUsd": 770603005,
   "lastUpdated": "2026-06-01",
-  "sources": ["rwa_xyz", "defillama"],
-  "confidence": "MEDIUM"
+  "sources": [
+    "rwa_xyz",
+    "defillama"
+  ],
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

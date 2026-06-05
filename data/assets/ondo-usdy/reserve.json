@@ -11,5 +11,15 @@
   "lastAuditUrl": null,
   "auditor": null,
   "reserveBreakdown": null,
-  "redemptionAsset": "USDC or USD"
+  "redemptionAsset": "USDC or USD",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

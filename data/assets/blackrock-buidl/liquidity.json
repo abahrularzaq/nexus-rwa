@@ -16,5 +16,15 @@
   "onchainLiquidity": 320081,
   "bidAskSpread": null,
   "liquidityScore": 70,
-  "liquidityNotes": "BUIDL has daily primary-market redemption through the Securitize / Transfer Agent workflow. RWA.xyz lists minimum redemption amount as 250000 USD and redemption fee as 0%. Liquidity score is set at the lower bound of the T+1/daily redemption band because redemption is not permissionless instant liquidity, investor access is restricted to U.S. Qualified Purchasers, transfer/whitelist controls exist, and secondary-market liquidity is limited."
+  "liquidityNotes": "BUIDL has daily primary-market redemption through the Securitize / Transfer Agent workflow. RWA.xyz lists minimum redemption amount as 250000 USD and redemption fee as 0%. Liquidity score is set at the lower bound of the T+1/daily redemption band because redemption is not permissionless instant liquidity, investor access is restricted to U.S. Qualified Purchasers, transfer/whitelist controls exist, and secondary-market liquidity is limited.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

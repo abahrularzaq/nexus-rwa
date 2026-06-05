@@ -2,7 +2,7 @@
   "tvl": 794240000,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": 1.0,
+  "price": 1,
   "priceChange24h": null,
   "marketCap": 794240000,
   "volume24h": null,
@@ -18,5 +18,16 @@
     "https://app.rwa.xyz/assets/BENJI",
     "https://www.sec.gov/Archives/edgar/data/1786958/000174177325000031/c485bpos.htm"
   ],
-  "confidence": "MEDIUM"
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

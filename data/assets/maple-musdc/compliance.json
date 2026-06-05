@@ -9,5 +9,15 @@
   "sanctionsScreening": true,
   "amlPolicy": "Eligible lenders must satisfy KYC and AML screening obligations. Terms require lenders and related parties not to be Restricted Parties, not to be subject to OFAC or similar sanctions, and to confirm funds are from legal sources and not subject to seizure, forfeiture, or confiscation under anti-terrorism laws.",
   "lastComplianceCheck": null,
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

@@ -8,5 +8,15 @@
   "onchainLiquidity": null,
   "bidAskSpread": 0.01,
   "liquidityScore": 82,
-  "liquidityNotes": "PAXG has strong secondary-market liquidity across major centralized exchanges and on-chain transferability. CoinGecko tracks PAXG across 77 exchanges and 144 markets. The listed minRedemptionAmount of 430 refers specifically to allocated physical gold bar redemption under Paxos Terms, not ordinary exchange trading or possible USD/unallocated-gold conversion. Paxos may require minimum amounts for conversion and may update them over time. Redemption or conversion through Paxos requires a Paxos account and may take up to several business days depending on the method."
+  "liquidityNotes": "PAXG has strong secondary-market liquidity across major centralized exchanges and on-chain transferability. CoinGecko tracks PAXG across 77 exchanges and 144 markets. The listed minRedemptionAmount of 430 refers specifically to allocated physical gold bar redemption under Paxos Terms, not ordinary exchange trading or possible USD/unallocated-gold conversion. Paxos may require minimum amounts for conversion and may update them over time. Redemption or conversion through Paxos requires a Paxos account and may take up to several business days depending on the method.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

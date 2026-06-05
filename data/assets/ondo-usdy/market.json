@@ -19,5 +19,16 @@
     "https://docs.ondo.finance/general-access-products/usdy/basics",
     "https://docs.ondo.finance/ondo-global-markets/investing-and-redeeming"
   ],
-  "confidence": "MEDIUM"
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

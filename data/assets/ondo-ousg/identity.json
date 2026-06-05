@@ -9,7 +9,23 @@
   "websiteUrl": "https://ondo.finance/ousg",
   "docsUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
   "twitterUrl": "https://x.com/OndoFinance",
-  "tags": ["institutional", "kyc-required", "audited", "permissioned", "cross-chain"],
+  "tags": [
+    "institutional",
+    "kyc-required",
+    "audited",
+    "permissioned",
+    "cross-chain"
+  ],
   "launchDate": "2023-01-01",
-  "isin": null
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 90,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

@@ -17,5 +17,16 @@
     "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
     "https://www.paxos.com/pax-gold"
   ],
-  "confidence": "MEDIUM"
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

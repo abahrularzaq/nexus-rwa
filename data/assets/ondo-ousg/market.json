@@ -12,6 +12,20 @@
   "holderChange7d": null,
   "aumUsd": 539474689,
   "lastUpdated": "2026-06-01",
-  "sources": ["coingecko", "etherscan"],
-  "confidence": "MEDIUM"
+  "sources": [
+    "coingecko",
+    "etherscan"
+  ],
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

@@ -23,5 +23,15 @@
       "No public primary confirmation for fund administrator found.",
       "No public attestation provider found."
     ]
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
   }
 }

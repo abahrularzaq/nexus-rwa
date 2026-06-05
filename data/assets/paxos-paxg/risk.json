@@ -26,5 +26,15 @@
     "PAXG Terms define account-based redemption/conversion pathways into USD, unallocated gold, and allocated physical gold."
   ],
   "lastAssessed": "2026-06-04",
-  "assessmentMethod": "Evidence-based Nexus RWA manual risk assessment using completed identity, blockchain, reserve, institutional, compliance, market, yield, liquidity, and sources layers. Scores are conservative where public smart-contract audit, on-chain proof-of-reserves oracle, legal opinion, or holder concentration evidence is incomplete."
+  "assessmentMethod": "Evidence-based Nexus RWA manual risk assessment using completed identity, blockchain, reserve, institutional, compliance, market, yield, liquidity, and sources layers. Scores are conservative where public smart-contract audit, on-chain proof-of-reserves oracle, legal opinion, or holder concentration evidence is incomplete.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

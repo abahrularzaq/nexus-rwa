@@ -8,5 +8,15 @@
   "onchainLiquidity": null,
   "bidAskSpread": null,
   "liquidityScore": 65,
-  "liquidityNotes": "RWA.xyz states that direct redemption requires users to log in or sign up and verify an account with TG Commodities Limited, with physical gold delivery available above a larger minimum. RWA.xyz lists direct purchase from verified users with a minimum of 50 fine troy ounces / 50 XAUt and physical delivery/redemption minimum around 430 XAUt. CoinMarketCap and CoinGecko show active secondary-market trading volume, but redemption timing, bid-ask spread, and on-chain liquidity depth were not verified from official sources. Liquidity score is conservative because exchange liquidity exists but direct physical redemption is constrained by verification and minimum-size requirements."
+  "liquidityNotes": "RWA.xyz states that direct redemption requires users to log in or sign up and verify an account with TG Commodities Limited, with physical gold delivery available above a larger minimum. RWA.xyz lists direct purchase from verified users with a minimum of 50 fine troy ounces / 50 XAUt and physical delivery/redemption minimum around 430 XAUt. CoinMarketCap and CoinGecko show active secondary-market trading volume, but redemption timing, bid-ask spread, and on-chain liquidity depth were not verified from official sources. Liquidity score is conservative because exchange liquidity exists but direct physical redemption is constrained by verification and minimum-size requirements.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

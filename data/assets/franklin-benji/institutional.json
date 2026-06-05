@@ -34,5 +34,15 @@
       "subsequentPurchases": 0
     },
     "managementFeeNotes": "0.15% annually of the Fund's average daily net assets"
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
   }
 }

@@ -9,5 +9,15 @@
   "sanctionsScreening": true,
   "amlPolicy": "Paxos maintains an AML/KYC program with internal controls, independent AML testing, a designated compliance officer, employee AML training, customer identification procedures, OFAC and government watchlist screening, identity verification, beneficial-owner checks for institutions, customer due diligence, and transaction monitoring.",
   "lastComplianceCheck": "2026-06-04",
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

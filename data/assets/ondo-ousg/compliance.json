@@ -4,10 +4,27 @@
   "regulatoryFramework": "Reg D",
   "kycRequired": true,
   "accreditedOnly": true,
-  "blockedJurisdictions": ["CN", "KP", "IR", "SY", "CU", "RU"],
+  "blockedJurisdictions": [
+    "CN",
+    "KP",
+    "IR",
+    "SY",
+    "CU",
+    "RU"
+  ],
   "allowedJurisdictions": [],
   "sanctionsScreening": true,
   "amlPolicy": "Ondo Finance performs KYC/AML screening and sanctions checks for all investors.",
   "lastComplianceCheck": "2026-05-31",
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

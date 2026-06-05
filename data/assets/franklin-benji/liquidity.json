@@ -8,5 +8,15 @@
   "onchainLiquidity": 0,
   "bidAskSpread": null,
   "liquidityScore": 70,
-  "liquidityNotes": "BENJI is redeemable directly with the issuer through the Benji App or Institutional Web Portal, normally processed by the next business day when requests are in good order, but redemptions may take up to seven days in certain circumstances. DeFiLlama reports DeFi Active TVL of $0, so there is no verified DEX liquidity used here. Liquidity score is based on issuer redemption access and permissioned transferability, not secondary-market depth. Minimum redemption amount is represented by the lowest listed minimum ($20 on Stellar); chain-specific minimums are retained in institutional.metadata.minimumInvestmentByChain."
+  "liquidityNotes": "BENJI is redeemable directly with the issuer through the Benji App or Institutional Web Portal, normally processed by the next business day when requests are in good order, but redemptions may take up to seven days in certain circumstances. DeFiLlama reports DeFi Active TVL of $0, so there is no verified DEX liquidity used here. Liquidity score is based on issuer redemption access and permissioned transferability, not secondary-market depth. Minimum redemption amount is represented by the lowest listed minimum ($20 on Stellar); chain-specific minimums are retained in institutional.metadata.minimumInvestmentByChain.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

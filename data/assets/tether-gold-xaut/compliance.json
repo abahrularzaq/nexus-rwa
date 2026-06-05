@@ -9,5 +9,15 @@
   "sanctionsScreening": false,
   "amlPolicy": "RWA.xyz states that users need to log in or sign up and verify an account with TG Commodities Limited before requesting XAU₮ redemption. No official AML or sanctions policy text was extracted from the JavaScript-rendered official legal pages during this review.",
   "lastComplianceCheck": "2026-06-05",
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

@@ -8,5 +8,15 @@
   "onchainLiquidity": null,
   "bidAskSpread": null,
   "liquidityScore": 78,
-  "liquidityNotes": "OUSG redemptions are processed through issuer-controlled institutional onboarding and treasury settlement infrastructure."
+  "liquidityNotes": "OUSG redemptions are processed through issuer-controlled institutional onboarding and treasury settlement infrastructure.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

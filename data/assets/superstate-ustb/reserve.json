@@ -11,5 +11,15 @@
   "lastAuditUrl": null,
   "auditor": "Ernst & Young LLP",
   "reserveBreakdown": null,
-  "redemptionAsset": "USD or USDC"
+  "redemptionAsset": "USD or USDC",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

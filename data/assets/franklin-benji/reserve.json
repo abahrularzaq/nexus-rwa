@@ -15,8 +15,18 @@
     "basis": "percentage_of_net_assets",
     "U.S. Government and Agency Securities": 63.1,
     "Repurchase Agreements": 37.9,
-    "Other Assets, less Liabilities": -1.0,
-    "Net Assets": 100.0
+    "Other Assets, less Liabilities": -1,
+    "Net Assets": 100
   },
-  "redemptionAsset": "USD"
+  "redemptionAsset": "USD",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

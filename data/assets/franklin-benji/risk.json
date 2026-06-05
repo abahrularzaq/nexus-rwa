@@ -26,5 +26,15 @@
     "Compliance controls, KYC requirements, and permissioned transfer restrictions reduce regulatory and illicit-finance exposure."
   ],
   "lastAssessed": "2026-06-01",
-  "assessmentMethod": "ai-assisted"
+  "assessmentMethod": "ai-assisted",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

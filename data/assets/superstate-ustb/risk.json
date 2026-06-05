@@ -22,5 +22,15 @@
     "The legal structure is documented through SEC Form D, Regulation D Rule 506(c), and Investment Company Act Section 3(c)(1)/3(c)(7) exemptions."
   ],
   "lastAssessed": "2026-05-31",
-  "assessmentMethod": "ai-assisted"
+  "assessmentMethod": "ai-assisted",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

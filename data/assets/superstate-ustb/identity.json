@@ -9,7 +9,24 @@
   "websiteUrl": "https://superstate.com/assets/ustb",
   "docsUrl": "https://docs.superstate.com/superstate-funds/ustb",
   "twitterUrl": "https://x.com/superstateinc",
-  "tags": ["institutional", "kyc-required", "audited", "sec-registered", "permissioned", "cross-chain"],
+  "tags": [
+    "institutional",
+    "kyc-required",
+    "audited",
+    "sec-registered",
+    "permissioned",
+    "cross-chain"
+  ],
   "launchDate": "2024-01-03",
-  "isin": "86851T204"
+  "isin": "86851T204",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 90,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

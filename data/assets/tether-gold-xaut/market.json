@@ -18,5 +18,16 @@
     "https://www.coingecko.com/en/coins/tether-gold",
     "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38"
   ],
-  "confidence": "MEDIUM"
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": null
+  }
 }

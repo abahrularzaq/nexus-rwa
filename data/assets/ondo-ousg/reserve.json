@@ -17,5 +17,15 @@
     "Fundbridge Capital Institutional Funds ICAV (FBOXX)": 2.39,
     "Superstate Short Duration U.S. Government Securities Fund (USTB)": 2.03
   },
-  "redemptionAsset": "USD"
+  "redemptionAsset": "USD",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

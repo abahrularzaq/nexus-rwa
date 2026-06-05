@@ -15,5 +15,15 @@
     "regulatoryFramework": "Reg D",
     "accreditedOnly": true,
     "sourceLayer": "legacy legal.md"
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
   }
 }

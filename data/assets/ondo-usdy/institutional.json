@@ -26,5 +26,15 @@
       "USDY may not be offered or sold in the U.S. or to U.S. persons unless registered or exempt.",
       "The issuer is not registered as an investment company under the U.S. Investment Company Act of 1940."
     ]
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
   }
 }

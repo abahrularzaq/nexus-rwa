@@ -49,5 +49,15 @@
   "onchainLiquidity": 23110000,
   "bidAskSpread": null,
   "liquidityScore": 85,
-  "liquidityNotes": "Liquidity score is based on official instant redemption language and $1 minimum redemption through Ondo Global Markets, but USDC redemption is conditional on stablecoin swapper liquidity. On-chain secondary liquidity is much smaller than total asset value, so institutional liquidity depends primarily on issuer redemption rather than DEX depth."
+  "liquidityNotes": "Liquidity score is based on official instant redemption language and $1 minimum redemption through Ondo Global Markets, but USDC redemption is conditional on stablecoin swapper liquidity. On-chain secondary liquidity is much smaller than total asset value, so institutional liquidity depends primarily on issuer redemption rather than DEX depth.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

@@ -8,5 +8,15 @@
   "onchainLiquidity": null,
   "bidAskSpread": null,
   "liquidityScore": 84,
-  "liquidityNotes": "USTB supports USD or USDC redemption with liquidity each market day; score uses the T+1 band conservatively because USD payouts can be T+1 after cutoff and immediate USDC payout is conditional on available liquidity."
+  "liquidityNotes": "USTB supports USD or USDC redemption with liquidity each market day; score uses the T+1 band conservatively because USD payouts can be T+1 after cutoff and immediate USDC payout is conditional on available liquidity.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-05",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }
