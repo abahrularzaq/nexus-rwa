@@ -1,0 +1,49 @@
+{
+  "slug": "tether-gold-xaut",
+  "grade": "analytics",
+  "score": 67,
+  "completenessScore": 81,
+  "sourceScore": 69,
+  "legalScore": 65,
+  "reserveScore": 60,
+  "liquidityScore": 48,
+  "riskScore": 68,
+  "blockers": [
+    "Missing legal structure",
+    "Missing custodian"
+  ],
+  "warnings": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing redemption period",
+    "Missing on-chain liquidity"
+  ],
+  "baselineDate": "2026-06-05",
+  "status": "analytics-grade baseline",
+  "nextActions": [
+    "Manually verify official Tether Gold legal documents and update legalStructure, issuer details, restricted jurisdictions, AML policy, and legalOpinionUrl if available",
+    "Open the latest official Tether Gold reserve report and update lastAuditDate, lastAuditUrl, auditor, reserveBreakdown, and custodian fields",
+    "Confirm whether a public custodian or vault operator is disclosed in official Tether Gold documentation",
+    "Clarify that reserve reports or accountant attestations should not be treated as on-chain proof-of-reserves unless an explicit oracle address is found",
+    "Verify direct redemption mechanics from official FAQ, legal, and fee pages, including redemption period, minimum redemption amount, physical delivery threshold, and fees",
+    "Refresh market data from RWA.xyz, CoinGecko, CoinMarketCap, and Etherscan before production publication",
+    "Analyze holder concentration and top-wallet distribution to improve concentrationRisk scoring",
+    "Review smart-contract proxy and implementation contracts for upgradeability, admin-key, whitelist, and transfer-restriction risks",
+    "Run npm run build after import succeeds and confirm the asset appears correctly on the frontend"
+  ],
+  "notes": "Tether Gold / XAUT is graded as analytics-grade baseline because it has strong market adoption and a simple commodity-backed model, but institutional-grade publication is blocked by missing legal structure and custodian evidence. Reserve, legal, and liquidity fields require manual verification from official Tether Gold JavaScript-rendered pages and latest reserve reports.",
+  "generatedFrom": "npm run import:asset -- tether-gold-xaut",
+  "sourceStatus": "mixed official, explorer, and secondary aggregator sources; several official pages require manual browser verification",
+  "dataQuality": {
+    "identity": "complete baseline",
+    "blockchain": "multi-chain baseline with verified explorer links for Ethereum, BNB Chain, and Arbitrum One",
+    "reserve": "partial; physical gold backing identified, but custodian, latest report URL, report date, and detailed reserve breakdown missing",
+    "institutional": "partial; secondary-source baseline only for several legal-entity fields",
+    "compliance": "partial; KYC indicated, but jurisdiction and sanctions details missing",
+    "market": "current aggregator baseline as of 2026-06-05; refresh required before publication",
+    "yield": "non-yield-bearing baseline",
+    "liquidity": "partial; secondary-market liquidity exists, but redemption timing and on-chain liquidity are missing",
+    "risk": "conservative evidence-based synthesis"
+  }
+}
