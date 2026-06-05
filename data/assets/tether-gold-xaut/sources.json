@@ -1,0 +1,102 @@
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Tether Gold",
+    "sourceUrl": "https://gold.tether.to/",
+    "sourceType": "official_website",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official Tether Gold product website. Field should be rechecked before production grading."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "XAUT",
+    "sourceUrl": "https://gold.tether.to/",
+    "sourceType": "official_website",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official Tether Gold product website. Symbol styling may also appear as XAU₮."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://gold.tether.to/",
+    "sourceUrl": "https://gold.tether.to/",
+    "sourceType": "official_website",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official Tether Gold website."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://gold.tether.to/faq",
+    "sourceUrl": "https://gold.tether.to/faq",
+    "sourceType": "official_docs",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Official Tether Gold FAQ used as initial documentation URL."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "Commodity",
+    "sourceUrl": "https://gold.tether.to/reports",
+    "sourceType": "reserve_report",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Reserve report page identified as candidate Tier 1 backing source. Confirm latest report before production grading."
+  },
+  {
+    "layer": "reserve",
+    "field": "redemptionAsset",
+    "value": "Physical gold",
+    "sourceUrl": "https://gold.tether.to/faq",
+    "sourceType": "official_docs",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Initial source candidate for redemption mechanics and underlying asset."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Ethereum XAUT token page on Etherscan. Recheck official-token-source alignment before production grading."
+  },
+  {
+    "layer": "market",
+    "field": "marketDataCandidate",
+    "value": "RWA.xyz XAUT; CoinGecko Tether Gold; CoinMarketCap Tether Gold",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Candidate market data source only. Populate numeric market fields after fresh data refresh."
+  },
+  {
+    "layer": "yield",
+    "field": "yieldApplicability",
+    "value": "non-yield-bearing baseline",
+    "sourceUrl": "internal://analysis/tether-gold-xaut/source-discovery",
+    "sourceType": "internal_analysis",
+    "reliability": 60,
+    "checkedBy": "manual",
+    "notes": "XAUT is treated as tokenized gold, not a yield-bearing treasury or credit product. Keep yield fields null unless verified otherwise."
+  },
+  {
+    "layer": "risk",
+    "field": "riskBaselineStatus",
+    "value": "pending full source review",
+    "sourceUrl": "internal://analysis/tether-gold-xaut/source-discovery",
+    "sourceType": "internal_analysis",
+    "reliability": 60,
+    "checkedBy": "manual",
+    "notes": "Risk scoring intentionally left null until reserve, legal, custody, liquidity, holder, and smart-contract evidence are reviewed."
+  }
+]
