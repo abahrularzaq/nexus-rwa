@@ -1,14 +1,30 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "overallScore": 68,
+  "overallLevel": "medium",
+  "smartContractRisk": 66,
+  "counterpartyRisk": 58,
+  "liquidityRisk": 65,
+  "regulatoryRisk": 55,
+  "marketRisk": 78,
+  "concentrationRisk": 60,
+  "riskFactors": [
+    "Custodian and vault-operator details are not yet verified in the dataset, creating unresolved custody transparency risk for a physical-gold-backed token.",
+    "Latest official reserve report date, direct report URL, and detailed reserve breakdown are still missing from the dataset.",
+    "No explicit on-chain proof-of-reserves oracle or oracle address has been identified; reserve reporting should not be treated as on-chain PoR.",
+    "Regulatory status is marked unknown, and official jurisdiction restrictions, sanctions-screening policy, and full AML terms have not yet been extracted from official legal documents.",
+    "Direct redemption appears verification-gated and minimum-size constrained, with physical delivery requirements that may limit liquidity for smaller holders.",
+    "Blockchain deployments are verified on Ethereum, BNB Chain, and Arbitrum One, but whitelist and transfer-restriction behavior is not yet proven from contract review.",
+    "No public smart-contract security audit report is recorded in the current dataset; proxy or upgradeability risk should be reviewed before institutional grading.",
+    "Market figures are time-sensitive and sourced from aggregators; supply and holder metrics need periodic refresh and cross-chain reconciliation."
+  ],
+  "mitigants": [
+    "XAUT has a simple and understandable underlying asset model: tokenized physical gold.",
+    "The dataset identifies physical gold as the redemption asset and commodity backing as the reserve category.",
+    "Ethereum, BNB Chain, and Arbitrum One deployments have verifiable explorer URLs and verified-source indicators in the current blockchain layer.",
+    "The asset has meaningful market adoption, with large reported RWA asset value, active secondary-market volume, and a substantial holder count in aggregator data reviewed on 2026-06-05.",
+    "KYC/account verification is indicated for direct redemption, which may reduce some compliance and redemption-process risk even though full AML/sanctions text is not yet extracted.",
+    "RWA.xyz lists an auditor field, but this still needs confirmation against the latest official Tether Gold reserve report before production grading."
+  ],
+  "lastAssessed": "2026-06-05",
+  "assessmentMethod": "evidence-based manual synthesis from Nexus RWA identity, blockchain, reserve, institutional, compliance, market, yield, liquidity, and sources layers; conservative scoring applied where official legal, reserve, custody, audit, or contract-review evidence is incomplete"
 }
