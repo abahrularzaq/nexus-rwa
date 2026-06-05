@@ -1,17 +1,22 @@
 {
-  "tvl": null,
+  "tvl": 2658366156,
   "tvl7dChange": null,
-  "tvl30dChange": null,
-  "price": null,
-  "priceChange24h": null,
-  "marketCap": null,
-  "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
-  "holderCount": null,
+  "tvl30dChange": -6.47,
+  "price": 4369.62,
+  "priceChange24h": -2.47,
+  "marketCap": 2677805457,
+  "volume24h": 243006835,
+  "circulatingSupply": 612824,
+  "totalSupply": 707747,
+  "holderCount": 57088,
   "holderChange7d": null,
-  "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null
+  "aumUsd": 2658366156,
+  "lastUpdated": "2026-06-05",
+  "sources": [
+    "https://app.rwa.xyz/assets/XAUT",
+    "https://coinmarketcap.com/currencies/tether-gold/",
+    "https://www.coingecko.com/en/coins/tether-gold",
+    "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38"
+  ],
+  "confidence": "MEDIUM"
 }
