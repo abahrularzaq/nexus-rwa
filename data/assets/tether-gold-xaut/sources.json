@@ -7,17 +7,57 @@
     "sourceType": "official_website",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Official Tether Gold product website. Field should be rechecked before production grading."
+    "notes": "Official Tether Gold product website. JavaScript-rendered; browser verification recommended before production grading."
   },
   {
     "layer": "identity",
     "field": "symbol",
     "value": "XAUT",
-    "sourceUrl": "https://gold.tether.to/",
-    "sourceType": "official_website",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Official Tether Gold product website. Symbol styling may also appear as XAU₮."
+    "notes": "Etherscan identifies the token as Tether Gold / XAUt. Symbol styling may also appear as XAU₮."
+  },
+  {
+    "layer": "identity",
+    "field": "fullName",
+    "value": "Tether Gold",
+    "sourceUrl": "https://www.coingecko.com/en/coins/tether-gold",
+    "sourceType": "market_aggregator",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "CoinGecko and RWA.xyz both identify the asset as Tether Gold."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "Tether Gold (XAU₮) is a tokenized commodity asset that provides ownership exposure to physical gold.",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Etherscan token profile states each XAU₮ token represents ownership of one troy fine ounce of physical gold on a specific gold bar."
+  },
+  {
+    "layer": "identity",
+    "field": "category",
+    "value": "Commodities",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz classifies XAUT under Commodities."
+  },
+  {
+    "layer": "identity",
+    "field": "subcategory",
+    "value": "Tokenized Gold",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Derived from RWA.xyz commodity classification and the asset's gold backing."
   },
   {
     "layer": "identity",
@@ -27,7 +67,7 @@
     "sourceType": "official_website",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Official Tether Gold website."
+    "notes": "Official Tether Gold product website."
   },
   {
     "layer": "identity",
@@ -35,19 +75,149 @@
     "value": "https://gold.tether.to/faq",
     "sourceUrl": "https://gold.tether.to/faq",
     "sourceType": "official_docs",
-    "reliability": 88,
+    "reliability": 82,
     "checkedBy": "manual",
-    "notes": "Official Tether Gold FAQ used as initial documentation URL."
+    "notes": "Official FAQ page. JavaScript-rendered; browser verification recommended."
+  },
+  {
+    "layer": "identity",
+    "field": "twitterUrl",
+    "value": "https://twitter.com/Tether_to",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Tether official social link referenced as non-XAUT-specific social profile."
+  },
+  {
+    "layer": "identity",
+    "field": "tags",
+    "value": "retail,cross-chain",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz indicates non-U.S. investor access and multiple chain deployments. Tags constrained to Nexus allowed values."
+  },
+  {
+    "layer": "blockchain",
+    "field": "ethereumContractAddress",
+    "value": "0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Ethereum XAUT token page on Etherscan."
+  },
+  {
+    "layer": "blockchain",
+    "field": "ethereumTokenStandard",
+    "value": "ERC-20",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Etherscan classifies the token as ERC-20."
+  },
+  {
+    "layer": "blockchain",
+    "field": "ethereumIsVerified",
+    "value": "true",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Etherscan shows source-code/proxy information."
+  },
+  {
+    "layer": "blockchain",
+    "field": "bnbChainContractAddress",
+    "value": "0x21caef8a43163eea865baee23b9c2e327696a3bf",
+    "sourceUrl": "https://bscscan.com/token/0x21caef8a43163eea865baee23b9c2e327696a3bf",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "BNB Chain deployment surfaced via RWA.xyz and verified through BscScan token page."
+  },
+  {
+    "layer": "blockchain",
+    "field": "bnbChainTokenStandard",
+    "value": "BEP-20",
+    "sourceUrl": "https://bscscan.com/token/0x21caef8a43163eea865baee23b9c2e327696a3bf",
+    "sourceType": "block_explorer",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "BNB Chain BEP-20 equivalent."
+  },
+  {
+    "layer": "blockchain",
+    "field": "arbitrumContractAddress",
+    "value": "0x40461291347e1ecbb09499f3371d3f17f10d7159",
+    "sourceUrl": "https://arbiscan.io/token/0x40461291347e1ecbb09499f3371d3f17f10d7159",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Arbitrum One deployment surfaced via RWA.xyz and verified through Arbiscan token page."
+  },
+  {
+    "layer": "blockchain",
+    "field": "arbitrumTokenStandard",
+    "value": "ERC-20",
+    "sourceUrl": "https://arbiscan.io/token/0x40461291347e1ecbb09499f3371d3f17f10d7159",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Arbitrum One token uses ERC-20 standard."
   },
   {
     "layer": "reserve",
     "field": "backingType",
     "value": "Commodity",
-    "sourceUrl": "https://gold.tether.to/reports",
-    "sourceType": "reserve_report",
-    "reliability": 90,
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 80,
     "checkedBy": "manual",
-    "notes": "Reserve report page identified as candidate Tier 1 backing source. Confirm latest report before production grading."
+    "notes": "RWA.xyz classifies XAUT as a commodity asset. Official reserve reports should be used for final reserve validation."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "Each XAU₮ token represents ownership of one troy fine ounce of physical gold on a specific gold bar.",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Etherscan token profile describes the physical gold backing claim."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": "false",
+    "sourceUrl": "https://gold.tether.to/reports",
+    "sourceType": "official_reports",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Official reports page exists, but no explicit on-chain proof-of-reserves oracle/address was identified. Reserve report is not treated as on-chain PoR."
+  },
+  {
+    "layer": "reserve",
+    "field": "auditor",
+    "value": "BDO Malta",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz auditor field. Must be confirmed against the latest official Tether Gold reserve report before production grading."
+  },
+  {
+    "layer": "reserve",
+    "field": "reserveBreakdown",
+    "value": "Physical gold",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Simple underlying asset description only; latest reserve report should be used for detailed bar/reserve data."
   },
   {
     "layer": "reserve",
@@ -55,48 +225,308 @@
     "value": "Physical gold",
     "sourceUrl": "https://gold.tether.to/faq",
     "sourceType": "official_docs",
-    "reliability": 88,
+    "reliability": 78,
     "checkedBy": "manual",
-    "notes": "Initial source candidate for redemption mechanics and underlying asset."
+    "notes": "Official FAQ is the candidate source for redemption mechanics. JavaScript-rendered; browser verification recommended."
   },
   {
-    "layer": "blockchain",
-    "field": "contractAddress",
-    "value": "0x68749665ff8d2d112fa859aa293f07a622782f38",
-    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
-    "sourceType": "block_explorer",
-    "reliability": 90,
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Tether Holdings",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
     "checkedBy": "manual",
-    "notes": "Ethereum XAUT token page on Etherscan. Recheck official-token-source alignment before production grading."
+    "notes": "Secondary-source baseline only. Verify against official Tether Gold legal terms before production grading."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerCountry",
+    "value": "El Salvador",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists El Salvador regulatory context. Needs official legal confirmation."
+  },
+  {
+    "layer": "institutional",
+    "field": "fundManager",
+    "value": "Tether",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "Used as platform/manager-style field. XAUT is not a conventional fund."
+  },
+  {
+    "layer": "institutional",
+    "field": "minimumInvestment",
+    "value": "200000",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists minimum investment as USD 200,000. Official fees/legal page should override if different."
+  },
+  {
+    "layer": "institutional",
+    "field": "managementFee",
+    "value": "0",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists management fee as 0. Verify against official fee page."
+  },
+  {
+    "layer": "institutional",
+    "field": "performanceFee",
+    "value": "0",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists performance fee as 0. Verify against official fee page."
+  },
+  {
+    "layer": "institutional",
+    "field": "targetInvestors",
+    "value": "Non-U.S. Investor",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists investor type. Official legal restrictions still need manual verification."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.subscriptionFee",
+    "value": "0.0025",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Stored as 0.25% decimal based on RWA.xyz. Official fee page should override if different."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.redemptionFee",
+    "value": "0.0025",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Stored as 0.25% decimal based on RWA.xyz. Official fee page should override if different."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.physicalDeliveryMinimumXaut",
+    "value": "430",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz states physical delivery/redemption minimum around 430 XAUt. Official FAQ/legal confirmation required."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryStatus",
+    "value": "unknown",
+    "sourceUrl": "https://gold.tether.to/legal",
+    "sourceType": "official_legal",
+    "reliability": 55,
+    "checkedBy": "manual",
+    "notes": "Official legal page exists but is JavaScript-rendered and was not extracted reliably. No definitive registration/exemption status confirmed."
+  },
+  {
+    "layer": "compliance",
+    "field": "primaryRegulator",
+    "value": "CNAD - El Salvador National Commission of Digital Assets",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists CNAD / El Salvador regulatory context. Needs official legal confirmation."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryFramework",
+    "value": "El Salvador Digital Asset Law (LEAD)",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz lists this framework. Treated as secondary-source baseline, not final legal proof."
+  },
+  {
+    "layer": "compliance",
+    "field": "kycRequired",
+    "value": "true",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz redemption section states users must log in/sign up and verify an account with TG Commodities Limited before redemption."
+  },
+  {
+    "layer": "compliance",
+    "field": "amlPolicy",
+    "value": "Account verification required for redemption; official AML text not extracted.",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 62,
+    "checkedBy": "manual",
+    "notes": "Summarized conservatively. Official legal/AML terms should override this after manual browser review."
   },
   {
     "layer": "market",
-    "field": "marketDataCandidate",
-    "value": "RWA.xyz XAUT; CoinGecko Tether Gold; CoinMarketCap Tether Gold",
+    "field": "tvl",
+    "value": "2658366156",
     "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Treated as RWA asset value/AUM proxy, not exchange market cap. Time-sensitive; reviewed 2026-06-05."
+  },
+  {
+    "layer": "market",
+    "field": "tvl30dChange",
+    "value": "-6.47",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz 30D change figure. Time-sensitive; reviewed 2026-06-05."
+  },
+  {
+    "layer": "market",
+    "field": "price",
+    "value": "4369.62",
+    "sourceUrl": "https://coinmarketcap.com/currencies/tether-gold/",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Current aggregator price at review time. Time-sensitive; reviewed 2026-06-05."
+  },
+  {
+    "layer": "market",
+    "field": "priceChange24h",
+    "value": "-2.47",
+    "sourceUrl": "https://coinmarketcap.com/currencies/tether-gold/",
     "sourceType": "market_aggregator",
     "reliability": 70,
     "checkedBy": "manual",
-    "notes": "Candidate market data source only. Populate numeric market fields after fresh data refresh."
+    "notes": "Current 24h price change at review time. Time-sensitive; reviewed 2026-06-05."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": "2677805457",
+    "sourceUrl": "https://coinmarketcap.com/currencies/tether-gold/",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Market cap used separately from RWA.xyz TVL/AUM proxy. Time-sensitive; reviewed 2026-06-05."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": "243006835",
+    "sourceUrl": "https://coinmarketcap.com/currencies/tether-gold/",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "24h exchange volume. Time-sensitive; reviewed 2026-06-05."
+  },
+  {
+    "layer": "market",
+    "field": "circulatingSupply",
+    "value": "612824",
+    "sourceUrl": "https://coinmarketcap.com/currencies/tether-gold/",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Circulating supply from aggregator. Time-sensitive and should be reconciled with chain supply before production."
+  },
+  {
+    "layer": "market",
+    "field": "totalSupply",
+    "value": "707747",
+    "sourceUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
+    "sourceType": "block_explorer",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Ethereum token supply reference. Multi-chain supply requires deeper reconciliation."
+  },
+  {
+    "layer": "market",
+    "field": "holderCount",
+    "value": "57088",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Treated as aggregated holder figure. Ethereum-only holder count differs on Etherscan."
+  },
+  {
+    "layer": "market",
+    "field": "aumUsd",
+    "value": "2658366156",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Same as RWA.xyz total asset value; not mixed with CMC market cap. Time-sensitive; reviewed 2026-06-05."
   },
   {
     "layer": "yield",
-    "field": "yieldApplicability",
-    "value": "non-yield-bearing baseline",
-    "sourceUrl": "internal://analysis/tether-gold-xaut/source-discovery",
-    "sourceType": "internal_analysis",
-    "reliability": 60,
+    "field": "currentYield",
+    "value": "null",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
     "checkedBy": "manual",
-    "notes": "XAUT is treated as tokenized gold, not a yield-bearing treasury or credit product. Keep yield fields null unless verified otherwise."
+    "notes": "RWA.xyz shows no APY/yield value. XAUT is treated as non-yield-bearing unless a primary source states otherwise."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "physical redemption and secondary-market trading",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Redemption info is secondary. Official FAQ/fees should override after manual verification."
+  },
+  {
+    "layer": "liquidity",
+    "field": "minRedemptionAmount",
+    "value": "50",
+    "sourceUrl": "https://app.rwa.xyz/assets/XAUT",
+    "sourceType": "rwa_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz states direct purchase minimum of 50 fine troy oz / 50 XAUt for verified users. Physical delivery/redemption minimum appears higher, around 430 XAUt."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityScore",
+    "value": "65",
+    "sourceUrl": "internal://analysis/tether-gold-xaut/liquidity",
+    "sourceType": "internal_analysis",
+    "reliability": 55,
+    "checkedBy": "manual",
+    "notes": "Conservative analyst score based on active exchange volume but constrained physical redemption. Review before production grading."
   },
   {
     "layer": "risk",
     "field": "riskBaselineStatus",
-    "value": "pending full source review",
+    "value": "pending risk.json synthesis",
     "sourceUrl": "internal://analysis/tether-gold-xaut/source-discovery",
     "sourceType": "internal_analysis",
     "reliability": 60,
     "checkedBy": "manual",
-    "notes": "Risk scoring intentionally left null until reserve, legal, custody, liquidity, holder, and smart-contract evidence are reviewed."
+    "notes": "Risk scoring intentionally left for final synthesis after source and layer review."
   }
 ]
