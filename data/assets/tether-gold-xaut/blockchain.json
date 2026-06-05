@@ -5,8 +5,8 @@
     "contractAddress": "0x68749665ff8d2d112fa859aa293f07a622782f38",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
-    "hasTransferRestrictions": null,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
     "explorerUrl": "https://etherscan.io/token/0x68749665ff8d2d112fa859aa293f07a622782f38",
     "deployedAt": null,
     "isVerified": true
@@ -17,8 +17,8 @@
     "contractAddress": "0x21caef8a43163eea865baee23b9c2e327696a3bf",
     "tokenStandard": "BEP-20",
     "isTransferable": true,
-    "hasWhitelist": null,
-    "hasTransferRestrictions": null,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
     "explorerUrl": "https://bscscan.com/token/0x21caef8a43163eea865baee23b9c2e327696a3bf",
     "deployedAt": null,
     "isVerified": true
@@ -29,8 +29,8 @@
     "contractAddress": "0x40461291347e1ecbb09499f3371d3f17f10d7159",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
-    "hasTransferRestrictions": null,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
     "explorerUrl": "https://arbiscan.io/token/0x40461291347e1ecbb09499f3371d3f17f10d7159",
     "deployedAt": null,
     "isVerified": true
