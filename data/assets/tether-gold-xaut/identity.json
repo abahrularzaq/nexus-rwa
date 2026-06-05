@@ -1,0 +1,21 @@
+{
+  "name": "Tether Gold",
+  "symbol": "XAUT",
+  "fullName": "Tether Gold",
+  "description": "Tether Gold (XAU₮) is a tokenized gold asset issued by Tether-related entities. Each token is intended to represent ownership of one fine troy ounce of physical gold held in reserve. Full field-level verification is pending source review before production grading.",
+  "category": "Commodity",
+  "subcategory": "Tokenized Gold",
+  "logoUrl": null,
+  "websiteUrl": "https://gold.tether.to/",
+  "docsUrl": "https://gold.tether.to/faq",
+  "twitterUrl": "https://x.com/Tether_to",
+  "tags": [
+    "commodity-backed",
+    "gold-backed",
+    "tokenized-gold",
+    "audited",
+    "ethereum"
+  ],
+  "launchDate": null,
+  "isin": null
+}
