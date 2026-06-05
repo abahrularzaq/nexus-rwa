@@ -15,6 +15,12 @@ function parseDate(value: any): Date | null {
   return new Date(value);
 }
 
+function withoutMeta<T extends Record<string, any> | null>(value: T): T {
+  if (!value || Array.isArray(value) || typeof value !== 'object') return value;
+  const { _meta, ...rest } = value;
+  return rest as T;
+}
+
 async function importAsset(slug: string) {
   const dir = path.join(ROOT, '..', 'data', 'assets', slug);
 
@@ -22,15 +28,15 @@ async function importAsset(slug: string) {
     throw new Error(`Asset folder not found: ${dir}`);
   }
 
-  const identity = readJson(path.join(dir, 'identity.json'));
-  const market = readJson(path.join(dir, 'market.json'));
-  const risk = readJson(path.join(dir, 'risk.json'));
-  const reserve = readJson(path.join(dir, 'reserve.json'));
-  const yieldData = readJson(path.join(dir, 'yield.json'));
-  const institutional = readJson(path.join(dir, 'institutional.json'));
+  const identity = withoutMeta(readJson(path.join(dir, 'identity.json')));
+  const market = withoutMeta(readJson(path.join(dir, 'market.json')));
+  const risk = withoutMeta(readJson(path.join(dir, 'risk.json')));
+  const reserve = withoutMeta(readJson(path.join(dir, 'reserve.json')));
+  const yieldData = withoutMeta(readJson(path.join(dir, 'yield.json')));
+  const institutional = withoutMeta(readJson(path.join(dir, 'institutional.json')));
   const blockchain = readJson<any[]>(path.join(dir, 'blockchain.json')) ?? [];
-  const compliance = readJson(path.join(dir, 'compliance.json'));
-  const liquidity = readJson(path.join(dir, 'liquidity.json'));
+  const compliance = withoutMeta(readJson(path.join(dir, 'compliance.json')));
+  const liquidity = withoutMeta(readJson(path.join(dir, 'liquidity.json')));
   const sources = readJson<any[]>(path.join(dir, 'sources.json')) ?? [];
 
   const asset = await db.asset.upsert({
