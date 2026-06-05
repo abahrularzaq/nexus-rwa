@@ -18,6 +18,7 @@ import { sessionRouter } from './routes/session.js';
 import { analyticsRouter, exportRouter } from './routes/enterprise.js';
 import { askRouter } from './routes/ask.js';
 import { adminRouter } from './routes/admin.js';
+import { adminMonitoringRouter } from './routes/admin-monitoring.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
@@ -114,6 +115,7 @@ app.route('/v1/analytics', analyticsRouter);
 app.route('/v1/export', exportRouter);
 app.route('/v1/ask', askRouter);
 app.route('/v1/admin', adminRouter);
+app.route('/v1/admin/monitoring', adminMonitoringRouter);
 
 // 404 handler
 app.notFound((c) => c.json({
