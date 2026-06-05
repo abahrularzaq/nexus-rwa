@@ -13,6 +13,8 @@ type Options = {
   timeoutMs: number;
 };
 
+type SourceStatus = 'healthy' | 'redirected' | 'restricted' | 'broken' | 'timeout' | 'error';
+
 type SourceItem = {
   layer: string;
   field?: string | null;
@@ -26,7 +28,7 @@ type SourceJob = SourceItem & {
 };
 
 type SourceCheckResult = SourceJob & {
-  status: 'healthy' | 'redirected' | 'broken' | 'timeout' | 'error';
+  status: SourceStatus;
   httpStatus?: number | null;
   errorMessage?: string | null;
 };
@@ -88,7 +90,16 @@ function readSources(assetSlug: string): SourceItem[] {
 }
 
 function buildJobs(assetSlugs: string[]): SourceJob[] {
-  return assetSlugs.flatMap((assetSlug) => readSources(assetSlug).map((source) => ({ assetSlug, ...source })));
+  const unique = new Map<string, SourceJob>();
+
+  for (const assetSlug of assetSlugs) {
+    for (const source of readSources(assetSlug)) {
+      const key = `${assetSlug}::${source.sourceUrl}::${source.layer}::${source.field ?? ''}`;
+      unique.set(key, { assetSlug, ...source });
+    }
+  }
+
+  return [...unique.values()];
 }
 
 async function fetchWithTimeout(url: string, method: 'HEAD' | 'GET', timeoutMs: number): Promise<Response> {
@@ -101,13 +112,19 @@ async function fetchWithTimeout(url: string, method: 'HEAD' | 'GET', timeoutMs: 
       redirect: 'follow',
       signal: controller.signal,
       headers: {
-        'user-agent': 'NexusRWA-SourceHealthChecker/1.0',
+        'user-agent': 'Mozilla/5.0 NexusRWA-SourceHealthChecker/1.0',
         accept: 'text/html,application/pdf,application/json,*/*',
       },
     });
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function classifyResponse(response: Response): SourceStatus {
+  if (response.ok) return response.redirected ? 'redirected' : 'healthy';
+  if (response.status === 401 || response.status === 403 || response.status === 429) return 'restricted';
+  return 'broken';
 }
 
 async function checkUrl(job: SourceJob, timeoutMs: number): Promise<SourceCheckResult> {
@@ -118,21 +135,15 @@ async function checkUrl(job: SourceJob, timeoutMs: number): Promise<SourceCheckR
       response = await fetchWithTimeout(job.sourceUrl, 'GET', timeoutMs);
     }
 
-    const status = response.ok
-      ? response.redirected
-        ? 'redirected'
-        : 'healthy'
-      : 'broken';
-
     return {
       ...job,
-      status,
+      status: classifyResponse(response),
       httpStatus: response.status,
       errorMessage: null,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const status = message.toLowerCase().includes('abort') ? 'timeout' : 'error';
+    const status: SourceStatus = message.toLowerCase().includes('abort') ? 'timeout' : 'error';
 
     return {
       ...job,
@@ -194,7 +205,7 @@ async function main(): Promise<void> {
   const results: SourceCheckResult[] = [];
 
   console.log(
-    `Checking ${jobs.length} source URLs across ${assetSlugs.length} asset(s) with concurrency=${options.concurrency}, timeoutMs=${options.timeoutMs}`,
+    `Checking ${jobs.length} source references across ${assetSlugs.length} asset(s) with concurrency=${options.concurrency}, timeoutMs=${options.timeoutMs}`,
   );
 
   await runPool(jobs, options.concurrency, async (job, index) => {
@@ -213,18 +224,24 @@ async function main(): Promise<void> {
     return acc;
   }, {});
 
-  const problematic = results
-    .filter((result) => result.status !== 'healthy' && result.status !== 'redirected')
-    .slice(0, 25)
-    .map((result) => ({
-      assetSlug: result.assetSlug,
-      layer: result.layer,
-      field: result.field,
-      status: result.status,
-      httpStatus: result.httpStatus,
-      url: result.sourceUrl,
-      errorMessage: result.errorMessage,
-    }));
+  const grouped = new Map<string, SourceCheckResult[]>();
+  for (const result of results.filter((item) => item.status !== 'healthy' && item.status !== 'redirected')) {
+    const key = `${result.assetSlug}::${result.sourceUrl}::${result.status}::${result.httpStatus ?? ''}`;
+    grouped.set(key, [...(grouped.get(key) ?? []), result]);
+  }
+
+  const problematic = [...grouped.values()].slice(0, 50).map((items) => {
+    const first = items[0]!;
+    return {
+      assetSlug: first.assetSlug,
+      status: first.status,
+      httpStatus: first.httpStatus,
+      url: first.sourceUrl,
+      affectedFields: items.length,
+      sampleFields: items.slice(0, 8).map((item) => `${item.layer}.${item.field ?? 'unknown'}`),
+      errorMessage: first.errorMessage,
+    };
+  });
 
   console.log(JSON.stringify({ checkedSources: results.length, summary, problematic }, null, 2));
 }
