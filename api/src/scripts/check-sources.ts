@@ -4,7 +4,14 @@ import { db } from '../lib/database.js';
 
 const ROOT = process.cwd();
 const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
-const REQUEST_TIMEOUT_MS = 15_000;
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+const DEFAULT_CONCURRENCY = 8;
+
+type Options = {
+  slug: string | null;
+  concurrency: number;
+  timeoutMs: number;
+};
 
 type SourceItem = {
   layer: string;
@@ -14,14 +21,40 @@ type SourceItem = {
   reliability?: number | null;
 };
 
-type SourceCheckResult = SourceItem & {
+type SourceJob = SourceItem & {
   assetSlug: string;
+};
+
+type SourceCheckResult = SourceJob & {
   status: 'healthy' | 'redirected' | 'broken' | 'timeout' | 'error';
   httpStatus?: number | null;
   errorMessage?: string | null;
 };
 
-function listAssetSlugs(): string[] {
+function parseArgs(argv: string[]): Options {
+  let slug: string | null = null;
+  let concurrency = DEFAULT_CONCURRENCY;
+  let timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS;
+
+  for (const arg of argv) {
+    if (arg.startsWith('--slug=')) {
+      slug = arg.slice('--slug='.length);
+    } else if (arg.startsWith('--concurrency=')) {
+      concurrency = Number(arg.slice('--concurrency='.length));
+    } else if (arg.startsWith('--timeout-ms=')) {
+      timeoutMs = Number(arg.slice('--timeout-ms='.length));
+    }
+  }
+
+  if (!Number.isFinite(concurrency) || concurrency < 1) concurrency = DEFAULT_CONCURRENCY;
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 1000) timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS;
+
+  return { slug, concurrency: Math.floor(concurrency), timeoutMs: Math.floor(timeoutMs) };
+}
+
+function listAssetSlugs(slug: string | null): string[] {
+  if (slug) return [slug];
+
   return fs
     .readdirSync(ASSETS_DIR)
     .filter((name) => !name.startsWith('_') && name !== 'README.md')
@@ -54,9 +87,13 @@ function readSources(assetSlug: string): SourceItem[] {
     .filter((item) => item.sourceUrl.startsWith('http'));
 }
 
-async function fetchWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise<Response> {
+function buildJobs(assetSlugs: string[]): SourceJob[] {
+  return assetSlugs.flatMap((assetSlug) => readSources(assetSlug).map((source) => ({ assetSlug, ...source })));
+}
+
+async function fetchWithTimeout(url: string, method: 'HEAD' | 'GET', timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     return await fetch(url, {
@@ -65,6 +102,7 @@ async function fetchWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise<Re
       signal: controller.signal,
       headers: {
         'user-agent': 'NexusRWA-SourceHealthChecker/1.0',
+        accept: 'text/html,application/pdf,application/json,*/*',
       },
     });
   } finally {
@@ -72,12 +110,12 @@ async function fetchWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise<Re
   }
 }
 
-async function checkUrl(assetSlug: string, source: SourceItem): Promise<SourceCheckResult> {
+async function checkUrl(job: SourceJob, timeoutMs: number): Promise<SourceCheckResult> {
   try {
-    let response = await fetchWithTimeout(source.sourceUrl, 'HEAD');
+    let response = await fetchWithTimeout(job.sourceUrl, 'HEAD', timeoutMs);
 
-    if (response.status === 405 || response.status === 403) {
-      response = await fetchWithTimeout(source.sourceUrl, 'GET');
+    if (response.status === 405 || response.status === 403 || response.status === 404) {
+      response = await fetchWithTimeout(job.sourceUrl, 'GET', timeoutMs);
     }
 
     const status = response.ok
@@ -87,8 +125,7 @@ async function checkUrl(assetSlug: string, source: SourceItem): Promise<SourceCh
       : 'broken';
 
     return {
-      ...source,
-      assetSlug,
+      ...job,
       status,
       httpStatus: response.status,
       errorMessage: null,
@@ -98,8 +135,7 @@ async function checkUrl(assetSlug: string, source: SourceItem): Promise<SourceCh
     const status = message.toLowerCase().includes('abort') ? 'timeout' : 'error';
 
     return {
-      ...source,
-      assetSlug,
+      ...job,
       status,
       httpStatus: null,
       errorMessage: message,
@@ -128,7 +164,7 @@ async function saveSourceResult(result: SourceCheckResult): Promise<void> {
       data: {
         assetSlug: result.assetSlug,
         layer: result.layer,
-        priority: 'high',
+        priority: result.status === 'broken' ? 'high' : 'medium',
         reason: `Source URL issue for ${result.layer}.${result.field ?? 'unknown'}: ${result.sourceUrl} (${result.status}${result.httpStatus ? ` ${result.httpStatus}` : ''})`,
         status: 'open',
       },
@@ -136,26 +172,61 @@ async function saveSourceResult(result: SourceCheckResult): Promise<void> {
   }
 }
 
-async function main(): Promise<void> {
-  const assetSlugs = listAssetSlugs();
-  const results: SourceCheckResult[] = [];
+async function runPool<T>(items: T[], concurrency: number, worker: (item: T, index: number) => Promise<void>): Promise<void> {
+  let nextIndex = 0;
 
-  for (const assetSlug of assetSlugs) {
-    const sources = readSources(assetSlug);
-
-    for (const source of sources) {
-      const result = await checkUrl(assetSlug, source);
-      results.push(result);
-      await saveSourceResult(result);
+  async function runWorker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      await worker(items[currentIndex]!, currentIndex);
     }
   }
+
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => runWorker());
+  await Promise.all(workers);
+}
+
+async function main(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2));
+  const assetSlugs = listAssetSlugs(options.slug);
+  const jobs = buildJobs(assetSlugs);
+  const results: SourceCheckResult[] = [];
+
+  console.log(
+    `Checking ${jobs.length} source URLs across ${assetSlugs.length} asset(s) with concurrency=${options.concurrency}, timeoutMs=${options.timeoutMs}`,
+  );
+
+  await runPool(jobs, options.concurrency, async (job, index) => {
+    const result = await checkUrl(job, options.timeoutMs);
+    results.push(result);
+    await saveSourceResult(result);
+
+    const checked = index + 1;
+    if (checked % 25 === 0 || checked === jobs.length) {
+      console.log(`Progress: ${checked}/${jobs.length}`);
+    }
+  });
 
   const summary = results.reduce<Record<string, number>>((acc, result) => {
     acc[result.status] = (acc[result.status] ?? 0) + 1;
     return acc;
   }, {});
 
-  console.log(JSON.stringify({ checkedSources: results.length, summary }, null, 2));
+  const problematic = results
+    .filter((result) => result.status !== 'healthy' && result.status !== 'redirected')
+    .slice(0, 25)
+    .map((result) => ({
+      assetSlug: result.assetSlug,
+      layer: result.layer,
+      field: result.field,
+      status: result.status,
+      httpStatus: result.httpStatus,
+      url: result.sourceUrl,
+      errorMessage: result.errorMessage,
+    }));
+
+  console.log(JSON.stringify({ checkedSources: results.length, summary, problematic }, null, 2));
 }
 
 main()
