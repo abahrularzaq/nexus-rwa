@@ -16,6 +16,7 @@ import {
   Search,
   Database,
   Library,
+  Activity,
 } from "lucide-react";
 
 import { DashboardWalletButton } from "@/components/dashboard/DashboardWalletButton";
@@ -63,6 +64,12 @@ const navItems = [
     label: "Sources",
     href: "/dashboard/sources",
     icon: Library,
+    exact: false,
+  },
+  {
+    label: "Monitoring",
+    href: "/dashboard/monitoring",
+    icon: Activity,
     exact: false,
   },
   {
