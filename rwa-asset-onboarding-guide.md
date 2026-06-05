@@ -923,8 +923,8 @@ Lalu jalankan:
 
 ```bash
 cd "D:\NEXUS RWA\nexus-rwa\api"
-
 npx prisma generate
+
 npm run import:asset -- {asset-slug}
 ```
 
