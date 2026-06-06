@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+const MONITORING_PROXY_URL = "/api/admin/monitoring/overview";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const ADMIN_KEY_STORAGE = "nexus_admin_key";
 
@@ -241,7 +242,7 @@ export default function MonitoringPage() {
 
   const loadOverview = useCallback(async () => {
     const key = adminKey.trim();
-    const url = `${apiBase()}/v1/admin/monitoring/overview`;
+    const url = MONITORING_PROXY_URL;
 
     if (!key) {
       setError("Enter X-Admin-Key first.");
@@ -271,7 +272,7 @@ export default function MonitoringPage() {
         } catch {
           const preview = rawText.slice(0, 180).replace(/\s+/g, " ");
           throw new Error(
-            `Monitoring API returned non-JSON response. HTTP ${response.status}. URL: ${url}. Preview: ${preview}`,
+            `Monitoring proxy returned non-JSON response. HTTP ${response.status}. URL: ${url}. Preview: ${preview}`,
           );
         }
       }
@@ -279,21 +280,21 @@ export default function MonitoringPage() {
       if (!response.ok) {
         throw new Error(
           `${getErrorMessage(body, response.statusText || "Monitoring request failed")} ` +
-            `(HTTP ${response.status}, API: ${url})`,
+            `(HTTP ${response.status}, proxy: ${url}, upstream API: ${apiBase()})`,
         );
       }
 
       if (!contentType.includes("application/json")) {
-        throw new Error(`Monitoring API did not return JSON. Content-Type: ${contentType || "empty"}. API: ${url}`);
+        throw new Error(`Monitoring proxy did not return JSON. Content-Type: ${contentType || "empty"}. Proxy: ${url}`);
       }
 
       if (!body || typeof body !== "object" || !("success" in body)) {
-        throw new Error(`Unexpected monitoring response shape. API: ${url}`);
+        throw new Error(`Unexpected monitoring response shape. Proxy: ${url}`);
       }
 
       const parsed = body as ApiResponse<MonitoringOverview>;
       if (!parsed.success) {
-        throw new Error(`${parsed.error.message} (API: ${url})`);
+        throw new Error(`${parsed.error.message} (proxy: ${url})`);
       }
 
       setData(parsed.data);
@@ -303,7 +304,7 @@ export default function MonitoringPage() {
       setData(null);
       setError(
         err instanceof TypeError
-          ? `Network/CORS error while calling ${url}. Check NEXT_PUBLIC_API_URL, FRONTEND_URL, and allowed CORS headers on the API.`
+          ? `Network error while calling monitoring proxy ${url}. Check that the Next.js web server is running.`
           : err instanceof Error
             ? err.message
             : "Monitoring request failed",
@@ -329,7 +330,9 @@ export default function MonitoringPage() {
             Freshness, source health, review queue, and sync monitoring for Nexus RWA dataset.
           </p>
           <p className="mt-2 text-xs text-[var(--text-muted)]">
-            API target: <span className="terminal-data text-[var(--accent-cyan)]">{apiBase()}</span>
+            Monitoring proxy: <span className="terminal-data text-[var(--accent-cyan)]">{MONITORING_PROXY_URL}</span>
+            <span className="mx-2 text-[var(--text-muted)]">→</span>
+            Upstream API: <span className="terminal-data text-[var(--accent-cyan)]">{apiBase()}</span>
           </p>
         </div>
         <button
