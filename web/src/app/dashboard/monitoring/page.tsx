@@ -5,15 +5,19 @@ import {
   AlertTriangle,
   DatabaseZap,
   ExternalLink,
+  Filter,
   KeyRound,
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
 
-const MONITORING_PROXY_URL = "/api/admin/monitoring/overview";
+const MONITORING_OVERVIEW_PROXY_URL = "/api/admin/monitoring/overview";
+const MONITORING_DETAIL_PROXY_BASE = "/api/admin/monitoring";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const ADMIN_KEY_STORAGE = "nexus_admin_key";
+
+type DetailResource = "health-checks" | "source-health" | "review-tasks" | "sync-logs";
 
 type MonitoringOverview = {
   generatedAt: string;
@@ -37,6 +41,13 @@ type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
 
+const resourceLabels: Record<DetailResource, string> = {
+  "health-checks": "Health checks",
+  "source-health": "Source health",
+  "review-tasks": "Review tasks",
+  "sync-logs": "Sync logs",
+};
+
 function apiBase(): string {
   return API_URL.trim().replace(/\/$/, "");
 }
@@ -59,10 +70,10 @@ function asText(value: unknown): string {
 }
 
 function statusClass(status: string): string {
-  if (["healthy", "current", "success", "redirected"].includes(status)) {
+  if (["healthy", "current", "success", "redirected", "closed"].includes(status)) {
     return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   }
-  if (["broken", "failed", "critical"].includes(status)) {
+  if (["broken", "failed", "critical", "error"].includes(status)) {
     return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
   }
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
@@ -82,6 +93,13 @@ function getErrorMessage(body: unknown, fallback: string): string {
     }
   }
   return fallback;
+}
+
+function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string): string {
+  const params = new URLSearchParams({ limit: "250" });
+  if (assetSlug.trim()) params.set("assetSlug", assetSlug.trim());
+  if (status.trim()) params.set("status", status.trim());
+  return `${MONITORING_DETAIL_PROXY_BASE}/${resource}?${params.toString()}`;
 }
 
 function StatCard({
@@ -139,20 +157,20 @@ function SummaryPills({ title, data }: { title: string; data: Record<string, num
 function IssueTable({
   title,
   rows,
-  type,
+  resource,
 }: {
   title: string;
   rows: Array<Record<string, unknown>>;
-  type: "health" | "source" | "task" | "sync";
+  resource: DetailResource;
 }) {
   return (
     <div className="data-surface overflow-hidden">
       <div className="flex items-center justify-between border-b border-[var(--border-line)] px-4 py-3">
         <p className="terminal-label">{title}</p>
-        <span className="text-xs text-[var(--text-secondary)]">{rows.length} shown</span>
+        <span className="text-xs text-[var(--text-secondary)]">{rows.length} rows</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-sm">
+        <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
             <tr>
               <th className="px-4 py-3 font-medium">Asset</th>
@@ -167,36 +185,36 @@ function IssueTable({
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-center text-[var(--text-secondary)]">
-                  No records.
+                  No records match the current filters.
                 </td>
               </tr>
             ) : (
               rows.map((row, index) => {
-                const status = asText(row.status ?? row.priority);
+                const status = asText(row.status ?? row.priority ?? row.severity);
                 const url = typeof row.url === "string" ? row.url : null;
                 return (
-                  <tr key={`${type}-${index}`} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
+                  <tr key={`${resource}-${index}`} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
                     <td className="px-4 py-3 terminal-data text-white">{asText(row.assetSlug)}</td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">{asText(row.layer)}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full border px-2 py-1 text-xs ${statusClass(status)}`}>{status}</span>
                     </td>
                     <td className="px-4 py-3 text-[var(--text-secondary)]">
-                      {asText(row.field ?? row.priority ?? row.provider)}
+                      {asText(row.field ?? row.priority ?? row.provider ?? row.severity)}
                     </td>
-                    <td className="max-w-[360px] px-4 py-3 text-[var(--text-secondary)]">
+                    <td className="max-w-[420px] px-4 py-3 text-[var(--text-secondary)]">
                       {url ? (
                         <a
                           href={url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex max-w-[340px] items-center gap-1 truncate text-[var(--accent-cyan)] hover:underline"
+                          className="inline-flex max-w-[400px] items-center gap-1 truncate text-[var(--accent-cyan)] hover:underline"
                         >
                           <span className="truncate">{url}</span>
                           <ExternalLink className="size-3 shrink-0" />
                         </a>
                       ) : (
-                        <span className="line-clamp-2">{asText(row.reason ?? row.errorMessage)}</span>
+                        <span className="line-clamp-2">{asText(row.reason ?? row.errorMessage ?? row.message)}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
@@ -217,7 +235,13 @@ export default function MonitoringPage() {
   const [adminKey, setAdminKey] = useState("");
   const [savedKey, setSavedKey] = useState(false);
   const [data, setData] = useState<MonitoringOverview | null>(null);
+  const [detailRows, setDetailRows] = useState<Array<Record<string, unknown>>>([]);
+  const [resource, setResource] = useState<DetailResource>("review-tasks");
+  const [assetSlug, setAssetSlug] = useState("");
+  const [status, setStatus] = useState("");
+  const [layer, setLayer] = useState("");
   const [loading, setLoading] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -240,9 +264,54 @@ export default function MonitoringPage() {
     return `${Math.round((ok / total) * 100)}%`;
   }, [data]);
 
+  const filteredRows = useMemo(() => {
+    const layerQuery = layer.trim().toLowerCase();
+    if (!layerQuery) return detailRows;
+    return detailRows.filter((row) => asText(row.layer).toLowerCase().includes(layerQuery));
+  }, [detailRows, layer]);
+
+  const statusOptions = useMemo(() => {
+    const values = new Set<string>();
+    for (const row of detailRows) {
+      const value = asText(row.status ?? row.priority ?? row.severity);
+      if (value !== "—") values.add(value);
+    }
+    return Array.from(values).sort();
+  }, [detailRows]);
+
+  const loadDetailRows = useCallback(
+    async (key: string, selectedResource = resource) => {
+      const url = buildDetailUrl(selectedResource, assetSlug, status);
+      setDetailLoading(true);
+
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "X-Admin-Key": key,
+          },
+          cache: "no-store",
+        });
+
+        const body = (await response.json()) as ApiResponse<Array<Record<string, unknown>>>;
+        if (!response.ok || !body.success) {
+          throw new Error(
+            `${getErrorMessage(body, response.statusText || "Monitoring detail request failed")} ` +
+              `(HTTP ${response.status}, proxy: ${url})`,
+          );
+        }
+
+        setDetailRows(body.data);
+      } finally {
+        setDetailLoading(false);
+      }
+    },
+    [assetSlug, resource, status],
+  );
+
   const loadOverview = useCallback(async () => {
     const key = adminKey.trim();
-    const url = MONITORING_PROXY_URL;
 
     if (!key) {
       setError("Enter X-Admin-Key first.");
@@ -253,7 +322,7 @@ export default function MonitoringPage() {
     setError(null);
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(MONITORING_OVERVIEW_PROXY_URL, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -272,7 +341,7 @@ export default function MonitoringPage() {
         } catch {
           const preview = rawText.slice(0, 180).replace(/\s+/g, " ");
           throw new Error(
-            `Monitoring proxy returned non-JSON response. HTTP ${response.status}. URL: ${url}. Preview: ${preview}`,
+            `Monitoring proxy returned non-JSON response. HTTP ${response.status}. Preview: ${preview}`,
           );
         }
       }
@@ -280,31 +349,33 @@ export default function MonitoringPage() {
       if (!response.ok) {
         throw new Error(
           `${getErrorMessage(body, response.statusText || "Monitoring request failed")} ` +
-            `(HTTP ${response.status}, proxy: ${url}, upstream API: ${apiBase()})`,
+            `(HTTP ${response.status}, proxy: ${MONITORING_OVERVIEW_PROXY_URL}, upstream API: ${apiBase()})`,
         );
       }
 
       if (!contentType.includes("application/json")) {
-        throw new Error(`Monitoring proxy did not return JSON. Content-Type: ${contentType || "empty"}. Proxy: ${url}`);
+        throw new Error(`Monitoring proxy did not return JSON. Content-Type: ${contentType || "empty"}.`);
       }
 
       if (!body || typeof body !== "object" || !("success" in body)) {
-        throw new Error(`Unexpected monitoring response shape. Proxy: ${url}`);
+        throw new Error("Unexpected monitoring response shape.");
       }
 
       const parsed = body as ApiResponse<MonitoringOverview>;
       if (!parsed.success) {
-        throw new Error(`${parsed.error.message} (proxy: ${url})`);
+        throw new Error(`${parsed.error.message} (proxy: ${MONITORING_OVERVIEW_PROXY_URL})`);
       }
 
       setData(parsed.data);
       window.localStorage.setItem(ADMIN_KEY_STORAGE, key);
       setSavedKey(true);
+      await loadDetailRows(key);
     } catch (err) {
       setData(null);
+      setDetailRows([]);
       setError(
         err instanceof TypeError
-          ? `Network error while calling monitoring proxy ${url}. Check that the Next.js web server is running.`
+          ? `Network error while calling monitoring proxy. Check that the Next.js web server is running.`
           : err instanceof Error
             ? err.message
             : "Monitoring request failed",
@@ -312,7 +383,7 @@ export default function MonitoringPage() {
     } finally {
       setLoading(false);
     }
-  }, [adminKey]);
+  }, [adminKey, loadDetailRows]);
 
   useEffect(() => {
     if (!adminKey) return;
@@ -330,7 +401,7 @@ export default function MonitoringPage() {
             Freshness, source health, review queue, and sync monitoring for Nexus RWA dataset.
           </p>
           <p className="mt-2 text-xs text-[var(--text-muted)]">
-            Monitoring proxy: <span className="terminal-data text-[var(--accent-cyan)]">{MONITORING_PROXY_URL}</span>
+            Monitoring proxy: <span className="terminal-data text-[var(--accent-cyan)]">{MONITORING_OVERVIEW_PROXY_URL}</span>
             <span className="mx-2 text-[var(--text-muted)]">→</span>
             Upstream API: <span className="terminal-data text-[var(--accent-cyan)]">{apiBase()}</span>
           </p>
@@ -338,10 +409,10 @@ export default function MonitoringPage() {
         <button
           type="button"
           onClick={() => void loadOverview()}
-          disabled={loading}
+          disabled={loading || detailLoading}
           className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`size-4 ${loading || detailLoading ? "animate-spin" : ""}`} />
           Refresh
         </button>
       </header>
@@ -365,7 +436,7 @@ export default function MonitoringPage() {
               <button
                 type="button"
                 onClick={() => void loadOverview()}
-                disabled={loading}
+                disabled={loading || detailLoading}
                 className="rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Load monitoring
@@ -419,11 +490,92 @@ export default function MonitoringPage() {
             <SummaryPills title="Review priority" data={data.reviewPrioritySummary} />
           </section>
 
+          <section className="data-surface p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <Filter className="size-4 text-[var(--accent-cyan)]" />
+              <p className="terminal-label">Monitoring filters</p>
+              <span className="ml-auto text-xs text-[var(--text-secondary)]">
+                Showing {filteredRows.length}/{detailRows.length} rows
+              </span>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <div>
+                <label className="terminal-label mb-2 block">Dataset</label>
+                <select
+                  value={resource}
+                  onChange={(event) => setResource(event.target.value as DetailResource)}
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                >
+                  {Object.entries(resourceLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="terminal-label mb-2 block">Asset slug</label>
+                <input
+                  value={assetSlug}
+                  onChange={(event) => setAssetSlug(event.target.value)}
+                  placeholder="ondo-ousg"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+              </div>
+              <div>
+                <label className="terminal-label mb-2 block">Status / priority</label>
+                <input
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                  list="monitoring-status-options"
+                  placeholder="broken / open / current"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+                <datalist id="monitoring-status-options">
+                  {statusOptions.map((value) => (
+                    <option key={value} value={value} />
+                  ))}
+                </datalist>
+              </div>
+              <div>
+                <label className="terminal-label mb-2 block">Layer</label>
+                <input
+                  value={layer}
+                  onChange={(event) => setLayer(event.target.value)}
+                  placeholder="reserve / market"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => void loadDetailRows(adminKey.trim())}
+                  disabled={detailLoading || !adminKey.trim()}
+                  className="flex-1 rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Apply
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAssetSlug("");
+                    setStatus("");
+                    setLayer("");
+                  }}
+                  className="rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)]"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </section>
+
           <section className="grid gap-4">
-            <IssueTable title="Recent health issues" rows={data.recentHealthIssues} type="health" />
-            <IssueTable title="Recent source issues" rows={data.recentSourceIssues} type="source" />
-            <IssueTable title="Recent open review tasks" rows={data.recentReviewTasks} type="task" />
-            <IssueTable title="Recent failed sync logs" rows={data.failedSyncLogs} type="sync" />
+            <IssueTable
+              title={`${resourceLabels[resource]} detail`}
+              rows={filteredRows}
+              resource={resource}
+            />
           </section>
 
           <p className="text-xs text-[var(--text-muted)]">Last generated: {formatDate(data.generatedAt)}</p>
