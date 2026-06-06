@@ -1,0 +1,78 @@
+name: Nexus RWA Monitoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_sources:
+        description: "Also run source URL checks"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+  schedule:
+    # Daily freshness check at 02:15 UTC.
+    - cron: "15 2 * * *"
+    # Weekly source check every Sunday at 03:15 UTC.
+    - cron: "15 3 * * 0"
+
+jobs:
+  monitoring:
+    name: Run monitoring checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      NODE_ENV: production
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
+      X402_NETWORK: ${{ secrets.X402_NETWORK }}
+      BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
+      BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+      PAYMENT_RECIPIENT: ${{ secrets.PAYMENT_RECIPIENT }}
+      PAYMENT_AMOUNT_ETH: ${{ secrets.PAYMENT_AMOUNT_ETH }}
+      X402_RECEIVING_ADDRESS: ${{ secrets.X402_RECEIVING_ADDRESS }}
+      RPC_URL_ETHEREUM: ${{ secrets.RPC_URL_ETHEREUM }}
+      RPC_URL_BASE: ${{ secrets.RPC_URL_BASE }}
+      RPC_URL_BASE_SEPOLIA: ${{ secrets.RPC_URL_BASE_SEPOLIA }}
+      RWA_XYZ_API_KEY: ${{ secrets.RWA_XYZ_API_KEY }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+      BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate asset files
+        run: npm run validate:asset-files --workspace=api
+
+      - name: Run freshness checks
+        run: npm run check:freshness --workspace=api
+
+      - name: Run source checks
+        if: ${{ github.event.schedule == '15 3 * * 0' || github.event_name == 'workflow_dispatch' && inputs.run_sources == 'true' }}
+        run: npm run check:sources --workspace=api
+
+      - name: Generate monitoring report
+        if: always()
+        run: npm run report:monitoring --workspace=api | tee monitoring-report.txt
+
+      - name: Upload monitoring report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-report-${{ github.run_id }}
+          path: monitoring-report.txt
+          retention-days: 30
