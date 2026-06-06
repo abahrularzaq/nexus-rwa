@@ -67,6 +67,22 @@ function statusClass(status: string): string {
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
 }
 
+function getErrorMessage(body: unknown, fallback: string): string {
+  if (
+    body &&
+    typeof body === "object" &&
+    "success" in body &&
+    (body as { success?: unknown }).success === false &&
+    "error" in body
+  ) {
+    const error = (body as { error?: unknown }).error;
+    if (error && typeof error === "object" && "message" in error) {
+      return String((error as { message?: unknown }).message ?? fallback);
+    }
+  }
+  return fallback;
+}
+
 function StatCard({
   label,
   value,
@@ -225,6 +241,8 @@ export default function MonitoringPage() {
 
   const loadOverview = useCallback(async () => {
     const key = adminKey.trim();
+    const url = `${apiBase()}/v1/admin/monitoring/overview`;
+
     if (!key) {
       setError("Enter X-Admin-Key first.");
       return;
@@ -234,26 +252,62 @@ export default function MonitoringPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBase()}/v1/admin/monitoring/overview`, {
+      const response = await fetch(url, {
+        method: "GET",
         headers: {
           Accept: "application/json",
           "X-Admin-Key": key,
         },
         cache: "no-store",
       });
-      const body = (await response.json()) as ApiResponse<MonitoringOverview>;
 
-      if (!response.ok || !body.success) {
-        const message = body.success === false ? body.error.message : response.statusText;
-        throw new Error(message);
+      const contentType = response.headers.get("content-type") ?? "";
+      const rawText = await response.text();
+      let body: unknown = null;
+
+      if (rawText) {
+        try {
+          body = JSON.parse(rawText) as ApiResponse<MonitoringOverview>;
+        } catch {
+          const preview = rawText.slice(0, 180).replace(/\s+/g, " ");
+          throw new Error(
+            `Monitoring API returned non-JSON response. HTTP ${response.status}. URL: ${url}. Preview: ${preview}`,
+          );
+        }
       }
 
-      setData(body.data);
+      if (!response.ok) {
+        throw new Error(
+          `${getErrorMessage(body, response.statusText || "Monitoring request failed")} ` +
+            `(HTTP ${response.status}, API: ${url})`,
+        );
+      }
+
+      if (!contentType.includes("application/json")) {
+        throw new Error(`Monitoring API did not return JSON. Content-Type: ${contentType || "empty"}. API: ${url}`);
+      }
+
+      if (!body || typeof body !== "object" || !("success" in body)) {
+        throw new Error(`Unexpected monitoring response shape. API: ${url}`);
+      }
+
+      const parsed = body as ApiResponse<MonitoringOverview>;
+      if (!parsed.success) {
+        throw new Error(`${parsed.error.message} (API: ${url})`);
+      }
+
+      setData(parsed.data);
       window.localStorage.setItem(ADMIN_KEY_STORAGE, key);
       setSavedKey(true);
     } catch (err) {
       setData(null);
-      setError(err instanceof Error ? err.message : "Monitoring request failed");
+      setError(
+        err instanceof TypeError
+          ? `Network/CORS error while calling ${url}. Check NEXT_PUBLIC_API_URL, FRONTEND_URL, and allowed CORS headers on the API.`
+          : err instanceof Error
+            ? err.message
+            : "Monitoring request failed",
+      );
     } finally {
       setLoading(false);
     }
@@ -273,6 +327,9 @@ export default function MonitoringPage() {
           <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white">Data Health Dashboard</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
             Freshness, source health, review queue, and sync monitoring for Nexus RWA dataset.
+          </p>
+          <p className="mt-2 text-xs text-[var(--text-muted)]">
+            API target: <span className="terminal-data text-[var(--accent-cyan)]">{apiBase()}</span>
           </p>
         </div>
         <button
@@ -298,6 +355,7 @@ export default function MonitoringPage() {
                   onChange={(event) => setAdminKey(event.target.value)}
                   type="password"
                   placeholder="Paste local ADMIN_API_KEY"
+                  autoComplete="off"
                   className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] py-2 pl-9 pr-3 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
                 />
               </div>
@@ -362,6 +420,7 @@ export default function MonitoringPage() {
             <IssueTable title="Recent health issues" rows={data.recentHealthIssues} type="health" />
             <IssueTable title="Recent source issues" rows={data.recentSourceIssues} type="source" />
             <IssueTable title="Recent open review tasks" rows={data.recentReviewTasks} type="task" />
+            <IssueTable title="Recent failed sync logs" rows={data.failedSyncLogs} type="sync" />
           </section>
 
           <p className="text-xs text-[var(--text-muted)]">Last generated: {formatDate(data.generatedAt)}</p>
