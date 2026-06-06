@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   DatabaseZap,
+  Download,
   ExternalLink,
   Filter,
   KeyRound,
@@ -47,6 +48,23 @@ const resourceLabels: Record<DetailResource, string> = {
   "review-tasks": "Review tasks",
   "sync-logs": "Sync logs",
 };
+
+const csvColumns = [
+  "assetSlug",
+  "layer",
+  "status",
+  "severity",
+  "priority",
+  "field",
+  "provider",
+  "reason",
+  "errorMessage",
+  "url",
+  "httpStatus",
+  "lastCheckedAt",
+  "createdAt",
+  "startedAt",
+] as const;
 
 function apiBase(): string {
   return API_URL.trim().replace(/\/$/, "");
@@ -100,6 +118,31 @@ function buildDetailUrl(resource: DetailResource, assetSlug: string, status: str
   if (assetSlug.trim()) params.set("assetSlug", assetSlug.trim());
   if (status.trim()) params.set("status", status.trim());
   return `${MONITORING_DETAIL_PROXY_BASE}/${resource}?${params.toString()}`;
+}
+
+function csvEscape(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const text = String(value).replace(/\r?\n|\r/g, " ");
+  if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function buildCsv(rows: Array<Record<string, unknown>>): string {
+  const header = csvColumns.join(",");
+  const body = rows.map((row) => csvColumns.map((column) => csvEscape(row[column])).join(","));
+  return [header, ...body].join("\n");
+}
+
+function downloadCsv(filename: string, csv: string) {
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function StatCard({
@@ -385,6 +428,22 @@ export default function MonitoringPage() {
     }
   }, [adminKey, loadDetailRows]);
 
+  const handleExportCsv = useCallback(() => {
+    if (filteredRows.length === 0) {
+      setError("No filtered monitoring rows to export.");
+      return;
+    }
+
+    const date = new Date().toISOString().slice(0, 10);
+    const parts = ["nexus-rwa-monitoring", resource, date];
+    if (assetSlug.trim()) parts.splice(2, 0, assetSlug.trim());
+    if (status.trim()) parts.splice(2, 0, status.trim());
+    if (layer.trim()) parts.splice(2, 0, layer.trim());
+
+    const safeFilename = `${parts.join("-").replace(/[^a-zA-Z0-9._-]+/g, "-")}.csv`;
+    downloadCsv(safeFilename, buildCsv(filteredRows));
+  }, [assetSlug, filteredRows, layer, resource, status]);
+
   useEffect(() => {
     if (!adminKey) return;
     void loadOverview();
@@ -491,12 +550,23 @@ export default function MonitoringPage() {
           </section>
 
           <section className="data-surface p-4">
-            <div className="mb-4 flex items-center gap-2">
-              <Filter className="size-4 text-[var(--accent-cyan)]" />
-              <p className="terminal-label">Monitoring filters</p>
-              <span className="ml-auto text-xs text-[var(--text-secondary)]">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-2">
+                <Filter className="size-4 text-[var(--accent-cyan)]" />
+                <p className="terminal-label">Monitoring filters</p>
+              </div>
+              <span className="text-xs text-[var(--text-secondary)] sm:ml-auto">
                 Showing {filteredRows.length}/{detailRows.length} rows
               </span>
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                disabled={filteredRows.length === 0}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Download className="size-4" />
+                Export CSV
+              </button>
             </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               <div>
