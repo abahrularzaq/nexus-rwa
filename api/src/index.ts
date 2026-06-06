@@ -76,6 +76,7 @@ app.use('*', cors({
   allowHeaders: [
     'Content-Type',
     'X-API-Key',
+    'X-Admin-Key',
     'X-Payment',
     'X-Payment-Tx',
     'X-Wallet-Address',
