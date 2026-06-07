@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Check, X, Bot } from "lucide-react";
 import { FadeUp } from "@/components/landing/primitives";
 
@@ -65,92 +64,26 @@ const passes: Tier[] = [
   },
 ];
 
-const subscriptions: Tier[] = [
-  {
-    name: "Pro Early Access",
-    price: "$9",
-    per: "/mo",
-    badge: "FOR RESEARCHERS",
-    highlight: true,
-    features: [
-      { t: "Full analyst-grade asset profiles", ok: true },
-      { t: "Reserve, compliance, liquidity", ok: true },
-      { t: "Source trail and AI insights", ok: true },
-      { t: "Individual research workflow", ok: true },
-      { t: "Bulk API export", ok: false },
-    ],
-    cta: "Join Early Access",
-  },
-  {
-    name: "API Starter",
-    price: "$99",
-    per: "/mo",
-    badge: "FOR BUILDERS",
-    features: [
-      { t: "Machine-readable RWA dataset", ok: true },
-      { t: "API integration workflow", ok: true },
-      { t: "Bulk asset access", ok: true },
-      { t: "AI-agent friendly endpoints", ok: true },
-      { t: "Custom SLA", ok: false },
-    ],
-    cta: "Request API Access",
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    per: "",
-    features: [
-      { t: "Commercial data licensing", ok: true },
-      { t: "Custom asset coverage", ok: true },
-      { t: "Higher rate limits", ok: true },
-      { t: "Priority support", ok: true },
-      { t: "Dedicated integration path", ok: true },
-    ],
-    cta: "Contact Sales",
-  },
-];
-
 export function Pricing() {
-  const [mode, setMode] = useState<"passes" | "sub">("passes");
-  const tiers = mode === "passes" ? passes : subscriptions;
+  const tiers = passes;
 
   return (
     <section className="py-24 px-6">
       <div className="max-w-[1400px] mx-auto">
         <FadeUp className="text-center mb-10">
           <h2 className="text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            Pricing Built Around Access
+            x402 Access Passes
           </h2>
           <p className="mt-3 text-base max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Free for discovery, Pro for analyst-grade profiles, and Enterprise for API, export, and AI-agent workflows.
+            Unlock institutional RWA data with x402 access passes. Free for discovery,
+            Pro 24h for analyst-grade profiles, and Enterprise 7d for API, export,
+            and AI-agent workflows.
           </p>
         </FadeUp>
 
-        <div className="flex justify-center mb-10">
-          <div
-            className="inline-flex p-1 rounded-full"
-            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-line)" }}
-          >
-            {(["passes", "sub"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className="px-5 py-2 text-sm font-semibold rounded-full transition-all"
-                style={{
-                  background: mode === m ? "linear-gradient(135deg,#00D4FF,#7C3AED)" : "transparent",
-                  color: mode === m ? "#fff" : "#8892A4",
-                  boxShadow: mode === m ? "0 0 20px rgba(0,212,255,0.3)" : "none",
-                }}
-              >
-                {m === "passes" ? "x402 Access Passes" : "Subscriptions"}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="grid md:grid-cols-3 gap-6">
           {tiers.map((t, i) => (
-            <FadeUp key={t.name + mode} delay={i * 0.05}>
+            <FadeUp key={t.name} delay={i * 0.05}>
               <div
                 className="relative rounded-xl p-7 h-full"
                 style={{
