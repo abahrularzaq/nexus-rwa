@@ -1,4 +1,4 @@
-import { parseEther } from 'viem';
+import { parseUnits } from 'viem';
 import type { Price } from '@x402/core/types';
 
 /**
@@ -31,16 +31,20 @@ export const RESERVED_PATH_SEGMENTS: ReadonlySet<string> = new Set([
 ]);
 
 export type AccessTier = 'free' | 'pro' | 'enterprise';
+export type SettlementCurrency = 'USDC';
+
+export const SETTLEMENT_CURRENCY: SettlementCurrency = 'USDC';
+export const SETTLEMENT_DECIMALS = 6;
 
 export interface TierPlan {
   tier: AccessTier;
   label: string;
   /** User-facing USD price for product/UI copy. */
   priceUsd: string;
+  /** x402 settlement amount in USDC. */
+  priceUsdc: string;
   /** User-facing display price for product/UI copy. */
   displayPrice: string;
-  /** Current x402 settlement amount in native ETH. */
-  priceEth: string;
   /** Human duration label for 402 payloads, e.g. `"24h"`. */
   duration: string;
   /** Redis session TTL in seconds. */
@@ -53,8 +57,8 @@ export const TIER_PLANS: Readonly<Record<AccessTier, TierPlan>> = {
     tier: 'free',
     label: 'Free',
     priceUsd: '0.00',
+    priceUsdc: '0.00',
     displayPrice: '$0',
-    priceEth: '0',
     duration: '',
     ttlSeconds: 0,
     description: 'Public discovery tier — asset catalog, public market snapshot, current yield, risk level, and grade label.',
@@ -63,8 +67,8 @@ export const TIER_PLANS: Readonly<Record<AccessTier, TierPlan>> = {
     tier: 'pro',
     label: 'Pro 24h Pass',
     priceUsd: '3.00',
+    priceUsdc: '3.00',
     displayPrice: '$3 / 24h',
-    priceEth: '0.001',
     duration: '24h',
     ttlSeconds: 86_400,
     description: 'Pro analyst pass — full asset profile, risk breakdown, reserve, compliance, liquidity, source trail, history, and AI insight for 24h.',
@@ -73,8 +77,8 @@ export const TIER_PLANS: Readonly<Record<AccessTier, TierPlan>> = {
     tier: 'enterprise',
     label: 'Enterprise 7d Pass',
     priceUsd: '29.00',
+    priceUsdc: '29.00',
     displayPrice: '$29 / 7d',
-    priceEth: '0.01',
     duration: '7d',
     ttlSeconds: 604_800,
     description: 'Enterprise API pass — full raw dataset, bulk export, Ask Nexus, commercial API workflows, and machine-readable access for 7d.',
@@ -82,8 +86,7 @@ export const TIER_PLANS: Readonly<Record<AccessTier, TierPlan>> = {
 } as const;
 
 /**
- * Suggested subscription pricing for frontend/payment-page copy.
- * These are product packages, while `TIER_PLANS.priceEth` remains the current x402 settlement amount.
+ * Product pricing copy. Subscription packages remain roadmap-only; x402 settlement uses USDC access passes above.
  */
 export const PRODUCT_PRICING = {
   free: {
@@ -92,26 +95,20 @@ export const PRODUCT_PRICING = {
     cadence: 'forever',
     description: 'Public RWA discovery dashboard.',
   },
-  proEarlyAccess: {
-    label: 'Pro Early Access',
-    price: '$9',
-    cadence: 'month',
+  proPass: {
+    label: 'Pro 24h Pass',
+    price: '$3',
+    cadence: '24h',
     description: 'Full analyst-grade asset profiles for individual researchers.',
   },
-  payPerReport: {
-    label: 'Asset Report',
-    price: '$1',
-    cadence: 'one-time',
-    description: 'Unlock one full institutional asset report.',
-  },
-  apiStarter: {
-    label: 'API Starter',
-    price: '$99',
-    cadence: 'month',
+  enterprisePass: {
+    label: 'Enterprise 7d Pass',
+    price: '$29',
+    cadence: '7d',
     description: 'Machine-readable RWA dataset access for builders and AI agents.',
   },
   enterprise: {
-    label: 'Enterprise',
+    label: 'Enterprise Custom',
     price: 'Custom',
     cadence: 'contract',
     description: 'Custom data licensing, higher rate limits, and priority asset coverage.',
@@ -145,8 +142,10 @@ export interface EndpointAccessConfig extends EndpointPrice {
   label: string;
   priceUsd: string;
   displayPrice: string;
-  priceEth: string;
-  priceWei: string;
+  priceUsdc: string;
+  priceUsdcAtomic: string;
+  settlementCurrency: SettlementCurrency;
+  settlementDecimals: number;
   duration: string;
   ttlSeconds: number;
 }
@@ -303,17 +302,19 @@ export function getEndpointAccessConfig(method: string, path: string): EndpointA
   const plan = TIER_PLANS[tier];
   const priced = getEndpointPrice(method, path);
 
-  const priceEth = tier === 'free' ? '0' : plan.priceEth;
-  const priceWei =
-    tier === 'free' ? '0' : parseEther(plan.priceEth).toString();
+  const priceUsdc = tier === 'free' ? '0.00' : plan.priceUsdc;
+  const priceUsdcAtomic =
+    tier === 'free' ? '0' : parseUnits(plan.priceUsdc, SETTLEMENT_DECIMALS).toString();
 
   return {
     tier,
     label: plan.label,
     priceUsd: plan.priceUsd,
     displayPrice: plan.displayPrice,
-    priceEth,
-    priceWei,
+    priceUsdc,
+    priceUsdcAtomic,
+    settlementCurrency: SETTLEMENT_CURRENCY,
+    settlementDecimals: SETTLEMENT_DECIMALS,
     duration: plan.duration,
     ttlSeconds: plan.ttlSeconds,
     price: priced.price,
