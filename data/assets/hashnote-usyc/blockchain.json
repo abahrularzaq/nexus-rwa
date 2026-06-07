@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "chain": "Ethereum",
+    "chainId": 1,
+    "contractAddress": "0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://etherscan.io/token/0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "BNB Smart Chain",
+    "chainId": 56,
+    "contractAddress": "0x8D0fA28f221eB5735BC71d3a0Da67EE5bC821311",
+    "tokenStandard": "BEP-20",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://bscscan.com/token/0x8D0fA28f221eB5735BC71d3a0Da67EE5bC821311",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Solana",
+    "chainId": null,
+    "contractAddress": "7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn",
+    "tokenStandard": "SPL Token-2022",
+    "isTransferable": true,
+    "hasWhitelist": true,
+    "hasTransferRestrictions": true,
+    "explorerUrl": "https://solscan.io/account/7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn",
+    "deployedAt": null,
+    "isVerified": false
+  }
+]
