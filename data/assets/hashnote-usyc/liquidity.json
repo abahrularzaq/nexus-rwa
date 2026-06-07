@@ -3,20 +3,20 @@
   "redemptionPeriodDays": 1,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": 0.03,
-  "minRedemptionAmount": null,
+  "minRedemptionAmount": 0,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
   "liquidityScore": 78,
-  "liquidityNotes": "Official documentation describes onchain subscription and redemption through USYC Teller using USDC. Circle/Hashnote sources indicate liquidity can settle in one block below available instant-redemption capacity and T+0/T+1 above that capacity. Exact capacity, thresholds, private liquidity terms, and official minimum redemption amount were not publicly verified. Redemption fee is recorded as 3 bps from official fee documentation, represented here as 0.03 percent.",
+  "liquidityNotes": "Official Hashnote documentation states that onboarded investors can subscribe and redeem through USYC Teller with USDC 24/7/365. Private Liquidity Teller can be configured for up to 100% instant liquidity into USDC, but additional fees apply and exact terms are private. RWA.xyz lists redemption time as U.S. banking daily, minimum redemption amount as 0 USDC, and redemption description as within +1 business day of redemption request. Hashnote official fee docs list redemption fee as 3 bps, while RWA.xyz displays 0% redemption fees; this is treated as a source conflict or possible effective/waived fee, so official 3 bps is retained. No verified DEX pairs, open onchain liquidity amount, or bid-ask spread were found.",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
     "sourceTier": "Tier 1 + Tier 2",
     "confidence": "medium",
-    "freshnessStatus": "current",
+    "freshnessStatus": "current-snapshot",
     "status": "partial",
-    "notes": "Liquidity is strong for permissioned issuer redemption but not fully transparent for open secondary-market liquidity. liquidityScore is conservative because instant capacity, thresholds, bid-ask spread, DEX liquidity, and minimum redemption amount are incomplete."
+    "notes": "Liquidity data combines official Hashnote docs for redemption mechanics and fee schedule with RWA.xyz for minimum redemption amount and +1 business day redemption description. liquidityScore remains conservative because DEX liquidity, bid-ask spread, instant-capacity thresholds, and private liquidity pricing are incomplete."
   }
 }
