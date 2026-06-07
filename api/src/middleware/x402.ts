@@ -1,3 +1,4 @@
+import https from 'node:https';
 import type { MiddlewareHandler, Context } from 'hono';
 import { getAddress, isHex } from 'viem';
 import {
@@ -345,6 +346,52 @@ function isFacilitatorOk(body: unknown): boolean {
   return candidates.some((v) => v === true);
 }
 
+async function postJson(
+  url: string,
+  body: string,
+): Promise<{ status: number; ok: boolean; json: unknown }> {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'transfer-encoding': 'chunked',
+        },
+      },
+      (res) => {
+        let data = '';
+
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          let json: unknown = null;
+          try {
+            json = data ? JSON.parse(data) : null;
+          } catch {
+            json = null;
+          }
+
+          const status = res.statusCode ?? 0;
+          resolve({
+            status,
+            ok: status >= 200 && status < 300,
+            json,
+          });
+        });
+      },
+    );
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 async function callFacilitator(
   action: 'verify' | 'settle',
   paymentPayload: unknown,
@@ -358,15 +405,8 @@ async function callFacilitator(
   });
 
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body,
-    });
-
-    const raw = await res.json().catch(() => null);
+    const res = await postJson(url, body);
+    const raw = res.json;
     const ok = res.ok && isFacilitatorOk(raw);
     return {
       ok,
