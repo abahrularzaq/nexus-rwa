@@ -1,9 +1,9 @@
 {
-  "backingType": "US Treasury",
-  "backingDescription": "USDC loan proceeds are converted to USD and invested by Room40 Capital's standalone borrower SPV in U.S. Treasury bills and reverse repurchase agreements fully collateralized by U.S. Treasury bills. Maple docs state the borrower portfolio weighted average maturity is capped at 30 days.",
+  "backingType": "Private Credit",
+  "backingDescription": "USDC lending pool exposure backed by institutional borrower obligations and pool liquidity. Older repo seed describes overcollateralized corporate loans secured by liquid digital-asset collateral; this requires fresh verification before production-grade use.",
   "collateralizationRatio": null,
-  "custodian": "J.P. Morgan",
-  "custodianUrl": "https://www.jpmorgan.com",
+  "custodian": null,
+  "custodianUrl": null,
   "hasProofOfReserves": false,
   "porOracleAddress": null,
   "porOracleChain": null,
@@ -16,10 +16,10 @@
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": "Tier 1 / Tier 2",
-    "confidence": "medium",
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": "Treasury/repo strategy is from Maple official docs. Custodian is from RWA.xyz service-provider data; Maple docs separately describe a regulated broker / prime brokerage account but do not name the custodian in the parsed docs."
+    "sourceTier": "repo-seed / legacy-master",
+    "confidence": "low-medium",
+    "freshnessStatus": "needs-refresh",
+    "status": "corrected-asset-identity",
+    "notes": "Corrected away from Cash Management Pool Treasury backing. Do not use MPLcashUSDC Treasury/repo reserve logic for mUSDC. Needs fresh Maple pool-level verification."
   }
 }
