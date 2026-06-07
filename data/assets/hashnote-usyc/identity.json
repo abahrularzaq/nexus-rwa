@@ -1,15 +1,33 @@
 {
-  "name": "Hashnote USYC",
+  "name": "Circle USYC",
   "symbol": "USYC",
   "fullName": "US Yield Coin",
-  "description": null,
-  "category": null,
-  "subcategory": null,
+  "description": "USYC is a tokenized money market fund product that provides institutional-grade, yield-bearing onchain exposure to short-term U.S. Treasury bills and reverse repurchase agreements backed by short-term U.S. government securities. Each USYC token serves as a digital representation of a share of Hashnote International Short Duration Fund Ltd., a Cayman Islands registered mutual fund with Circle International Bermuda Limited acting as token administrator.",
+  "category": "Treasury",
+  "subcategory": "Tokenized Money Market Fund",
   "logoUrl": null,
-  "websiteUrl": null,
-  "docsUrl": null,
+  "websiteUrl": "https://www.circle.com/usyc",
+  "docsUrl": "https://usyc.docs.hashnote.com/getting-started/introduction",
   "twitterUrl": null,
-  "tags": [],
-  "launchDate": null,
-  "isin": null
+  "tags": [
+    "institutional",
+    "non-us-investor",
+    "kyc-required",
+    "permissioned",
+    "tokenized-treasury",
+    "money-market-fund",
+    "yield-bearing-collateral"
+  ],
+  "launchDate": "2023-05-01",
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 90,
+    "sourceTier": "Tier 1 + Tier 2",
+    "confidence": "high",
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Official sources identify the asset as USYC / US Yield Coin. Direct logo URL and official social URL are not yet verified. Launch date is sourced from RWA.xyz and should be cross-checked against fund documents if institutional-grade evidence is required."
+  }
 }
