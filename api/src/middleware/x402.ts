@@ -21,6 +21,14 @@ import {
 const USDC_SEPOLIA = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const USDC_MAINNET = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 
+function readPaymentRecipientEnv(): string {
+  return (
+    process.env.PAYMENT_RECIPIENT?.trim() ||
+    process.env.X402_RECEIVING_ADDRESS?.trim() ||
+    ''
+  );
+}
+
 export function assertX402Env(): void {
   const raw = process.env.X402_NETWORK?.trim();
   if (!raw) {
@@ -31,6 +39,20 @@ export function assertX402Env(): void {
   if (raw !== 'base' && raw !== 'base-sepolia') {
     throw new Error(
       `X402_NETWORK must be "base" or "base-sepolia", got: "${raw}"`,
+    );
+  }
+
+  const recipient = readPaymentRecipientEnv();
+  if (!recipient) {
+    throw new Error(
+      'PAYMENT_RECIPIENT or X402_RECEIVING_ADDRESS is required for real x402 payments.',
+    );
+  }
+  try {
+    getAddress(recipient);
+  } catch {
+    throw new Error(
+      `PAYMENT_RECIPIENT / X402_RECEIVING_ADDRESS must be a valid EVM address, got: "${recipient}"`,
     );
   }
 }
@@ -55,11 +77,7 @@ function x402Meta() {
 }
 
 function getReceivingAddress(): string {
-  return (
-    process.env.PAYMENT_RECIPIENT?.trim() ||
-    process.env.X402_RECEIVING_ADDRESS?.trim() ||
-    '0x0000000000000000000000000000000000000001'
-  );
+  return getAddress(readPaymentRecipientEnv());
 }
 
 function getUsdcAddress(): string {
@@ -67,11 +85,7 @@ function getUsdcAddress(): string {
 }
 
 function getVerifyRecipient(): string {
-  return (
-    process.env.PAYMENT_RECIPIENT?.trim() ||
-    process.env.X402_RECEIVING_ADDRESS?.trim() ||
-    ''
-  );
+  return readPaymentRecipientEnv();
 }
 
 export type VerifyPaymentResult = {
