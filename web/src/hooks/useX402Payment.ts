@@ -85,7 +85,7 @@ export function useX402Payment() {
         const signature = await walletClient.signTypedData({
           account,
           domain: {
-            name: "USD Coin",
+            name: "USDC",
             version: "2",
             chainId,
             verifyingContract: token,
