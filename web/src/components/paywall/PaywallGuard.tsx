@@ -24,6 +24,33 @@ function resolveEndpointUrl(endpoint: string): string {
   return `${window.location.origin}${path}`;
 }
 
+function resolveSessionUrl(wallet: string): string {
+  if (typeof window === "undefined") return `/session?wallet=${wallet}`;
+  return `${window.location.origin}/session?wallet=${wallet}`;
+}
+
+async function hasActiveWalletSession(wallet: string): Promise<boolean> {
+  try {
+    const res = await fetch(resolveSessionUrl(wallet), {
+      headers: {
+        Accept: "application/json",
+        "X-Wallet-Address": wallet,
+      },
+      credentials: "omit",
+    });
+    if (!res.ok) return false;
+    const body = (await res.json().catch(() => null)) as {
+      data?: { active?: boolean; tier?: string };
+    } | null;
+    return Boolean(
+      body?.data?.active &&
+        (body.data.tier === "pro" || body.data.tier === "enterprise"),
+    );
+  } catch {
+    return false;
+  }
+}
+
 function PaywallSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/40 p-6">
@@ -67,7 +94,7 @@ export function PaywallGuard({
   const openPaywall = useCallback(() => setModalOpen(true), []);
 
   const fetchResource = useCallback(
-    async (paymentTxHeader?: string | null) => {
+    async (paymentTxHeader?: string | null, retriedAfterSessionCheck = false) => {
       setStatus("loading");
       setErrorMsg(null);
 
@@ -90,6 +117,15 @@ export function PaywallGuard({
           if (paymentTxHeader) {
             clearStoredX402Tx(endpoint);
           }
+
+          if (address && !paymentTxHeader && !retriedAfterSessionCheck) {
+            const active = await hasActiveWalletSession(address);
+            if (active) {
+              void fetchResource(null, true);
+              return;
+            }
+          }
+
           const body: unknown = await res.json().catch(() => null);
           const parsed = parseX402Response(body, endpoint);
           if (parsed) {
