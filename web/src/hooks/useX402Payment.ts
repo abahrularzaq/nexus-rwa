@@ -77,7 +77,7 @@ export function useX402Payment() {
         const token = x402.asset as Address;
         const recipient = x402.recipient as Address;
         const value = BigInt(x402.amount);
-        const validAfter = 0n;
+        const validAfter = BigInt(0);
         const validBefore = BigInt(Math.floor(Date.now() / 1000) + 300);
         const nonce = randomNonce();
 
