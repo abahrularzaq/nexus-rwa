@@ -1,0 +1,31 @@
+{
+  "slug": "maple-musdc",
+  "grade": "research",
+  "score": 58,
+  "completenessScore": 61,
+  "sourceScore": 67,
+  "legalScore": 58,
+  "reserveScore": 62,
+  "liquidityScore": 55,
+  "riskScore": 57,
+  "blockers": [
+    "currentYield, TVL, marketCap, volume24h, 7d/30d yield history, and yield volatility are null or unavailable.",
+    "Visible holderCount is only 5 and RWA.xyz shows total/circulating supply of 290.14 with $0 monthly transfer volume.",
+    "reserve.json does not include an independent reserve audit, proof-of-reserves oracle, lastAuditDate, or reserveBreakdown.",
+    "secondary-market liquidity cannot be scored institutionally because dexPairs is empty and onchainLiquidity / bidAskSpread are null.",
+    "regulatoryStatus is private/exempt offering and not confirmed as SEC-registered."
+  ],
+  "warnings": [
+    "This baseline is migrated from the prior grade.json and should be regenerated after running npm run import:asset -- maple-musdc.",
+    "The asset may improve to analytics grade if live TVL/AUM, yield, transfer volume, holder growth, reserve attestations, and redemption evidence are added.",
+    "The product has strong Treasury-style backing characteristics, but institutional-grade publication requires better market, audit, reserve, and source coverage."
+  ],
+  "baselineDate": "2026-06-07",
+  "status": "research-grade baseline",
+  "nextActions": [
+    "Run npm run import:asset -- maple-musdc and replace this baseline with the actual AssetGrade output.",
+    "Add verified current APY, TVL/AUM, holder growth, and transfer volume from RWA.xyz/API or Maple app if available.",
+    "Find primary legal/offering documents and any public reserve attestation or audit before raising grade.",
+    "Confirm Base contract verification status directly on BaseScan."
+  ]
+}
