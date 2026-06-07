@@ -1,5 +1,5 @@
 import { getAddress } from 'viem';
-import { redis } from './redis.js';
+import { redis, redisReady } from './redis.js';
 import { logger } from './logger.js';
 import type { AccessTier } from '../middleware/x402/pricer.js';
 import { TIER_PLANS } from '../middleware/x402/pricer.js';
@@ -60,6 +60,14 @@ export async function grantTierSession(
 
   writeMemorySession(tier, addr, payload);
 
+  if (!redisReady()) {
+    logger.warn(
+      { wallet: addr, tier, expiresAt },
+      'x402 Redis not ready during session grant; using in-memory fallback',
+    );
+    return payload;
+  }
+
   try {
     const client = redis();
     await client.setex(sessionKey(tier, addr), plan.ttlSeconds, JSON.stringify(payload));
@@ -86,11 +94,19 @@ async function readSession(
   const addr = normalizeWallet(wallet);
   if (!addr) return null;
 
+  const memorySession = readMemorySession(tier, addr);
+  if (memorySession) return memorySession;
+
+  if (!redisReady()) {
+    return null;
+  }
+
   try {
     const raw = await redis().get(sessionKey(tier, addr));
     if (raw) {
       const parsed = JSON.parse(raw) as StoredSession;
       if (parsed?.tier && typeof parsed.expiresAt === 'number' && parsed.expiresAt > Date.now()) {
+        writeMemorySession(tier, addr, parsed);
         return parsed;
       }
     }
