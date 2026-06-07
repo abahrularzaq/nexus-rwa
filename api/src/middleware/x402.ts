@@ -1,4 +1,4 @@
-import https from 'node:https';
+import * as https from 'node:https';
 import type { MiddlewareHandler, Context } from 'hono';
 import { getAddress, isHex } from 'viem';
 import {
@@ -42,6 +42,13 @@ type FacilitatorResult = {
   error?: string;
   facilitatorUrl?: string;
   cause?: unknown;
+};
+
+type PostJsonResult = {
+  status: number;
+  ok: boolean;
+  json: unknown;
+  finalUrl: string;
 };
 
 function readPaymentRecipientEnv(): string {
@@ -346,10 +353,15 @@ function isFacilitatorOk(body: unknown): boolean {
   return candidates.some((v) => v === true);
 }
 
+function isRedirectStatus(status: number): boolean {
+  return [301, 302, 303, 307, 308].includes(status);
+}
+
 async function postJson(
   url: string,
   body: string,
-): Promise<{ status: number; ok: boolean; json: unknown }> {
+  redirectsRemaining = 5,
+): Promise<PostJsonResult> {
   return new Promise((resolve, reject) => {
     const req = https.request(
       url,
@@ -369,6 +381,15 @@ async function postJson(
         });
 
         res.on('end', () => {
+          const status = res.statusCode ?? 0;
+          const location = res.headers.location;
+
+          if (isRedirectStatus(status) && location && redirectsRemaining > 0) {
+            const nextUrl = new URL(location, url).toString();
+            postJson(nextUrl, body, redirectsRemaining - 1).then(resolve, reject);
+            return;
+          }
+
           let json: unknown = null;
           try {
             json = data ? JSON.parse(data) : null;
@@ -376,11 +397,11 @@ async function postJson(
             json = null;
           }
 
-          const status = res.statusCode ?? 0;
           resolve({
             status,
             ok: status >= 200 && status < 300,
             json,
+            finalUrl: url,
           });
         });
       },
@@ -413,7 +434,7 @@ async function callFacilitator(
       payer: extractPayer(raw, paymentPayload),
       txHash: extractTxHash(raw),
       raw,
-      facilitatorUrl: url,
+      facilitatorUrl: res.finalUrl,
       error:
         typeof recordValue(raw, ['error']) === 'string'
           ? String(recordValue(raw, ['error']))
