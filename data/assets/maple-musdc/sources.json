@@ -2,24 +2,35 @@
   {
     "layer": "identity",
     "field": "name",
-    "value": "Cash Management Pool (USDC)",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 75,
+    "value": "Maple USDC Pool",
+    "sourceUrl": "asset/maple-usdc-pool/master.md",
+    "sourceType": "repo_legacy_master",
+    "reliability": 60,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz asset page gives product name and ticker."
+    "notes": "Legacy repo master file identifies asset_id maple-musdc, asset_name Maple USDC Pool, and symbol mUSDC. Needs fresh external verification."
   },
   {
     "layer": "identity",
-    "field": "description",
-    "value": "Onchain cash-management product with yield sourced from U.S. Treasury bills and Treasury-bill-collateralized reverse repos.",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 90,
+    "field": "symbol",
+    "value": "mUSDC",
+    "sourceUrl": "asset/maple-usdc-pool/master.md",
+    "sourceType": "repo_legacy_master",
+    "reliability": 60,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Official Maple docs describe product purpose, underlying strategy, and lender workflow."
+    "notes": "Corrected from MPLcashUSDC to mUSDC based on legacy Maple USDC Pool file."
+  },
+  {
+    "layer": "identity",
+    "field": "category",
+    "value": "Credit",
+    "sourceUrl": "api/prisma/seed.ts",
+    "sourceType": "repo_seed",
+    "reliability": 55,
+    "checkedAt": "2026-06-07",
+    "checkedBy": "manual-ai-assisted",
+    "notes": "Legacy seed defines maple-usdc as Credit category / Senior Secured Corporate subcategory."
   },
   {
     "layer": "identity",
@@ -35,255 +46,112 @@
   {
     "layer": "identity",
     "field": "docsUrl",
-    "value": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
+    "value": "https://docs.maple.finance",
+    "sourceUrl": "https://docs.maple.finance",
     "sourceType": "official_docs",
-    "reliability": 90,
+    "reliability": 85,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Official Cash Management Pool overview."
+    "notes": "General Maple docs; exact mUSDC pool docs still need mapping."
   },
   {
-    "layer": "identity",
-    "field": "launchDate",
-    "value": "2023-04-19",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
+    "sourceUrl": "api/prisma/seed.ts",
+    "sourceType": "repo_seed",
+    "reliability": 55,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz lists inception date as 04/19/2023."
+    "notes": "Legacy rich seed defines this as the Ethereum mUSDC contract. Needs direct explorer and Maple-app verification before production use."
   },
   {
-    "layer": "market",
-    "field": "circulatingSupply",
-    "value": "290.14",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
+    "layer": "blockchain",
+    "field": "explorerUrl",
+    "value": "https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
+    "sourceUrl": "https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
+    "sourceType": "block_explorer",
+    "reliability": 80,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz market data shows circulating supply 290.14."
-  },
-  {
-    "layer": "market",
-    "field": "totalSupply",
-    "value": "290.14",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz market data shows token supply 290.14."
-  },
-  {
-    "layer": "market",
-    "field": "holderCount",
-    "value": "5",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz reports 5 holders across token records."
-  },
-  {
-    "layer": "market",
-    "field": "aumUsd",
-    "value": "null",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 70,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz displays Total Asset Value as $<0.001; stored as null because aumUsd must be numeric or null."
+    "notes": "Explorer URL retained from legacy seed."
   },
   {
     "layer": "reserve",
     "field": "backingType",
-    "value": "US Treasury",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 88,
+    "value": "Private Credit",
+    "sourceUrl": "asset/maple-usdc-pool/master.md",
+    "sourceType": "repo_legacy_master",
+    "reliability": 55,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Maple official docs describe U.S. Treasury bill and Treasury-bill-collateralized reverse repo exposure."
+    "notes": "Legacy master classifies this as institutional credit exposure / loan receivables, not Treasury cash management."
   },
   {
-    "layer": "reserve",
-    "field": "backingDescription",
-    "value": "USDC proceeds invested by Room40 Capital's standalone borrower SPV in Treasury bills and reverse repos fully collateralized by Treasury bills.",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 88,
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Maple Finance",
+    "sourceUrl": "api/prisma/seed.ts",
+    "sourceType": "repo_seed",
+    "reliability": 55,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Official docs state borrower structure and permitted investment scope."
-  },
-  {
-    "layer": "reserve",
-    "field": "custodian",
-    "value": "J.P. Morgan",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 70,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz service provider section lists J.P. Morgan as custodian; Maple docs parsed here do not independently name custodian."
-  },
-  {
-    "layer": "reserve",
-    "field": "hasProofOfReserves",
-    "value": "false",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 75,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "No explicit public on-chain PoR oracle or reserve attestation found in checked sources."
-  },
-  {
-    "layer": "blockchain",
-    "field": "ethereumContractAddress",
-    "value": "0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 75,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz token table links the Ethereum MPLcashUSDC token address."
-  },
-  {
-    "layer": "blockchain",
-    "field": "baseContractAddress",
-    "value": "0xdd5bb9acf5e02089735a33344c6e3a8bb0d4075d",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz token table links the Base MPLcashUSDC token address."
-  },
-  {
-    "layer": "blockchain",
-    "field": "ethereumIsVerified",
-    "value": "true",
-    "sourceUrl": "https://etherscan.io/token/0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
-    "sourceType": "block_explorer",
-    "reliability": 82,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "Etherscan shows token contract source-code verification/similar-match details and contract name Pool."
+    "notes": "Legacy seed issuerName. Requires fresh official source verification."
   },
   {
     "layer": "institutional",
     "field": "minimumInvestment",
     "value": "100000",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
+    "sourceUrl": "api/prisma/seed.ts",
+    "sourceType": "repo_seed",
+    "reliability": 50,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz primary market section lists Min. Investment as 100,000 USDC."
-  },
-  {
-    "layer": "institutional",
-    "field": "managementFee",
-    "value": "0.5",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz key facts list management fee 0.50%."
-  },
-  {
-    "layer": "institutional",
-    "field": "performanceFee",
-    "value": "0",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 72,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz key facts list performance fee 0%."
-  },
-  {
-    "layer": "institutional",
-    "field": "legalStructure",
-    "value": "Permissioned Maple lending pool with Room40 Capital standalone borrower SPV.",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 86,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "Official docs describe Room40 standalone SPV as sole borrower and investment restrictions."
-  },
-  {
-    "layer": "compliance",
-    "field": "regulatoryFramework",
-    "value": "U.S. Securities Act Regulation D exemption",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 70,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz legal/regulatory section lists Reg D exemption and SEC."
+    "notes": "Legacy seed value; should be refreshed from Maple app or current docs."
   },
   {
     "layer": "compliance",
     "field": "kycRequired",
     "value": "true",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 86,
+    "sourceUrl": "api/prisma/seed.ts",
+    "sourceType": "repo_seed",
+    "reliability": 50,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Maple docs describe accredited-investor onboarding and lender dashboard workflow; terms should be used for final legal validation."
+    "notes": "Legacy seed indicates institutional KYC/AML. Needs current Maple pool verification."
   },
   {
-    "layer": "yield",
-    "field": "yieldBenchmark",
-    "value": "SOFR",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 86,
+    "layer": "market",
+    "field": "metrics",
+    "value": "null",
+    "sourceUrl": "data/assets/maple-musdc/market.json",
+    "sourceType": "manual_correction",
+    "reliability": 60,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Maple docs state the pool targets net APY of current SOFR less fees and expenses."
+    "notes": "Incorrect MPLcashUSDC supply/holder/AUM metrics removed. Fresh mUSDC metrics must be sourced separately."
   },
   {
     "layer": "yield",
     "field": "currentYield",
     "value": "null",
-    "sourceUrl": "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "sourceType": "market_aggregator",
-    "reliability": 70,
+    "sourceUrl": "data/assets/maple-musdc/yield.json",
+    "sourceType": "manual_correction",
+    "reliability": 60,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "RWA.xyz displays no 7D or 30D APY for MPLcashUSDC at check time."
-  },
-  {
-    "layer": "liquidity",
-    "field": "redemptionPeriodDays",
-    "value": "1",
-    "sourceUrl": "https://docs.maple.finance/cash-management-pool/overview",
-    "sourceType": "official_docs",
-    "reliability": 86,
-    "checkedAt": "2026-06-07",
-    "checkedBy": "manual-ai-assisted",
-    "notes": "Maple docs state withdrawals are processed within 24 hours on U.S. banking days."
+    "notes": "Incorrect MPLcashUSDC SOFR-based APY logic removed. Fresh mUSDC APY must be sourced separately."
   },
   {
     "layer": "liquidity",
     "field": "liquidityScore",
-    "value": "55",
-    "sourceUrl": "data/assets/maple-musdc/liquidity.json",
-    "sourceType": "manual_assessment",
-    "reliability": 68,
+    "value": "60",
+    "sourceUrl": "api/prisma/seed.ts",
+    "sourceType": "repo_seed",
+    "reliability": 50,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Manual score reflects T+1-style primary liquidity, but no DEX/on-chain secondary liquidity and $0 monthly transfer volume."
+    "notes": "Legacy seed score retained conservatively; should be refreshed from current pool liquidity data."
   },
   {
     "layer": "risk",
@@ -291,9 +159,9 @@
     "value": "57",
     "sourceUrl": "data/assets/maple-musdc/risk.json",
     "sourceType": "manual_assessment",
-    "reliability": 68,
+    "reliability": 60,
     "checkedAt": "2026-06-07",
     "checkedBy": "manual-ai-assisted",
-    "notes": "Manual evidence-based risk score derived after all layer JSONs were refreshed."
+    "notes": "Risk score retained conservatively after correcting asset identity; not based on the incorrect MPLcashUSDC dataset."
   }
 ]
