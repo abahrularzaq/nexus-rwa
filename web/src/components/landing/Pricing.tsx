@@ -51,8 +51,8 @@ const passes: Tier[] = [
       { t: "History and AI asset insight", ok: true },
     ],
     cta: "Unlock Pro",
-    href: "/dashboard/assets/blackrock-buidl",
-    helper: "Open BUIDL and unlock gated layers with USDC.",
+    href: "/dashboard/assets/franklin-benji",
+    helper: "Open BENJI, the strongest current flagship asset.",
   },
   {
     name: "Enterprise 7d Pass",
