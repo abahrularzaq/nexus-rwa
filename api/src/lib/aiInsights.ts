@@ -83,6 +83,42 @@ export async function buildAssetWithHistory(slug: string): Promise<AssetWithHist
   };
 }
 
+function buildFallbackInsight(asset: AssetWithHistory): AssetInsight {
+  const yieldPct = asset.yieldRate * 100;
+  const riskScoreText = asset.riskScore === null ? 'not yet scored' : `${asset.riskScore}/100`;
+  const riskFactors = asset.riskFactors.length > 0 ? asset.riskFactors.slice(0, 3) : ['Reserve transparency', 'liquidity depth', 'regulatory clarity'];
+
+  return {
+    assetId: asset.id,
+    summary: `${asset.name} is a ${asset.category.toLowerCase()} RWA asset with ${yieldPct.toFixed(2)}% current yield, ${asset.tvl.toLocaleString('en-US')} TVL, and risk score ${riskScoreText}. This fallback insight is generated from Nexus RWA local dataset because AI insight generation is temporarily unavailable.`,
+    opportunities: [
+      `Use the 12-layer profile to compare ${asset.symbol || asset.name} against similar RWA assets.`,
+      `Monitor yield, TVL, holder growth, and source quality before treating the asset as production-grade.`,
+      `Review reserve, compliance, and liquidity layers for institutional-readiness signals.`,
+    ],
+    risks: riskFactors,
+    whatChanged: asset.history.length > 0
+      ? [
+          `30-day history contains ${asset.history.length} available data point(s).`,
+          `Latest local TVL snapshot is ${asset.tvl.toLocaleString('en-US')}.`,
+          `Current local yield snapshot is ${yieldPct.toFixed(2)}%.`,
+        ]
+      : [
+          'No recent history series is available in the local dataset yet.',
+          `Latest local TVL snapshot is ${asset.tvl.toLocaleString('en-US')}.`,
+          `Current local yield snapshot is ${yieldPct.toFixed(2)}%.`,
+        ],
+    watchList: [
+      'Refresh official issuer, reserve, and compliance sources.',
+      'Check whether liquidity and redemption terms remain current.',
+      'Re-run grading after source and market data updates.',
+    ],
+    outlook: asset.riskLevel === 'LOW' ? 'bullish' : asset.riskLevel === 'HIGH' ? 'bearish' : 'neutral',
+    confidence: asset.meta.confidence?.toLowerCase() === 'high' ? 'high' : 'medium',
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsight> {
   const raw = await claudeComplete({
     system: RWA_ANALYST_SYSTEM,
@@ -119,7 +155,17 @@ export async function generateAssetInsight(
 
   const { data } = await getCached(
     cacheKey,
-    () => callClaudeForInsight(asset),
+    async () => {
+      try {
+        return await callClaudeForInsight(asset);
+      } catch (err) {
+        logger.warn(
+          { assetId: asset.id, error: err instanceof Error ? err.message : String(err) },
+          'Claude insight failed; using local fallback insight',
+        );
+        return buildFallbackInsight(asset);
+      }
+    },
     INSIGHT_CACHE_TTL_SECONDS,
   );
 
@@ -136,7 +182,15 @@ export async function getAssetInsightById(slug: string): Promise<{
     cacheKey,
     async () => {
       const asset = await buildAssetWithHistory(slug);
-      return callClaudeForInsight(asset);
+      try {
+        return await callClaudeForInsight(asset);
+      } catch (err) {
+        logger.warn(
+          { slug, assetId: asset.id, error: err instanceof Error ? err.message : String(err) },
+          'Claude insight failed; using local fallback insight',
+        );
+        return buildFallbackInsight(asset);
+      }
     },
     INSIGHT_CACHE_TTL_SECONDS,
   );
