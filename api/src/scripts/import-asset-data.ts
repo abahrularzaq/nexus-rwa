@@ -21,6 +21,18 @@ function withoutMeta<T extends Record<string, any> | null>(value: T): T {
   return rest as T;
 }
 
+function normalizeInstitutional(value: Record<string, any> | null): Record<string, any> | null {
+  if (!value) return value;
+  const normalized = { ...value };
+
+  if ('prospectusUrl' in normalized) {
+    normalized.prospectuUrl = normalized.prospectuUrl ?? normalized.prospectusUrl;
+    delete normalized.prospectusUrl;
+  }
+
+  return normalized;
+}
+
 async function importAsset(slug: string) {
   const dir = path.join(ROOT, '..', 'data', 'assets', slug);
 
@@ -33,7 +45,7 @@ async function importAsset(slug: string) {
   const risk = withoutMeta(readJson(path.join(dir, 'risk.json')));
   const reserve = withoutMeta(readJson(path.join(dir, 'reserve.json')));
   const yieldData = withoutMeta(readJson(path.join(dir, 'yield.json')));
-  const institutional = withoutMeta(readJson(path.join(dir, 'institutional.json')));
+  const institutional = normalizeInstitutional(withoutMeta(readJson(path.join(dir, 'institutional.json'))));
   const blockchain = readJson<any[]>(path.join(dir, 'blockchain.json')) ?? [];
   const compliance = withoutMeta(readJson(path.join(dir, 'compliance.json')));
   const liquidity = withoutMeta(readJson(path.join(dir, 'liquidity.json')));
