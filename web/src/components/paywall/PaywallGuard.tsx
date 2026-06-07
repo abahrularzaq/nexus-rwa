@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   clearStoredX402Tx,
-  readStoredX402Tx,
-  writeStoredX402Tx,
 } from "@/lib/x402-session";
 import {
   parseX402Response,
@@ -127,6 +125,9 @@ export function PaywallGuard({
           data = await res.text();
         }
 
+        if (paymentTxHeader) {
+          clearStoredX402Tx(endpoint);
+        }
         setPayload(data);
         setX402(null);
         setModalOpen(false);
@@ -142,20 +143,19 @@ export function PaywallGuard({
   );
 
   useEffect(() => {
-    const stored = readStoredX402Tx(endpoint);
+    clearStoredX402Tx(endpoint);
     const t = window.setTimeout(() => {
-      void fetchResource(stored);
+      void fetchResource(null);
     }, 0);
     return () => window.clearTimeout(t);
   }, [endpoint, fetchResource]);
 
   const onPaymentSuccess = useCallback(
-    (txHash: string) => {
-      writeStoredX402Tx(endpoint, txHash);
+    (paymentHeader: string) => {
       setModalOpen(false);
-      void fetchResource(txHash);
+      void fetchResource(paymentHeader);
     },
-    [endpoint, fetchResource],
+    [fetchResource],
   );
 
   if (status === "error") {
