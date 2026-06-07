@@ -1,13 +1,25 @@
 {
-  "regulatoryStatus": null,
-  "primaryRegulator": null,
-  "regulatoryFramework": null,
-  "kycRequired": false,
+  "regulatoryStatus": "USYC is associated with Hashnote International Short Duration Yield Fund Ltd., described as a Cayman Islands registered mutual fund, and Circle International Bermuda Limited, described as a BMA-licensed digital asset business / token administrator. USYC access is restricted to eligible non-U.S. persons and subject to onboarding, KYC/AML, and wallet permissioning.",
+  "primaryRegulator": "Bermuda Monetary Authority / Cayman Islands Monetary Authority",
+  "regulatoryFramework": "Bermuda digital asset business licensing; Cayman Islands registered mutual fund; Regulation S / non-U.S. investor distribution context; KYC/AML and sanctions screening controls",
+  "kycRequired": true,
   "accreditedOnly": false,
   "blockedJurisdictions": [],
-  "allowedJurisdictions": [],
-  "sanctionsScreening": false,
-  "amlPolicy": null,
-  "lastComplianceCheck": null,
-  "legalOpinionUrl": null
+  "allowedJurisdictions": [
+    "Non-U.S. persons only, subject to eligibility and onboarding requirements"
+  ],
+  "sanctionsScreening": true,
+  "amlPolicy": "Official onboarding documentation states that investors must complete KYC/AML review and wallet screening before minting, redeeming, or transferring USYC. A standalone public AML policy document was not found.",
+  "lastComplianceCheck": "2026-06-07",
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 90,
+    "sourceTier": "Tier 1",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "partial",
+    "notes": "Compliance layer is supported by official Circle/Hashnote docs, terms, and legal disclosures. Public legal opinion, full blocked jurisdiction list, and formal AML policy document were not found. accreditedOnly remains false because the verified restriction is non-U.S./eligible institutional access, not a clearly sourced U.S. accredited-investor-only requirement."
+  }
 }
