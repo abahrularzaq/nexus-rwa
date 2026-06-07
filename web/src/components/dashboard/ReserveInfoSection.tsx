@@ -133,7 +133,7 @@ export function ReserveInfoSection({
           <MockReservePreview />
           <BlurredPreview
             title="Reserve & backing"
-            priceLabel="$0.01 USDC"
+            priceLabel="$3 / 24h"
             onUnlock={openPaywall}
           />
         </div>
