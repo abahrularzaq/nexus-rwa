@@ -1,36 +1,38 @@
-# Source Discovery — Maple Cash Management Pool (USDC) / MPLcashUSDC
+# Source Discovery — Maple USDC Pool / mUSDC
 
 ## Primary Sources
 
 | Layer | Source | URL | Tier | Notes |
 |---|---|---|---|---|
-| identity / reserve / yield / liquidity / institutional | Maple Cash Management Pool official docs | https://docs.maple.finance/cash-management-pool/overview | Tier 1 | Official product mechanics: Treasury-bill strategy, Room40 borrower SPV, SOFR target, withdrawal timing. |
-| identity / institutional | Maple official website | https://maple.finance | Tier 1 | Official Maple platform site and institutional product context. |
-| institutional / compliance | Cash Management Pool Terms & Conditions | https://downloads.eth.maple.finance/docs/legal/abe08ded-5d07-42cf-b435-a0d8d8156ca5/Cash_Mngt_T%26C.pdf | Tier 1 | Legal terms URL linked from Maple docs; must be manually reviewed before production-grade publication. |
-| blockchain | Etherscan Ethereum token page | https://etherscan.io/token/0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92 | Tier 1 | Ethereum MPLcashUSDC token contract and verification reference. |
-| blockchain | BaseScan Base token page | https://basescan.org/token/0xdd5bb9acf5e02089735a33344c6e3a8bb0d4075d | Tier 1 | Base MPLcashUSDC token contract reference; verification status still needs manual confirmation. |
+| identity / institutional | Maple official website | https://maple.finance | Tier 1 | Official Maple platform site. Exact Maple USDC Pool product page still needs fresh mapping. |
+| identity / technical / liquidity | Maple official docs | https://docs.maple.finance | Tier 1 | General Maple protocol documentation. Exact mUSDC pool documentation must be located before production-grade publication. |
+| blockchain | Etherscan token page from legacy seed | https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7 | Tier 1 | Ethereum contract URL from repo seed. Needs direct explorer confirmation and Maple source cross-check. |
+| identity / legacy context | Legacy repo master file | asset/maple-usdc-pool/master.md | Internal | Existing repo file identifies `asset_id: maple-musdc`, `asset_name: Maple USDC Pool`, and `symbol: mUSDC`. |
+| identity / seed context | Legacy Prisma seed | api/prisma/seed.ts | Internal | Existing rich seed defines `slug: maple-usdc`, name `Maple USDC Pool`, symbol `mUSDC`, category `Credit`, and Ethereum contract. |
 
-## Secondary Sources
+## Secondary Sources To Re-map
 
 | Layer | Source | URL | Tier | Notes |
 |---|---|---|---|---|
-| identity / market / blockchain / compliance / institutional | RWA.xyz asset page | https://app.rwa.xyz/assets/MPLcashUSDC | Tier 2 | Market values, token supply, holder count, token addresses, fee fields, minimum investment, issuer/regulatory summary. |
-| reserve / institutional | J.P. Morgan official site | https://www.jpmorgan.com | Tier 2 | Custodian identity context only; RWA.xyz is the direct source for the custodian field captured in this dataset. |
-| reserve / institutional | StoneX official site | https://www.stonex.com/en-us/business/securities/ | Tier 2 | Traditional broker context; RWA.xyz lists StoneX as traditional broker. |
+| market / yield / liquidity | Maple app | https://app.maple.finance | Tier 2 | Needed for current pool-level TVL, APY, liquidity, withdrawal, and borrower data. |
+| market / yield | DeFiLlama | https://defillama.com | Tier 2 | Need exact Maple pool mapping before using metrics. |
+| market / identity | RWA.xyz | https://rwa.xyz | Tier 2 | Need exact mUSDC / Maple USDC Pool page, not MPLcashUSDC. |
+| analytics | Dune | https://dune.com | Tier 3 | Optional for holder, transfer, and pool activity analysis. |
 
 ## Data Gaps
 
-- No public legal opinion URL found.
-- No public on-chain proof-of-reserves oracle found.
-- No public independent reserve audit / attestation found.
-- No detailed official reserveBreakdown found.
-- No current 7D/30D APY for MPLcashUSDC captured from RWA.xyz at check time.
-- No reliable TVL, marketCap, 24h volume, bid/ask spread, or DEX liquidity captured.
-- BaseScan verification status needs manual confirmation because the page did not parse reliably during this update.
+- Exact current Maple USDC Pool / mUSDC source page needs to be located.
+- Do not reuse `https://app.rwa.xyz/assets/MPLcashUSDC`; that is Maple Cash Management Pool, not mUSDC.
+- Current TVL, APY, holder count, token supply, transfer volume, and on-chain liquidity are not verified after correction.
+- Current borrower roster, pool delegate, loan maturity profile, and concentration are not verified.
+- No public legal opinion URL mapped.
+- No public proof-of-reserves oracle mapped.
+- No current reserve breakdown or independent audit/report URL mapped.
+- Ethereum contract address from legacy seed needs direct verification against Maple official app/docs.
 
 ## Notes for Analyst
 
-- Treat this as **research-grade** until live market/yield and reserve/audit evidence improves.
-- Do not treat Maple official docs or RWA.xyz market fields as on-chain proof-of-reserves.
-- Keep `aumUsd` as `null` because RWA.xyz displays `$< 0.001`, which is not a valid numeric import value.
-- `minimumInvestment` is stored as `100000` from RWA.xyz primary-market terms; `minRedemptionAmount` remains `null` because a minimum redemption amount was not found.
+- This folder `data/assets/maple-musdc/` now represents **Maple USDC Pool / mUSDC**.
+- The previous update accidentally used **Maple Cash Management Pool / MPLcashUSDC** data and has been removed from active layer JSONs.
+- Keep market/yield fields conservative/null until the exact mUSDC source mapping is verified.
+- Do not create a new grade baseline until `npm run import:asset -- maple-musdc` is rerun against the corrected data.
