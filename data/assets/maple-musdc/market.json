@@ -1,5 +1,5 @@
 {
-  "tvl": null,
+  "tvl": 44000000,
   "tvl7dChange": null,
   "tvl30dChange": null,
   "price": null,
@@ -10,26 +10,23 @@
   "totalSupply": null,
   "holderCount": null,
   "holderChange7d": null,
-  "aumUsd": null,
+  "aumUsd": 44000000,
   "lastUpdated": "2026-06-07",
   "sources": [
+    "https://maple.finance/earn/maple-institutional",
     "https://maple.finance",
-    "https://docs.maple.finance",
-    "https://app.maple.finance",
-    "https://defillama.com",
-    "https://rwa.xyz",
-    "https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7"
+    "https://docs.maple.finance/maple-institutional-for-lenders/introduction"
   ],
-  "confidence": "LOW",
+  "confidence": "MEDIUM",
   "_meta": {
-    "dataOwner": "auto-sync",
+    "dataOwner": "manual-research",
     "lastAutoSync": null,
     "syncFrequencyHours": 24,
-    "syncProvider": null,
-    "syncStatus": "needs-source-remap",
-    "confidence": "low",
-    "freshnessStatus": "needs-sync",
-    "status": "corrected-asset-identity",
-    "notes": "Removed MPLcashUSDC market values. Maple USDC Pool / mUSDC market metrics need fresh mapping from Maple app, DeFiLlama, RWA.xyz, or on-chain pool data."
+    "syncProvider": "manual-maple-official-check",
+    "syncStatus": "manual-refresh",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Maple official page reports Maple Institutional - Secured Lending Pool AUM of $44M. Outstanding Loan Value is $37.88M and Collateral Pledged is $38.06M; these are retained in source notes, not mapped to TVL because schema has no dedicated loan/collateral fields."
   }
 }
