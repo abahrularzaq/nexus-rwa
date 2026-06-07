@@ -414,14 +414,12 @@ async function tryFacilitatorPayment(
   return 'bypassed';
 }
 
-function paymentRejectedJson(config: EndpointAccessConfig) {
+function paymentRejectedJson(path: string, config: EndpointAccessConfig) {
   return {
-    ...x402Meta(),
-    x402Version: 1,
+    ...paymentRequiredJson(path, config),
     error: 'PAYMENT_VERIFICATION_FAILED',
     message:
-      'USDC x402 payment could not be verified and settled by the facilitator.',
-    tier: tierPayload(config),
+      'USDC x402 payment could not be verified and settled by the facilitator. Please sign a fresh payment authorization and try again.',
   };
 }
 
@@ -448,7 +446,7 @@ export function createNexusX402Middleware(): MiddlewareHandler {
       const paymentBypass = await tryFacilitatorPayment(c, config, next);
       if (paymentBypass === 'bypassed') return;
       if (paymentBypass === 'rejected') {
-        return c.json(paymentRejectedJson(config), 402);
+        return c.json(paymentRejectedJson(path, config), 402);
       }
 
       return c.json(paymentRequiredJson(path, config), 402);
@@ -489,7 +487,7 @@ export function createGatedTxPaymentMiddleware(): MiddlewareHandler {
       const paymentBypass = await tryFacilitatorPayment(c, config, next);
       if (paymentBypass === 'bypassed') return;
       if (paymentBypass === 'rejected') {
-        return c.json(paymentRejectedJson(config), 402);
+        return c.json(paymentRejectedJson(path, config), 402);
       }
 
       return c.json(paymentRequiredJson(path, config), 402);
