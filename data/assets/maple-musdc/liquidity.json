@@ -1,5 +1,5 @@
 {
-  "redemptionType": "Request-based withdrawal with daily liquidity on U.S. banking days",
+  "redemptionType": "Request-based primary withdrawal; daily liquidity on U.S. banking days",
   "redemptionPeriodDays": 1,
   "lockupPeriodDays": 0,
   "earlyRedemptionFee": 0,
@@ -7,16 +7,16 @@
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": "Maple states withdrawals must be requested 24 hours ahead and are serviced every U.S. banking day, sometimes as quickly as 3 hours intra-day where liquidity is available. RWA.xyz reports $0 monthly transfer volume and no visible secondary-market liquidity. No DEX pair or bid/ask spread was found.",
+  "liquidityScore": 55,
+  "liquidityNotes": "Maple docs state withdrawals are processed within 24 hours on U.S. banking days and may be serviced faster where liquidity is available. RWA.xyz shows $0 monthly transfer volume and no visible secondary market liquidity, so the score remains conservative despite T+1-style primary redemption.",
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": null,
-    "confidence": null,
+    "sourceTier": "Tier 1 / Tier 2",
+    "confidence": "medium",
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "minRedemptionAmount is null because RWA.xyz lists primary min investment, not a minimum redemption amount."
   }
 }
