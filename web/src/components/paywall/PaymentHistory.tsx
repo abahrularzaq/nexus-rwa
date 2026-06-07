@@ -1,6 +1,5 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -17,16 +16,17 @@ function endpointDisplayName(path: string): string {
     .join(" ");
 }
 
-function basescanTxUrl(txHash: string): string {
-  return `https://basescan.org/tx/${txHash}`;
-}
-
 function formatTime(ts: number | null): string {
   if (ts == null) return "—";
   return new Date(ts).toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function shortPaymentHeader(header: string): string {
+  if (header.length <= 18) return header;
+  return `${header.slice(0, 8)}…${header.slice(-8)}`;
 }
 
 export function PaymentHistory() {
@@ -39,7 +39,7 @@ export function PaymentHistory() {
   useEffect(() => {
     refresh();
     const onStorage = (e: StorageEvent) => {
-      if (e.key?.startsWith("x402-tx:") || e.key === null) refresh();
+      if (e.key?.startsWith("x402-payment:") || e.key === null) refresh();
     };
     const onCustom = () => refresh();
     window.addEventListener("storage", onStorage);
@@ -73,7 +73,7 @@ export function PaymentHistory() {
       <ul className="mt-2 max-h-[200px] space-y-2.5 overflow-y-auto pr-0.5">
         {rows.map((row) => (
           <li
-            key={`${row.path}-${row.txHash}`}
+            key={`${row.path}-${row.paymentHeader}`}
             className="border-b border-[rgba(30,42,58,0.45)] pb-2 last:border-0 last:pb-0"
           >
             <p className="truncate text-xs font-medium text-white">
@@ -82,15 +82,9 @@ export function PaymentHistory() {
             <p className="mt-0.5 text-[10px] text-[#8892A4]">
               {formatTime(row.paidAt)}
             </p>
-            <a
-              href={basescanTxUrl(row.txHash)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[#00D4FF] hover:underline"
-            >
-              BaseScan
-              <ExternalLink className="size-3 shrink-0 opacity-80" />
-            </a>
+            <p className="mt-1 truncate font-mono text-[10px] text-[#00D4FF]">
+              x402 header: {shortPaymentHeader(row.paymentHeader)}
+            </p>
           </li>
         ))}
       </ul>
