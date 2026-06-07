@@ -352,7 +352,9 @@ async function tryFacilitatorPayment(
   config: EndpointAccessConfig,
   next: () => Promise<void>,
 ): Promise<'bypassed' | 'rejected' | 'none'> {
-  const paymentHeader = c.req.header('X-Payment')?.trim();
+  const paymentHeader =
+    c.req.header('X-Payment')?.trim() ||
+    c.req.header('X-Payment-Tx')?.trim();
   if (!paymentHeader) return 'none';
 
   const path = c.req.path;
@@ -362,7 +364,7 @@ async function tryFacilitatorPayment(
   try {
     paymentPayload = decodePaymentHeader(paymentHeader);
   } catch (err) {
-    logger.warn({ err }, 'Invalid X-Payment header');
+    logger.warn({ err }, 'Invalid x402 payment header');
     return 'rejected';
   }
 
