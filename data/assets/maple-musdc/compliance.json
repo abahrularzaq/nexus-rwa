@@ -1,23 +1,23 @@
 {
-  "regulatoryStatus": "Private/exempt offering; RWA.xyz lists U.S. Securities Act Regulation D exemption",
-  "primaryRegulator": "SEC",
-  "regulatoryFramework": "U.S. Securities Act Regulation D exemption; KYC/AML-gated private lending pool; permissioned transfer restrictions",
+  "regulatoryStatus": "Protocol lending pool; pool-specific regulatory status requires fresh verification",
+  "primaryRegulator": null,
+  "regulatoryFramework": "Institutional DeFi credit / private lending structure; securities and lending-law treatment may vary by jurisdiction",
   "kycRequired": true,
   "accreditedOnly": true,
   "blockedJurisdictions": [],
   "allowedJurisdictions": [],
   "sanctionsScreening": true,
-  "amlPolicy": "Eligible lenders must complete KYC and AML screening. Terms and onboarding restrict access to eligible/accredited investors and permissioned addresses.",
+  "amlPolicy": "Maple institutional pools generally require onboarding, KYC/AML, and wallet screening; exact mUSDC pool rules require fresh verification from Maple app/docs.",
   "lastComplianceCheck": "2026-06-07",
   "legalOpinionUrl": null,
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": "Tier 1 / Tier 2",
-    "confidence": "medium",
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": "No public legal opinion was found; regulatory framework should remain conservative."
+    "sourceTier": "repo-seed / legacy-master",
+    "confidence": "low-medium",
+    "freshnessStatus": "needs-refresh",
+    "status": "corrected-asset-identity",
+    "notes": "Removed Cash Management Pool Regulation D / Treasury-pool-specific language. Needs current pool-level legal source discovery."
   }
 }
