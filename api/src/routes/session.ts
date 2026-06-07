@@ -1,78 +1,24 @@
-import { parseEther } from 'viem';
 import { Hono } from 'hono';
 import {
   getActiveSession,
-  grantTierSession,
   normalizeWallet,
 } from '../lib/x402-session.js';
-import { verifyPayment } from '../middleware/x402/index.js';
-import { TIER_PLANS, type AccessTier } from '../middleware/x402/pricer.js';
-
-function paymentRecipient(): string {
-  return (
-    process.env.PAYMENT_RECIPIENT?.trim() ||
-    process.env.X402_RECEIVING_ADDRESS?.trim() ||
-    ''
-  );
-}
+import { TIER_PLANS } from '../middleware/x402/pricer.js';
 
 export const sessionRouter = new Hono();
 
 sessionRouter.get('/verify', async (c) => {
-  const txHash = c.req.header('X-Payment-Tx')?.trim();
-  const tierParam = (c.req.query('tier') ?? 'pro').toLowerCase();
-  const tier: AccessTier =
-    tierParam === 'enterprise' ? 'enterprise' : 'pro';
-
-  if (!txHash) {
-    return c.json(
-      {
-        success: false,
-        error: { code: 'TX_REQUIRED', message: 'X-Payment-Tx header required.' },
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: 'USDC_X402_FACILITATOR_NOT_CONFIGURED',
+        message:
+          'Session verification has moved from native ETH tx checks to USDC x402 facilitator verification. Complete facilitator integration before enabling /session/verify.',
       },
-      400,
-    );
-  }
-
-  const recipient = paymentRecipient();
-  if (!recipient) {
-    return c.json(
-      {
-        success: false,
-        error: { code: 'CONFIG_ERROR', message: 'Payment recipient not configured.' },
-      },
-      500,
-    );
-  }
-
-  const plan = TIER_PLANS[tier];
-  const expectedWei = parseEther(plan.priceEth).toString();
-  const verified = await verifyPayment(txHash, expectedWei, recipient);
-
-  if (!verified.verified) {
-    return c.json({
-      success: true,
-      data: { verified: false, tier },
-    });
-  }
-
-  const wallet =
-    normalizeWallet(c.req.header('X-Wallet-Address')?.trim() ?? '') ??
-    (verified.from ? normalizeWallet(verified.from) : null);
-
-  if (wallet && (tier === 'pro' || tier === 'enterprise')) {
-    await grantTierSession(wallet, tier);
-  }
-
-  return c.json({
-    success: true,
-    data: {
-      verified: true,
-      tier,
-      wallet,
-      blockNumber: verified.blockNumber,
     },
-  });
+    501,
+  );
 });
 
 sessionRouter.get('/', async (c) => {
@@ -105,6 +51,18 @@ sessionRouter.get('/', async (c) => {
   }
 
   const active = await getActiveSession(addr);
+  const plans = {
+    pro: {
+      price: TIER_PLANS.pro.priceUsdc,
+      currency: 'USDC' as const,
+      duration: TIER_PLANS.pro.duration,
+    },
+    enterprise: {
+      price: TIER_PLANS.enterprise.priceUsdc,
+      currency: 'USDC' as const,
+      duration: TIER_PLANS.enterprise.duration,
+    },
+  };
 
   if (!active) {
     return c.json({
@@ -115,16 +73,7 @@ sessionRouter.get('/', async (c) => {
         active: false,
         expiresAt: null,
         expiresInSeconds: 0,
-        plans: {
-          pro: {
-            price: TIER_PLANS.pro.priceEth,
-            duration: TIER_PLANS.pro.duration,
-          },
-          enterprise: {
-            price: TIER_PLANS.enterprise.priceEth,
-            duration: TIER_PLANS.enterprise.duration,
-          },
-        },
+        plans,
       },
     });
   }
@@ -137,16 +86,7 @@ sessionRouter.get('/', async (c) => {
       active: true,
       expiresAt: new Date(active.expiresAt).toISOString(),
       expiresInSeconds: active.expiresInSeconds,
-      plans: {
-        pro: {
-          price: TIER_PLANS.pro.priceEth,
-          duration: TIER_PLANS.pro.duration,
-        },
-        enterprise: {
-          price: TIER_PLANS.enterprise.priceEth,
-          duration: TIER_PLANS.enterprise.duration,
-        },
-      },
+      plans,
     },
   });
 });
