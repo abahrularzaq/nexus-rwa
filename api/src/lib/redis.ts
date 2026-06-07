@@ -4,25 +4,51 @@ import { logger } from './logger.js';
 let redisClient: Redis | null = null;
 
 function getRedisClient(): Redis {
+  const redisUrl = process.env.REDIS_URL?.trim();
+
+  if (!redisUrl || redisUrl.includes('localhost')) {
+    logger.warn('Redis URL tidak diset atau masih localhost — caching dinonaktifkan');
+    throw new Error('Redis not configured');
+  }
+
+  if (redisClient && ['end', 'close'].includes(redisClient.status)) {
+    logger.warn({ status: redisClient.status }, 'Redis client closed — recreating client');
+    redisClient.disconnect();
+    redisClient = null;
+  }
+
   if (!redisClient) {
-    const redisUrl = process.env.REDIS_URL;
-
-    if (!redisUrl || redisUrl.includes('localhost')) {
-      logger.warn('Redis URL tidak diset atau masih localhost — caching dinonaktifkan');
-      throw new Error('Redis not configured');
-    }
-
     redisClient = new Redis(redisUrl, {
       maxRetriesPerRequest: 1,
-      connectTimeout: 5000,
-      lazyConnect: true,
-      retryStrategy: () => null, // jangan retry terus-menerus
+      connectTimeout: 10_000,
+      enableOfflineQueue: false,
+      retryStrategy: (times) => {
+        if (times > 3) return null;
+        return Math.min(times * 250, 1_000);
+      },
+    });
+
+    redisClient.on('connect', () => {
+      logger.info('Redis connected');
+    });
+
+    redisClient.on('ready', () => {
+      logger.info('Redis ready');
+    });
+
+    redisClient.on('close', () => {
+      logger.warn('Redis connection closed');
+    });
+
+    redisClient.on('end', () => {
+      logger.warn('Redis connection ended');
     });
 
     redisClient.on('error', (err: Error) => {
-      logger.warn({ err: err.message }, 'Redis error — caching dinonaktifkan');
+      logger.warn({ err: err.message }, 'Redis error — caching/session fallback may be used');
     });
   }
+
   return redisClient;
 }
 
@@ -41,9 +67,15 @@ export async function getCached<T>(
     const data = await fetcher();
     await client.setex(key, ttlSeconds, JSON.stringify(data));
     return { data, cached: false };
-  } catch {
+  } catch (err) {
     // Redis tidak tersedia — fetch langsung tanpa cache
-    logger.warn(`Cache miss (Redis unavailable) for key: ${key}`);
+    logger.warn(
+      {
+        key,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      'Cache miss (Redis unavailable)',
+    );
     const data = await fetcher();
     return { data, cached: false };
   }
