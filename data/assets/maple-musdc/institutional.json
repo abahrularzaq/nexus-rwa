@@ -1,40 +1,39 @@
 {
-  "issuerName": null,
-  "issuerType": null,
-  "issuerCountry": null,
-  "fundManager": null,
-  "legalStructure": "Maple Cash Management Pool lending arrangement where eligible lenders deposit USDC/USDT and receive LP Tokens; the pool lends to R40-T1 LLC, a standalone single-purpose Delaware SPV of Room40 Capital, with LP Tokens offered under Regulation S and Section 3(c)(1) exemptions.",
-  "minimumInvestment": "$100,000 USDC or USDT",
-  "managementFee": null,
-  "performanceFee": null,
-  "fundAdmin": "Protocol Pool Operations Pty Ltd",
+  "issuerName": "Maple Protocol Pool Operations",
+  "issuerType": "Private/exempt offering pool operator",
+  "issuerCountry": "United States",
+  "fundManager": "Room40 Capital",
+  "legalStructure": "Permissioned Maple Cash Management Pool lending arrangement. Eligible lenders deposit USDC and receive MPLcashUSDC pool LP tokens; the pool lends to Room40 Capital's standalone single-purpose borrower SPV, which invests in U.S. Treasury bills and Treasury-bill-collateralized reverse repurchase agreements.",
+  "minimumInvestment": 100000,
+  "managementFee": 0.5,
+  "performanceFee": 0,
+  "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": "Accredited non-U.S. persons that can satisfy KYC and AML screening obligations",
+  "targetInvestors": "U.S. accredited investors / eligible accredited investors subject to KYC and AML screening",
   "prospectuUrl": "https://downloads.eth.maple.finance/docs/legal/abe08ded-5d07-42cf-b435-a0d8d8156ca5/Cash_Mngt_T%26C.pdf",
   "metadata": {
     "borrower": "R40-T1 LLC",
     "borrowerType": "Standalone single-purpose vehicle of Room40 Capital",
-    "borrowerDomicile": "Delaware, United States",
-    "poolDelegate": "Protocol Pool Operations Pty Ltd",
-    "mapleContractingEntity": "Maple Labs Pty Ltd",
-    "securityAgent": "Maple Foundation",
-    "securityAgentDomicile": "Cayman Islands",
-    "securitiesExemptionsReferenced": [
-      "Regulation S under the U.S. Securities Act of 1933",
-      "Section 3(c)(1) of the U.S. Investment Company Act of 1940"
-    ],
-    "transferConsentRequired": true,
-    "usPersonsExcluded": true,
-    "feeDisclosure": "Target net APY is current 4-week U.S. Treasury bill rate less fees and expenses totaling 50 bps for the USDC Cash Management Pool and 100 bps for the USDT Cash Management Pool; not labeled as a management fee."
+    "assetManagerContext": "Maple Institutional / Cash Management Pool",
+    "minimumInvestmentRaw": "100,000 USDC",
+    "managementFeeRaw": "0.50%",
+    "performanceFeeRaw": "0%",
+    "traditionalBroker": "StoneX",
+    "custodianSourceNote": "RWA.xyz lists J.P. Morgan as custodian and StoneX as traditional broker; Maple official docs describe use of a regulated broker / prime brokerage account without naming it in the parsed page.",
+    "dataGaps": [
+      "No public legal opinion URL found.",
+      "No public independent reserve audit or attestation found.",
+      "No current primary-market APY value captured for MPLcashUSDC."
+    ]
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": null,
-    "confidence": null,
+    "sourceTier": "Tier 1 / Tier 2",
+    "confidence": "medium",
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Numeric fields normalized for import: minimumInvestment=100000, managementFee=0.5, performanceFee=0."
   }
 }
