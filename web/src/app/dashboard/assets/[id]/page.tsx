@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useAccount } from "wagmi";
 import {
   ArrowLeft,
   Calendar,
@@ -53,6 +54,11 @@ import type { AssetDataMeta, AssetSummary, RiskData } from "@/lib/shared";
 import type { AssetWithLayers } from "@/types/asset";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// NOTE: This page intentionally uses a wallet-aware full asset loader.
+// Keep this key in sync with web/src/lib/api/assets.ts until all API helpers
+// are migrated to a wallet-aware client interceptor.
+const WALLET_STORAGE_KEY = "nexus_wallet_address";
 
 type AssetTabId =
   | "overview"
@@ -282,6 +288,7 @@ function BlockchainTab({ asset }: { asset: AssetWithLayers }) {
 
 export default function AssetDetailPage() {
   const params = useParams();
+  const { address } = useAccount();
   const rawId = params?.id;
   const slug =
     typeof rawId === "string"
@@ -302,6 +309,15 @@ export default function AssetDetailPage() {
     () => (API_URL ?? "").trim().replace(/\/$/, ""),
     [],
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (address) {
+      localStorage.setItem(WALLET_STORAGE_KEY, address);
+    } else {
+      localStorage.removeItem(WALLET_STORAGE_KEY);
+    }
+  }, [address]);
 
   useEffect(() => {
     async function load() {
@@ -338,7 +354,7 @@ export default function AssetDetailPage() {
       }
     }
     void load();
-  }, [slug]);
+  }, [slug, address]);
 
   useEffect(() => {
     async function loadPeers() {
