@@ -39,6 +39,8 @@ type FacilitatorResult = {
   txHash?: string;
   raw: unknown;
   error?: string;
+  facilitatorUrl?: string;
+  cause?: unknown;
 };
 
 function readPaymentRecipientEnv(): string {
@@ -55,6 +57,32 @@ function facilitatorUrl(): string {
     process.env.FACILITATOR_URL?.trim() ||
     DEFAULT_FACILITATOR_URL
   ).replace(/\/+$/u, '');
+}
+
+function describeError(value: unknown): Record<string, unknown> {
+  if (!(value instanceof Error)) {
+    return { value: String(value) };
+  }
+  const cause = (value as Error & { cause?: unknown }).cause;
+  const out: Record<string, unknown> = {
+    name: value.name,
+    message: value.message,
+  };
+  if (cause instanceof Error) {
+    out.cause = {
+      name: cause.name,
+      message: cause.message,
+      code: (cause as Error & { code?: unknown }).code,
+      errno: (cause as Error & { errno?: unknown }).errno,
+      syscall: (cause as Error & { syscall?: unknown }).syscall,
+      hostname: (cause as Error & { hostname?: unknown }).hostname,
+      address: (cause as Error & { address?: unknown }).address,
+      port: (cause as Error & { port?: unknown }).port,
+    };
+  } else if (cause !== undefined) {
+    out.cause = cause;
+  }
+  return out;
 }
 
 export function assertX402Env(): void {
@@ -319,8 +347,9 @@ async function callFacilitator(
   paymentPayload: unknown,
   paymentRequirements: PaymentRequirement,
 ): Promise<FacilitatorResult> {
+  const url = `${facilitatorUrl()}/${action}`;
   try {
-    const res = await fetch(`${facilitatorUrl()}/${action}`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -337,6 +366,7 @@ async function callFacilitator(
       payer: extractPayer(raw, paymentPayload),
       txHash: extractTxHash(raw),
       raw,
+      facilitatorUrl: url,
       error:
         typeof recordValue(raw, ['error']) === 'string'
           ? String(recordValue(raw, ['error']))
@@ -350,7 +380,9 @@ async function callFacilitator(
     return {
       ok: false,
       raw: null,
+      facilitatorUrl: url,
       error: err instanceof Error ? err.message : `Facilitator ${action} request failed`,
+      cause: describeError(err),
     };
   }
 }
@@ -378,13 +410,29 @@ async function tryFacilitatorPayment(
 
   const verify = await callFacilitator('verify', paymentPayload, requirement);
   if (!verify.ok) {
-    logger.warn({ error: verify.error, raw: verify.raw }, 'x402 facilitator verify rejected payment');
+    logger.warn(
+      {
+        error: verify.error,
+        cause: verify.cause,
+        facilitatorUrl: verify.facilitatorUrl,
+        raw: verify.raw,
+      },
+      'x402 facilitator verify rejected payment',
+    );
     return 'rejected';
   }
 
   const settle = await callFacilitator('settle', paymentPayload, requirement);
   if (!settle.ok) {
-    logger.warn({ error: settle.error, raw: settle.raw }, 'x402 facilitator settle rejected payment');
+    logger.warn(
+      {
+        error: settle.error,
+        cause: settle.cause,
+        facilitatorUrl: settle.facilitatorUrl,
+        raw: settle.raw,
+      },
+      'x402 facilitator settle rejected payment',
+    );
     return 'rejected';
   }
 
