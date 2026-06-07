@@ -319,32 +319,40 @@ async function callFacilitator(
   paymentPayload: unknown,
   paymentRequirements: PaymentRequirement,
 ): Promise<FacilitatorResult> {
-  const res = await fetch(`${facilitatorUrl()}/${action}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      x402Version: 1,
-      paymentPayload,
-      paymentRequirements,
-    }),
-  });
+  try {
+    const res = await fetch(`${facilitatorUrl()}/${action}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        x402Version: 1,
+        paymentPayload,
+        paymentRequirements,
+      }),
+    });
 
-  const raw = await res.json().catch(() => null);
-  const ok = res.ok && isFacilitatorOk(raw);
-  return {
-    ok,
-    payer: extractPayer(raw, paymentPayload),
-    txHash: extractTxHash(raw),
-    raw,
-    error:
-      typeof recordValue(raw, ['error']) === 'string'
-        ? String(recordValue(raw, ['error']))
-        : typeof recordValue(raw, ['invalidReason']) === 'string'
-          ? String(recordValue(raw, ['invalidReason']))
-          : res.ok
-            ? undefined
-            : `Facilitator ${action} failed with HTTP ${res.status}`,
-  };
+    const raw = await res.json().catch(() => null);
+    const ok = res.ok && isFacilitatorOk(raw);
+    return {
+      ok,
+      payer: extractPayer(raw, paymentPayload),
+      txHash: extractTxHash(raw),
+      raw,
+      error:
+        typeof recordValue(raw, ['error']) === 'string'
+          ? String(recordValue(raw, ['error']))
+          : typeof recordValue(raw, ['invalidReason']) === 'string'
+            ? String(recordValue(raw, ['invalidReason']))
+            : res.ok
+              ? undefined
+              : `Facilitator ${action} failed with HTTP ${res.status}`,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      raw: null,
+      error: err instanceof Error ? err.message : `Facilitator ${action} request failed`,
+    };
+  }
 }
 
 async function tryFacilitatorPayment(
@@ -370,13 +378,13 @@ async function tryFacilitatorPayment(
 
   const verify = await callFacilitator('verify', paymentPayload, requirement);
   if (!verify.ok) {
-    logger.warn({ verify }, 'x402 facilitator verify rejected payment');
+    logger.warn({ error: verify.error, raw: verify.raw }, 'x402 facilitator verify rejected payment');
     return 'rejected';
   }
 
   const settle = await callFacilitator('settle', paymentPayload, requirement);
   if (!settle.ok) {
-    logger.warn({ settle }, 'x402 facilitator settle rejected payment');
+    logger.warn({ error: settle.error, raw: settle.raw }, 'x402 facilitator settle rejected payment');
     return 'rejected';
   }
 
