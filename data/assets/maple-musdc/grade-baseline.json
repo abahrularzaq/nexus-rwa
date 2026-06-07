@@ -1,12 +1,12 @@
 {
   "slug": "maple-musdc",
   "grade": "research",
-  "score": 60,
-  "completenessScore": 74,
-  "sourceScore": 57,
+  "score": 63,
+  "completenessScore": 89,
+  "sourceScore": 54,
   "legalScore": 70,
   "reserveScore": 45,
-  "liquidityScore": 46,
+  "liquidityScore": 61,
   "riskScore": 57,
   "blockers": [
     "Missing custodian"
@@ -17,16 +17,15 @@
     "Missing reserve breakdown",
     "No proof-of-reserves confirmed",
     "Missing audit/report URL",
-    "Missing redemption period",
     "Missing on-chain liquidity"
   ],
   "baselineDate": "2026-06-07",
   "status": "research-grade baseline",
   "nextActions": [
-    "Find and verify the exact current Maple USDC Pool / mUSDC source page from Maple app/docs.",
-    "Confirm whether a public custodian is disclosed for the corrected mUSDC pool; if none is public, keep custodian null.",
-    "Map current pool TVL, APY, withdrawal/redemption period, and on-chain liquidity from Maple app, DeFiLlama, RWA.xyz, or reliable on-chain data.",
+    "Confirm whether a public custodian is disclosed for Maple USDC Pool / mUSDC; if none is public, keep custodian null.",
     "Find current legal/offering documents and identify primary regulator if applicable.",
-    "Add reserve breakdown, audit/report URL, or proof-of-reserves only if a reliable public source explicitly confirms it."
+    "Add reserve breakdown, audit/report URL, or proof-of-reserves only if a reliable public source explicitly confirms it.",
+    "Add on-chain liquidity data only if reliable DEX, pool liquidity, or on-chain source evidence becomes available.",
+    "Improve source coverage with direct official URLs for every non-null market, yield, liquidity, reserve, and legal field."
   ]
 }
