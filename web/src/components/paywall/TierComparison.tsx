@@ -35,14 +35,14 @@ const TIERS: {
   {
     id: "pro",
     name: "Pro",
-    price: "0.001",
+    price: "3.00",
     duration: "24h",
     badge: "POPULAR",
   },
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "0.01",
+    price: "29.00",
     duration: "7d",
   },
 ];
@@ -70,8 +70,8 @@ export function TierComparison({
   return (
     <div className={cn("space-y-4", className)}>
       <p className="text-sm text-muted-foreground">
-        Session-based access: pay once in ETH on Base, unlock all endpoints in
-        that tier until expiry.
+        Session-based access: pay once in USDC through x402, unlock all endpoints
+        in that tier until expiry.
       </p>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -114,7 +114,7 @@ export function TierComparison({
                   <>
                     {t.price}{" "}
                     <span className="text-base font-normal text-muted-foreground">
-                      ETH
+                      USDC
                     </span>
                   </>
                 )}
