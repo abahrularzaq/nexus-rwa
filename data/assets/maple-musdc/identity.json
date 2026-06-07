@@ -2,29 +2,30 @@
   "name": "Cash Management Pool",
   "symbol": "MPLcashUSDC",
   "fullName": "Cash Management Pool (USDC)",
-  "description": "Maple's Cash Management Pool is an onchain cash management product that accepts USDC deposits from accredited investors and provides yield sourced from U.S. Treasury bills and reverse repurchase agreements. Room40 Capital operates a standalone SPV as the sole borrower, while lenders receive MPLcashUSDC pool LP tokens representing their position.",
+  "description": "Maple's Cash Management Pool is an onchain cash-management product for accredited investors. It accepts USDC deposits and targets yield sourced from U.S. Treasury bills and Treasury-bill-collateralized reverse purchase agreements through Room40 Capital's standalone borrower SPV.",
   "category": "Treasury",
   "subcategory": "Tokenized U.S. Treasury cash management pool",
   "logoUrl": null,
   "websiteUrl": "https://maple.finance",
   "docsUrl": "https://docs.maple.finance/cash-management-pool/overview",
-  "twitterUrl": "https://twitter.com/maplefinance",
+  "twitterUrl": "https://x.com/maplefinance",
   "tags": [
     "institutional",
     "kyc-required",
     "permissioned",
-    "stablecoin-backed"
+    "accredited-investors",
+    "us-treasury"
   ],
-  "launchDate": "2023-06-05",
+  "launchDate": "2023-04-19",
   "isin": null,
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
-    "reviewFrequencyDays": 90,
-    "sourceTier": null,
-    "confidence": null,
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "Tier 1 / Tier 2",
+    "confidence": "medium",
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Inception date and market label cross-checked against RWA.xyz; official product mechanics cross-checked against Maple docs."
   }
 }
