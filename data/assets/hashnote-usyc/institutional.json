@@ -10,7 +10,7 @@
   "fundAdmin": "NAV Consulting",
   "transferAgent": null,
   "targetInvestors": "Eligible non-U.S. institutional investors subject to onboarding, KYC, AML, and wallet permissioning requirements.",
-  "prospectusUrl": null,
+  "prospectuUrl": null,
   "metadata": {
     "productName": "US Yield Coin",
     "tokenAdministrator": "Circle International Bermuda Limited",
@@ -20,6 +20,7 @@
     "minimumInvestmentCurrency": "USD",
     "performanceFeeUnit": "percent_of_yield",
     "serviceProvidersSource": "https://usyc.docs.hashnote.com/overview/service-providers",
+    "schemaNote": "Prisma schema currently uses prospectuUrl, not prospectusUrl.",
     "openGaps": [
       "Public offering memorandum or prospectus was not found.",
       "Exact fund manager / investment manager legal name should be confirmed from fund documents.",
