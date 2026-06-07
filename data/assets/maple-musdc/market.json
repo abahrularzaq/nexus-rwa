@@ -10,8 +10,8 @@
   "totalSupply": 290.14,
   "holderCount": 5,
   "holderChange7d": null,
-  "aumUsd": "<0.001",
-  "lastUpdated": "2026-06-01",
+  "aumUsd": null,
+  "lastUpdated": "2026-06-07",
   "sources": [
     "https://app.rwa.xyz/assets/MPLcashUSDC",
     "https://etherscan.io/token/0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
@@ -20,13 +20,13 @@
   "confidence": "MEDIUM",
   "_meta": {
     "dataOwner": "auto-sync",
-    "lastAutoSync": null,
+    "lastAutoSync": "2026-06-07",
     "syncFrequencyHours": 24,
-    "syncProvider": null,
-    "syncStatus": "not-configured",
-    "confidence": null,
-    "freshnessStatus": "needs-sync",
-    "status": "needs-sync",
-    "notes": null
+    "syncProvider": "manual-rwa-xyz-check",
+    "syncStatus": "manual-refresh",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "RWA.xyz reports total asset value as $<0.001; stored as null because aumUsd must be numeric or null. Monthly transfer volume is $0 but volume24h remains null."
   }
 }
