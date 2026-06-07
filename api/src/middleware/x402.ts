@@ -6,10 +6,7 @@ import {
   TIER_PLANS,
 } from './x402/pricer.js';
 import { logger } from '../lib/logger.js';
-import { getPublicClient } from '../lib/blockchain.js';
-import { redis } from '../lib/redis.js';
 import {
-  grantTierSession,
   hasTierAccess,
   normalizeWallet,
 } from '../lib/x402-session.js';
@@ -45,7 +42,7 @@ export function assertX402Env(): void {
   const recipient = readPaymentRecipientEnv();
   if (!recipient) {
     throw new Error(
-      'PAYMENT_RECIPIENT or X402_RECEIVING_ADDRESS is required for real x402 payments.',
+      'PAYMENT_RECIPIENT or X402_RECEIVING_ADDRESS is required for x402 USDC payments.',
     );
   }
   try {
@@ -84,10 +81,6 @@ function getUsdcAddress(): string {
   return getX402Network() === 'base' ? USDC_MAINNET : USDC_SEPOLIA;
 }
 
-function getVerifyRecipient(): string {
-  return readPaymentRecipientEnv();
-}
-
 export type VerifyPaymentResult = {
   verified: boolean;
   blockNumber: number;
@@ -96,93 +89,18 @@ export type VerifyPaymentResult = {
 };
 
 /**
- * Verifies a native ETH transfer: recipient match and amount >= expected for the tier.
+ * Deprecated native-ETH verifier kept for compatibility with older imports.
+ * USDC x402 exact settlement will be verified through the facilitator in the next step.
  */
 export async function verifyPayment(
   txHash: string,
-  expectedAmountWei: string,
-  recipient: string,
+  _expectedAmount: string,
+  _recipient: string,
 ): Promise<VerifyPaymentResult> {
-  const empty: VerifyPaymentResult = { verified: false, blockNumber: 0, timestamp: 0 };
-
   if (!isHex(txHash) || txHash.length !== 66) {
-    return empty;
+    return { verified: false, blockNumber: 0, timestamp: 0 };
   }
-  const hash = txHash as Hex;
-
-  if (!recipient) {
-    logger.warn('verifyPayment: recipient empty');
-    return empty;
-  }
-
-  let recipientChecksummed: string;
-  try {
-    recipientChecksummed = getAddress(recipient);
-  } catch {
-    return empty;
-  }
-
-  let expectedWei: bigint;
-  try {
-    expectedWei = BigInt(expectedAmountWei);
-  } catch {
-    return empty;
-  }
-
-  const network = getX402Network();
-  const cacheKey = `verified:${txHash}:${expectedAmountWei}`;
-
-  try {
-    const clientRedis = redis();
-    const cached = await clientRedis.get(cacheKey);
-    if (cached) {
-      const parsed = JSON.parse(cached) as VerifyPaymentResult;
-      if (parsed && typeof parsed.verified === 'boolean') {
-        return parsed;
-      }
-    }
-  } catch {
-    // Redis optional
-  }
-
-  try {
-    const client = getPublicClient(network);
-    const [receipt, tx] = await Promise.all([
-      client.getTransactionReceipt({ hash }),
-      client.getTransaction({ hash }),
-    ]);
-
-    if (!receipt || receipt.status !== 'success' || !tx || tx.to === null) {
-      return empty;
-    }
-
-    if (getAddress(tx.to) !== recipientChecksummed) {
-      return empty;
-    }
-    if (tx.value < expectedWei) {
-      return empty;
-    }
-
-    const block = await client.getBlock({ blockNumber: receipt.blockNumber });
-    const result: VerifyPaymentResult = {
-      verified: true,
-      blockNumber: Number(receipt.blockNumber),
-      timestamp: Number(block.timestamp),
-      from: tx.from ? getAddress(tx.from) : undefined,
-    };
-
-    try {
-      const clientRedis = redis();
-      await clientRedis.setex(cacheKey, 3600, JSON.stringify(result));
-    } catch {
-      // ignore
-    }
-
-    return result;
-  } catch (err) {
-    logger.warn({ err, txHash }, 'verifyPayment: chain query failed');
-    return empty;
-  }
+  return { verified: false, blockNumber: 0, timestamp: 0 };
 }
 
 function tierPayload(config: EndpointAccessConfig) {
@@ -190,9 +108,12 @@ function tierPayload(config: EndpointAccessConfig) {
   return {
     tier: config.tier,
     label: config.label,
-    price: config.priceEth,
-    priceEth: config.priceEth,
+    price: config.priceUsdc,
     priceUsd: config.priceUsd,
+    priceUsdc: config.priceUsdc,
+    priceUsdcAtomic: config.priceUsdcAtomic,
+    settlementCurrency: config.settlementCurrency,
+    settlementDecimals: config.settlementDecimals,
     displayPrice: config.displayPrice,
     duration: config.duration,
   };
@@ -212,24 +133,30 @@ function paymentRequiredJson(path: string, config: EndpointAccessConfig) {
       label: config.label,
       displayPrice: config.displayPrice,
       priceUsd: config.priceUsd,
-      priceEth: config.priceEth,
+      priceUsdc: config.priceUsdc,
+      priceUsdcAtomic: config.priceUsdcAtomic,
+      settlementCurrency: config.settlementCurrency,
+      settlementDecimals: config.settlementDecimals,
       duration: config.duration || undefined,
       description: config.description,
     },
     x402: {
-      price: config.priceEth,
-      currency: 'ETH',
+      price: config.priceUsdc,
+      amount: config.priceUsdcAtomic,
+      currency: config.settlementCurrency,
+      decimals: config.settlementDecimals,
       network: getX402Network(),
       recipient: getReceivingAddress(),
       endpoint: path,
       tier: config.tier,
       duration: config.duration || undefined,
+      asset: getUsdcAddress(),
     },
     accepts: [
       {
         scheme: 'exact',
         network: getX402Network(),
-        maxAmountRequired: config.priceWei,
+        maxAmountRequired: config.priceUsdcAtomic,
         resource: path,
         description: plan.description,
         mimeType: 'application/json',
@@ -239,10 +166,11 @@ function paymentRequiredJson(path: string, config: EndpointAccessConfig) {
         extra: {
           name: 'USD Coin',
           version: '2',
+          decimals: config.settlementDecimals,
           tier: config.tier,
           label: config.label,
-          priceEth: config.priceEth,
           priceUsd: config.priceUsd,
+          priceUsdc: config.priceUsdc,
           displayPrice: config.displayPrice,
           duration: config.duration,
         },
@@ -291,40 +219,15 @@ async function trySessionBypass(
   return true;
 }
 
-async function tryBypassWithVerifiedTx(
-  c: Context,
-  config: EndpointAccessConfig,
-  next: () => Promise<void>,
-): Promise<'bypassed' | 'rejected' | 'none'> {
-  const txHeader = c.req.header('X-Payment-Tx')?.trim();
-  if (!txHeader) return 'none';
-
-  const recipient = getVerifyRecipient();
-  if (!recipient) {
-    logger.error('PAYMENT_RECIPIENT required for X-Payment-Tx verification');
-    return 'rejected';
-  }
-
-  const v = await verifyPayment(txHeader, config.priceWei, recipient);
-  if (!v.verified) {
-    return 'rejected';
-  }
-
-  const wallet =
-    walletFromContext(c) ?? (v.from ? normalizeWallet(v.from) : null);
-
-  if (wallet && (config.tier === 'pro' || config.tier === 'enterprise')) {
-    await grantTierSession(wallet, config.tier);
-  }
-
-  c.header('X-Payment-Verified', 'true');
-  c.header('X-Payment-Status', 'verified');
-  c.header('X-Payment-TxHash', txHeader);
-  c.header('X-Payment-Tier', config.tier);
-  if (wallet) c.header('X-Wallet-Address', wallet);
-
-  await next();
-  return 'bypassed';
+function paymentVerificationPendingJson(config: EndpointAccessConfig) {
+  return {
+    ...x402Meta(),
+    x402Version: 1,
+    error: 'USDC_X402_FACILITATOR_NOT_CONFIGURED',
+    message:
+      'USDC pricing is active, but facilitator-based x402 verification is not wired yet. Complete the facilitator integration before accepting USDC payments.',
+    tier: tierPayload(config),
+  };
 }
 
 export function createNexusX402Middleware(): MiddlewareHandler {
@@ -347,72 +250,13 @@ export function createNexusX402Middleware(): MiddlewareHandler {
         return;
       }
 
-      const txBypass = await tryBypassWithVerifiedTx(c, config, next);
-      if (txBypass === 'bypassed') return;
-      if (txBypass === 'rejected') {
-        return c.json(
-          {
-            ...x402Meta(),
-            x402Version: 1,
-            error: 'PAYMENT_VERIFICATION_FAILED',
-            message:
-              'X-Payment-Tx did not satisfy tier amount, recipient, or confirmation requirements.',
-            tier: tierPayload(config),
-          },
-          402,
-        );
+      const txHeader = c.req.header('X-Payment-Tx')?.trim();
+      const paymentHeader = c.req.header('X-Payment')?.trim();
+      if (txHeader || paymentHeader) {
+        return c.json(paymentVerificationPendingJson(config), 402);
       }
 
-      const paymentHeader = c.req.header('X-Payment');
-
-      if (!paymentHeader) {
-        return c.json(paymentRequiredJson(path, config), 402);
-      }
-
-      let payment: Record<string, unknown>;
-      try {
-        payment = JSON.parse(paymentHeader);
-      } catch {
-        return c.json(
-          {
-            ...x402Meta(),
-            x402Version: 1,
-            error: 'INVALID_PAYMENT_HEADER',
-            message: 'X-Payment header must be valid JSON',
-          },
-          400,
-        );
-      }
-
-      if (!payment.txHash || !payment.from) {
-        return c.json(
-          {
-            ...x402Meta(),
-            x402Version: 1,
-            error: 'INVALID_PAYMENT_HEADER',
-            message: 'X-Payment header must include txHash and from',
-            tier: tierPayload(config),
-          },
-          402,
-        );
-      }
-
-      logger.info(
-        {
-          endpoint: path,
-          tier: config.tier,
-          txHash: payment.txHash,
-          from: payment.from,
-          amountRequiredWei: config.priceWei,
-        },
-        'X402 payment received',
-      );
-
-      c.header('X-Payment-Status', 'received');
-      c.header('X-Payment-TxHash', String(payment.txHash));
-      c.header('X-Payment-Tier', config.tier);
-
-      await next();
+      return c.json(paymentRequiredJson(path, config), 402);
     } catch (error) {
       logger.error({ error }, 'X402 middleware unexpected error');
       return c.json(
@@ -447,20 +291,10 @@ export function createGatedTxPaymentMiddleware(): MiddlewareHandler {
         return;
       }
 
-      const txBypass = await tryBypassWithVerifiedTx(c, config, next);
-      if (txBypass === 'bypassed') return;
-      if (txBypass === 'rejected') {
-        return c.json(
-          {
-            ...x402Meta(),
-            x402Version: 1,
-            error: 'PAYMENT_VERIFICATION_FAILED',
-            message:
-              'X-Payment-Tx did not satisfy tier amount, recipient, or confirmation requirements.',
-            tier: tierPayload(config),
-          },
-          402,
-        );
+      const txHeader = c.req.header('X-Payment-Tx')?.trim();
+      const paymentHeader = c.req.header('X-Payment')?.trim();
+      if (txHeader || paymentHeader) {
+        return c.json(paymentVerificationPendingJson(config), 402);
       }
 
       return c.json(paymentRequiredJson(path, config), 402);
