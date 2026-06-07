@@ -1,14 +1,17 @@
-import { formatEther } from "viem";
+import { formatUnits } from "viem";
 
 export type AccessTier = "free" | "pro" | "enterprise";
 
 /** X402 payment details returned on HTTP 402 from the API. */
 export type X402Details = {
   price: string;
+  amount?: string;
   currency: string;
+  decimals?: number;
   network: string;
   recipient: string;
   endpoint: string;
+  asset?: string;
   tier?: AccessTier;
   duration?: string;
 };
@@ -40,7 +43,7 @@ export function isX402ErrorBody(value: unknown): value is X402ErrorResponse {
   return false;
 }
 
-/** Parse legacy x402 wrapper or native API 402 (`tier` + `x402` / `accepts`). */
+/** Parse native API 402 (`tier` + `x402` / `accepts`) for USDC x402 exact payment metadata. */
 export function parseX402Response(
   body: unknown,
   fallbackEndpoint: string,
@@ -49,7 +52,7 @@ export function parseX402Response(
     return {
       x402: {
         ...body.x402,
-        currency: body.x402.currency ?? "ETH",
+        currency: body.x402.currency ?? "USDC",
         endpoint: body.x402.endpoint ?? fallbackEndpoint,
       },
       tier: body.tier,
@@ -76,10 +79,14 @@ export function parseX402Response(
     return {
       x402: {
         price: String(embedded.price),
-        currency: String(embedded.currency ?? "ETH"),
+        amount: typeof embedded.amount === "string" ? embedded.amount : undefined,
+        currency: String(embedded.currency ?? "USDC"),
+        decimals:
+          typeof embedded.decimals === "number" ? embedded.decimals : undefined,
         network: String(embedded.network),
         recipient: String(embedded.recipient),
         endpoint: String(embedded.endpoint ?? fallbackEndpoint),
+        asset: typeof embedded.asset === "string" ? embedded.asset : undefined,
         tier: embedded.tier as AccessTier | undefined,
         duration: embedded.duration as string | undefined,
       },
@@ -93,28 +100,33 @@ export function parseX402Response(
 
   const extra = accept.extra as Record<string, unknown> | undefined;
   const tierFromExtra = extra?.tier as AccessTier | undefined;
-  const priceEth =
-    typeof extra?.priceEth === "string"
-      ? extra.priceEth
-      : tierInfo?.price ?? "0.001";
+  const decimals = typeof extra?.decimals === "number" ? extra.decimals : 6;
+  const maxAmountRequired = accept.maxAmountRequired;
 
-  const maxWei = accept.maxAmountRequired;
-  let price = priceEth;
-  if (typeof maxWei === "string" && maxWei !== "0") {
+  let price =
+    typeof extra?.priceUsdc === "string"
+      ? extra.priceUsdc
+      : tierInfo?.price ?? "3.00";
+
+  if (typeof maxAmountRequired === "string" && maxAmountRequired !== "0") {
     try {
-      price = formatEther(BigInt(maxWei));
+      price = formatUnits(BigInt(maxAmountRequired), decimals);
     } catch {
-      price = priceEth;
+      // Keep price from metadata.
     }
   }
 
   return {
     x402: {
       price,
-      currency: "ETH",
+      amount:
+        typeof maxAmountRequired === "string" ? maxAmountRequired : undefined,
+      currency: "USDC",
+      decimals,
       network: String(accept.network ?? o.network ?? "base-sepolia"),
       recipient: String(accept.payTo ?? ""),
       endpoint: String(accept.resource ?? fallbackEndpoint),
+      asset: typeof accept.asset === "string" ? accept.asset : undefined,
       tier: tierFromExtra ?? tierInfo?.tier,
       duration:
         typeof extra?.duration === "string"
