@@ -2,25 +2,13 @@
   {
     "chain": "Ethereum",
     "chainId": 1,
-    "contractAddress": "0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
+    "contractAddress": "0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
     "hasWhitelist": true,
-    "hasTransferRestrictions": true,
-    "explorerUrl": "https://etherscan.io/token/0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7",
     "deployedAt": null,
     "isVerified": true
-  },
-  {
-    "chain": "Base",
-    "chainId": 8453,
-    "contractAddress": "0xdd5bb9acf5e02089735a33344c6e3a8bb0d4075d",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": true,
-    "hasTransferRestrictions": true,
-    "explorerUrl": "https://basescan.org/token/0xdd5bb9acf5e02089735a33344c6e3a8bb0d4075d",
-    "deployedAt": null,
-    "isVerified": false
   }
 ]
