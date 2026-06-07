@@ -1,23 +1,23 @@
 {
-  "regulatoryStatus": "Exempt / private placement; not confirmed as SEC-registered",
-  "primaryRegulator": null,
-  "regulatoryFramework": "Regulation S; Section 3(c)(1) of the Investment Company Act; Reg D exemption for U.S.-domiciled accredited investors and entities per Maple announcement",
+  "regulatoryStatus": "Private/exempt offering; RWA.xyz lists U.S. Securities Act Regulation D exemption",
+  "primaryRegulator": "SEC",
+  "regulatoryFramework": "U.S. Securities Act Regulation D exemption; KYC/AML-gated private lending pool; permissioned transfer restrictions",
   "kycRequired": true,
   "accreditedOnly": true,
   "blockedJurisdictions": [],
   "allowedJurisdictions": [],
   "sanctionsScreening": true,
-  "amlPolicy": "Eligible lenders must satisfy KYC and AML screening obligations. Terms require lenders and related parties not to be Restricted Parties, not to be subject to OFAC or similar sanctions, and to confirm funds are from legal sources and not subject to seizure, forfeiture, or confiscation under anti-terrorism laws.",
-  "lastComplianceCheck": null,
+  "amlPolicy": "Eligible lenders must complete KYC and AML screening. Terms and onboarding restrict access to eligible/accredited investors and permissioned addresses.",
+  "lastComplianceCheck": "2026-06-07",
   "legalOpinionUrl": null,
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": null,
-    "confidence": null,
+    "sourceTier": "Tier 1 / Tier 2",
+    "confidence": "medium",
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "No public legal opinion was found; regulatory framework should remain conservative."
   }
 }
