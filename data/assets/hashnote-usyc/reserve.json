@@ -1,6 +1,6 @@
 {
-  "backingType": null,
-  "backingDescription": null,
+  "backingType": "US Treasury",
+  "backingDescription": "USYC provides exposure to short-term U.S. Treasury bills and reverse repurchase agreements backed by short-term U.S. government securities through Hashnote International Short Duration Yield Fund Ltd. Official sources describe the product as a tokenized money market fund / yield-bearing collateral product for eligible non-U.S. investors.",
   "collateralizationRatio": null,
   "custodian": null,
   "custodianUrl": null,
@@ -9,7 +9,17 @@
   "porOracleChain": null,
   "lastAuditDate": null,
   "lastAuditUrl": null,
-  "auditor": null,
-  "reserveBreakdown": null,
-  "redemptionAsset": null
+  "auditor": "Cohen and Company",
+  "reserveBreakdown": "Short-term U.S. Treasury bills and reverse repurchase agreements backed by short-term U.S. government securities. Detailed public holdings or percentage breakdown was not found during source discovery.",
+  "redemptionAsset": "USDC",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "Tier 1",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "partial",
+    "notes": "Backing type and redemption asset are source-backed. No explicit public collateralization ratio, custodian, proof-of-reserves oracle, reserve audit URL/date, or detailed holdings report was found. USYC price/NAV oracle must not be treated as proof-of-reserves. Auditor is sourced from Hashnote service-provider documentation; verify against public audit/fund reports before institutional-grade scoring."
+  }
 }
