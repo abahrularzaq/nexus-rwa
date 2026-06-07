@@ -3,7 +3,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isAddress, parseEther } from "viem";
+import { isAddress } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import {
   useAccount,
@@ -33,9 +33,17 @@ import { useX402Payment } from "@/hooks/useX402Payment";
 import { cn } from "@/lib/utils";
 import type { AccessTier, X402Details } from "@/types/x402";
 
-const TIER_PRICES: Record<"pro" | "enterprise", { price: string; duration: string }> = {
-  pro: { price: "0.001", duration: "24h" },
-  enterprise: { price: "0.01", duration: "7d" },
+const TIER_PRICES: Record<
+  "pro" | "enterprise",
+  { price: string; amount: string; duration: string; currency: "USDC" }
+> = {
+  pro: { price: "3.00", amount: "3000000", duration: "24h", currency: "USDC" },
+  enterprise: {
+    price: "29.00",
+    amount: "29000000",
+    duration: "7d",
+    currency: "USDC",
+  },
 };
 
 function targetChainId(network: string): number {
@@ -125,7 +133,6 @@ export function PaywallModal({
     query: { enabled: Boolean(address) },
   });
 
-  const [ethUsd, setEthUsd] = useState<number | null>(null);
   const [billingInvalid, setBillingInvalid] = useState(false);
   const successNotified = useRef(false);
 
@@ -134,6 +141,8 @@ export function PaywallModal({
     return {
       ...x402Data,
       price: plan.price,
+      amount: plan.amount,
+      currency: plan.currency,
       tier: payTier,
       duration: plan.duration,
     };
@@ -145,6 +154,8 @@ export function PaywallModal({
   );
 
   const needSwitch = isConnected && chainId !== expectedChainId;
+  const isUsdcCheckout = effectiveX402.currency.toUpperCase() === "USDC";
+  const canUseLegacyEthPayment = effectiveX402.currency.toUpperCase() === "ETH";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -159,25 +170,6 @@ export function PaywallModal({
   }, [isOpen, resetPayment, requiredTier]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(
-          "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD",
-        );
-        const j = (await res.json()) as { USD?: number };
-        if (!cancelled && typeof j.USD === "number") setEthUsd(j.USD);
-      } catch {
-        if (!cancelled) setEthUsd(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
     if (
       paymentStatus === "success" &&
       txHash &&
@@ -187,10 +179,6 @@ export function PaywallModal({
       onPaymentSuccess(txHash);
     }
   }, [paymentStatus, txHash, onPaymentSuccess]);
-
-  const priceNum = Number.parseFloat(effectiveX402.price);
-  const usdEstimate =
-    ethUsd != null && Number.isFinite(priceNum) ? priceNum * ethUsd : null;
 
   const balanceLabel = useMemo(() => {
     if (!balance) return "—";
@@ -205,20 +193,17 @@ export function PaywallModal({
       setBillingInvalid(true);
       return;
     }
-    const amount = Number.parseFloat(effectiveX402.price);
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (isUsdcCheckout) {
       setBillingInvalid(true);
       return;
     }
-    try {
-      parseEther(effectiveX402.price);
-    } catch {
+    if (!canUseLegacyEthPayment) {
       setBillingInvalid(true);
       return;
     }
     setBillingInvalid(false);
     initiatePayment(effectiveX402);
-  }, [initiatePayment, effectiveX402]);
+  }, [canUseLegacyEthPayment, initiatePayment, effectiveX402, isUsdcCheckout]);
 
   const statusHint = useMemo(() => {
     if (paymentStatus === "confirming" || isConfirming) {
@@ -255,22 +240,15 @@ export function PaywallModal({
         </p>
         <p className="mt-1 font-mono text-3xl font-semibold tabular-nums tracking-tight">
           {effectiveX402.price}{" "}
-          <span className="text-xl text-muted-foreground">ETH</span>
+          <span className="text-xl text-muted-foreground">
+            {effectiveX402.currency}
+          </span>
         </p>
-        {usdEstimate != null ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            ≈{" "}
-            {usdEstimate.toLocaleString("id-ID", {
-              style: "currency",
-              currency: "USD",
-              maximumFractionDigits: 2,
-            })}
+        {effectiveX402.amount ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            atomic amount: {effectiveX402.amount}
           </p>
-        ) : (
-          <p className="mt-1 text-sm text-muted-foreground">
-            Estimasi USD tidak tersedia
-          </p>
-        )}
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -288,7 +266,7 @@ export function PaywallModal({
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs text-left">
-            X402 adalah pola HTTP 402 Payment Required: bayar ETH sesuai tier,
+            X402 adalah pola HTTP 402 Payment Required: bayar USDC sesuai tier,
             lalu akses semua endpoint dalam tier itu sampai session habis.
           </TooltipContent>
         </Tooltip>
@@ -299,9 +277,17 @@ export function PaywallModal({
         <span className="font-medium tabular-nums">{balanceLabel}</span>
       </div>
 
+      {isUsdcCheckout ? (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          USDC pricing sudah aktif. Checkout x402 facilitator akan dihubungkan
+          pada step berikutnya sebelum pembayaran USDC diterima.
+        </div>
+      ) : null}
+
       {billingInvalid ? (
         <p className="text-sm text-destructive">
-          Harga atau alamat penerima tidak valid.
+          Checkout USDC belum diaktifkan. Lanjutkan integrasi facilitator x402
+          sebelum menerima pembayaran.
         </p>
       ) : null}
 
@@ -342,7 +328,7 @@ export function PaywallModal({
         <Button
           type="button"
           className="w-full"
-          disabled={isPaying || paymentStatus === "success"}
+          disabled={isPaying || paymentStatus === "success" || isUsdcCheckout}
           onClick={onPay}
         >
           {isPaying ? (
@@ -352,8 +338,10 @@ export function PaywallModal({
                 ? "Menunggu tanda tangan…"
                 : "Memproses…"}
             </>
+          ) : isUsdcCheckout ? (
+            "USDC checkout coming next"
           ) : (
-            `Pay ${effectiveX402.price} ETH & unlock ${payTier.toUpperCase()}`
+            `Pay ${effectiveX402.price} ${effectiveX402.currency} & unlock ${payTier.toUpperCase()}`
           )}
         </Button>
       )}
