@@ -1,15 +1,45 @@
-import { Redis } from 'ioredis';
+import { Redis, type RedisOptions } from 'ioredis';
 import { logger } from './logger.js';
 
 let redisClient: Redis | null = null;
 
-function getRedisClient(): Redis {
+function readRedisUrl(): URL {
   const redisUrl = process.env.REDIS_URL?.trim();
 
   if (!redisUrl || redisUrl.includes('localhost')) {
     logger.warn('Redis URL tidak diset atau masih localhost — caching dinonaktifkan');
     throw new Error('Redis not configured');
   }
+
+  try {
+    return new URL(redisUrl);
+  } catch {
+    logger.warn('Redis URL invalid — caching/session fallback may be used');
+    throw new Error('Invalid Redis URL');
+  }
+}
+
+function buildRedisOptions(url: URL): RedisOptions {
+  const isTls = url.protocol === 'rediss:';
+  return {
+    maxRetriesPerRequest: 5,
+    connectTimeout: 15_000,
+    commandTimeout: 15_000,
+    family: 0,
+    tls: isTls
+      ? {
+          servername: url.hostname,
+        }
+      : undefined,
+    retryStrategy: (times) => {
+      if (times > 8) return null;
+      return Math.min(times * 750, 3_000);
+    },
+  };
+}
+
+function getRedisClient(): Redis {
+  const redisUrl = readRedisUrl();
 
   if (redisClient && ['end', 'close'].includes(redisClient.status)) {
     logger.warn({ status: redisClient.status }, 'Redis client closed — recreating client');
@@ -18,14 +48,16 @@ function getRedisClient(): Redis {
   }
 
   if (!redisClient) {
-    redisClient = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
-      connectTimeout: 10_000,
-      retryStrategy: (times) => {
-        if (times > 5) return null;
-        return Math.min(times * 500, 2_000);
+    logger.info(
+      {
+        protocol: redisUrl.protocol,
+        host: redisUrl.hostname,
+        port: redisUrl.port || (redisUrl.protocol === 'rediss:' ? '6379' : '6379'),
       },
-    });
+      'Initializing Redis client',
+    );
+
+    redisClient = new Redis(process.env.REDIS_URL!.trim(), buildRedisOptions(redisUrl));
 
     redisClient.on('connect', () => {
       logger.info('Redis connected');
@@ -41,6 +73,10 @@ function getRedisClient(): Redis {
 
     redisClient.on('end', () => {
       logger.warn('Redis connection ended');
+    });
+
+    redisClient.on('reconnecting', () => {
+      logger.info('Redis reconnecting');
     });
 
     redisClient.on('error', (err: Error) => {
