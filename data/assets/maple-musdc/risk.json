@@ -2,28 +2,25 @@
   "overallScore": 57,
   "overallLevel": "MEDIUM",
   "smartContractRisk": 70,
-  "counterpartyRisk": 62,
-  "liquidityRisk": 55,
-  "regulatoryRisk": 58,
+  "counterpartyRisk": 55,
+  "liquidityRisk": 60,
+  "regulatoryRisk": 50,
   "marketRisk": 42,
-  "concentrationRisk": 35,
+  "concentrationRisk": 45,
   "riskFactors": [
-    "Very small visible market footprint: RWA.xyz reports 290.14 total/circulating supply, 5 holders, $0 monthly transfer volume, and no visible 7D/30D APY.",
-    "No currentYield, TVL, marketCap, 24h volume, 7d/30d yield history, or yield volatility is captured in the asset JSON files.",
-    "Single-borrower structure: Maple docs describe Room40 Capital's standalone SPV as the sole borrower from the pool.",
-    "No public on-chain proof-of-reserves oracle, independent reserve audit, lastAuditDate, or reserveBreakdown was found.",
-    "Transfers and access are permissioned through accredited-investor onboarding and KYC/AML screening.",
-    "Regulatory structure relies on private/exempt offering treatment rather than confirmed registered-fund status.",
-    "No DEX pairs, onchainLiquidity, or bidAskSpread are available, limiting secondary-market liquidity assessment."
+    "Current mUSDC market, TVL, APY, holder, and liquidity metrics need fresh verification after correcting the asset identity.",
+    "Maple USDC Pool is a credit product, so borrower default and pool delegate underwriting risk are central risk drivers.",
+    "Pool withdrawals are subject to available liquidity and borrower repayment/maturity profile rather than guaranteed instant redemption.",
+    "No public legal opinion URL, proof-of-reserves oracle, independent reserve audit, or verified reserveBreakdown is currently mapped for the corrected mUSDC asset.",
+    "Regulatory treatment is pool- and jurisdiction-dependent and should remain conservative until current legal documents are mapped.",
+    "The previous MPLcashUSDC Treasury/repo data was removed because it belongs to Maple Cash Management Pool, not Maple USDC Pool."
   ],
   "mitigants": [
-    "Underlying cash-management strategy is limited to U.S. Treasury bills and reverse repurchase agreements fully collateralized by U.S. Treasury bills.",
-    "Maple docs state the borrower portfolio weighted average maturity is capped at 30 days under the Master Loan Agreement.",
-    "Primary withdrawals are described as processed within 24 hours on U.S. banking days, with possible faster processing where liquidity is available.",
-    "Eligible lenders must complete KYC/AML screening and the product is permissioned for accredited investors.",
-    "Ethereum and Base token records are visible through RWA.xyz and official block explorers.",
-    "The product is operated within the Maple institutional lending ecosystem."
+    "Maple is an established institutional credit protocol with pool-level on-chain accounting and borrower/pool-delegate workflow.",
+    "Legacy seed data indicates Ethereum contract verification for the mUSDC token address.",
+    "Institutional onboarding and KYC/AML controls are expected for Maple institutional pools, pending fresh source verification.",
+    "USDC-denominated pool structure provides clear redemption asset denomination, subject to pool liquidity."
   ],
   "lastAssessed": "2026-06-07",
-  "assessmentMethod": "manual-source-based"
+  "assessmentMethod": "manual-correction-needs-refresh"
 }
