@@ -1,22 +1,22 @@
 {
-  "redemptionType": "Pool withdrawal subject to available liquidity",
-  "redemptionPeriodDays": null,
+  "redemptionType": "Pool withdrawal subject to available liquidity and maximum time-to-liquidity window",
+  "redemptionPeriodDays": 30,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
   "minRedemptionAmount": 100000,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": 60,
-  "liquidityNotes": "Legacy seed describes Maple USDC Pool withdrawals as subject to pool liquidity and notes a possible 30-day maximum time-to-liquidity for full-pool withdrawal. This requires fresh verification from Maple pool docs/app before production use.",
+  "liquidityScore": 46,
+  "liquidityNotes": "Maple official page reports Maximum Time to Liquidity of 30 days for Maple Institutional - Secured Lending. Secondary market liquidity is not mapped; no DEX pairs, on-chain liquidity amount, or bid/ask spread were verified. Liquidity score remains conservative because redemptions depend on pool liquidity and the 30-day liquidity window.",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": "repo-seed / legacy-master",
-    "confidence": "low-medium",
-    "freshnessStatus": "needs-refresh",
-    "status": "corrected-asset-identity",
-    "notes": "Removed Cash Management Pool daily banking-day redemption logic."
+    "sourceTier": "Tier 1",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Updated from Maple official Maple Institutional page. minRedemptionAmount remains from prior seed until primary source verification is found."
   }
 }
