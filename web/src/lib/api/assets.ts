@@ -47,6 +47,12 @@ function apiKeyHeader(): Record<string, string> {
   return apiKey ? { "X-API-Key": apiKey } : {};
 }
 
+function walletHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const wallet = localStorage.getItem("nexus_wallet_address");
+  return wallet ? { "X-Wallet-Address": wallet } : {};
+}
+
 export async function fetchAssetList(params?: {
   page?: number;
   limit?: number;
@@ -81,7 +87,11 @@ export async function fetchAsset(slug: string): Promise<AssetWithLayers> {
 export async function fetchAssetFull(slug: string): Promise<AssetWithLayers> {
   const base = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
   const res = await fetch(`${base}/v1/assets/${slug}/full`, {
-    headers: { Accept: "application/json", ...apiKeyHeader() },
+    headers: {
+      Accept: "application/json",
+      ...apiKeyHeader(),
+      ...walletHeader(),
+    },
   });
   const json = (await res.json()) as {
     success?: boolean;
@@ -94,4 +104,4 @@ export async function fetchAssetFull(slug: string): Promise<AssetWithLayers> {
   return parseAssetWithLayers(json.data);
 }
 
-export { apiKeyHeader };
+export { apiKeyHeader, walletHeader };
