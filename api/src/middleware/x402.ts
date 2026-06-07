@@ -7,6 +7,7 @@ import {
 } from './x402/pricer.js';
 import { logger } from '../lib/logger.js';
 import {
+  grantTierSession,
   hasTierAccess,
   normalizeWallet,
 } from '../lib/x402-session.js';
@@ -17,6 +18,28 @@ import {
 
 const USDC_SEPOLIA = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const USDC_MAINNET = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const DEFAULT_FACILITATOR_URL = 'https://x402.org/facilitator';
+
+type PaymentRequirement = {
+  scheme: 'exact';
+  network: 'base' | 'base-sepolia';
+  maxAmountRequired: string;
+  resource: string;
+  description: string;
+  mimeType: string;
+  payTo: string;
+  maxTimeoutSeconds: number;
+  asset: string;
+  extra: Record<string, unknown>;
+};
+
+type FacilitatorResult = {
+  ok: boolean;
+  payer?: string;
+  txHash?: string;
+  raw: unknown;
+  error?: string;
+};
 
 function readPaymentRecipientEnv(): string {
   return (
@@ -24,6 +47,14 @@ function readPaymentRecipientEnv(): string {
     process.env.X402_RECEIVING_ADDRESS?.trim() ||
     ''
   );
+}
+
+function facilitatorUrl(): string {
+  return (
+    process.env.X402_FACILITATOR_URL?.trim() ||
+    process.env.FACILITATOR_URL?.trim() ||
+    DEFAULT_FACILITATOR_URL
+  ).replace(/\/+$/u, '');
 }
 
 export function assertX402Env(): void {
@@ -88,10 +119,7 @@ export type VerifyPaymentResult = {
   from?: string;
 };
 
-/**
- * Deprecated native-ETH verifier kept for compatibility with older imports.
- * USDC x402 exact settlement will be verified through the facilitator in the next step.
- */
+/** Deprecated native-ETH verifier kept for compatibility with older imports. */
 export async function verifyPayment(
   txHash: string,
   _expectedAmount: string,
@@ -119,9 +147,38 @@ function tierPayload(config: EndpointAccessConfig) {
   };
 }
 
+function buildPaymentRequirement(
+  path: string,
+  config: EndpointAccessConfig,
+): PaymentRequirement {
+  const plan = TIER_PLANS[config.tier];
+  return {
+    scheme: 'exact',
+    network: getX402Network(),
+    maxAmountRequired: config.priceUsdcAtomic,
+    resource: path,
+    description: plan.description,
+    mimeType: 'application/json',
+    payTo: getReceivingAddress(),
+    maxTimeoutSeconds: 300,
+    asset: getUsdcAddress(),
+    extra: {
+      name: 'USD Coin',
+      version: '2',
+      decimals: config.settlementDecimals,
+      tier: config.tier,
+      label: config.label,
+      priceUsd: config.priceUsd,
+      priceUsdc: config.priceUsdc,
+      displayPrice: config.displayPrice,
+      duration: config.duration,
+    },
+  };
+}
+
 function paymentRequiredJson(path: string, config: EndpointAccessConfig) {
   const tierInfo = tierPayload(config);
-  const plan = TIER_PLANS[config.tier];
+  const requirement = buildPaymentRequirement(path, config);
 
   return {
     ...x402Meta(),
@@ -152,30 +209,7 @@ function paymentRequiredJson(path: string, config: EndpointAccessConfig) {
       duration: config.duration || undefined,
       asset: getUsdcAddress(),
     },
-    accepts: [
-      {
-        scheme: 'exact',
-        network: getX402Network(),
-        maxAmountRequired: config.priceUsdcAtomic,
-        resource: path,
-        description: plan.description,
-        mimeType: 'application/json',
-        payTo: getReceivingAddress(),
-        maxTimeoutSeconds: 300,
-        asset: getUsdcAddress(),
-        extra: {
-          name: 'USD Coin',
-          version: '2',
-          decimals: config.settlementDecimals,
-          tier: config.tier,
-          label: config.label,
-          priceUsd: config.priceUsd,
-          priceUsdc: config.priceUsdc,
-          displayPrice: config.displayPrice,
-          duration: config.duration,
-        },
-      },
-    ],
+    accepts: [requirement],
   };
 }
 
@@ -219,13 +253,164 @@ async function trySessionBypass(
   return true;
 }
 
-function paymentVerificationPendingJson(config: EndpointAccessConfig) {
+function decodePaymentHeader(header: string): unknown {
+  const raw = header.trim();
+  if (raw.startsWith('{')) return JSON.parse(raw);
+
+  const decoded = Buffer.from(raw, 'base64').toString('utf8');
+  if (decoded.startsWith('{')) return JSON.parse(decoded);
+
+  return raw;
+}
+
+function recordValue(obj: unknown, path: string[]): unknown {
+  let cur: unknown = obj;
+  for (const key of path) {
+    if (!cur || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[key];
+  }
+  return cur;
+}
+
+function extractPayer(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    const candidates = [
+      recordValue(value, ['payer']),
+      recordValue(value, ['from']),
+      recordValue(value, ['payload', 'authorization', 'from']),
+      recordValue(value, ['paymentPayload', 'payload', 'authorization', 'from']),
+    ];
+    for (const candidate of candidates) {
+      if (typeof candidate !== 'string') continue;
+      const normalized = normalizeWallet(candidate);
+      if (normalized) return normalized;
+    }
+  }
+  return undefined;
+}
+
+function extractTxHash(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    const candidates = [
+      recordValue(value, ['txHash']),
+      recordValue(value, ['transactionHash']),
+      recordValue(value, ['tx']),
+      recordValue(value, ['transaction']),
+    ];
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.length > 0) return candidate;
+    }
+  }
+  return undefined;
+}
+
+function isFacilitatorOk(body: unknown): boolean {
+  const candidates = [
+    recordValue(body, ['isValid']),
+    recordValue(body, ['valid']),
+    recordValue(body, ['success']),
+    recordValue(body, ['settled']),
+  ];
+  return candidates.some((v) => v === true);
+}
+
+async function callFacilitator(
+  action: 'verify' | 'settle',
+  paymentPayload: unknown,
+  paymentRequirements: PaymentRequirement,
+): Promise<FacilitatorResult> {
+  const res = await fetch(`${facilitatorUrl()}/${action}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      x402Version: 1,
+      paymentPayload,
+      paymentRequirements,
+    }),
+  });
+
+  const raw = await res.json().catch(() => null);
+  const ok = res.ok && isFacilitatorOk(raw);
+  return {
+    ok,
+    payer: extractPayer(raw, paymentPayload),
+    txHash: extractTxHash(raw),
+    raw,
+    error:
+      typeof recordValue(raw, ['error']) === 'string'
+        ? String(recordValue(raw, ['error']))
+        : typeof recordValue(raw, ['invalidReason']) === 'string'
+          ? String(recordValue(raw, ['invalidReason']))
+          : res.ok
+            ? undefined
+            : `Facilitator ${action} failed with HTTP ${res.status}`,
+  };
+}
+
+async function tryFacilitatorPayment(
+  c: Context,
+  config: EndpointAccessConfig,
+  next: () => Promise<void>,
+): Promise<'bypassed' | 'rejected' | 'none'> {
+  const paymentHeader = c.req.header('X-Payment')?.trim();
+  if (!paymentHeader) return 'none';
+
+  const path = c.req.path;
+  const requirement = buildPaymentRequirement(path, config);
+
+  let paymentPayload: unknown;
+  try {
+    paymentPayload = decodePaymentHeader(paymentHeader);
+  } catch (err) {
+    logger.warn({ err }, 'Invalid X-Payment header');
+    return 'rejected';
+  }
+
+  const verify = await callFacilitator('verify', paymentPayload, requirement);
+  if (!verify.ok) {
+    logger.warn({ verify }, 'x402 facilitator verify rejected payment');
+    return 'rejected';
+  }
+
+  const settle = await callFacilitator('settle', paymentPayload, requirement);
+  if (!settle.ok) {
+    logger.warn({ settle }, 'x402 facilitator settle rejected payment');
+    return 'rejected';
+  }
+
+  const wallet =
+    walletFromContext(c) ??
+    settle.payer ??
+    verify.payer ??
+    extractPayer(paymentPayload);
+
+  if (!wallet) {
+    logger.warn('x402 facilitator settled payment but payer wallet was not resolved');
+    return 'rejected';
+  }
+
+  if (config.tier === 'pro' || config.tier === 'enterprise') {
+    await grantTierSession(wallet, config.tier);
+  }
+
+  c.header('X-Payment-Verified', 'true');
+  c.header('X-Payment-Status', 'settled');
+  c.header('X-Payment-Tier', config.tier);
+  c.header('X-Wallet-Address', wallet);
+  const txHash = settle.txHash ?? verify.txHash;
+  if (txHash) c.header('X-Payment-TxHash', txHash);
+
+  await next();
+  return 'bypassed';
+}
+
+function paymentRejectedJson(config: EndpointAccessConfig) {
   return {
     ...x402Meta(),
     x402Version: 1,
-    error: 'USDC_X402_FACILITATOR_NOT_CONFIGURED',
+    error: 'PAYMENT_VERIFICATION_FAILED',
     message:
-      'USDC pricing is active, but facilitator-based x402 verification is not wired yet. Complete the facilitator integration before accepting USDC payments.',
+      'USDC x402 payment could not be verified and settled by the facilitator.',
     tier: tierPayload(config),
   };
 }
@@ -250,10 +435,10 @@ export function createNexusX402Middleware(): MiddlewareHandler {
         return;
       }
 
-      const txHeader = c.req.header('X-Payment-Tx')?.trim();
-      const paymentHeader = c.req.header('X-Payment')?.trim();
-      if (txHeader || paymentHeader) {
-        return c.json(paymentVerificationPendingJson(config), 402);
+      const paymentBypass = await tryFacilitatorPayment(c, config, next);
+      if (paymentBypass === 'bypassed') return;
+      if (paymentBypass === 'rejected') {
+        return c.json(paymentRejectedJson(config), 402);
       }
 
       return c.json(paymentRequiredJson(path, config), 402);
@@ -291,10 +476,10 @@ export function createGatedTxPaymentMiddleware(): MiddlewareHandler {
         return;
       }
 
-      const txHeader = c.req.header('X-Payment-Tx')?.trim();
-      const paymentHeader = c.req.header('X-Payment')?.trim();
-      if (txHeader || paymentHeader) {
-        return c.json(paymentVerificationPendingJson(config), 402);
+      const paymentBypass = await tryFacilitatorPayment(c, config, next);
+      if (paymentBypass === 'bypassed') return;
+      if (paymentBypass === 'rejected') {
+        return c.json(paymentRejectedJson(config), 402);
       }
 
       return c.json(paymentRequiredJson(path, config), 402);
