@@ -1,10 +1,10 @@
 {
   "backingType": "US Treasury",
-  "backingDescription": "Maple Cash Management Pool uses USDC loan proceeds to invest through Room40 Capital’s standalone SPV in U.S. Treasury bills and reverse repurchase agreements fully collateralized by U.S. Treasury bills.",
+  "backingDescription": "USDC loan proceeds are converted to USD and invested by Room40 Capital's standalone borrower SPV in U.S. Treasury bills and reverse repurchase agreements fully collateralized by U.S. Treasury bills. Maple docs state the borrower portfolio weighted average maturity is capped at 30 days.",
   "collateralizationRatio": null,
-  "custodian": "StoneX",
-  "custodianUrl": "https://www.stonex.com/en-us/business/securities/",
-  "hasProofOfReserves": null,
+  "custodian": "J.P. Morgan",
+  "custodianUrl": "https://www.jpmorgan.com",
+  "hasProofOfReserves": false,
   "porOracleAddress": null,
   "porOracleChain": null,
   "lastAuditDate": null,
@@ -14,12 +14,12 @@
   "redemptionAsset": "USDC",
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": null,
-    "confidence": null,
+    "sourceTier": "Tier 1 / Tier 2",
+    "confidence": "medium",
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Treasury/repo strategy is from Maple official docs. Custodian is from RWA.xyz service-provider data; Maple docs separately describe a regulated broker / prime brokerage account but do not name the custodian in the parsed docs."
   }
 }
