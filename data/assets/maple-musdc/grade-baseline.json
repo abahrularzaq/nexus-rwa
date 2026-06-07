@@ -1,0 +1,32 @@
+{
+  "slug": "maple-musdc",
+  "grade": "research",
+  "score": 60,
+  "completenessScore": 74,
+  "sourceScore": 57,
+  "legalScore": 70,
+  "reserveScore": 45,
+  "liquidityScore": 46,
+  "riskScore": 57,
+  "blockers": [
+    "Missing custodian"
+  ],
+  "warnings": [
+    "Missing primary regulator",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing redemption period",
+    "Missing on-chain liquidity"
+  ],
+  "baselineDate": "2026-06-07",
+  "status": "research-grade baseline",
+  "nextActions": [
+    "Find and verify the exact current Maple USDC Pool / mUSDC source page from Maple app/docs.",
+    "Confirm whether a public custodian is disclosed for the corrected mUSDC pool; if none is public, keep custodian null.",
+    "Map current pool TVL, APY, withdrawal/redemption period, and on-chain liquidity from Maple app, DeFiLlama, RWA.xyz, or reliable on-chain data.",
+    "Find current legal/offering documents and identify primary regulator if applicable.",
+    "Add reserve breakdown, audit/report URL, or proof-of-reserves only if a reliable public source explicitly confirms it."
+  ]
+}
