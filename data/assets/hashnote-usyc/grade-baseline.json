@@ -1,0 +1,33 @@
+{
+  "slug": "hashnote-usyc",
+  "grade": "analytics",
+  "score": 76,
+  "completenessScore": 81,
+  "sourceScore": 81,
+  "legalScore": 85,
+  "reserveScore": 60,
+  "liquidityScore": 72,
+  "riskScore": 76,
+  "blockers": [
+    "Missing custodian"
+  ],
+  "warnings": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity"
+  ],
+  "baselineDate": "2026-06-07",
+  "status": "analytics-grade baseline",
+  "nextActions": [
+    "Find and verify public custodian or custody arrangement from official fund documents or investor materials",
+    "Search for public offering memorandum, prospectus, legal opinion, or official legal document URL",
+    "Verify whether any public audit, attestation, reserve report, or fund report exists for USYC / Hashnote International Short Duration Yield Fund Ltd.",
+    "Confirm whether USYC has any explicit proof-of-reserves mechanism; keep hasProofOfReserves false unless explicitly confirmed",
+    "Refresh AUM, price, supply, holder count, and APY from RWA.xyz, Hashnote price reports API, and explorers before public production display",
+    "Verify any additional network deployments listed by Circle, especially Base, Canton, and NEAR, before adding them to blockchain.json",
+    "Check holder distribution or top-holder concentration from explorers or RWA.xyz API for concentration risk scoring",
+    "Run npm run build after confirming the frontend handles analytics-grade assets correctly"
+  ],
+  "notes": "Initial Hashnote USYC import completed successfully as analytics grade. Score is limited mainly by missing custodian evidence, no public legal opinion/prospectus URL, no confirmed PoR, no public audit/report URL, and missing on-chain liquidity evidence."
+}
