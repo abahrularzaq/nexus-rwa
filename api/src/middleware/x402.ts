@@ -348,15 +348,21 @@ async function callFacilitator(
   paymentRequirements: PaymentRequirement,
 ): Promise<FacilitatorResult> {
   const url = `${facilitatorUrl()}/${action}`;
+  const jsonBody = JSON.stringify({
+    x402Version: 1,
+    paymentPayload,
+    paymentRequirements,
+  });
+  const body = Buffer.from(jsonBody, 'utf8');
+
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        x402Version: 1,
-        paymentPayload,
-        paymentRequirements,
-      }),
+      headers: {
+        'content-type': 'application/json',
+        'content-length': String(body.byteLength),
+      },
+      body,
     });
 
     const raw = await res.json().catch(() => null);
