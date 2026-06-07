@@ -175,17 +175,20 @@ function tierPayload(config: EndpointAccessConfig) {
   };
 }
 
+function asciiSafe(value: string): string {
+  return value.replace(/[^\x20-\x7E]/g, '-');
+}
+
 function buildPaymentRequirement(
   path: string,
   config: EndpointAccessConfig,
 ): PaymentRequirement {
-  const plan = TIER_PLANS[config.tier];
   return {
     scheme: 'exact',
     network: getX402Network(),
     maxAmountRequired: config.priceUsdcAtomic,
     resource: path,
-    description: plan.description,
+    description: asciiSafe(`${config.label} access for Nexus RWA ${config.duration}`),
     mimeType: 'application/json',
     payTo: getReceivingAddress(),
     maxTimeoutSeconds: 300,
@@ -348,19 +351,20 @@ async function callFacilitator(
   paymentRequirements: PaymentRequirement,
 ): Promise<FacilitatorResult> {
   const url = `${facilitatorUrl()}/${action}`;
-  const jsonBody = JSON.stringify({
-    x402Version: 1,
-    paymentPayload,
-    paymentRequirements,
-  });
-  const body = Buffer.from(jsonBody, 'utf8');
+  const body = Buffer.from(
+    JSON.stringify({
+      x402Version: 1,
+      paymentPayload,
+      paymentRequirements,
+    }),
+    'utf8',
+  );
 
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'content-length': String(body.byteLength),
       },
       body,
     });
