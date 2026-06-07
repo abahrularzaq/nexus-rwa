@@ -1,1 +1,285 @@
-[]
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Circle USYC",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Circle USYC product page."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "USYC",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official sources use USYC."
+  },
+  {
+    "layer": "identity",
+    "field": "fullName",
+    "value": "US Yield Coin",
+    "sourceUrl": "https://etherscan.io/token/0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+    "sourceType": "official_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Explorer token name."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "USYC is a tokenized money market fund / onchain representation of Hashnote International Short Duration Yield Fund Ltd.",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official product overview."
+  },
+  {
+    "layer": "identity",
+    "field": "category",
+    "value": "Treasury",
+    "sourceUrl": "https://app.rwa.xyz/assets/USYC",
+    "sourceType": "secondary_rwa_dashboard",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz categorizes USYC as U.S. Treasuries / tokenized money market fund."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://www.circle.com/usyc",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Current official product page."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://usyc.docs.hashnote.com/getting-started/introduction",
+    "sourceUrl": "https://usyc.docs.hashnote.com/getting-started/introduction",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official USYC documentation."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Circle International Bermuda Limited",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official page identifies CIBL role."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerCountry",
+    "value": "Bermuda",
+    "sourceUrl": "https://www.lei-lookup.com/record/254900HOS8Z6JFRRCO30",
+    "sourceType": "lei_lookup",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "LEI cross-check for Circle International Bermuda Limited."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Digital representation of a share of Hashnote International Short Duration Yield Fund Ltd., a Cayman Islands registered mutual fund.",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Legal/product structure from official Circle page."
+  },
+  {
+    "layer": "institutional",
+    "field": "minimumInvestment",
+    "value": 100000,
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/investor-onboarding",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Minimum investment from official onboarding documentation."
+  },
+  {
+    "layer": "institutional",
+    "field": "performanceFee",
+    "value": 10,
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/fees",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Performance fee recorded as percent of yield."
+  },
+  {
+    "layer": "institutional",
+    "field": "fundAdmin",
+    "value": "NAV Consulting",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/service-providers",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Fund administrator from official service-provider documentation."
+  },
+  {
+    "layer": "compliance",
+    "field": "kycRequired",
+    "value": true,
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/investor-onboarding",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Onboarding documentation describes KYC/AML checks."
+  },
+  {
+    "layer": "compliance",
+    "field": "sanctionsScreening",
+    "value": true,
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/product-structuring",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Product structuring documentation describes sanctions controls / Chainalysis oracle context."
+  },
+  {
+    "layer": "compliance",
+    "field": "legalOpinionUrl",
+    "value": null,
+    "sourceUrl": "https://www.hashnote.com/legal-disclosures",
+    "sourceType": "official_legal_disclosure",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Legal disclosure page found, but no public legal opinion URL was found."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "US Treasury",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official source describes exposure to short-term U.S. Treasury bills and reverse repos backed by U.S. government securities."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": false,
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/token-price",
+    "sourceType": "official_docs",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Price/NAV oracle documentation was found, but no explicit proof-of-reserves mechanism was found."
+  },
+  {
+    "layer": "reserve",
+    "field": "auditor",
+    "value": "Cohen and Company",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/service-providers",
+    "sourceType": "official_docs",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Auditor from official service-provider documentation; public audit report not found."
+  },
+  {
+    "layer": "reserve",
+    "field": "redemptionAsset",
+    "value": "USDC",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/subscription-and-redemption",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "USYC subscription/redemption documentation identifies USDC flow."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/smart-contracts",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Ethereum USYC contract address from official smart-contract docs."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x8D0fA28f221eB5735BC71d3a0Da67EE5bC821311",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/smart-contracts",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "BNB Smart Chain USYC contract address from official smart-contract docs."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/smart-contracts",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Solana USYC token/account address from official smart-contract docs."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "Issuer redemption via USYC Teller into USDC",
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/subscription-and-redemption",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Subscription and redemption documentation describes USYC Teller flow."
+  },
+  {
+    "layer": "liquidity",
+    "field": "earlyRedemptionFee",
+    "value": 0.03,
+    "sourceUrl": "https://usyc.docs.hashnote.com/overview/fees",
+    "sourceType": "official_docs",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Recorded as 3 bps / 0.03 percent. Check waiver conditions before final institutional scoring."
+  },
+  {
+    "layer": "market",
+    "field": "sources",
+    "value": [
+      "https://app.rwa.xyz/assets/USYC",
+      "https://usyc.hashnote.com/api/price-reports"
+    ],
+    "sourceUrl": "https://app.rwa.xyz/assets/USYC",
+    "sourceType": "secondary_rwa_dashboard",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Market values should be refreshed before import due to time sensitivity."
+  },
+  {
+    "layer": "yield",
+    "field": "yieldType",
+    "value": "Tokenized money market fund yield / short-duration U.S. government securities yield",
+    "sourceUrl": "https://www.circle.com/usyc",
+    "sourceType": "official_product_page",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Yield-bearing collateral and U.S. Treasury/repo exposure described by official sources."
+  },
+  {
+    "layer": "risk",
+    "field": "overallScore",
+    "value": 76,
+    "sourceUrl": "data/assets/hashnote-usyc/source-discovery.md",
+    "sourceType": "internal_analysis",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Evidence-based conservative risk score derived after source-discovery review."
+  }
+]
