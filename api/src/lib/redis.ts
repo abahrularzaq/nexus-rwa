@@ -2,19 +2,18 @@ import { Redis, type RedisOptions } from 'ioredis';
 import { logger } from './logger.js';
 
 let redisClient: Redis | null = null;
+let redisInitLogged = false;
 
 function readRedisUrl(): URL {
   const redisUrl = process.env.REDIS_URL?.trim();
 
   if (!redisUrl || redisUrl.includes('localhost')) {
-    logger.warn('Redis URL tidak diset atau masih localhost — caching dinonaktifkan');
     throw new Error('Redis not configured');
   }
 
   try {
     return new URL(redisUrl);
   } catch {
-    logger.warn('Redis URL invalid — caching/session fallback may be used');
     throw new Error('Invalid Redis URL');
   }
 }
@@ -22,9 +21,10 @@ function readRedisUrl(): URL {
 function buildRedisOptions(url: URL): RedisOptions {
   const isTls = url.protocol === 'rediss:';
   return {
-    maxRetriesPerRequest: 5,
-    connectTimeout: 15_000,
-    commandTimeout: 15_000,
+    maxRetriesPerRequest: 1,
+    connectTimeout: 3_000,
+    commandTimeout: 3_000,
+    enableOfflineQueue: false,
     family: 0,
     tls: isTls
       ? {
@@ -32,8 +32,8 @@ function buildRedisOptions(url: URL): RedisOptions {
         }
       : undefined,
     retryStrategy: (times) => {
-      if (times > 8) return null;
-      return Math.min(times * 750, 3_000);
+      if (times > 2) return null;
+      return Math.min(times * 500, 1_000);
     },
   };
 }
@@ -48,14 +48,17 @@ function getRedisClient(): Redis {
   }
 
   if (!redisClient) {
-    logger.info(
-      {
-        protocol: redisUrl.protocol,
-        host: redisUrl.hostname,
-        port: redisUrl.port || (redisUrl.protocol === 'rediss:' ? '6379' : '6379'),
-      },
-      'Initializing Redis client',
-    );
+    if (!redisInitLogged) {
+      logger.info(
+        {
+          protocol: redisUrl.protocol,
+          host: redisUrl.hostname,
+          port: redisUrl.port || '6379',
+        },
+        'Initializing Redis client',
+      );
+      redisInitLogged = true;
+    }
 
     redisClient = new Redis(process.env.REDIS_URL!.trim(), buildRedisOptions(redisUrl));
 
@@ -87,7 +90,15 @@ function getRedisClient(): Redis {
   return redisClient;
 }
 
-// getCached dengan fallback — jika Redis error, langsung fetch tanpa cache
+export function redisReady(): boolean {
+  try {
+    return getRedisClient().status === 'ready';
+  } catch {
+    return false;
+  }
+}
+
+// getCached dengan fallback — jika Redis error atau belum ready, langsung fetch tanpa cache
 export async function getCached<T>(
   key: string,
   fetcher: () => Promise<T>,
@@ -95,6 +106,15 @@ export async function getCached<T>(
 ): Promise<{ data: T; cached: boolean }> {
   try {
     const client = getRedisClient();
+    if (client.status !== 'ready') {
+      logger.warn(
+        { key, status: client.status },
+        'Redis not ready — bypassing cache',
+      );
+      const data = await fetcher();
+      return { data, cached: false };
+    }
+
     const cached = await client.get(key);
     if (cached) {
       return { data: JSON.parse(cached) as T, cached: true };
