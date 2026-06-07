@@ -1,9 +1,9 @@
 {
   "currentYield": null,
-  "yieldType": "Variable APY",
-  "yieldFrequency": "Compounding / accrual; monthly interest statements available",
-  "yieldBenchmark": "SOFR",
-  "yieldVsBenchmark": -0.5,
+  "yieldType": "Variable lending APY",
+  "yieldFrequency": "Continuous / pool accounting dependent",
+  "yieldBenchmark": "USDC lending yield / private credit yield",
+  "yieldVsBenchmark": null,
   "yieldAvg7d": null,
   "yieldAvg30d": null,
   "yieldAvg90d": null,
@@ -14,13 +14,13 @@
   "yieldCurrency": "USDC",
   "_meta": {
     "dataOwner": "auto-sync",
-    "lastAutoSync": "2026-06-07",
+    "lastAutoSync": null,
     "syncFrequencyHours": 24,
-    "syncProvider": "manual-maple-docs-check",
-    "syncStatus": "manual-refresh",
-    "confidence": "medium",
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": "Maple docs state target net APY is SOFR less fees and expenses; RWA.xyz shows no 7D/30D APY for MPLcashUSDC. yieldVsBenchmark is stored as -0.5 percentage points to reflect the 0.50% management fee shown on RWA.xyz; currentYield remains null."
+    "syncProvider": null,
+    "syncStatus": "needs-source-remap",
+    "confidence": "low",
+    "freshnessStatus": "needs-sync",
+    "status": "corrected-asset-identity",
+    "notes": "Removed MPLcashUSDC SOFR-minus-fee yield logic. mUSDC yield needs fresh verification from Maple app, DeFiLlama, RWA.xyz, or pool-level reporting."
   }
 }
