@@ -1,14 +1,41 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
-  "riskFactors": [],
-  "mitigants": [],
-  "lastAssessed": null,
-  "assessmentMethod": null
+  "overallScore": 76,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 68,
+  "counterpartyRisk": 78,
+  "liquidityRisk": 78,
+  "regulatoryRisk": 72,
+  "marketRisk": 70,
+  "concentrationRisk": 60,
+  "riskFactors": [
+    "USYC is permissioned and transfer-restricted, which supports compliance but limits open secondary-market liquidity and free transferability.",
+    "The public source set does not include a full offering memorandum, public legal opinion, or prospectus URL, so legal/institutional evidence remains partial.",
+    "No explicit on-chain proof-of-reserves oracle, public reserve audit URL, collateralization ratio, or detailed public reserve breakdown was found during source discovery.",
+    "Hashnote/Circle documentation identifies an auditor and service providers, but public audit report date and audit URL were not found.",
+    "Explorers and official docs confirm smart-contract deployments, but a separate public smart contract security audit report was not found.",
+    "AUM, supply, price, holder count, and APY are time-sensitive and require refresh before production import.",
+    "Holder concentration data was not fully verified, so concentration risk should remain conservative.",
+    "Circle product material lists additional networks such as Base, Canton, and NEAR, but official contract-address documentation in source discovery only verified Ethereum, BSC, and Solana mainnet addresses."
+  ],
+  "mitigants": [
+    "USYC has strong official documentation across Circle and Hashnote, including product structure, onboarding, token price, fees, smart contracts, service providers, terms, and legal disclosure pages.",
+    "Official sources describe USYC as exposure to short-term U.S. Treasury bills and reverse repurchase agreements backed by short-term U.S. government securities.",
+    "Circle International Bermuda Limited is identified as token administrator and the product is described in a Cayman Islands registered mutual fund / non-U.S. investor framework.",
+    "KYC/AML onboarding, wallet allowlisting, transfer restrictions, and sanctions-screening controls reduce compliance and illicit-finance risk.",
+    "Ethereum, BSC, and Solana contract addresses are supported by official smart-contract documentation and explorer pages.",
+    "Official price-report API and RWA.xyz provide a pathway to refresh market and yield data before import.",
+    "Issuer redemption through USYC Teller into USDC provides a direct liquidity path for eligible onboarded investors."
+  ],
+  "lastAssessed": "2026-06-07",
+  "assessmentMethod": "source-discovery evidence-based manual review",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "Tier 1 + Tier 2",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "analytic-grade baseline candidate",
+    "notes": "Risk score is conservative. USYC has strong official source coverage and permissioned compliance controls, but public legal opinion, prospectus/offering memorandum, reserve audit, PoR, smart contract audit, and holder concentration evidence remain incomplete."
+  }
 }
