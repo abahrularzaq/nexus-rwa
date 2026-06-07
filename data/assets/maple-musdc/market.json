@@ -6,27 +6,30 @@
   "priceChange24h": null,
   "marketCap": null,
   "volume24h": null,
-  "circulatingSupply": 290.14,
-  "totalSupply": 290.14,
-  "holderCount": 5,
+  "circulatingSupply": null,
+  "totalSupply": null,
+  "holderCount": null,
   "holderChange7d": null,
   "aumUsd": null,
   "lastUpdated": "2026-06-07",
   "sources": [
-    "https://app.rwa.xyz/assets/MPLcashUSDC",
-    "https://etherscan.io/token/0xfe119e9C24ab79F1bDd5dd884B86Ceea2eE75D92",
-    "https://basescan.org/token/0xdd5bb9acf5e02089735a33344c6e3a8bb0d4075d"
+    "https://maple.finance",
+    "https://docs.maple.finance",
+    "https://app.maple.finance",
+    "https://defillama.com",
+    "https://rwa.xyz",
+    "https://etherscan.io/token/0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7"
   ],
-  "confidence": "MEDIUM",
+  "confidence": "LOW",
   "_meta": {
     "dataOwner": "auto-sync",
-    "lastAutoSync": "2026-06-07",
+    "lastAutoSync": null,
     "syncFrequencyHours": 24,
-    "syncProvider": "manual-rwa-xyz-check",
-    "syncStatus": "manual-refresh",
-    "confidence": "medium",
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": "RWA.xyz reports total asset value as $<0.001; stored as null because aumUsd must be numeric or null. Monthly transfer volume is $0 but volume24h remains null."
+    "syncProvider": null,
+    "syncStatus": "needs-source-remap",
+    "confidence": "low",
+    "freshnessStatus": "needs-sync",
+    "status": "corrected-asset-identity",
+    "notes": "Removed MPLcashUSDC market values. Maple USDC Pool / mUSDC market metrics need fresh mapping from Maple app, DeFiLlama, RWA.xyz, or on-chain pool data."
   }
 }
