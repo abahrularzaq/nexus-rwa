@@ -1,5 +1,5 @@
 import type { MiddlewareHandler, Context } from 'hono';
-import { getAddress, isHex, type Hex } from 'viem';
+import { getAddress, isHex } from 'viem';
 import {
   getEndpointAccessConfig,
   type EndpointAccessConfig,
