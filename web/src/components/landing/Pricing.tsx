@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Check, X, Bot } from "lucide-react";
 import { FadeUp } from "@/components/landing/primitives";
 
@@ -11,6 +12,8 @@ type Tier = {
   badge?: string;
   features: { t: string; ok: boolean }[];
   cta: string;
+  href: string;
+  helper: string;
   highlight?: boolean;
 };
 
@@ -29,6 +32,8 @@ const passes: Tier[] = [
       { t: "Historical data and AI insight", ok: false },
     ],
     cta: "Start Free",
+    href: "/dashboard/assets",
+    helper: "Browse the public RWA catalog first.",
   },
   {
     name: "Pro 24h Pass",
@@ -46,6 +51,8 @@ const passes: Tier[] = [
       { t: "History and AI asset insight", ok: true },
     ],
     cta: "Unlock Pro",
+    href: "/dashboard/assets/blackrock-buidl",
+    helper: "Open BUIDL and unlock gated layers with USDC.",
   },
   {
     name: "Enterprise 7d Pass",
@@ -61,6 +68,8 @@ const passes: Tier[] = [
       { t: "Commercial integration path", ok: true },
     ],
     cta: "Start API Access",
+    href: "/dashboard/api-docs",
+    helper: "Review API endpoints for agent and data workflows.",
   },
 ];
 
@@ -68,7 +77,7 @@ export function Pricing() {
   const tiers = passes;
 
   return (
-    <section className="py-24 px-6">
+    <section className="py-24 px-6" id="pricing">
       <div className="max-w-[1400px] mx-auto">
         <FadeUp className="text-center mb-10">
           <h2 className="text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
@@ -85,7 +94,7 @@ export function Pricing() {
           {tiers.map((t, i) => (
             <FadeUp key={t.name} delay={i * 0.05}>
               <div
-                className="relative rounded-xl p-7 h-full"
+                className="relative rounded-xl p-7 h-full flex flex-col"
                 style={{
                   background: "rgba(15,22,41,0.8)",
                   border: t.highlight ? "2px solid var(--accent-cyan)" : "1px solid var(--border-line)",
@@ -102,7 +111,7 @@ export function Pricing() {
                 )}
                 {!t.highlight && t.badge && (
                   <div
-                    className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mb-3"
+                    className="inline-block w-fit px-2 py-0.5 rounded-full text-[10px] font-bold mb-3"
                     style={{ background: "rgba(0,212,255,0.1)", color: "var(--accent-cyan)" }}
                   >
                     {t.badge}
@@ -140,24 +149,30 @@ export function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  className="mt-7 w-full py-3 rounded-[10px] font-bold text-sm transition-all"
-                  style={
-                    t.highlight
-                      ? {
-                          background: "linear-gradient(135deg,#00D4FF,#7C3AED)",
-                          color: "#fff",
-                          boxShadow: "0 0 24px rgba(0,212,255,0.4)",
-                        }
-                      : {
-                          border: "1px solid rgba(0,212,255,0.4)",
-                          color: "var(--accent-cyan)",
-                          background: "transparent",
-                        }
-                  }
-                >
-                  {t.cta}
-                </button>
+                <div className="mt-auto pt-7">
+                  <Link
+                    href={t.href}
+                    className="block w-full py-3 rounded-[10px] font-bold text-sm text-center transition-all hover:-translate-y-0.5"
+                    style={
+                      t.highlight
+                        ? {
+                            background: "linear-gradient(135deg,#00D4FF,#7C3AED)",
+                            color: "#fff",
+                            boxShadow: "0 0 24px rgba(0,212,255,0.4)",
+                          }
+                        : {
+                            border: "1px solid rgba(0,212,255,0.4)",
+                            color: "var(--accent-cyan)",
+                            background: "transparent",
+                          }
+                    }
+                  >
+                    {t.cta}
+                  </Link>
+                  <p className="mt-2 text-center text-xs" style={{ color: "var(--text-muted)" }}>
+                    {t.helper}
+                  </p>
+                </div>
               </div>
             </FadeUp>
           ))}
