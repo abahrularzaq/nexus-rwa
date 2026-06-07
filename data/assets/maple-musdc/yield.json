@@ -2,8 +2,8 @@
   "currentYield": null,
   "yieldType": "Variable APY",
   "yieldFrequency": "Compounding / accrual; monthly interest statements available",
-  "yieldBenchmark": "Secured Overnight Financing Rate (SOFR)",
-  "yieldVsBenchmark": "SOFR less Maple Protocol Fees and Borrower Fees totaling 50 bps annualized for USDC lenders",
+  "yieldBenchmark": "SOFR",
+  "yieldVsBenchmark": -0.5,
   "yieldAvg7d": null,
   "yieldAvg30d": null,
   "yieldAvg90d": null,
@@ -14,13 +14,13 @@
   "yieldCurrency": "USDC",
   "_meta": {
     "dataOwner": "auto-sync",
-    "lastAutoSync": null,
+    "lastAutoSync": "2026-06-07",
     "syncFrequencyHours": 24,
-    "syncProvider": null,
-    "syncStatus": "not-configured",
-    "confidence": null,
-    "freshnessStatus": "needs-sync",
-    "status": "needs-sync",
-    "notes": null
+    "syncProvider": "manual-maple-docs-check",
+    "syncStatus": "manual-refresh",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Maple docs state target net APY is SOFR less fees and expenses; RWA.xyz shows no 7D/30D APY for MPLcashUSDC. yieldVsBenchmark is stored as -0.5 percentage points to reflect the 0.50% management fee shown on RWA.xyz; currentYield remains null."
   }
 }
