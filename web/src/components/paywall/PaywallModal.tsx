@@ -99,7 +99,7 @@ export type PaywallModalProps = {
   onClose: () => void;
   x402Data: X402Details;
   requiredTier?: AccessTier;
-  onPaymentSuccess: (txHash: string) => void;
+  onPaymentSuccess: (paymentHeader: string) => void;
 };
 
 export function PaywallModal({
@@ -121,7 +121,7 @@ export function PaywallModal({
   const {
     isPaying,
     isConfirming,
-    txHash,
+    txHash: paymentHeader,
     error,
     initiatePayment,
     paymentStatus,
@@ -154,8 +154,6 @@ export function PaywallModal({
   );
 
   const needSwitch = isConnected && chainId !== expectedChainId;
-  const isUsdcCheckout = effectiveX402.currency.toUpperCase() === "USDC";
-  const canUseLegacyEthPayment = effectiveX402.currency.toUpperCase() === "ETH";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -172,13 +170,13 @@ export function PaywallModal({
   useEffect(() => {
     if (
       paymentStatus === "success" &&
-      txHash &&
+      paymentHeader &&
       !successNotified.current
     ) {
       successNotified.current = true;
-      onPaymentSuccess(txHash);
+      onPaymentSuccess(paymentHeader);
     }
-  }, [paymentStatus, txHash, onPaymentSuccess]);
+  }, [paymentStatus, paymentHeader, onPaymentSuccess]);
 
   const balanceLabel = useMemo(() => {
     if (!balance) return "—";
@@ -188,35 +186,31 @@ export function PaywallModal({
     return `${v.toFixed(digits)} ${balance.symbol}`;
   }, [balance]);
 
-  const onPay = useCallback(() => {
+  const onPay = useCallback(async () => {
     if (!isAddress(effectiveX402.recipient)) {
       setBillingInvalid(true);
       return;
     }
-    if (isUsdcCheckout) {
-      setBillingInvalid(true);
-      return;
-    }
-    if (!canUseLegacyEthPayment) {
-      setBillingInvalid(true);
-      return;
-    }
     setBillingInvalid(false);
-    initiatePayment(effectiveX402);
-  }, [canUseLegacyEthPayment, initiatePayment, effectiveX402, isUsdcCheckout]);
+    try {
+      await initiatePayment(effectiveX402);
+    } catch {
+      setBillingInvalid(true);
+    }
+  }, [initiatePayment, effectiveX402]);
 
   const statusHint = useMemo(() => {
     if (paymentStatus === "confirming" || isConfirming) {
-      return "Konfirmasi di wallet…";
+      return "Tanda tangani authorization USDC di wallet…";
     }
     if (paymentStatus === "mining") {
-      return "Menunggu konfirmasi on-chain…";
+      return "Menyiapkan header X-Payment…";
     }
     if (paymentStatus === "success") {
-      return "Pembayaran berhasil — session aktif.";
+      return "Authorization berhasil dibuat — membuka akses…";
     }
     if (paymentStatus === "error") {
-      return error?.message ?? "Transaksi gagal.";
+      return error?.message ?? "Checkout gagal.";
     }
     return null;
   }, [paymentStatus, isConfirming, error]);
@@ -277,17 +271,14 @@ export function PaywallModal({
         <span className="font-medium tabular-nums">{balanceLabel}</span>
       </div>
 
-      {isUsdcCheckout ? (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
-          USDC pricing sudah aktif. Checkout x402 facilitator akan dihubungkan
-          pada step berikutnya sebelum pembayaran USDC diterima.
-        </div>
-      ) : null}
+      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
+        Checkout memakai USDC x402 authorization. Wallet akan meminta tanda tangan,
+        lalu API akan memverifikasi dan settle lewat facilitator.
+      </div>
 
       {billingInvalid ? (
         <p className="text-sm text-destructive">
-          Checkout USDC belum diaktifkan. Lanjutkan integrasi facilitator x402
-          sebelum menerima pembayaran.
+          Checkout gagal atau metadata payment tidak valid.
         </p>
       ) : null}
 
@@ -328,7 +319,7 @@ export function PaywallModal({
         <Button
           type="button"
           className="w-full"
-          disabled={isPaying || paymentStatus === "success" || isUsdcCheckout}
+          disabled={isPaying || paymentStatus === "success"}
           onClick={onPay}
         >
           {isPaying ? (
@@ -338,8 +329,6 @@ export function PaywallModal({
                 ? "Menunggu tanda tangan…"
                 : "Memproses…"}
             </>
-          ) : isUsdcCheckout ? (
-            "USDC checkout coming next"
           ) : (
             `Pay ${effectiveX402.price} ${effectiveX402.currency} & unlock ${payTier.toUpperCase()}`
           )}
