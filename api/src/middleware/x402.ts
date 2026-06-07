@@ -202,7 +202,7 @@ function buildPaymentRequirement(
     maxTimeoutSeconds: 300,
     asset: getUsdcAddress(),
     extra: {
-      name: 'USD Coin',
+      name: 'USDC',
       version: '2',
       decimals: config.settlementDecimals,
       tier: config.tier,
