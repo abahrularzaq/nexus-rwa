@@ -3,8 +3,21 @@ import { logger } from './logger.js';
 
 let redisClient: Redis | null = null;
 let redisInitLogged = false;
+let redisDisabledLogged = false;
+
+function redisEnabled(): boolean {
+  return process.env.REDIS_ENABLED?.trim().toLowerCase() === 'true';
+}
 
 function readRedisUrl(): URL {
+  if (!redisEnabled()) {
+    if (!redisDisabledLogged) {
+      logger.info('Redis disabled — using direct fetch/Postgres session fallback');
+      redisDisabledLogged = true;
+    }
+    throw new Error('Redis disabled');
+  }
+
   const redisUrl = process.env.REDIS_URL?.trim();
 
   if (!redisUrl || redisUrl.includes('localhost')) {
@@ -92,13 +105,13 @@ function getRedisClient(): Redis {
 
 export function redisReady(): boolean {
   try {
-    return getRedisClient().status === 'ready';
+    return redisEnabled() && getRedisClient().status === 'ready';
   } catch {
     return false;
   }
 }
 
-// getCached dengan fallback — jika Redis error atau belum ready, langsung fetch tanpa cache
+// getCached dengan fallback — jika Redis error, disabled, atau belum ready, langsung fetch tanpa cache
 export async function getCached<T>(
   key: string,
   fetcher: () => Promise<T>,
@@ -123,14 +136,6 @@ export async function getCached<T>(
     await client.setex(key, ttlSeconds, JSON.stringify(data));
     return { data, cached: false };
   } catch (err) {
-    // Redis tidak tersedia — fetch langsung tanpa cache
-    logger.warn(
-      {
-        key,
-        error: err instanceof Error ? err.message : String(err),
-      },
-      'Cache miss (Redis unavailable)',
-    );
     const data = await fetcher();
     return { data, cached: false };
   }
