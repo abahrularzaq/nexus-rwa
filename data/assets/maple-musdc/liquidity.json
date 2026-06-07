@@ -1,22 +1,22 @@
 {
-  "redemptionType": "Request-based primary withdrawal; daily liquidity on U.S. banking days",
-  "redemptionPeriodDays": 1,
-  "lockupPeriodDays": 0,
-  "earlyRedemptionFee": 0,
-  "minRedemptionAmount": null,
+  "redemptionType": "Pool withdrawal subject to available liquidity",
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": 100000,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": 55,
-  "liquidityNotes": "Maple docs state withdrawals are processed within 24 hours on U.S. banking days and may be serviced faster where liquidity is available. RWA.xyz shows $0 monthly transfer volume and no visible secondary market liquidity, so the score remains conservative despite T+1-style primary redemption.",
+  "liquidityScore": 60,
+  "liquidityNotes": "Legacy seed describes Maple USDC Pool withdrawals as subject to pool liquidity and notes a possible 30-day maximum time-to-liquidity for full-pool withdrawal. This requires fresh verification from Maple pool docs/app before production use.",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": "Tier 1 / Tier 2",
-    "confidence": "medium",
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": "minRedemptionAmount is null because RWA.xyz lists primary min investment, not a minimum redemption amount."
+    "sourceTier": "repo-seed / legacy-master",
+    "confidence": "low-medium",
+    "freshnessStatus": "needs-refresh",
+    "status": "corrected-asset-identity",
+    "notes": "Removed Cash Management Pool daily banking-day redemption logic."
   }
 }
