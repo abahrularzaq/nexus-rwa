@@ -13,12 +13,62 @@ import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 import type { ApiResponse, RiskData } from "@/lib/shared";
 
+type GatedRiskPayload = RiskData | {
+  risk?: {
+    overallScore?: number | null;
+    overallLevel?: string | null;
+    riskFactors?: string[] | null;
+    lastAssessed?: string | null;
+  } | null;
+  grade?: unknown;
+};
+
 function toRiskLevel(level: string | undefined): RiskBadgeProps["level"] {
   const u = (level ?? "MEDIUM").toUpperCase();
   if (u === "LOW" || u === "MEDIUM" || u === "HIGH" || u === "CRITICAL") {
     return u;
   }
   return "MEDIUM";
+}
+
+function normalizeRiskLevel(level: string | null | undefined): RiskData["level"] {
+  const u = (level ?? "MEDIUM").toUpperCase();
+  if (u === "LOW") return "LOW";
+  if (u === "HIGH" || u === "CRITICAL") return "HIGH";
+  return "MEDIUM";
+}
+
+function toRiskData(payload: GatedRiskPayload | null | undefined, fallback: RiskData | null): RiskData | null {
+  if (!payload || typeof payload !== "object") return fallback;
+
+  if (
+    "score" in payload &&
+    typeof payload.score === "number" &&
+    "level" in payload &&
+    typeof payload.level === "string"
+  ) {
+    return payload as RiskData;
+  }
+
+  if ("risk" in payload) {
+    const risk = payload.risk;
+    if (!risk) return fallback;
+    return {
+      assetId: fallback?.assetId ?? "unknown",
+      score: risk.overallScore ?? fallback?.score ?? 50,
+      level: normalizeRiskLevel(risk.overallLevel),
+      factors: risk.riskFactors ?? fallback?.factors ?? [],
+      updatedAt: risk.lastAssessed ?? fallback?.updatedAt ?? null,
+      _meta: fallback?._meta ?? {
+        sources: ["nexus-risk"],
+        lastUpdated: risk.lastAssessed ?? new Date().toISOString(),
+        confidence: "MEDIUM",
+        methodology: "Nexus risk + grade endpoint",
+      },
+    };
+  }
+
+  return fallback;
 }
 
 function gaugeColor(score: number): string {
@@ -28,7 +78,7 @@ function gaugeColor(score: number): string {
 }
 
 function RiskGauge({ score, level }: { score: number; level: string }) {
-  const clamped = Math.min(100, Math.max(0, score));
+  const clamped = Math.min(100, Math.max(0, Number.isFinite(score) ? score : 50));
   const stroke = gaugeColor(clamped);
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
@@ -123,6 +173,7 @@ function RiskAnalysisContent({
     yieldPct <= 1 && yieldPct >= 0 ? yieldPct * 100 : yieldPct;
   const vsAvg =
     categoryAvgPct != null ? displayYield - categoryAvgPct : null;
+  const factors = Array.isArray(risk.factors) ? risk.factors : [];
 
   return (
     <div className="space-y-6">
@@ -136,9 +187,9 @@ function RiskAnalysisContent({
             </span>
           </div>
 
-          {risk.factors.length > 0 ? (
+          {factors.length > 0 ? (
             <ul className="mt-5 space-y-2.5">
-              {risk.factors.map((factor) => (
+              {factors.map((factor) => (
                 <li
                   key={factor}
                   className="flex items-start gap-2.5 text-sm text-[#FFB800]"
@@ -249,10 +300,10 @@ export function GatedRiskAnalysisSection({
         )}
       >
         {(payload) => {
-          const body = payload as ApiResponse<RiskData>;
+          const body = payload as ApiResponse<GatedRiskPayload>;
           const risk =
             body && typeof body === "object" && "success" in body && body.success
-              ? body.data
+              ? toRiskData(body.data, initialRisk)
               : initialRisk;
           if (!risk) {
             return <p className="text-sm text-[#8892A4]">Risk data unavailable.</p>;
