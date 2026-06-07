@@ -11,7 +11,22 @@
   "holderCount": null,
   "holderChange7d": null,
   "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null
+  "lastUpdated": "2026-06-07",
+  "sources": [
+    "https://app.rwa.xyz/assets/USYC",
+    "https://usyc.hashnote.com/api/price-reports",
+    "https://etherscan.io/token/0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
+    "https://bscscan.com/token/0x8D0fA28f221eB5735BC71d3a0Da67EE5bC821311"
+  ],
+  "confidence": "medium",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 7,
+    "sourceTier": "Tier 1 + Tier 2",
+    "confidence": "medium",
+    "freshnessStatus": "needs-refresh-before-import",
+    "status": "partial",
+    "notes": "Market data sources were identified but current numeric values were intentionally left null because AUM, price, supply, holders, and APY are time-sensitive and should be refreshed directly from RWA.xyz, the Hashnote price-reports API, and explorers immediately before production import. Source-discovery confirms these are available sources but not stable baseline constants."
+  }
 }
