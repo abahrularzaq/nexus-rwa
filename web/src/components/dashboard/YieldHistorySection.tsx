@@ -10,6 +10,7 @@ import {
 import type {
   ApiResponse,
   YieldHistoryPeriod,
+  YieldHistoryPoint,
   YieldHistoryResponse,
 } from "@/lib/shared";
 
@@ -18,6 +19,25 @@ const PERIODS: { key: YieldHistoryPeriod; label: string }[] = [
   { key: "30d", label: "30D" },
   { key: "90d", label: "90D" },
 ];
+
+type HistoryApiData = YieldHistoryResponse | YieldHistoryPoint[];
+
+function normalizeHistoryData(
+  data: HistoryApiData | null | undefined,
+): { history: YieldHistoryPoint[]; limitedHistory: boolean } {
+  if (Array.isArray(data)) {
+    return { history: data, limitedHistory: data.length > 0 && data.length < 7 };
+  }
+
+  if (data && typeof data === "object" && Array.isArray(data.history)) {
+    return {
+      history: data.history,
+      limitedHistory: Boolean(data.limited_history),
+    };
+  }
+
+  return { history: [], limitedHistory: false };
+}
 
 export type YieldHistorySectionProps = {
   apiBaseUrl: string;
@@ -75,19 +95,21 @@ export function YieldHistorySection({
           )}
         >
           {(payload) => {
-            const body = payload as ApiResponse<YieldHistoryResponse>;
+            const body = payload as ApiResponse<HistoryApiData>;
             if (!body || typeof body !== "object" || !("success" in body)) {
               return <YieldChart data={[]} period={period} isLocked={false} />;
             }
             if (!body.success) {
               return <p className="text-sm text-[#FF8888]">{body.error.message}</p>;
             }
+
+            const { history, limitedHistory } = normalizeHistoryData(body.data);
             return (
               <YieldChart
-                data={body.data.history}
+                data={history}
                 period={period}
                 isLocked={false}
-                limitedHistory={body.data.limited_history}
+                limitedHistory={limitedHistory}
               />
             );
           }}
