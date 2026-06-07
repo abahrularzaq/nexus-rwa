@@ -34,7 +34,7 @@ const passes: Tier[] = [
     name: "Pro 24h Pass",
     price: "$3",
     per: "/24h",
-    sub: "Current x402 settlement: 0.001 ETH",
+    sub: "x402 settlement target: 3.00 USDC",
     badge: "ANALYST ACCESS",
     highlight: true,
     features: [
@@ -51,7 +51,7 @@ const passes: Tier[] = [
     name: "Enterprise 7d Pass",
     price: "$29",
     per: "/7d",
-    sub: "Current x402 settlement: 0.01 ETH",
+    sub: "x402 settlement target: 29.00 USDC",
     features: [
       { t: "Everything in Pro", ok: true },
       { t: "Bulk analytics endpoint", ok: true },
@@ -72,10 +72,10 @@ export function Pricing() {
       <div className="max-w-[1400px] mx-auto">
         <FadeUp className="text-center mb-10">
           <h2 className="text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            x402 Access Passes
+            x402 USDC Access Passes
           </h2>
           <p className="mt-3 text-base max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Unlock institutional RWA data with x402 access passes. Free for discovery,
+            Unlock institutional RWA data with USDC-based x402 access passes. Free for discovery,
             Pro 24h for analyst-grade profiles, and Enterprise 7d for API, export,
             and AI-agent workflows.
           </p>
@@ -174,9 +174,9 @@ export function Pricing() {
             <Bot size={22} style={{ color: "var(--accent-cyan)" }} className="shrink-0" />
             <p className="text-sm" style={{ color: "#CBD5E1" }}>
               <strong className="text-white">Building an AI Agent?</strong> Enterprise unlocks bulk export,
-              Ask Nexus, and machine-readable institutional RWA data. Current x402 responses also expose
-              <span className="font-mono"> pricing.displayPrice</span> and <span className="font-mono">priceUsd</span>
-              for clean frontend display.
+              Ask Nexus, and machine-readable institutional RWA data. Current x402 responses expose
+              <span className="font-mono"> pricing.displayPrice</span>, <span className="font-mono">priceUsd</span>, and <span className="font-mono">priceUsdcAtomic</span>
+              for clean frontend and agent display.
             </p>
           </div>
         </FadeUp>
