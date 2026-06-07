@@ -1,8 +1,8 @@
 {
-  "currentYield": null,
+  "currentYield": 5.1,
   "yieldType": "Variable lending APY",
   "yieldFrequency": "Continuous / pool accounting dependent",
-  "yieldBenchmark": "USDC lending yield / private credit yield",
+  "yieldBenchmark": "USDC private credit lending yield",
   "yieldVsBenchmark": null,
   "yieldAvg7d": null,
   "yieldAvg30d": null,
@@ -13,14 +13,14 @@
   "nextYieldDate": null,
   "yieldCurrency": "USDC",
   "_meta": {
-    "dataOwner": "auto-sync",
+    "dataOwner": "manual-research",
     "lastAutoSync": null,
     "syncFrequencyHours": 24,
-    "syncProvider": null,
-    "syncStatus": "needs-source-remap",
-    "confidence": "low",
-    "freshnessStatus": "needs-sync",
-    "status": "corrected-asset-identity",
-    "notes": "Removed MPLcashUSDC SOFR-minus-fee yield logic. mUSDC yield needs fresh verification from Maple app, DeFiLlama, RWA.xyz, or pool-level reporting."
+    "syncProvider": "manual-maple-official-check",
+    "syncStatus": "manual-refresh",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Maple official page reports Net APY of 5.1% for Maple Institutional - Secured Lending. Historical yield averages remain null until an API/time-series source is mapped."
   }
 }
