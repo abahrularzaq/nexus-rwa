@@ -1,4 +1,5 @@
 import { getAddress } from 'viem';
+import { db } from './database.js';
 import { redis, redisReady } from './redis.js';
 import { logger } from './logger.js';
 import type { AccessTier } from '../middleware/x402/pricer.js';
@@ -10,7 +11,14 @@ export type StoredSession = {
   expiresAt: number;
 };
 
+type SessionRow = {
+  tier: string;
+  granted_at: bigint | number;
+  expires_at: bigint | number;
+};
+
 const memorySessions = new Map<string, StoredSession>();
+let dbSessionTableReady: Promise<void> | null = null;
 
 function sessionKey(tier: 'pro' | 'enterprise', wallet: string): string {
   return `session:${tier}:${getAddress(wallet)}`;
@@ -38,6 +46,93 @@ function readMemorySession(
   return session;
 }
 
+async function ensureDbSessionTable(): Promise<void> {
+  if (!dbSessionTableReady) {
+    dbSessionTableReady = db.$executeRaw`
+      CREATE TABLE IF NOT EXISTS x402_sessions (
+        wallet TEXT NOT NULL,
+        tier TEXT NOT NULL,
+        granted_at BIGINT NOT NULL,
+        expires_at BIGINT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (wallet, tier)
+      )
+    `.then(() => undefined);
+  }
+  return dbSessionTableReady;
+}
+
+async function writeDbSession(
+  wallet: string,
+  tier: 'pro' | 'enterprise',
+  session: StoredSession,
+): Promise<boolean> {
+  try {
+    await ensureDbSessionTable();
+    await db.$executeRaw`
+      INSERT INTO x402_sessions (wallet, tier, granted_at, expires_at, updated_at)
+      VALUES (${wallet}, ${tier}, ${session.grantedAt}, ${session.expiresAt}, NOW())
+      ON CONFLICT (wallet, tier)
+      DO UPDATE SET
+        granted_at = EXCLUDED.granted_at,
+        expires_at = EXCLUDED.expires_at,
+        updated_at = NOW()
+    `;
+    logger.info(
+      { wallet, tier, expiresAt: session.expiresAt },
+      'x402 tier session granted in Postgres',
+    );
+    return true;
+  } catch (err) {
+    logger.warn(
+      {
+        wallet,
+        tier,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      'x402 Postgres session grant failed; using fallback stores',
+    );
+    return false;
+  }
+}
+
+async function readDbSession(
+  wallet: string,
+  tier: 'pro' | 'enterprise',
+): Promise<StoredSession | null> {
+  try {
+    await ensureDbSessionTable();
+    const rows = await db.$queryRaw<SessionRow[]>`
+      SELECT tier, granted_at, expires_at
+      FROM x402_sessions
+      WHERE wallet = ${wallet}
+        AND tier = ${tier}
+        AND expires_at > ${Date.now()}
+      LIMIT 1
+    `;
+    const row = rows[0];
+    if (!row) return null;
+
+    const session: StoredSession = {
+      tier: row.tier === 'enterprise' ? 'enterprise' : 'pro',
+      grantedAt: Number(row.granted_at),
+      expiresAt: Number(row.expires_at),
+    };
+    writeMemorySession(session.tier, wallet, session);
+    return session;
+  } catch (err) {
+    logger.warn(
+      {
+        wallet,
+        tier,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      'x402 Postgres session read failed; checking fallback stores',
+    );
+    return null;
+  }
+}
+
 export function normalizeWallet(wallet: string): string | null {
   try {
     return getAddress(wallet.trim());
@@ -59,11 +154,12 @@ export async function grantTierSession(
   const payload: StoredSession = { tier, grantedAt, expiresAt };
 
   writeMemorySession(tier, addr, payload);
+  await writeDbSession(addr, tier, payload);
 
   if (!redisReady()) {
     logger.warn(
       { wallet: addr, tier, expiresAt },
-      'x402 Redis not ready during session grant; using in-memory fallback',
+      'x402 Redis not ready during session grant; Postgres/memory session is active',
     );
     return payload;
   }
@@ -81,7 +177,7 @@ export async function grantTierSession(
         expiresAt,
         error: err instanceof Error ? err.message : String(err),
       },
-      'x402 Redis session grant failed; using in-memory fallback',
+      'x402 Redis session grant failed; Postgres/memory session is active',
     );
     return payload;
   }
@@ -96,6 +192,9 @@ async function readSession(
 
   const memorySession = readMemorySession(tier, addr);
   if (memorySession) return memorySession;
+
+  const dbSession = await readDbSession(addr, tier);
+  if (dbSession) return dbSession;
 
   if (!redisReady()) {
     return null;
@@ -117,7 +216,7 @@ async function readSession(
         tier,
         error: err instanceof Error ? err.message : String(err),
       },
-      'x402 Redis session read failed; checking in-memory fallback',
+      'x402 Redis session read failed; checking fallback stores',
     );
   }
 
