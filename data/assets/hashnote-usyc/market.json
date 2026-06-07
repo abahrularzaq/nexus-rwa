@@ -1,22 +1,22 @@
 {
-  "tvl": null,
+  "tvl": 2826060131,
   "tvl7dChange": null,
-  "tvl30dChange": null,
-  "price": null,
+  "tvl30dChange": -5.31,
+  "price": 1.1258,
   "priceChange24h": null,
-  "marketCap": null,
+  "marketCap": 2826832789,
   "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
-  "holderCount": null,
+  "circulatingSupply": 2507143904.65,
+  "totalSupply": 2507143904.65,
+  "holderCount": 43,
   "holderChange7d": null,
-  "aumUsd": null,
+  "aumUsd": 2826060131,
   "lastUpdated": "2026-06-07",
   "sources": [
     "https://app.rwa.xyz/assets/USYC",
-    "https://usyc.hashnote.com/api/price-reports",
     "https://etherscan.io/token/0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b",
-    "https://bscscan.com/token/0x8D0fA28f221eB5735BC71d3a0Da67EE5bC821311"
+    "https://bscscan.com/token/0x8D0fA28f221eB5735BC71d3a0Da67EE5bC821311",
+    "https://www.circle.com/usyc"
   ],
   "confidence": "medium",
   "_meta": {
@@ -25,8 +25,8 @@
     "reviewFrequencyDays": 7,
     "sourceTier": "Tier 1 + Tier 2",
     "confidence": "medium",
-    "freshnessStatus": "needs-refresh-before-import",
-    "status": "partial",
-    "notes": "Market data sources were identified but current numeric values were intentionally left null because AUM, price, supply, holders, and APY are time-sensitive and should be refreshed directly from RWA.xyz, the Hashnote price-reports API, and explorers immediately before production import. Source-discovery confirms these are available sources but not stable baseline constants."
+    "freshnessStatus": "current-snapshot",
+    "status": "current",
+    "notes": "Market snapshot uses RWA.xyz as the primary aggregate source for total asset value, 30d change, price, token supply, circulating supply, holders, and APY-linked context. marketCap uses Etherscan's circulating supply market cap as an explicit market-cap proxy, while tvl/aumUsd use RWA.xyz Total Asset Value. volume24h, 24h price change, 7d TVL change, and 7d holder change were not clearly verified and remain null. RWA.xyz and Circle showed different AUM figures; RWA.xyz was preferred for market.json because it provides aggregate market fields and supply breakdown."
   }
 }
