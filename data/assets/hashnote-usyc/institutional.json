@@ -1,0 +1,15 @@
+{
+  "issuerName": null,
+  "issuerType": null,
+  "issuerCountry": null,
+  "fundManager": null,
+  "legalStructure": null,
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": null,
+  "prospectusUrl": null,
+  "metadata": {}
+}
