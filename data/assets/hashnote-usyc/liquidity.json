@@ -1,12 +1,22 @@
 {
-  "redemptionType": null,
-  "redemptionPeriodDays": null,
+  "redemptionType": "Issuer redemption via USYC Teller into USDC",
+  "redemptionPeriodDays": 1,
   "lockupPeriodDays": null,
-  "earlyRedemptionFee": null,
+  "earlyRedemptionFee": 0.03,
   "minRedemptionAmount": null,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": null
+  "liquidityScore": 78,
+  "liquidityNotes": "Official documentation describes onchain subscription and redemption through USYC Teller using USDC. Circle/Hashnote sources indicate liquidity can settle in one block below available instant-redemption capacity and T+0/T+1 above that capacity. Exact capacity, thresholds, private liquidity terms, and official minimum redemption amount were not publicly verified. Redemption fee is recorded as 3 bps from official fee documentation, represented here as 0.03 percent.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-07",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "Tier 1 + Tier 2",
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "partial",
+    "notes": "Liquidity is strong for permissioned issuer redemption but not fully transparent for open secondary-market liquidity. liquidityScore is conservative because instant capacity, thresholds, bid-ask spread, DEX liquidity, and minimum redemption amount are incomplete."
+  }
 }
