@@ -1,39 +1,36 @@
 {
-  "issuerName": "Maple Protocol Pool Operations",
-  "issuerType": "Private/exempt offering pool operator",
-  "issuerCountry": "United States",
-  "fundManager": "Room40 Capital",
-  "legalStructure": "Permissioned Maple Cash Management Pool lending arrangement. Eligible lenders deposit USDC and receive MPLcashUSDC pool LP tokens; the pool lends to Room40 Capital's standalone single-purpose borrower SPV, which invests in U.S. Treasury bills and Treasury-bill-collateralized reverse repurchase agreements.",
+  "issuerName": "Maple Finance",
+  "issuerType": "Protocol-native institutional credit platform",
+  "issuerCountry": "Cayman Islands",
+  "fundManager": "Maple Labs / pool delegates",
+  "legalStructure": "Maple protocol lending pool structure where lenders supply USDC and receive mUSDC pool tokens representing exposure to borrower credit and pool liquidity.",
   "minimumInvestment": 100000,
-  "managementFee": 0.5,
-  "performanceFee": 0,
+  "managementFee": null,
+  "performanceFee": null,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": "U.S. accredited investors / eligible accredited investors subject to KYC and AML screening",
-  "prospectuUrl": "https://downloads.eth.maple.finance/docs/legal/abe08ded-5d07-42cf-b435-a0d8d8156ca5/Cash_Mngt_T%26C.pdf",
+  "targetInvestors": "Institutional / qualified lenders subject to Maple onboarding and pool-specific eligibility rules",
+  "prospectuUrl": null,
   "metadata": {
-    "borrower": "R40-T1 LLC",
-    "borrowerType": "Standalone single-purpose vehicle of Room40 Capital",
-    "assetManagerContext": "Maple Institutional / Cash Management Pool",
-    "minimumInvestmentRaw": "100,000 USDC",
-    "managementFeeRaw": "0.50%",
-    "performanceFeeRaw": "0%",
-    "traditionalBroker": "StoneX",
-    "custodianSourceNote": "RWA.xyz lists J.P. Morgan as custodian and StoneX as traditional broker; Maple official docs describe use of a regulated broker / prime brokerage account without naming it in the parsed page.",
+    "legacySeedSlug": "maple-usdc",
+    "legacyFolderSlug": "maple-musdc",
+    "legacyMasterPath": "asset/maple-usdc-pool/master.md",
+    "legacySeedNotes": "api/prisma/seed.ts previously defines maple-usdc as Maple USDC Pool with symbol mUSDC, Credit category, and Ethereum contract 0x36d8c79B4c18D3b39d9aA27C7Fde5f04CeBc9D7.",
     "dataGaps": [
-      "No public legal opinion URL found.",
-      "No public independent reserve audit or attestation found.",
-      "No current primary-market APY value captured for MPLcashUSDC."
+      "Fresh official pool-level legal documents not yet mapped.",
+      "Pool delegate and borrower roster need current verification.",
+      "Minimum investment requires fresh verification from Maple app or docs.",
+      "Management/performance fees require fresh verification."
     ]
   },
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 30,
-    "sourceTier": "Tier 1 / Tier 2",
-    "confidence": "medium",
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": "Numeric fields normalized for import: minimumInvestment=100000, managementFee=0.5, performanceFee=0."
+    "sourceTier": "repo-seed / legacy-master",
+    "confidence": "low-medium",
+    "freshnessStatus": "needs-refresh",
+    "status": "corrected-asset-identity",
+    "notes": "Removed Cash Management Pool / MPLcashUSDC legal structure. Needs fresh source discovery for the exact Maple USDC Pool variant."
   }
 }
