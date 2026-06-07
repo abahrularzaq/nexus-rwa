@@ -1,25 +1,25 @@
 {
-  "currentYield": null,
-  "yieldType": "Tokenized money market fund yield / short-duration U.S. government securities yield",
+  "currentYield": 3.18,
+  "yieldType": "Tokenized money market fund yield / short-duration U.S. government securities and reverse repo yield",
   "yieldFrequency": "Business-day price/NAV reporting; yield accrues through fund activity",
   "yieldBenchmark": null,
   "yieldVsBenchmark": null,
-  "yieldAvg7d": null,
-  "yieldAvg30d": null,
+  "yieldAvg7d": 3.18,
+  "yieldAvg30d": 3.13,
   "yieldAvg90d": null,
   "yieldMin52w": null,
   "yieldMax52w": null,
   "yieldStdDev30d": null,
   "nextYieldDate": null,
-  "yieldCurrency": "USD / USDC",
+  "yieldCurrency": "USD",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-07",
     "reviewFrequencyDays": 7,
     "sourceTier": "Tier 1 + Tier 2",
     "confidence": "medium",
-    "freshnessStatus": "needs-refresh-before-import",
+    "freshnessStatus": "current-snapshot",
     "status": "partial",
-    "notes": "Yield type, reporting cadence, and currency are source-backed. Current yield and historical yield metrics are time-sensitive and should be refreshed from RWA.xyz and/or Hashnote price-report data immediately before import. No explicit benchmark, yield-vs-benchmark, 90d APY, 52w min/max, or 30d standard deviation was verified in source-discovery."
+    "notes": "currentYield uses RWA.xyz 7D APY as the current yield proxy because it is the clearest current APY value in the reviewed market dashboard. yieldAvg7d and yieldAvg30d are also sourced from RWA.xyz. Official Hashnote/Circle docs support the yield type and business-day price/NAV reporting cadence, but not all historical yield fields. Benchmark, 90d APY, 52w min/max, yield-vs-benchmark, 30d standard deviation, and next yield date remain null because they were not clearly verified."
   }
 }
