@@ -1,0 +1,12 @@
+{
+  "redemptionType": "secondary_market",
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": 0,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": null,
+  "dexPairs": [],
+  "onchainLiquidity": null,
+  "bidAskSpread": null,
+  "liquidityScore": 55,
+  "liquidityNotes": "CFG is a freely transferable governance/utility token with secondary-market liquidity, not a redeemable RWA claim token. Liquidity score is conservative because redemption mechanics, on-chain liquidity depth, and bid-ask spread are not fully mapped in this dataset version."
+}
