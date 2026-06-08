@@ -1,0 +1,21 @@
+{
+  "tvl": 1383768823,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": 0.2072,
+  "priceChange24h": 4.1,
+  "marketCap": 78792622,
+  "volume24h": 7667108.21,
+  "circulatingSupply": 380384016,
+  "totalSupply": 697164473,
+  "holderCount": null,
+  "holderChange7d": null,
+  "aumUsd": null,
+  "lastUpdated": "2026-06-08T00:00:00.000Z",
+  "sources": [
+    "https://defillama.com/protocol/centrifuge",
+    "https://www.coingecko.com/en/coins/centrifuge",
+    "https://docs.centrifuge.io/getting-started/token-summary/"
+  ],
+  "confidence": "MEDIUM"
+}
