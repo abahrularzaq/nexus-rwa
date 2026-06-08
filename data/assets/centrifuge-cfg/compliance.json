@@ -9,5 +9,15 @@
   "sanctionsScreening": false,
   "amlPolicy": null,
   "lastComplianceCheck": "2026-06-08T00:00:00.000Z",
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-08",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

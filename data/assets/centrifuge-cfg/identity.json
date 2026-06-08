@@ -17,5 +17,15 @@
     "defi"
   ],
   "launchDate": null,
-  "isin": null
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-08",
+    "reviewFrequencyDays": 90,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
 }

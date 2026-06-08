@@ -15,5 +15,15 @@
     "classificationNote": "CFG is a protocol governance and utility token for the Centrifuge ecosystem. It is not a direct tokenized fund share, loan note, senior tranche, or reserve-backed instrument.",
     "governanceNote": "Official docs state that active DAO governance is currently paused and that responsibility for stewarding the protocol has shifted to the Centrifuge Network Foundation during the post-launch phase.",
     "tokenContractStatus": "Official docs identify V3 CFG as an Ethereum-native ERC-20 token after migration."
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-08",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
   }
 }
