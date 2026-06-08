@@ -1,0 +1,25 @@
+{
+  "overallScore": 54,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 55,
+  "counterpartyRisk": 45,
+  "liquidityRisk": 55,
+  "regulatoryRisk": 45,
+  "marketRisk": 58,
+  "concentrationRisk": 45,
+  "riskFactors": [
+    "CFG is a governance/utility token, not a direct claim on a specific real-world asset pool, fund share, reserve, or redemption asset.",
+    "No public legal opinion URL or securities registration mapping was found for CFG in this dataset version.",
+    "No on-chain proof-of-reserves oracle or reserve audit applies to CFG as a governance token.",
+    "Token market data is available from aggregators, but holder concentration and on-chain liquidity depth are not yet fully mapped.",
+    "Official docs describe a V3 migration and governance transition; legacy seed data still referenced a deprecated contract address."
+  ],
+  "mitigants": [
+    "Centrifuge has official documentation, an official token summary, and public governance materials.",
+    "The V3 CFG Ethereum token contract is publicly visible on Etherscan and mapped from official documentation.",
+    "Protocol-level TVL is tracked by DeFiLlama and token market data is tracked by CoinGecko.",
+    "The conservative classification avoids treating CFG as an asset-backed RWA claim token."
+  ],
+  "lastAssessed": "2026-06-08T00:00:00.000Z",
+  "assessmentMethod": "manual_evidence_based"
+}
