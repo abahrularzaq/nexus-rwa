@@ -5,57 +5,76 @@ import { Bot, Lock, Wallet, ShieldCheck, Database, Zap, Coins } from "lucide-rea
 import { FadeUp } from "@/components/landing/primitives";
 
 const steps = [
-  { Icon: Bot, title: "Agent Request", text: "AI agent calls Nexus RWA API", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
-  { Icon: Lock, title: "402 Response", text: "Server returns payment instructions", bg: "rgba(0,212,255,0.05)", border: "rgba(0,212,255,0.4)", color: "#00D4FF", titleColor: "#00D4FF" },
-  { Icon: Wallet, title: "Auto Payment", text: "Agent pays $0.001 USDC on Base", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.4)", color: "#A78BFA", titleColor: "#A78BFA" },
-  { Icon: ShieldCheck, title: "Verification", text: "Payment confirmed on-chain", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
-  { Icon: Database, title: "Data Returned", text: "Yield, TVL, risk data delivered", bg: "rgba(0,255,136,0.05)", border: "rgba(0,255,136,0.4)", color: "#00FF88", titleColor: "#00FF88" },
+  { Icon: Bot, title: "Request Data", text: "User or agent calls Nexus RWA API", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
+  { Icon: Lock, title: "402 Response", text: "Server returns payment instructions if locked", bg: "rgba(0,212,255,0.05)", border: "rgba(0,212,255,0.4)", color: "#00D4FF", titleColor: "#00D4FF" },
+  { Icon: Wallet, title: "USDC Pass", text: "Wallet unlocks Pro 24h access", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.4)", color: "#A78BFA", titleColor: "#A78BFA" },
+  { Icon: ShieldCheck, title: "Session Active", text: "Wallet session is persisted in Postgres", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
+  { Icon: Database, title: "Layers Unlocked", text: "Risk, sources, history, and insight delivered", bg: "rgba(0,255,136,0.05)", border: "rgba(0,255,136,0.4)", color: "#00FF88", titleColor: "#00FF88" },
 ];
 
 const tabs = ["curl", "Python", "JavaScript", "AI Agent"] as const;
 
 const codeSamples: Record<(typeof tabs)[number], string> = {
-  curl: `# 1. Initial request — no payment needed yet
-$ curl https://api.nexusrwa.xyz/v1/assets/ondo-usdy/yield
+  curl: `# 1. Check wallet session
+$ curl "https://api.nexusrwa.xyz/v1/session?wallet=0x..." \\
+  -H "X-Wallet-Address: 0x..."
 
-# Server responds:
+# If no active session, gated endpoints return:
 HTTP/1.1 402 Payment Required
 {
   "x402Version": 1,
   "accepts": [{
     "network": "base-sepolia",
-    "maxAmountRequired": "$0.005",
-    "payTo": "0x742d...8f3a",
-    "asset": "USDC"
+    "asset": "USDC",
+    "tier": "pro",
+    "displayPrice": "$3 / 24h"
   }]
 }
 
-# 2. Client pays & retries with proof
-$ curl https://api.nexusrwa.xyz/v1/assets/ondo-usdy/yield \\
-  -H 'X-Payment: {"txHash":"0x...","from":"0x..."}'
+# 2. After checkout, retry with wallet session
+$ curl https://api.nexusrwa.xyz/v1/assets/franklin-benji/full \\
+  -H "X-Wallet-Address: 0x..."
 
-# ✓ Data returned:
-{"success":true,"data":{"yield":"5.42%","tvl":"892400000","risk":"LOW"}}`,
+# ✓ Full Pro layers returned
+{"success":true,"data":{"slug":"franklin-benji","sources":[],"risk":{}}}`,
   Python: `import requests
-from x402 import X402Client
 
-client = X402Client(wallet="0x...", network="base")
-res = client.get("https://api.nexusrwa.xyz/v1/assets/ondo-usdy/yield")
-print(res.json()["data"]["yield"])  # → 5.42%`,
-  JavaScript: `import { x402 } from "@x402/client";
+wallet = "0x..."
+base = "https://api.nexusrwa.xyz/v1"
 
-const client = x402({ wallet: "0x...", network: "base" });
-const { data } = await client.get(
-  "https://api.nexusrwa.xyz/v1/assets/ondo-usdy/yield"
-);
-console.log(data.yield); // → "5.42%"`,
-  "AI Agent": `from langchain.tools import X402Tool
-from langchain.agents import initialize_agent
+session = requests.get(
+    f"{base}/session?wallet={wallet}",
+    headers={"X-Wallet-Address": wallet},
+).json()
 
-nexus = X402Tool(api="https://api.nexusrwa.xyz/v1")
-agent = initialize_agent([nexus], llm)
-agent.run("What's the current yield on Ondo USDY?")
-# Agent auto-pays $0.005 USDC and returns: 5.42%`,
+if session["data"]["active"]:
+    res = requests.get(
+        f"{base}/assets/franklin-benji/full",
+        headers={"X-Wallet-Address": wallet},
+    )
+    print(res.json()["data"]["slug"])`,
+  JavaScript: `const wallet = "0x...";
+const base = "https://api.nexusrwa.xyz/v1";
+
+const session = await fetch(`${base}/session?wallet=${wallet}`, {
+  headers: { "X-Wallet-Address": wallet }
+}).then((r) => r.json());
+
+if (session.data.active) {
+  const asset = await fetch(`${base}/assets/franklin-benji/full`, {
+    headers: { "X-Wallet-Address": wallet }
+  }).then((r) => r.json());
+  console.log(asset.data.slug);
+}`,
+  "AI Agent": `# Agent workflow concept
+# 1. Ask Nexus for full RWA evidence.
+# 2. If API returns 402, complete x402 checkout.
+# 3. Retry with X-Wallet-Address while session is active.
+
+agent.ask(
+  "Compare BENJI and BUIDL using grade, risk, sources, and reserve layers"
+)
+# Agent uses active wallet session to access deeper RWA data.`,
 };
 
 export function X402Section() {
@@ -88,7 +107,7 @@ export function X402Section() {
             className="mt-3 text-base max-w-xl mx-auto"
             style={{ color: "var(--text-secondary)" }}
           >
-            The internet-native payment standard built for AI agents and autonomous systems
+            Wallet-native USDC access passes for deeper RWA intelligence — no traditional subscription required.
           </p>
         </FadeUp>
 
@@ -156,9 +175,9 @@ export function X402Section() {
         {/* feature cards */}
         <div className="grid md:grid-cols-3 gap-5 mt-10">
           {[
-            { Icon: Zap, title: "Zero Friction", text: "No API keys. No signup. No subscriptions. Just pay and access.", border: "rgba(0,212,255,0.3)", color: "#00D4FF" },
-            { Icon: Bot, title: "AI Agent Native", text: "Works with LangChain, AutoGen, CrewAI, and any HTTP client out of the box.", border: "rgba(124,58,237,0.3)", color: "#A78BFA" },
-            { Icon: Coins, title: "True Micropayments", text: "Pay exactly $0.0005 per request. No minimums. No monthly fees.", border: "rgba(0,255,136,0.3)", color: "#00FF88" },
+            { Icon: Zap, title: "Low Friction", text: "No traditional account flow. Connect wallet, unlock, and access deeper data while the session is active.", border: "rgba(0,212,255,0.3)", color: "#00D4FF" },
+            { Icon: Bot, title: "AI Agent Ready", text: "Designed for agent and data workflows that need structured RWA evidence and wallet-session access.", border: "rgba(124,58,237,0.3)", color: "#A78BFA" },
+            { Icon: Coins, title: "USDC Access Passes", text: "Free discovery, Pro 24h access, and Enterprise API/export workflows using wallet-native payment.", border: "rgba(0,255,136,0.3)", color: "#00FF88" },
           ].map((c, i) => (
             <FadeUp key={i} delay={i * 0.05}>
               <div
