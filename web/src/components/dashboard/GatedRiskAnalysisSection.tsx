@@ -7,7 +7,10 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { BlurredPreview } from "@/components/paywall/BlurredPreview";
+import {
+  BlurredPreview,
+  RedactedPremiumPreview,
+} from "@/components/paywall/BlurredPreview";
 import { PaywallGuard } from "@/components/paywall/PaywallGuard";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
@@ -120,40 +123,6 @@ function RiskGauge({ score, level }: { score: number; level: string }) {
           / 100
         </span>
         <span className="mt-0.5 text-[10px] font-medium text-[#8892A4]">{level}</span>
-      </div>
-    </div>
-  );
-}
-
-function MockRiskPanel({
-  yieldPct,
-  categoryAvgPct,
-}: {
-  yieldPct: number;
-  categoryAvgPct: number | null;
-}) {
-  return (
-    <div className="pointer-events-none select-none blur-[4px]">
-      <div className="flex flex-wrap gap-8">
-        <RiskGauge score={62} level="MEDIUM" />
-        <div className="min-w-0 flex-1 space-y-3">
-          <ul className="space-y-2 text-sm text-[#FFB800]">
-            <li className="flex items-center gap-2">
-              <AlertTriangle className="size-4" />
-              Yield volatility above category median
-            </li>
-            <li className="flex items-center gap-2">
-              <AlertTriangle className="size-4" />
-              TVL concentration signal
-            </li>
-          </ul>
-          <p className="text-sm text-[#8892A4]">
-            Yield{" "}
-            {(yieldPct <= 1 && yieldPct >= 0 ? yieldPct * 100 : yieldPct).toFixed(2)}%
-            {" vs category avg "}
-            {categoryAvgPct != null ? `${categoryAvgPct.toFixed(2)}%` : "—"}
-          </p>
-        </div>
       </div>
     </div>
   );
@@ -287,10 +256,7 @@ export function GatedRiskAnalysisSection({
         endpoint={endpoint}
         fallback={({ openPaywall }) => (
           <div className="space-y-4">
-            <MockRiskPanel
-              yieldPct={yieldPct}
-              categoryAvgPct={categoryAvgPct}
-            />
+            <RedactedPremiumPreview rows={4} />
             <BlurredPreview
               title="Risk Analysis"
               priceLabel="$0.005 USDC"
