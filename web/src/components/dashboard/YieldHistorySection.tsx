@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { BlurredPreview } from "@/components/paywall/BlurredPreview";
-import { PaywallGuard } from "@/components/paywall/PaywallGuard";
 import {
-  buildMockYieldHistory,
-  YieldChart,
-} from "@/components/charts/YieldChart";
+  BlurredPreview,
+  RedactedPremiumPreview,
+} from "@/components/paywall/BlurredPreview";
+import { PaywallGuard } from "@/components/paywall/PaywallGuard";
+import { YieldChart } from "@/components/charts/YieldChart";
 import type {
   ApiResponse,
   YieldHistoryPeriod,
@@ -79,13 +79,7 @@ export function YieldHistorySection({
           endpoint={endpoint}
           fallback={({ openPaywall }) => (
             <div className="space-y-4">
-              <div className="pointer-events-none select-none blur-[3px]">
-                <YieldChart
-                  data={buildMockYieldHistory(period)}
-                  period={period}
-                  isLocked
-                />
-              </div>
+              <RedactedPremiumPreview rows={4} />
               <BlurredPreview
                 title="Yield & TVL history"
                 priceLabel="$0.005 USDC"
