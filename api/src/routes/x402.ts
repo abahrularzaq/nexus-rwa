@@ -11,6 +11,8 @@ import { createMeta } from '../shared/index.js';
 
 export const x402Router = new Hono();
 
+const endpointTiers = ENDPOINT_TIERS as Readonly<Record<string, AccessTier>>;
+
 function chainId() {
   return getX402Network() === 'base' ? 8453 : 84532;
 }
@@ -29,7 +31,7 @@ function splitEndpointKey(key: string): { method: string; path: string } {
 function endpointRows() {
   return Object.entries(ENDPOINT_PRICING).map(([key, pricing]) => {
     const { method, path } = splitEndpointKey(key);
-    const tier: AccessTier = ENDPOINT_TIERS[key] ?? 'free';
+    const tier: AccessTier = endpointTiers[key] ?? 'free';
     return {
       method,
       path,
