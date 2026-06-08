@@ -15,9 +15,20 @@ function chainId() {
   return getX402Network() === 'base' ? 8453 : 84532;
 }
 
+function splitEndpointKey(key: string): { method: string; path: string } {
+  const separatorIndex = key.indexOf(':');
+  if (separatorIndex === -1) {
+    return { method: 'GET', path: key };
+  }
+  return {
+    method: key.slice(0, separatorIndex),
+    path: key.slice(separatorIndex + 1),
+  };
+}
+
 function endpointRows() {
   return Object.entries(ENDPOINT_PRICING).map(([key, pricing]) => {
-    const [method, path] = key.split(':', 2) as [string, string];
+    const { method, path } = splitEndpointKey(key);
     const tier: AccessTier = ENDPOINT_TIERS[key] ?? 'free';
     return {
       method,
@@ -31,6 +42,9 @@ function endpointRows() {
 }
 
 x402Router.get('/pricebook', (c) => {
+  c.header('X-Payment-Status', 'pricebook');
+  c.header('X-Payment-Tier', 'free');
+
   return c.json({
     success: true,
     data: {
