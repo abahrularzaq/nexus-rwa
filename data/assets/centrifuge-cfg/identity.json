@@ -1,0 +1,21 @@
+{
+  "name": "Centrifuge CFG",
+  "symbol": "CFG",
+  "fullName": "Centrifuge CFG",
+  "description": "CFG is the governance and utility token of Centrifuge, a protocol for tokenizing and financing real-world assets onchain. It should be treated as an RWA infrastructure/governance token, not as a direct claim on a specific reserve, loan pool, or tokenized fund share.",
+  "category": "Credit",
+  "subcategory": "RWA infrastructure / governance token",
+  "logoUrl": null,
+  "websiteUrl": "https://centrifuge.io/",
+  "docsUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+  "twitterUrl": "https://x.com/centrifuge",
+  "tags": [
+    "rwa",
+    "credit",
+    "governance",
+    "infrastructure",
+    "defi"
+  ],
+  "launchDate": null,
+  "isin": null
+}
