@@ -1,11 +1,14 @@
 "use client";
 
 import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
-import { BlurredPreview } from "@/components/paywall/BlurredPreview";
+import {
+  BlurredPreview,
+  RedactedPremiumPreview,
+} from "@/components/paywall/BlurredPreview";
 import { PaywallGuard } from "@/components/paywall/PaywallGuard";
 import { parseAssetWithLayers } from "@/lib/asset-mapper";
 import type { ApiResponse } from "@/lib/shared";
-import type { AssetReserve, AssetWithLayers } from "@/types/asset";
+import type { AssetReserve } from "@/types/asset";
 
 function formatDate(iso?: string | null): string {
   if (!iso) return "—";
@@ -92,23 +95,6 @@ function ReserveContent({ reserve }: { reserve: AssetReserve }) {
   );
 }
 
-function MockReservePreview() {
-  return (
-    <div className="pointer-events-none select-none blur-[4px]">
-      <ReserveContent
-        reserve={{
-          custodian: "Institutional custodian",
-          collateralizationRatio: 1.0,
-          hasProofOfReserves: true,
-          lastAuditDate: new Date().toISOString(),
-          auditor: "Independent auditor",
-          backingType: "US Treasury & cash equivalents",
-        }}
-      />
-    </div>
-  );
-}
-
 export function ReserveInfoSection({
   apiBaseUrl,
   assetSlug,
@@ -130,7 +116,7 @@ export function ReserveInfoSection({
       endpoint={endpoint}
       fallback={({ openPaywall }) => (
         <div className="space-y-4">
-          <MockReservePreview />
+          <RedactedPremiumPreview rows={4} />
           <BlurredPreview
             title="Reserve & backing"
             priceLabel="$3 / 24h"
