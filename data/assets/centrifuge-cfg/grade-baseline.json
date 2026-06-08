@@ -1,0 +1,43 @@
+{
+  "slug": "centrifuge-cfg",
+  "grade": "research",
+  "score": 46,
+  "completenessScore": 59,
+  "sourceScore": 56,
+  "legalScore": 60,
+  "reserveScore": 0,
+  "liquidityScore": 54,
+  "riskScore": 54,
+  "blockers": [
+    "Missing backing type",
+    "Missing backing description",
+    "Missing custodian",
+    "Missing redemption asset"
+  ],
+  "warnings": [
+    "Missing primary regulator",
+    "KYC requirement is not confirmed",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing redemption period",
+    "Missing on-chain liquidity"
+  ],
+  "baselineDate": "2026-06-08",
+  "status": "research-grade baseline",
+  "reviewedBy": "manual",
+  "notes": [
+    "CFG is classified as a protocol governance / RWA infrastructure token, not as a direct asset-backed RWA claim token.",
+    "Reserve-related blockers are expected under the current grading engine because the engine assumes asset-backed instruments with backing, custodian, reserve breakdown, and redemption asset fields.",
+    "Do not fill reserve fields with artificial values only to raise the grade. Use null fields where the concept is not applicable.",
+    "Future improvement: add an asset-type-aware grading path for governance/infrastructure tokens so not-applicable reserve fields are treated differently from missing evidence."
+  ],
+  "nextActions": [
+    "Decide whether CFG should remain in the main asset universe or move to an RWA infrastructure / governance token segment.",
+    "Map holder count and holder concentration from Etherscan or another reliable on-chain analytics source.",
+    "Map on-chain liquidity depth and major DEX/CEX markets before raising liquidity confidence.",
+    "Find exact token or protocol audit reports before raising smartContractRisk.",
+    "Consider updating the grading engine to support asset types such as asset_backed_token, fund_share_token, pool_token, governance_token, and infrastructure_protocol."
+  ]
+}
