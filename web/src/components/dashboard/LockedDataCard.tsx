@@ -6,15 +6,15 @@ import { Lock } from "lucide-react";
 export type LockedDataEndpoint = "yield" | "risk" | "holders";
 
 const ENDPOINT_PATH: Record<LockedDataEndpoint, string> = {
-  yield: "yield",
+  yield: "history",
   risk: "risk",
   holders: "holders",
 };
 
 const PRICE_BADGE: Record<LockedDataEndpoint, string> = {
-  yield: "$0.005 USDC per request",
-  risk: "$0.005 USDC per request",
-  holders: "$0.005 USDC per request",
+  yield: "Pro 24h Pass · $3 / 24h",
+  risk: "Pro 24h Pass · $3 / 24h",
+  holders: "Pro 24h Pass · $3 / 24h",
 };
 
 export interface LockedDataCardProps {
@@ -31,7 +31,7 @@ export function LockedDataCard({
   const path = ENDPOINT_PATH[endpoint];
   const displayBase = apiBaseUrl.trim().replace(/\/$/, "") || "$NEXT_PUBLIC_API_URL";
   const curlSnippet = `curl ${displayBase}/v1/assets/${assetId}/${path} \\
-  -H "X-Payment: {...}"`;
+  -H "X-Wallet-Address: 0x..."`;
 
   return (
     <div
@@ -49,7 +49,7 @@ export function LockedDataCard({
           <div>
             <h3 className="text-lg font-bold text-white">Advanced Analytics</h3>
             <p className="mt-1 max-w-md text-sm leading-relaxed text-[#8892A4]">
-              Access this data via X402 micropayment
+              Unlock this data with an active x402 wallet session.
             </p>
             <span className="mt-3 inline-flex rounded-full border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.1)] px-3 py-1 text-xs font-semibold text-[#00D4FF]">
               {PRICE_BADGE[endpoint]}
