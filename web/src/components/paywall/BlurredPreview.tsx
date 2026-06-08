@@ -13,6 +13,44 @@ export type BlurredPreviewProps = {
   className?: string;
 };
 
+export function RedactedPremiumPreview({
+  rows = 4,
+  className,
+}: {
+  rows?: number;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none select-none overflow-hidden rounded-xl border border-[rgba(30,42,58,0.85)] bg-[rgba(10,14,26,0.72)] p-4",
+        className,
+      )}
+      aria-hidden
+    >
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="h-3 w-32 rounded-full bg-white/10" />
+        <div className="h-3 w-16 rounded-full bg-[#00D4FF]/15" />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-lg border border-[rgba(30,42,58,0.75)] bg-[rgba(15,22,41,0.65)] px-4 py-3"
+          >
+            <div className="h-2.5 w-20 rounded-full bg-white/10" />
+            <div className="mt-3 h-4 w-3/4 rounded-full bg-white/15" />
+            <div className="mt-2 h-2.5 w-1/2 rounded-full bg-white/8" />
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 h-2 rounded-full bg-white/10">
+        <div className="h-full w-2/3 rounded-full bg-[#00D4FF]/20" />
+      </div>
+    </div>
+  );
+}
+
 export function BlurredPreview({
   title,
   priceLabel = "~0.001 ETH",
