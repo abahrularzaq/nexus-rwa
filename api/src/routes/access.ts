@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { resolveApiKeyEntitlement } from '../lib/api-key-entitlement.js';
 import { getActiveSession, normalizeWallet } from '../lib/x402-session.js';
 import { TIER_PLANS, type AccessTier } from '../middleware/x402/index.js';
@@ -29,7 +29,7 @@ function planSummary() {
   };
 }
 
-function accessHeaders(c: Parameters<Parameters<typeof accessRouter.get>[1]>[0], status: string, tier: AccessTier): void {
+function accessHeaders(c: Context, status: string, tier: AccessTier): void {
   c.header('X-Payment-Status', status);
   c.header('X-Payment-Tier', tier);
 }
