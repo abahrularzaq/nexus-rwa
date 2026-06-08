@@ -56,12 +56,12 @@ if session["data"]["active"]:
   JavaScript: `const wallet = "0x...";
 const base = "https://api.nexusrwa.xyz/v1";
 
-const session = await fetch(`${base}/session?wallet=${wallet}`, {
+const session = await fetch(base + "/session?wallet=" + wallet, {
   headers: { "X-Wallet-Address": wallet }
 }).then((r) => r.json());
 
 if (session.data.active) {
-  const asset = await fetch(`${base}/assets/franklin-benji/full`, {
+  const asset = await fetch(base + "/assets/franklin-benji/full", {
     headers: { "X-Wallet-Address": wallet }
   }).then((r) => r.json());
   console.log(asset.data.slug);
