@@ -259,7 +259,7 @@ export function GatedRiskAnalysisSection({
             <RedactedPremiumPreview rows={4} />
             <BlurredPreview
               title="Risk Analysis"
-              priceLabel="$0.005 USDC"
+              priceLabel="$3 / 24h"
               onUnlock={openPaywall}
             />
           </div>
