@@ -1,0 +1,15 @@
+{
+  "currentYield": null,
+  "yieldType": null,
+  "yieldFrequency": null,
+  "yieldBenchmark": null,
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "USD"
+}
