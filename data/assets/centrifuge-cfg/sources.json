@@ -1,0 +1,142 @@
+[
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://centrifuge.io/",
+    "sourceUrl": "https://centrifuge.io/",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Centrifuge website."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceType": "official_docs",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Official CFG token summary and tokenomics documentation."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "CFG is the governance and utility token of Centrifuge.",
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceType": "official_docs",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Used to classify CFG as a governance/utility token rather than a direct asset-backed claim token."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0xcccCCCcCCC33D538DBC2EE4fEab0a7A1FF4e8A94",
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official docs identify this as the V3 Ethereum-native CFG token contract."
+  },
+  {
+    "layer": "blockchain",
+    "field": "explorerUrl",
+    "value": "https://etherscan.io/token/0xcccCCCcCCC33D538DBC2EE4fEab0a7A1FF4e8A94",
+    "sourceUrl": "https://etherscan.io/token/0xcccCCCcCCC33D538DBC2EE4fEab0a7A1FF4e8A94",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Explorer page for the V3 CFG token."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": "1383768823",
+    "sourceUrl": "https://defillama.com/protocol/centrifuge",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "Protocol-level TVL reference, not CFG token market cap."
+  },
+  {
+    "layer": "market",
+    "field": "price",
+    "value": "0.2072",
+    "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Current CFG market price snapshot. Refresh before production publication."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": "78792622",
+    "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Current CFG market cap snapshot. Refresh before production publication."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": "7667108.21",
+    "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Current CFG 24h trading volume snapshot. Refresh before production publication."
+  },
+  {
+    "layer": "market",
+    "field": "totalSupply",
+    "value": "697164473",
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official docs state total supply as of June 2026; market aggregators may differ."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Protocol / foundation-governed ecosystem",
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/cfg-governance/",
+    "sourceType": "official_docs",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Governance docs state that active DAO governance is paused and stewardship shifted to Centrifuge Network Foundation during the post-launch phase."
+  },
+  {
+    "layer": "compliance",
+    "field": "legalOpinionUrl",
+    "value": null,
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceType": "official_docs",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "No public legal opinion URL mapped in current source discovery."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": "false",
+    "sourceUrl": "https://docs.centrifuge.io/getting-started/token-summary/",
+    "sourceType": "official_docs",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "CFG is a governance/utility token; no direct reserve backing or on-chain PoR oracle mapped."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityNotes",
+    "value": "CFG trades via secondary markets and is not a redeemable RWA claim token.",
+    "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+    "sourceType": "market_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Exchange liquidity reference only; on-chain liquidity and bid-ask spread still need mapping."
+  }
+]
