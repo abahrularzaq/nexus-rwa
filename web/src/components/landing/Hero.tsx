@@ -50,7 +50,7 @@ export function Hero() {
             className="w-2 h-2 rounded-full pulse-dot"
             style={{ background: "var(--accent-green)" }}
           />
-          Live Data · Base Network · X402 Enabled
+          RWA Intelligence · Evidence-based · API-ready
         </motion.div>
 
         <motion.h1
