@@ -1,0 +1,72 @@
+[
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://www.goldfinch.finance/",
+    "sourceUrl": "https://www.goldfinch.finance/",
+    "sourceType": "official_website",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Goldfinch website."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.goldfinch.finance/goldfinch",
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Goldfinch documentation."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceType": "block_explorer",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Ethereum ERC-20 GFI token contract page."
+  },
+  {
+    "layer": "market",
+    "field": "marketDataSources",
+    "value": "CoinGecko, CoinMarketCap, DeFiLlama, Etherscan",
+    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Market fields remain null until a production refresh is performed."
+  },
+  {
+    "layer": "market",
+    "field": "tvlSource",
+    "value": "https://defillama.com/protocol/goldfinch",
+    "sourceUrl": "https://defillama.com/protocol/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Protocol-level TVL source. Must not be confused with direct GFI token reserve backing."
+  },
+  {
+    "layer": "institutional",
+    "field": "governanceUrl",
+    "value": "https://gov.goldfinch.finance/",
+    "sourceUrl": "https://gov.goldfinch.finance/",
+    "sourceType": "official_governance",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Official governance forum linked from Goldfinch ecosystem sources."
+  },
+  {
+    "layer": "code",
+    "field": "githubRepository",
+    "value": "https://github.com/goldfinch-eng/mono",
+    "sourceUrl": "https://github.com/goldfinch-eng/mono",
+    "sourceType": "official_code_repository",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Official code repository for deeper technical review."
+  }
+]
