@@ -5,6 +5,19 @@ import { calculateAssetGrade } from '../lib/assetGradeEngine.js';
 
 const ROOT = process.cwd();
 
+type BlockchainImportItem = {
+  chain: string;
+  chainId: number | null;
+  contractAddress: string;
+  tokenStandard: string | null;
+  isTransferable: boolean;
+  hasWhitelist: boolean;
+  hasTransferRestrictions: boolean;
+  explorerUrl: string | null;
+  deployedAt: Date | null;
+  isVerified: boolean;
+};
+
 function readJson<T = any>(filePath: string): T | null {
   if (!fs.existsSync(filePath)) return null;
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
@@ -41,11 +54,24 @@ function normalizeInstitutional(value: Record<string, any> | null): Record<strin
   return normalized;
 }
 
-function normalizeBlockchainItem(value: Record<string, any>): Record<string, any> {
+function normalizeBlockchainItem(value: Record<string, any>): BlockchainImportItem {
   const item = withoutMeta(value) ?? {};
+
+  if (!item.chain || !item.contractAddress) {
+    throw new Error('Invalid blockchain.json item: chain and contractAddress are required');
+  }
+
   return {
-    ...item,
+    chain: String(item.chain),
+    chainId: item.chainId == null ? null : Number(item.chainId),
+    contractAddress: String(item.contractAddress),
+    tokenStandard: item.tokenStandard ?? null,
+    isTransferable: item.isTransferable ?? true,
+    hasWhitelist: item.hasWhitelist ?? false,
+    hasTransferRestrictions: item.hasTransferRestrictions ?? false,
+    explorerUrl: item.explorerUrl ?? null,
     deployedAt: parseDate(item.deployedAt),
+    isVerified: item.isVerified ?? false,
   };
 }
 
@@ -219,9 +245,28 @@ async function importAsset(slug: string) {
       },
       create: {
         assetId: asset.id,
-        ...item,
+        chain: item.chain,
+        chainId: item.chainId,
+        contractAddress: item.contractAddress,
+        tokenStandard: item.tokenStandard,
+        isTransferable: item.isTransferable,
+        hasWhitelist: item.hasWhitelist,
+        hasTransferRestrictions: item.hasTransferRestrictions,
+        explorerUrl: item.explorerUrl,
+        deployedAt: item.deployedAt,
+        isVerified: item.isVerified,
       },
-      update: item,
+      update: {
+        chainId: item.chainId,
+        contractAddress: item.contractAddress,
+        tokenStandard: item.tokenStandard,
+        isTransferable: item.isTransferable,
+        hasWhitelist: item.hasWhitelist,
+        hasTransferRestrictions: item.hasTransferRestrictions,
+        explorerUrl: item.explorerUrl,
+        deployedAt: item.deployedAt,
+        isVerified: item.isVerified,
+      },
     });
   }
 
