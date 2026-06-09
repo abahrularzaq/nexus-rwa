@@ -104,15 +104,16 @@ export function Hero() {
           >
             Explore Dashboard →
           </Link>
-          <button
+          <Link
+            href="/methodology"
             className="px-9 py-3.5 rounded-[10px] font-semibold text-base transition-colors"
             style={{
               border: "1px solid rgba(0,212,255,0.4)",
               color: "var(--accent-cyan)",
             }}
           >
-            Read API Docs
-          </button>
+            View Methodology
+          </Link>
         </motion.div>
 
         <p
