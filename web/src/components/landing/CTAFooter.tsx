@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FadeUp, HexLogo } from "@/components/landing/primitives";
 import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { BookOpen, MessageCircle } from "lucide-react";
@@ -36,26 +37,27 @@ export function CTASection() {
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
         style={{ background: "rgba(0,212,255,0.05)", filter: "blur(100px)" }}
       />
-      <div className="relative max-w-[700px] mx-auto text-center">
+      <div className="relative max-w-[760px] mx-auto text-center">
         <FadeUp>
           <span
             className="inline-block px-4 py-1.5 rounded-full text-[11px] font-bold text-white"
             style={{ background: "linear-gradient(135deg,#00D4FF,#7C3AED)" }}
           >
-            GET STARTED TODAY
+            BUILD WITH RWA INTELLIGENCE
           </span>
           <h2 className="mt-6 text-4xl md:text-[56px] font-extrabold tracking-[-0.03em] leading-[1.05]">
-            <span className="block text-gradient-cyan">The RWA Data Layer</span>
-            <span className="block text-gradient-cp">Your Protocol Deserves</span>
+            <span className="block text-gradient-cyan">Evaluate Tokenized Assets</span>
+            <span className="block text-gradient-cp">With Evidence, Not Hype</span>
           </h2>
           <p
             className="mt-5 text-lg leading-[1.7]"
             style={{ color: "var(--text-secondary)" }}
           >
-            Start with free tier. Scale with pay-per-request. No contracts, no gatekeeping, no limits.
+            Explore structured RWA profiles, review the methodology, and understand how Nexus RWA scores reserves, compliance, liquidity, yield, and source credibility.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
+            <Link
+              href="/dashboard"
               className="px-8 py-3.5 rounded-[10px] text-white font-bold text-base"
               style={{
                 background: "linear-gradient(135deg,#00D4FF,#7C3AED)",
@@ -63,22 +65,23 @@ export function CTASection() {
               }}
             >
               Explore Dashboard
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/methodology"
               className="px-8 py-3.5 rounded-[10px] font-semibold text-base"
               style={{
                 border: "1px solid rgba(0,212,255,0.4)",
                 color: "var(--accent-cyan)",
               }}
             >
-              Read API Docs
-            </button>
-            <button className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
-              Try API Free →
-            </button>
+              View Methodology
+            </Link>
+            <Link href="/glossary" className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+              View Glossary →
+            </Link>
           </div>
-          <div className="mt-10 flex items-center justify-center gap-6 text-sm" style={{ color: "var(--text-secondary)" }}>
-            {["47 Assets", "6 Protocols", "$2.84B TVL", "Live on Base"].map((t, i, arr) => (
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm" style={{ color: "var(--text-secondary)" }}>
+            {["12 Data Layers", "Source Trail", "Risk Grading", "API-ready Dataset"].map((t, i, arr) => (
               <div key={t} className="flex items-center gap-6">
                 <span>{t}</span>
                 {i < arr.length - 1 && <span style={{ color: "var(--text-muted)" }}>·</span>}
@@ -167,8 +170,8 @@ export function Footer() {
           </div>
         </div>
         {[
-          { h: "Product", l: ["Dashboard", "API Reference", "Pricing", "Changelog", "Status"] },
-          { h: "Developers", l: ["Quickstart Guide", "API Docs", "X402 Integration", "AI Agent SDK", "GitHub"] },
+          { h: "Product", l: ["Dashboard", "Methodology", "Glossary", "Pricing", "API Reference"] },
+          { h: "Developers", l: ["API Docs", "X402 Integration", "Source Trail", "AI Agent Workflows", "GitHub"] },
           { h: "Company", l: ["About Nexus RWA", "Blog", "X", "Discord", "Contact"] },
         ].map((col) => (
           <div key={col.h}>
