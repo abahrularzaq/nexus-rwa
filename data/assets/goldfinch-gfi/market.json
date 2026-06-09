@@ -1,22 +1,78 @@
 {
-  "tvl": null,
+  "tvl": 1668454,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": null,
-  "priceChange24h": null,
-  "marketCap": null,
-  "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
-  "holderCount": null,
+  "price": 0.1108,
+  "priceChange24h": 0.4,
+  "marketCap": 10354629,
+  "volume24h": 136134,
+  "circulatingSupply": 93439168,
+  "totalSupply": 114285714,
+  "holderCount": 16163,
   "holderChange7d": null,
   "aumUsd": null,
-  "lastUpdated": null,
+  "lastUpdated": "2026-06-09",
   "sources": [
     "https://www.coingecko.com/en/coins/goldfinch",
     "https://coinmarketcap.com/currencies/goldfinch-protocol/",
     "https://defillama.com/protocol/goldfinch",
     "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b"
   ],
-  "confidence": "needs-refresh"
+  "confidence": "medium",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-09",
+    "reviewFrequencyDays": 7,
+    "primaryMarketSource": "CoinGecko for token price, market cap, volume, circulating supply, and total supply.",
+    "protocolMetricsSource": "DeFiLlama for protocol TVL, active loans, fees, revenue, CEX/DEX split, and GFI liquidity.",
+    "explorerSource": "Etherscan for holder count and token contract market panel.",
+    "sourceSnapshot": {
+      "coingecko": {
+        "price": 0.1108,
+        "priceChange24hPercent": 0.4,
+        "marketCap": 10354629,
+        "volume24h": 136134,
+        "tvl": 1668454,
+        "circulatingSupply": 93439168,
+        "totalSupply": 114285714,
+        "fdv": 12664776,
+        "rank": 1135,
+        "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch"
+      },
+      "defillama": {
+        "protocolTvl": 1668454,
+        "chain": "Ethereum",
+        "activeLoans": 56140000,
+        "feesAnnualized": 1570000,
+        "fees30d": 97310,
+        "revenueAnnualized": 183243,
+        "revenue30d": 10682,
+        "gfiLiquidity": 187748,
+        "dexLiquidityVenue": "Uniswap V3",
+        "gfiVolume24h": 138115,
+        "cexVolume24h": 136455,
+        "dexVolume24h": 1596,
+        "sourceUrl": "https://defillama.com/protocol/goldfinch"
+      },
+      "etherscan": {
+        "holders": 16163,
+        "maxTotalSupply": 114285714,
+        "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b"
+      },
+      "coinmarketcapCrossCheck": {
+        "marketCap": 12964505,
+        "volume24h": 267712,
+        "circulatingSupply": 87419542,
+        "totalSupply": 114280000,
+        "holdersApprox": 16150,
+        "sourceUrl": "https://coinmarketcap.com/currencies/goldfinch-protocol/"
+      }
+    },
+    "conflictNotes": [
+      "CoinGecko, CoinMarketCap, DeFiLlama, and Etherscan show materially different real-time market values. Market layer uses CoinGecko as primary token-market source and records other sources for cross-checking.",
+      "DeFiLlama TVL is protocol-level TVL and should not be interpreted as GFI token backing or AUM.",
+      "Active loans from DeFiLlama are useful private-credit protocol context but should not be copied into aumUsd unless Nexus defines active loans as AUM for protocol tokens."
+    ],
+    "needsRefreshBeforeProduction": true
+  }
 }
