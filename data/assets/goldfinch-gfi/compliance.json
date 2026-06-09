@@ -1,0 +1,13 @@
+{
+  "regulatoryStatus": "Needs legal review",
+  "primaryRegulator": null,
+  "regulatoryFramework": null,
+  "kycRequired": false,
+  "accreditedOnly": false,
+  "blockedJurisdictions": [],
+  "allowedJurisdictions": [],
+  "sanctionsScreening": false,
+  "amlPolicy": null,
+  "lastComplianceCheck": "2026-06-09",
+  "legalOpinionUrl": null
+}
