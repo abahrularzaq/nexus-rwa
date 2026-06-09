@@ -1,0 +1,36 @@
+{
+  "slug": "goldfinch-gfi",
+  "grade": "research",
+  "score": 54,
+  "completenessScore": 70,
+  "sourceScore": 57,
+  "legalScore": 60,
+  "reserveScore": 35,
+  "liquidityScore": 51,
+  "riskScore": 46,
+  "blockers": [
+    "Missing custodian",
+    "Missing redemption asset"
+  ],
+  "warnings": [
+    "Missing primary regulator",
+    "KYC requirement is not confirmed",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing redemption period"
+  ],
+  "baselineDate": "2026-06-09",
+  "status": "research-grade baseline",
+  "nextActions": [
+    "Keep GFI classified as a protocol/governance token, not a direct reserve-backed RWA claim.",
+    "Verify whether any official custodian or redemption asset exists for GFI; otherwise keep reserve blockers as intentional evidence-based blockers.",
+    "Verify Heron Finance / Warbler Labs regulatory status through SEC IAPD and EDGAR before adjusting legal or regulatory scoring.",
+    "Find any official external smart-contract audit report or security review before improving smart-contract risk scoring.",
+    "Analyze Etherscan top-holder concentration and labeled wallets before improving concentration risk.",
+    "Capture exact DEX pair URLs and order-book / bid-ask depth from GeckoTerminal, DEXScreener, CoinGecko, CoinMarketCap, or exchange data before improving liquidity scoring.",
+    "Consider creating a separate goldfinch-prime asset if Nexus RWA wants to model the private-credit product rather than the GFI token."
+  ],
+  "notes": "Baseline generated from npm run import:asset -- goldfinch-gfi. Research-grade result is expected because GFI is not a direct reserve-backed RWA asset and still lacks custodian, redemption asset, legal opinion, PoR, reserve breakdown, audit/report URL, primary regulator, confirmed KYC requirement, and redemption period evidence."
+}
