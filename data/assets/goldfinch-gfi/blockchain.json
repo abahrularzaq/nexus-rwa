@@ -9,6 +9,17 @@
     "hasTransferRestrictions": false,
     "explorerUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
     "deployedAt": null,
-    "isVerified": true
+    "isVerified": true,
+    "_meta": {
+      "source": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+      "lastManualReview": "2026-06-09",
+      "verificationNotes": "Etherscan confirms the GFI token contract on Ethereum. Source code is shown as verified on the explorer page. Etherscan does not show a submitted contract security audit for this token page during this review.",
+      "auditStatus": "no-etherscan-submitted-audit-found",
+      "needsFurtherReview": [
+        "Confirm original deployment timestamp from contract creation transaction.",
+        "Check Goldfinch GitHub and official security docs for external smart-contract audit reports.",
+        "Check holder concentration and top-wallet labels before risk scoring."
+      ]
+    }
   }
 ]
