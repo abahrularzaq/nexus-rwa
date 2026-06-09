@@ -41,6 +41,14 @@ function normalizeInstitutional(value: Record<string, any> | null): Record<strin
   return normalized;
 }
 
+function normalizeBlockchainItem(value: Record<string, any>): Record<string, any> {
+  const item = withoutMeta(value) ?? {};
+  return {
+    ...item,
+    deployedAt: parseDate(item.deployedAt),
+  };
+}
+
 async function importAsset(slug: string) {
   const dir = path.join(ROOT, '..', 'data', 'assets', slug);
 
@@ -54,7 +62,7 @@ async function importAsset(slug: string) {
   const reserve = withoutMeta(readJson(path.join(dir, 'reserve.json')));
   const yieldData = normalizeYield(withoutMeta(readJson(path.join(dir, 'yield.json'))));
   const institutional = normalizeInstitutional(withoutMeta(readJson(path.join(dir, 'institutional.json'))));
-  const blockchain = readJson<any[]>(path.join(dir, 'blockchain.json')) ?? [];
+  const blockchain = (readJson<any[]>(path.join(dir, 'blockchain.json')) ?? []).map(normalizeBlockchainItem);
   const compliance = withoutMeta(readJson(path.join(dir, 'compliance.json')));
   const liquidity = withoutMeta(readJson(path.join(dir, 'liquidity.json')));
   const sources = readJson<any[]>(path.join(dir, 'sources.json')) ?? [];
@@ -212,12 +220,8 @@ async function importAsset(slug: string) {
       create: {
         assetId: asset.id,
         ...item,
-        deployedAt: parseDate(item.deployedAt),
       },
-      update: {
-        ...item,
-        deployedAt: parseDate(item.deployedAt),
-      },
+      update: item,
     });
   }
 
