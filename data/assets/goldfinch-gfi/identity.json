@@ -1,0 +1,31 @@
+{
+  "name": "Goldfinch",
+  "symbol": "GFI",
+  "fullName": "Goldfinch Protocol Token",
+  "description": "Goldfinch is an onchain private credit protocol. GFI is the Goldfinch protocol token used for governance and protocol participation, while Goldfinch Prime and legacy Goldfinch V1 products provide exposure to private credit opportunities. For Nexus RWA, GFI should be classified as RWA protocol infrastructure rather than a direct tokenized claim on an underlying credit asset.",
+  "category": "Private Credit",
+  "subcategory": "RWA protocol governance token",
+  "logoUrl": null,
+  "websiteUrl": "https://www.goldfinch.finance/",
+  "docsUrl": "https://docs.goldfinch.finance/goldfinch",
+  "twitterUrl": "https://x.com/goldfinch_fi",
+  "tags": [
+    "private-credit",
+    "rwa-protocol",
+    "governance-token",
+    "ethereum",
+    "research-grade"
+  ],
+  "launchDate": null,
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-09",
+    "reviewFrequencyDays": 90,
+    "sourceTier": "mixed",
+    "confidence": "medium",
+    "freshnessStatus": "needs-refresh-before-production",
+    "status": "scaffold-created",
+    "notes": "Initial scaffold. Verify launch date, official token docs, and social links before production import."
+  }
+}
