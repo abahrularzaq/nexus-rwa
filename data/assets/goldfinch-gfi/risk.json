@@ -1,24 +1,69 @@
 {
-  "overallScore": null,
-  "overallLevel": "research",
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
+  "overallScore": 46,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 55,
+  "counterpartyRisk": 45,
+  "liquidityRisk": 45,
+  "regulatoryRisk": 40,
+  "marketRisk": 42,
+  "concentrationRisk": 50,
   "riskFactors": [
-    "GFI is a protocol/governance token, not a direct redeemable claim on a specific RWA reserve asset.",
-    "Private credit exposure in Goldfinch products carries borrower, underwriting, default, and liquidity risk.",
-    "Public legal opinion URL for GFI was not found during initial scaffold research.",
-    "No on-chain proof-of-reserves oracle was identified for GFI.",
-    "Market, holder concentration, audit, and liquidity data require refresh before production grading."
+    "GFI is a protocol/governance token, not a direct redeemable claim on a specific RWA reserve asset, credit portfolio, fund share, or collateral pool.",
+    "Goldfinch Prime product documentation describes private-credit exposure and Heron-related note context, but that product-level structure should not be treated as native GFI token backing.",
+    "No public legal opinion URL, GFI-specific prospectus, GFI-specific SEC filing, or directly verified regulator mapping was found during this research pass.",
+    "No on-chain proof-of-reserves oracle, reserve attestation, reserve breakdown, custodian, redemption asset, or native GFI collateralization ratio was identified.",
+    "GFI token contract is public and source-code verified on Etherscan, but no Etherscan-submitted security audit or official external audit report was confirmed in this pass.",
+    "Market data is available from CoinGecko, CoinMarketCap, DeFiLlama, and Etherscan, but values conflict materially across aggregators and must be refreshed before production grading.",
+    "Liquidity is mostly secondary-market trading. DeFiLlama snapshot shows modest onchain DEX liquidity and higher CEX-driven volume; bid-ask spread and exchange-level order-book depth were not verified.",
+    "Holder count is visible on Etherscan, but top-wallet concentration and labeled-wallet exposure have not yet been analyzed."
   ],
   "mitigants": [
-    "Official website, docs, governance, app, and public Ethereum token contract are available for further research.",
-    "Protocol-level market and TVL references are available through DeFiLlama and market-data aggregators.",
-    "GFI contract address is publicly visible on Ethereum and can be independently verified through Etherscan."
+    "Goldfinch has official website, official docs, official FAQ, governance forum, legacy app, official GitHub repository, and public legal terms pages available for research.",
+    "GFI contract address is publicly visible on Ethereum and can be independently verified through Etherscan.",
+    "CoinGecko, CoinMarketCap, DeFiLlama, and Etherscan provide market, holder, liquidity, and protocol-level metrics that can be refreshed for ongoing monitoring.",
+    "The scoring keeps GFI separate from Goldfinch Prime, reducing the risk of incorrectly treating a protocol token as a reserve-backed private-credit product.",
+    "Protocol-level TVL, active-loan, fee, revenue, and liquidity references are available through DeFiLlama for context, even though they are not native GFI reserve backing."
   ],
   "lastAssessed": "2026-06-09",
-  "assessmentMethod": "Initial scaffold risk note based on source discovery. Scores intentionally left null until full evidence-based layer research and grading are completed."
+  "assessmentMethod": "manual_evidence_based_weighted_scoring",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-09",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "tier-1-official-explorer-plus-tier-2-market-data",
+    "confidence": "medium",
+    "freshnessStatus": "current-but-market-data-needs-refresh",
+    "status": "research-grade-risk-scored",
+    "scoringRubric": {
+      "smartContractRiskWeight": 0.2,
+      "counterpartyRiskWeight": 0.2,
+      "liquidityRiskWeight": 0.2,
+      "regulatoryRiskWeight": 0.15,
+      "marketRiskWeight": 0.15,
+      "concentrationRiskWeight": 0.1,
+      "overallLevelScale": {
+        "LOW": ">= 70",
+        "MEDIUM": "40-69",
+        "HIGH": "< 40"
+      },
+      "calculation": "55*0.20 + 45*0.20 + 45*0.20 + 40*0.15 + 42*0.15 + 50*0.10 = 46.3, rounded to 46"
+    },
+    "scoreRationale": {
+      "smartContractRisk": "55 because GFI is a public Ethereum ERC-20 with verified source code on Etherscan, but no confirmed official external audit report or Etherscan-submitted contract security audit was found.",
+      "counterpartyRisk": "45 because GFI is not a direct claim on a specific reserve or private-credit portfolio; Goldfinch Prime introduces product-level Heron/private-credit context that still needs legal and regulator verification.",
+      "liquidityRisk": "45 because GFI is publicly traded and has measurable liquidity, but onchain DEX liquidity appears modest, bid-ask spread is not verified, and there is no native redemption mechanism for GFI.",
+      "regulatoryRisk": "40 because legal opinion, GFI-specific regulatory status, SEC/IAPD verification, and direct issuer mapping remain unresolved; Goldfinch Prime compliance terms should not be copied into GFI token compliance.",
+      "marketRisk": "42 because GFI has live market data but remains a smaller-cap token with volatile aggregator values and requires close refresh before production publication.",
+      "concentrationRisk": "50 because Etherscan holder count is available, but top-holder concentration, insider/team/treasury wallets, exchange wallets, and labeled-wallet distribution have not been analyzed."
+    },
+    "gradingImplication": "Risk score is not high enough for institutional grade. Combined with missing custodian, legal opinion, proof-of-reserves, redemption asset, formal audit evidence, and concentration analysis, goldfinch-gfi should remain research-grade until the missing evidence is resolved.",
+    "nextActions": [
+      "Verify official external audit reports from Goldfinch docs, GitHub, governance, or security pages.",
+      "Analyze Etherscan holder distribution and label top wallets for concentration scoring.",
+      "Verify Heron Finance / Warbler Labs regulatory status through SEC IAPD and EDGAR before adjusting counterparty or regulatory scores.",
+      "Capture pair-specific DEX liquidity from GeckoTerminal or DEXScreener and CEX order-book depth before revising liquidityRisk.",
+      "Refresh CoinGecko, CoinMarketCap, DeFiLlama, and Etherscan market metrics before import/grading.",
+      "Decide whether Goldfinch Prime should become a separate Nexus RWA asset entry, because its product-level risks and yield mechanics should not be merged into GFI token scoring."
+    ]
+  }
 }
