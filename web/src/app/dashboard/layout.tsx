@@ -17,11 +17,14 @@ import {
   Database,
   Library,
   Activity,
+  LogOut,
 } from "lucide-react";
 
 import { DashboardWalletButton } from "@/components/dashboard/DashboardWalletButton";
 import { AskNexus } from "@/components/dashboard/AskNexus";
 import { PaymentHistory } from "@/components/paywall/PaymentHistory";
+
+const ADMIN_KEY_STORAGE = "nexus_admin_key";
 
 const navItems = [
   {
@@ -143,6 +146,12 @@ export default function DashboardLayout({
   const closeSidebar = () => setSidebarOpen(false);
 
   const crumbs = breadcrumbsFromPathname(pathname);
+  const isMonitoringPage = isNavActive(pathname, "/dashboard/monitoring", false);
+
+  function handleAdminLogout() {
+    window.localStorage.removeItem(ADMIN_KEY_STORAGE);
+    router.refresh();
+  }
 
   return (
     <div className="dashboard-terminal min-h-screen bg-[var(--bg-primary)] text-white">
@@ -259,6 +268,18 @@ export default function DashboardLayout({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          {isMonitoringPage ? (
+            <button
+              type="button"
+              aria-label="Logout admin"
+              title="Logout admin"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-xs font-medium text-[#FF8888] transition hover:border-[#FF4444]/60 hover:bg-[#FF4444]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleAdminLogout}
+            >
+              <LogOut className="size-4" />
+              <span className="hidden sm:inline">Logout Admin</span>
+            </button>
+          ) : null}
           <button
             type="button"
             aria-label="Refresh"
