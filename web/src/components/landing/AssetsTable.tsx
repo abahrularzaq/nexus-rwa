@@ -75,7 +75,7 @@ export function AssetsTable() {
   });
 
   return (
-    <section className="py-24 px-6">
+    <section className="py-24 px-6" id="assets">
       <div className="max-w-[1400px] mx-auto">
         <FadeUp className="text-center mb-10">
           <span
@@ -86,13 +86,13 @@ export function AssetsTable() {
               color: "var(--accent-cyan)",
             }}
           >
-            Live Data
+            Asset Intelligence
           </span>
           <h2 className="mt-5 text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            Real-Time RWA Intelligence
+            Structured RWA Asset Coverage
           </h2>
           <p className="mt-3 text-base" style={{ color: "var(--text-secondary)" }}>
-            Live analytics for 47 tracked assets across major RWA protocols
+            Sample asset profiles showing how Nexus RWA compares tokenized assets across market, yield, risk, and category signals.
           </p>
         </FadeUp>
 
@@ -228,7 +228,7 @@ export function AssetsTable() {
               color: "var(--accent-cyan)",
             }}
           >
-            View all 47 assets →
+            Explore asset coverage →
           </div>
         </FadeUp>
       </div>
