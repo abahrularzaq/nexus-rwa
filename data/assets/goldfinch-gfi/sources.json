@@ -7,7 +7,8 @@
     "sourceType": "official_website",
     "reliability": 95,
     "checkedBy": "manual",
-    "notes": "Official Goldfinch website."
+    "checkedAt": "2026-06-09",
+    "notes": "Official Goldfinch website. Primary starting source for Goldfinch ecosystem identity, product links, docs, legal pages, governance, GitHub, and market-data links."
   },
   {
     "layer": "identity",
@@ -17,7 +18,19 @@
     "sourceType": "official_docs",
     "reliability": 95,
     "checkedBy": "manual",
-    "notes": "Official Goldfinch documentation."
+    "checkedAt": "2026-06-09",
+    "notes": "Official Goldfinch docs. Supports Goldfinch Prime/product context and private-credit positioning. Used carefully as related context for GFI token classification."
+  },
+  {
+    "layer": "identity",
+    "field": "twitterUrl",
+    "value": "https://x.com/goldfinch_fi",
+    "sourceUrl": "https://x.com/goldfinch_fi",
+    "sourceType": "official_social",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official Goldfinch X account. Use only for current announcements or links back to official documentation; not used for legal, reserve, or numeric production fields."
   },
   {
     "layer": "blockchain",
@@ -25,29 +38,76 @@
     "value": "0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
     "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
     "sourceType": "block_explorer",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Etherscan token page for GFI on Ethereum. Supports contract address, token standard, verified source-code status, transfers, holders, and token market panel."
+  },
+  {
+    "layer": "blockchain",
+    "field": "tokenStandard",
+    "value": "ERC-20",
+    "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceType": "block_explorer",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Ethereum ERC-20 GFI token contract page."
+    "checkedAt": "2026-06-09",
+    "notes": "Etherscan identifies the token contract as an Ethereum ERC-20 token."
   },
   {
-    "layer": "market",
-    "field": "marketDataSources",
-    "value": "CoinGecko, CoinMarketCap, DeFiLlama, Etherscan",
-    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
-    "sourceType": "market_data",
-    "reliability": 80,
+    "layer": "blockchain",
+    "field": "isVerified",
+    "value": true,
+    "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceType": "block_explorer",
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Market fields remain null until a production refresh is performed."
+    "checkedAt": "2026-06-09",
+    "notes": "Etherscan shows verified source code for the token contract page. No Etherscan-submitted contract security audit was identified during this review."
   },
   {
-    "layer": "market",
-    "field": "tvlSource",
-    "value": "https://defillama.com/protocol/goldfinch",
-    "sourceUrl": "https://defillama.com/protocol/goldfinch",
-    "sourceType": "market_data",
+    "layer": "blockchain",
+    "field": "githubRepository",
+    "value": "https://github.com/goldfinch-eng/mono",
+    "sourceUrl": "https://github.com/goldfinch-eng/mono",
+    "sourceType": "official_code_repository",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official Goldfinch monorepo. Use for deeper protocol-code and smart-contract architecture review. Not a substitute for a formal third-party audit report."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "GFI is not a direct reserve-backed or redeemable private-credit asset; Goldfinch Prime product-level private-credit exposure should be modeled separately from GFI token backing.",
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official FAQ supports Goldfinch Prime product structure and private-credit exposure context. It does not establish native reserve backing or redemption rights for GFI token."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": false,
+    "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceType": "block_explorer_and_negative_evidence",
     "reliability": 80,
     "checkedBy": "manual",
-    "notes": "Protocol-level TVL source. Must not be confused with direct GFI token reserve backing."
+    "checkedAt": "2026-06-09",
+    "notes": "No onchain proof-of-reserves oracle, reserve attestation page, or reserve account evidence was identified for GFI token during this review."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "GFI is treated as a protocol token; Goldfinch Prime / Heron note structure is product-level context only.",
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official FAQ references Goldfinch Prime product mechanics and Heron-related note context. Do not assign product-level structure directly to GFI token issuer/legal structure."
   },
   {
     "layer": "institutional",
@@ -57,16 +117,271 @@
     "sourceType": "official_governance",
     "reliability": 85,
     "checkedBy": "manual",
-    "notes": "Official governance forum linked from Goldfinch ecosystem sources."
+    "checkedAt": "2026-06-09",
+    "notes": "Official governance forum. Supports governance and protocol decision-making context."
   },
   {
-    "layer": "code",
-    "field": "githubRepository",
-    "value": "https://github.com/goldfinch-eng/mono",
-    "sourceUrl": "https://github.com/goldfinch-eng/mono",
-    "sourceType": "official_code_repository",
-    "reliability": 85,
+    "layer": "institutional",
+    "field": "heronFinanceContext",
+    "value": "https://www.heronfinance.com/",
+    "sourceUrl": "https://www.heronfinance.com/",
+    "sourceType": "official_partner_or_related_product_source",
+    "reliability": 82,
     "checkedBy": "manual",
-    "notes": "Official code repository for deeper technical review."
+    "checkedAt": "2026-06-09",
+    "notes": "Heron Finance is relevant to Goldfinch Prime product context. Regulator status must be verified through SEC IAPD/EDGAR before production grading."
+  },
+  {
+    "layer": "institutional",
+    "field": "secIapdVerification",
+    "value": "https://adviserinfo.sec.gov/",
+    "sourceUrl": "https://adviserinfo.sec.gov/",
+    "sourceType": "regulator_search",
+    "reliability": 95,
+    "checkedBy": "manual_required",
+    "checkedAt": "2026-06-09",
+    "notes": "Required regulator verification source for Heron Finance / Warbler Labs adviser status. Direct firm result was not confirmed in this pass; keep as data gap until manually verified."
+  },
+  {
+    "layer": "institutional",
+    "field": "secEdgarVerification",
+    "value": "https://www.sec.gov/edgar/search/",
+    "sourceUrl": "https://www.sec.gov/edgar/search/",
+    "sourceType": "regulator_search",
+    "reliability": 95,
+    "checkedBy": "manual_required",
+    "checkedAt": "2026-06-09",
+    "notes": "Required SEC filing search for Goldfinch, Warbler Labs, Goldfinch Technology Company, Heron Finance, Heron entities, and note issuers. No direct GFI filing confirmed in this pass."
+  },
+  {
+    "layer": "compliance",
+    "field": "gfiTokenComplianceScope",
+    "value": "No official evidence found for native GFI token KYC transfer gating or whitelist transfer restrictions during this review.",
+    "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceType": "block_explorer_and_negative_evidence",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Compliance fields distinguish GFI token transferability from Goldfinch Prime product eligibility."
+  },
+  {
+    "layer": "compliance",
+    "field": "goldfinchPrimeKycContext",
+    "value": true,
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official FAQ says Goldfinch Prime participation requires KYC and excludes specific unsupported countries. Stored as product-level context only, not native GFI token transfer compliance."
+  },
+  {
+    "layer": "compliance",
+    "field": "primeTerms",
+    "value": "https://prime.goldfinch.finance/terms",
+    "sourceUrl": "https://prime.goldfinch.finance/terms",
+    "sourceType": "official_legal_terms",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official Goldfinch Prime terms page. Relevant to Goldfinch Prime product compliance, not direct GFI token legal opinion. Access or content may vary by jurisdiction."
+  },
+  {
+    "layer": "compliance",
+    "field": "v1Terms",
+    "value": "https://app.goldfinch.finance/terms",
+    "sourceUrl": "https://app.goldfinch.finance/terms",
+    "sourceType": "official_legal_terms",
+    "reliability": 86,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official legacy app terms. Supports historical app/legal context only."
+  },
+  {
+    "layer": "market",
+    "field": "price",
+    "value": 0.1108,
+    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "CoinGecko used as primary token-market source for price snapshot. Volatile value; refresh before production import."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": 10354629,
+    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "CoinGecko market cap snapshot. Cross-check differs from CoinMarketCap; keep conflict note in market layer."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": 136134,
+    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "CoinGecko 24h volume snapshot. Volatile and should be refreshed."
+  },
+  {
+    "layer": "market",
+    "field": "circulatingSupply",
+    "value": 93439168,
+    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "CoinGecko circulating supply snapshot. Cross-check with CoinMarketCap and Etherscan before production."
+  },
+  {
+    "layer": "market",
+    "field": "totalSupply",
+    "value": 114285714,
+    "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+    "sourceType": "market_data",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "CoinGecko total supply snapshot, aligned approximately with Etherscan max total supply panel."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": 1668454,
+    "sourceUrl": "https://defillama.com/protocol/goldfinch",
+    "sourceType": "protocol_market_data",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "DeFiLlama protocol-level TVL source. Must not be interpreted as GFI token backing, reserve value, or direct AUM unless methodology is defined."
+  },
+  {
+    "layer": "market",
+    "field": "holderCount",
+    "value": 16163,
+    "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+    "sourceType": "block_explorer",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Etherscan holder count snapshot. Requires holder concentration analysis before risk scoring."
+  },
+  {
+    "layer": "market",
+    "field": "coinMarketCapCrossCheck",
+    "value": "https://coinmarketcap.com/currencies/goldfinch-protocol/",
+    "sourceUrl": "https://coinmarketcap.com/currencies/goldfinch-protocol/",
+    "sourceType": "market_data_cross_check",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "CoinMarketCap used as secondary cross-check for market cap, volume, supply, and approximate holder data. Values conflict with CoinGecko; use conflict notes."
+  },
+  {
+    "layer": "yield",
+    "field": "currentYield",
+    "value": null,
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "official_docs_and_negative_evidence",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "No official native GFI token yield mechanism was verified. Goldfinch Prime or protocol pool returns are product-level context and should not be imported as GFI token yield."
+  },
+  {
+    "layer": "yield",
+    "field": "goldfinchPrimeYieldContext",
+    "value": "Product-level private-credit yield context only",
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official FAQ describes Goldfinch Prime returns and fees. Store as product context only; do not use for native GFI token yield."
+  },
+  {
+    "layer": "yield",
+    "field": "defillamaApyContext",
+    "value": "https://defillama.com/protocol/goldfinch",
+    "sourceUrl": "https://defillama.com/protocol/goldfinch",
+    "sourceType": "protocol_yield_data",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "DeFiLlama may provide protocol/pool-level yield context. Do not map to GFI token currentYield unless Nexus models the underlying Goldfinch product/pool separately."
+  },
+  {
+    "layer": "liquidity",
+    "field": "onchainLiquidity",
+    "value": 187748,
+    "sourceUrl": "https://defillama.com/protocol/goldfinch",
+    "sourceType": "protocol_market_data",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "DeFiLlama GFI liquidity snapshot. Used for liquidity layer with conservative scoring. Refresh before production grading."
+  },
+  {
+    "layer": "liquidity",
+    "field": "dexPairs",
+    "value": "Ethereum / Uniswap V3 / GFI-WETH",
+    "sourceUrl": "https://defillama.com/protocol/goldfinch",
+    "sourceType": "protocol_market_data",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "DeFiLlama identifies Uniswap V3 liquidity context. Specific pair URL should be captured from GeckoTerminal or DEXScreener before production."
+  },
+  {
+    "layer": "liquidity",
+    "field": "volumeBreakdown",
+    "value": "CEX volume 136455; DEX volume 1596; total GFI volume 138115",
+    "sourceUrl": "https://defillama.com/protocol/goldfinch",
+    "sourceType": "protocol_market_data",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "DeFiLlama volume snapshot shows trading activity mostly through CEX venues, with modest DEX volume. Refresh before production."
+  },
+  {
+    "layer": "liquidity",
+    "field": "goldfinchPrimeProductLiquidityContext",
+    "value": "Quarterly product-level withdrawals; not native GFI redemption liquidity",
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "official_docs",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Official FAQ product-level withdrawal mechanics are relevant for Goldfinch Prime, but they do not create GFI token redemption rights."
+  },
+  {
+    "layer": "liquidity",
+    "field": "geckoTerminalPairDiscoveryNeeded",
+    "value": "https://www.geckoterminal.com/",
+    "sourceUrl": "https://www.geckoterminal.com/",
+    "sourceType": "dex_pair_discovery",
+    "reliability": 72,
+    "checkedBy": "manual_required",
+    "checkedAt": "2026-06-09",
+    "notes": "Use GeckoTerminal or similar DEX analytics to capture exact pool URL, liquidity depth, volume, and bid/price-impact context before production scoring."
+  },
+  {
+    "layer": "risk",
+    "field": "riskContext",
+    "value": "Research-grade pending legal, regulatory, audit, holder concentration, and liquidity-depth verification.",
+    "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq",
+    "sourceType": "synthesis_from_primary_sources",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "checkedAt": "2026-06-09",
+    "notes": "Risk layer should remain conservative because GFI is not a direct reserve-backed asset and several production-grade evidence items remain missing."
   }
 ]
