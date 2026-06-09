@@ -2,7 +2,7 @@
   "name": "Goldfinch",
   "symbol": "GFI",
   "fullName": "Goldfinch Protocol Token",
-  "description": "Goldfinch is an onchain private credit protocol. GFI is the Goldfinch protocol token used for governance and protocol participation, while Goldfinch Prime and legacy Goldfinch V1 products provide exposure to private credit opportunities. For Nexus RWA, GFI should be classified as RWA protocol infrastructure rather than a direct tokenized claim on an underlying credit asset.",
+  "description": "Goldfinch is an onchain private credit protocol ecosystem. Goldfinch Prime is the current private-credit product experience described in the official Goldfinch docs, while GFI is the Ethereum ERC-20 protocol token associated with Goldfinch governance and protocol participation. For Nexus RWA, GFI should be classified as RWA/private-credit protocol infrastructure, not as a direct redeemable claim on a specific credit portfolio, fund share, or reserve-backed asset.",
   "category": "Private Credit",
   "subcategory": "RWA protocol governance token",
   "logoUrl": null,
@@ -14,6 +14,7 @@
     "rwa-protocol",
     "governance-token",
     "ethereum",
+    "goldfinch-prime-related",
     "research-grade"
   ],
   "launchDate": null,
@@ -22,10 +23,10 @@
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-09",
     "reviewFrequencyDays": 90,
-    "sourceTier": "mixed",
-    "confidence": "medium",
-    "freshnessStatus": "needs-refresh-before-production",
-    "status": "scaffold-created",
-    "notes": "Initial scaffold. Verify launch date, official token docs, and social links before production import."
+    "sourceTier": "tier-1-official-and-explorer",
+    "confidence": "medium-high",
+    "freshnessStatus": "current-for-identity-scope",
+    "status": "research-layer-updated",
+    "notes": "Identity is scoped to GFI token, while Goldfinch Prime product facts are kept as related context only. Launch date remains null until verified from official token-launch or contract-deployment evidence."
   }
 }
