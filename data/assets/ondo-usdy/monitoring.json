@@ -1,0 +1,216 @@
+{
+  "assetSlug": "ondo-usdy",
+  "assetSymbol": "USDY",
+  "assetName": "Ondo US Dollar Yield Token",
+  "monitoringStatus": "active-analytics",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "analytics",
+    "score": 83,
+    "baselineDate": "2026-06-01",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-01",
+    "nextManualReview": "2026-07-01",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 60,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 60,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/ondo-us-dollar-yield",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/ondo-us-dollar-yield",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/ondo-us-dollar-yield",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "tvl",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/rwa/asset/usdy",
+      "refreshFrequencyHours": 24,
+      "notes": "Protocol-level TVL only unless asset methodology defines TVL as direct AUM/backing."
+    },
+    {
+      "layer": "liquidity",
+      "field": "onchainLiquidity",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/rwa/asset/usdy",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "liquidity",
+      "field": "dexPairs",
+      "source": "GeckoTerminal / DEXScreener",
+      "sourceUrl": "https://www.geckoterminal.com/",
+      "refreshFrequencyDays": 7,
+      "status": "manual-pair-url-needed"
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official reserve breakdown or keep null with explanation."
+    },
+    {
+      "layer": "compliance",
+      "field": "primaryRegulator",
+      "status": "needs-verification",
+      "importance": "warning",
+      "notes": "Verify through official regulator, SEC/IAPD/EDGAR, issuer docs, or legal documents."
+    },
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Search for public legal opinion or legal document URL."
+    },
+    {
+      "layer": "reserve",
+      "field": "lastAuditUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official audit/report URL if available."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    },
+    {
+      "layer": "liquidity",
+      "field": "bidAskSpread",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    }
+  ],
+  "knownBlockers": [],
+  "knownWarnings": [
+    "Missing primary regulator",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "Missing audit/report URL"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than freshnessPolicy.marketDataMaxAgeHours",
+      "action": "Refresh market data from configured market sources."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DEX/CEX liquidity sources before changing liquidityScore."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "primary and cross-check market sources differ materially",
+      "action": "Keep conflict note and prefer primary source unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Official website",
+      "url": "https://ondo.finance/usdy",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official docs",
+      "url": "https://docs.ondo.finance/general-access-products/usdy/basics",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official social",
+      "url": "https://x.com/OndoFinance",
+      "tier": "Tier 3",
+      "frequencyDays": 30
+    },
+    {
+      "name": "Market/source URL",
+      "url": "https://app.rwa.xyz/assets/USDY",
+      "tier": "Tier 2",
+      "frequencyDays": 7
+    },
+    {
+      "name": "DeFiLlama protocol source",
+      "url": "https://defillama.com/rwa/asset/usdy",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "CoinGecko market source",
+      "url": "https://www.coingecko.com/en/coins/ondo-us-dollar-yield",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "Market/source URL",
+      "url": "https://docs.ondo.finance/ondo-global-markets/investing-and-redeeming",
+      "tier": "Tier 2",
+      "frequencyDays": 7
+    },
+    {
+      "name": "reserve.custodian",
+      "url": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    }
+  ],
+  "monitoringNotes": [
+    "Generated from ondo-usdy asset layer files.",
+    "Review manually before treating this as a production monitoring profile.",
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+  ],
+  "templateVersion": 1
+}

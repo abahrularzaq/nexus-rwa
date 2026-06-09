@@ -1,0 +1,174 @@
+{
+  "assetSlug": "superstate-ustb",
+  "assetSymbol": "USTB",
+  "assetName": "Superstate Short Duration US Government Securities Fund",
+  "monitoringStatus": "active-analytics",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "analytics",
+    "score": 76,
+    "baselineDate": "2026-06-01",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-01",
+    "nextManualReview": "2026-07-01",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 60,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 60,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "tvl",
+      "source": "DeFiLlama",
+      "sourceUrl": "defillama",
+      "refreshFrequencyHours": 24,
+      "notes": "Protocol-level TVL only unless asset methodology defines TVL as direct AUM/backing."
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official reserve breakdown or keep null with explanation."
+    },
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Search for public legal opinion or legal document URL."
+    },
+    {
+      "layer": "reserve",
+      "field": "lastAuditUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official audit/report URL if available."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    },
+    {
+      "layer": "liquidity",
+      "field": "bidAskSpread",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    }
+  ],
+  "knownBlockers": [],
+  "knownWarnings": [
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than freshnessPolicy.marketDataMaxAgeHours",
+      "action": "Refresh market data from configured market sources."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DEX/CEX liquidity sources before changing liquidityScore."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "primary and cross-check market sources differ materially",
+      "action": "Keep conflict note and prefer primary source unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Official website",
+      "url": "https://superstate.com/assets/ustb",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official docs",
+      "url": "https://docs.superstate.com/superstate-funds/ustb",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official social",
+      "url": "https://x.com/superstateinc",
+      "tier": "Tier 3",
+      "frequencyDays": 30
+    },
+    {
+      "name": "identity.launchDate",
+      "url": "https://www.sec.gov/Archives/edgar/data/1982577/000110465925042142/tm2513524d1_n1a.htm",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "identity.isin",
+      "url": "https://defillama.com/rwa/asset/USTB",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.contractAddress",
+      "url": "https://etherscan.io/address/0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.contractAddress",
+      "url": "https://explorer.solana.com/address/CCz3SGVziFeLYk2xfEstkiqJfYkjaSWb2GCABYsVcjo2",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.contractAddress",
+      "url": "https://phoenix-explorer.plumenetwork.xyz/address/0xe4fa682f94610ccd170680cc3b045d77d9e528a8",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    }
+  ],
+  "monitoringNotes": [
+    "Generated from superstate-ustb asset layer files.",
+    "Review manually before treating this as a production monitoring profile.",
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+  ],
+  "templateVersion": 1
+}

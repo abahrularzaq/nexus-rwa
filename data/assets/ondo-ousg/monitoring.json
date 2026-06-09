@@ -1,0 +1,186 @@
+{
+  "assetSlug": "ondo-ousg",
+  "assetSymbol": "OUSG",
+  "assetName": "Ondo Short-Term US Government Treasuries",
+  "monitoringStatus": "active-analytics",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "analytics",
+    "score": 82,
+    "baselineDate": "2026-06-01",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-01",
+    "nextManualReview": "2026-07-01",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 60,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 60,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "source": "CoinGecko",
+      "sourceUrl": "coingecko",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "source": "CoinGecko",
+      "sourceUrl": "coingecko",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "source": "CoinGecko",
+      "sourceUrl": "coingecko",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "holderCount",
+      "source": "Etherscan",
+      "sourceUrl": "etherscan",
+      "refreshFrequencyDays": 7
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Search for public legal opinion or legal document URL."
+    },
+    {
+      "layer": "reserve",
+      "field": "lastAuditUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official audit/report URL if available."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    },
+    {
+      "layer": "liquidity",
+      "field": "bidAskSpread",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    }
+  ],
+  "knownBlockers": [],
+  "knownWarnings": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than freshnessPolicy.marketDataMaxAgeHours",
+      "action": "Refresh market data from configured market sources."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DEX/CEX liquidity sources before changing liquidityScore."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "primary and cross-check market sources differ materially",
+      "action": "Keep conflict note and prefer primary source unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Official website",
+      "url": "https://ondo.finance/ousg",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official docs",
+      "url": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official social",
+      "url": "https://x.com/OndoFinance",
+      "tier": "Tier 3",
+      "frequencyDays": 30
+    },
+    {
+      "name": "identity.launchDate",
+      "url": "https://www.coingecko.com/en/coins/ousg",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "reserve.custodian",
+      "url": "https://docs.ondo.finance/trust-and-security",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "reserve.reserveBreakdown",
+      "url": "https://app.rwa.xyz/protocols/ondo-finance",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "compliance.blockedJurisdictions",
+      "url": "https://ondo.finance/terms-of-service",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.contractAddress",
+      "url": "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    }
+  ],
+  "monitoringNotes": [
+    "Generated from ondo-ousg asset layer files.",
+    "Review manually before treating this as a production monitoring profile.",
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+  ],
+  "templateVersion": 1
+}

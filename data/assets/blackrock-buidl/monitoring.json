@@ -1,0 +1,228 @@
+{
+  "assetSlug": "blackrock-buidl",
+  "assetSymbol": "BUIDL",
+  "assetName": "BlackRock USD Institutional Digital Liquidity Fund Ltd.",
+  "monitoringStatus": "active-analytics",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "analytics",
+    "score": 81,
+    "baselineDate": "2026-06-02",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-02",
+    "nextManualReview": "2026-07-02",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 60,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 60,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "tvl",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/protocol/blackrock-buidl",
+      "refreshFrequencyHours": 24,
+      "notes": "Protocol-level TVL only unless asset methodology defines TVL as direct AUM/backing."
+    },
+    {
+      "layer": "market",
+      "field": "holderCount",
+      "source": "Etherscan",
+      "sourceUrl": "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+      "refreshFrequencyDays": 7
+    },
+    {
+      "layer": "liquidity",
+      "field": "onchainLiquidity",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/protocol/blackrock-buidl",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "liquidity",
+      "field": "dexPairs",
+      "source": "GeckoTerminal / DEXScreener",
+      "sourceUrl": "https://www.geckoterminal.com/",
+      "refreshFrequencyDays": 7,
+      "status": "manual-pair-url-needed"
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official reserve breakdown or keep null with explanation."
+    },
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Search for public legal opinion or legal document URL."
+    },
+    {
+      "layer": "reserve",
+      "field": "lastAuditUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official audit/report URL if available."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    },
+    {
+      "layer": "liquidity",
+      "field": "bidAskSpread",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    }
+  ],
+  "knownBlockers": [],
+  "knownWarnings": [
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than freshnessPolicy.marketDataMaxAgeHours",
+      "action": "Refresh market data from configured market sources."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DEX/CEX liquidity sources before changing liquidityScore."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "primary and cross-check market sources differ materially",
+      "action": "Keep conflict note and prefer primary source unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Official website",
+      "url": "https://securitize.io/blackrock/buidl",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Market/source URL",
+      "url": "https://app.rwa.xyz/assets/BUIDL",
+      "tier": "Tier 2",
+      "frequencyDays": 7
+    },
+    {
+      "name": "DeFiLlama protocol source",
+      "url": "https://defillama.com/protocol/blackrock-buidl",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "CoinGecko market source",
+      "url": "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "Etherscan token source",
+      "url": "https://etherscan.io/token/0x7712c34205737192402172409a8f7ccef8aa2aec",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "identity.fullName",
+      "url": "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "identity.launchDate",
+      "url": "https://securitize.io/learn/press/blackrock-launches-first-tokenized-fund-buidl-on-the-ethereum-network",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "reserve.backingDescription",
+      "url": "https://www.wsj.com/livecoverage/fed-meeting-fomc-interest-rate-decision-march-2024/card/blackrock-launches-first-tokenized-fund-on-ethereum-blockchain-nzDSJjH5mEijUzKO24T4",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.contractAddress",
+      "url": "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.chainCoverage",
+      "url": "https://securitize.io/learn/press/blackRock-launches-new-buidl-share-classes-across-multiple-blockchains",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    }
+  ],
+  "monitoringNotes": [
+    "Generated from blackrock-buidl asset layer files.",
+    "Review manually before treating this as a production monitoring profile.",
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+  ],
+  "templateVersion": 1
+}

@@ -1,0 +1,218 @@
+{
+  "assetSlug": "centrifuge-cfg",
+  "assetSymbol": "CFG",
+  "assetName": "Centrifuge CFG",
+  "monitoringStatus": "active-research",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "research",
+    "score": 46,
+    "baselineDate": "2026-06-08",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-08",
+    "nextManualReview": "2026-07-08",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 90,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 90,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/centrifuge",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "tvl",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/protocol/centrifuge",
+      "refreshFrequencyHours": 24,
+      "notes": "Protocol-level TVL only unless asset methodology defines TVL as direct AUM/backing."
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "reserve",
+      "field": "custodian",
+      "status": "missing",
+      "importance": "blocker",
+      "notes": "Verify whether the asset has an official custodian. Keep null if structurally not applicable."
+    },
+    {
+      "layer": "reserve",
+      "field": "redemptionAsset",
+      "status": "missing",
+      "importance": "blocker",
+      "notes": "Verify whether the asset has a native redemption asset. Keep null if structurally not applicable."
+    },
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official reserve breakdown or keep null with explanation."
+    },
+    {
+      "layer": "compliance",
+      "field": "primaryRegulator",
+      "status": "needs-verification",
+      "importance": "warning",
+      "notes": "Verify through official regulator, SEC/IAPD/EDGAR, issuer docs, or legal documents."
+    },
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Search for public legal opinion or legal document URL."
+    },
+    {
+      "layer": "reserve",
+      "field": "lastAuditUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Find official audit/report URL if available."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    },
+    {
+      "layer": "liquidity",
+      "field": "bidAskSpread",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    }
+  ],
+  "knownBlockers": [
+    "Missing backing type",
+    "Missing backing description",
+    "Missing custodian",
+    "Missing redemption asset"
+  ],
+  "knownWarnings": [
+    "Missing primary regulator",
+    "KYC requirement is not confirmed",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing redemption period",
+    "Missing on-chain liquidity"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than freshnessPolicy.marketDataMaxAgeHours",
+      "action": "Refresh market data from configured market sources."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DEX/CEX liquidity sources before changing liquidityScore."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "primary and cross-check market sources differ materially",
+      "action": "Keep conflict note and prefer primary source unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Official website",
+      "url": "https://centrifuge.io/",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official docs",
+      "url": "https://docs.centrifuge.io/getting-started/token-summary/",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official social",
+      "url": "https://x.com/centrifuge",
+      "tier": "Tier 3",
+      "frequencyDays": 30
+    },
+    {
+      "name": "DeFiLlama protocol source",
+      "url": "https://defillama.com/protocol/centrifuge",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "CoinGecko market source",
+      "url": "https://www.coingecko.com/en/coins/centrifuge",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "blockchain.explorerUrl",
+      "url": "https://etherscan.io/token/0xcccCCCcCCC33D538DBC2EE4fEab0a7A1FF4e8A94",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "institutional.legalStructure",
+      "url": "https://docs.centrifuge.io/getting-started/cfg-governance/",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    }
+  ],
+  "monitoringNotes": [
+    "Generated from centrifuge-cfg asset layer files.",
+    "Review manually before treating this as a production monitoring profile.",
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+  ],
+  "templateVersion": 1
+}

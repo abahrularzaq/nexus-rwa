@@ -1,0 +1,214 @@
+{
+  "assetSlug": "paxos-paxg",
+  "assetSymbol": "PAXG",
+  "assetName": "Pax Gold",
+  "monitoringStatus": "active-analytics",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "analytics",
+    "score": 85,
+    "baselineDate": "2026-06-04",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-04",
+    "nextManualReview": "2026-07-04",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 60,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 60,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/pax-gold",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "holderCount",
+      "source": "Etherscan",
+      "sourceUrl": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+      "refreshFrequencyDays": 7
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "Search for public legal opinion or legal document URL."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    }
+  ],
+  "knownBlockers": [],
+  "knownWarnings": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed",
+    "Missing redemption period",
+    "Missing on-chain liquidity"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than freshnessPolicy.marketDataMaxAgeHours",
+      "action": "Refresh market data from configured market sources."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DEX/CEX liquidity sources before changing liquidityScore."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "primary and cross-check market sources differ materially",
+      "action": "Keep conflict note and prefer primary source unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Official website",
+      "url": "https://www.paxos.com/pax-gold",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official docs",
+      "url": "https://docs.paxos.com/guides/dashboard/paxg",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Official social",
+      "url": "https://x.com/Paxos",
+      "tier": "Tier 3",
+      "frequencyDays": 30
+    },
+    {
+      "name": "CoinGecko market source",
+      "url": "https://www.coingecko.com/en/coins/pax-gold",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "Etherscan token source",
+      "url": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "identity.twitterUrl",
+      "url": "https://www.paxos.com/company",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "identity.launchDate",
+      "url": "https://www.dfs.ny.gov/reports_and_publications/press_releases/pr1909051",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.contractAddress",
+      "url": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.tokenStandard",
+      "url": "https://www.paxos.com/newsroom/paxos-launches-pax-gold-physical-gold-on-the-blockchain",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.isTransferable",
+      "url": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "blockchain.isVerified",
+      "url": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78#code",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "reserve.hasProofOfReserves",
+      "url": "https://www.paxos.com/paxg-transparency",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "institutional.issuerType",
+      "url": "https://www.paxos.com/terms-and-conditions/general-terms-and-conditions",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    },
+    {
+      "name": "institutional.metadata.regulatoryContext.occStatus",
+      "url": "https://www.occ.gov/news-issuances/news-releases/2025/nr-occ-2025-125.html",
+      "tier": "Tier 2",
+      "frequencyDays": 30
+    },
+    {
+      "name": "compliance.regulatoryFramework",
+      "url": "https://www.paxos.com/terms-and-conditions/aml-kyc",
+      "tier": "Tier 1",
+      "frequencyDays": 30
+    }
+  ],
+  "monitoringNotes": [
+    "Generated from paxos-paxg asset layer files.",
+    "Review manually before treating this as a production monitoring profile.",
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+  ],
+  "templateVersion": 1
+}
