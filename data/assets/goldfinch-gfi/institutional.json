@@ -1,21 +1,42 @@
 {
   "issuerName": "Goldfinch",
-  "issuerType": "Protocol / RWA credit platform",
+  "issuerType": "Protocol / RWA private-credit platform",
   "issuerCountry": null,
   "fundManager": null,
-  "legalStructure": "Decentralized protocol and private-credit platform; exact issuer/legal structure for GFI requires further verification from official legal documents.",
+  "legalStructure": "GFI is treated in this dataset as the Goldfinch protocol token, while Goldfinch Prime is a separate private-credit product experience described in official documentation. The exact legal issuer structure for GFI requires further verification from official token/legal documents. Goldfinch Prime documentation references Heron-issued contingent payment notes backed by equity interests in third-party private-credit funds, but that product-level structure should not be assigned directly to GFI.",
   "minimumInvestment": null,
   "managementFee": null,
   "performanceFee": null,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": "Crypto/RWA users, governance participants, and eligible investors using Goldfinch private-credit products, subject to product-specific restrictions.",
+  "targetInvestors": "GFI: protocol participants, governance participants, and secondary-market token holders. Goldfinch Prime: eligible non-U.S. individual purchasers and other product-specific participants, subject to official terms and jurisdiction restrictions.",
   "prospectusUrl": null,
   "metadata": {
-    "productScopeNote": "This file is scoped to GFI as a protocol token. Goldfinch Prime or individual private-credit deals may require separate asset entries if Nexus RWA later tracks them as investable credit products.",
+    "productScopeNote": "This layer is scoped to GFI as a protocol token. Goldfinch Prime, Heron-issued notes, and legacy Goldfinch V1 pools should be researched as separate product contexts if Nexus RWA later tracks them as investable private-credit assets.",
     "officialWebsite": "https://www.goldfinch.finance/",
     "officialDocs": "https://docs.goldfinch.finance/goldfinch",
+    "officialFaq": "https://docs.goldfinch.finance/goldfinch/faq",
+    "primeTerms": "https://prime.goldfinch.finance/terms",
+    "v1Terms": "https://app.goldfinch.finance/terms",
     "governanceUrl": "https://gov.goldfinch.finance/",
-    "needsLegalReview": true
+    "heronFinanceUrl": "https://www.heronfinance.com/",
+    "secIapdSearchUrl": "https://adviserinfo.sec.gov/",
+    "secEdgarSearchUrl": "https://www.sec.gov/edgar/search/",
+    "goldfinchPrimeProductNotes": {
+      "managerOrRelatedEntity": "Heron entity referenced in official Goldfinch Prime FAQ; requires regulator verification before production grading.",
+      "instrumentType": "Contingent payment notes referenced in official Goldfinch Prime FAQ; product-level context only.",
+      "underlyingExposure": "Equity interests in third-party private-credit funds referenced in official Goldfinch Prime FAQ; product-level context only."
+    },
+    "feesProductLevelOnly": {
+      "managementFee": 0.005,
+      "withdrawalFee": 0.005,
+      "notes": "Official Goldfinch Prime FAQ references 0.5% annual management fee and 0.5% withdrawal fee. These are Goldfinch Prime product fees, not native GFI token fees."
+    },
+    "needsLegalReview": true,
+    "dataGaps": [
+      "Direct issuer/legal entity for GFI token not confirmed from a public legal document.",
+      "No GFI prospectus, offering memorandum, or legal opinion URL found in this review.",
+      "Heron/Warbler regulatory status should be verified through SEC IAPD/EDGAR before any institutional-grade classification."
+    ]
   }
 }
