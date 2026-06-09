@@ -1,0 +1,24 @@
+{
+  "overallScore": null,
+  "overallLevel": "research",
+  "smartContractRisk": null,
+  "counterpartyRisk": null,
+  "liquidityRisk": null,
+  "regulatoryRisk": null,
+  "marketRisk": null,
+  "concentrationRisk": null,
+  "riskFactors": [
+    "GFI is a protocol/governance token, not a direct redeemable claim on a specific RWA reserve asset.",
+    "Private credit exposure in Goldfinch products carries borrower, underwriting, default, and liquidity risk.",
+    "Public legal opinion URL for GFI was not found during initial scaffold research.",
+    "No on-chain proof-of-reserves oracle was identified for GFI.",
+    "Market, holder concentration, audit, and liquidity data require refresh before production grading."
+  ],
+  "mitigants": [
+    "Official website, docs, governance, app, and public Ethereum token contract are available for further research.",
+    "Protocol-level market and TVL references are available through DeFiLlama and market-data aggregators.",
+    "GFI contract address is publicly visible on Ethereum and can be independently verified through Etherscan."
+  ],
+  "lastAssessed": "2026-06-09",
+  "assessmentMethod": "Initial scaffold risk note based on source discovery. Scores intentionally left null until full evidence-based layer research and grading are completed."
+}
