@@ -57,24 +57,25 @@ if session["data"]["active"]:
 const base = "https://api.nexusrwa.xyz/v1";
 
 const session = await fetch(base + "/session?wallet=" + wallet, {
-  headers: { "X-Wallet-Address": wallet }
-}).then((r) => r.json());
+  headers: { "X-Wallet-Address": wallet },
+}).then(r => r.json());
 
 if (session.data.active) {
   const asset = await fetch(base + "/assets/franklin-benji/full", {
-    headers: { "X-Wallet-Address": wallet }
-  }).then((r) => r.json());
+    headers: { "X-Wallet-Address": wallet },
+  }).then(r => r.json());
+
   console.log(asset.data.slug);
 }`,
-  "AI Agent": `# Agent workflow concept
-# 1. Ask Nexus for full RWA evidence.
-# 2. If API returns 402, complete x402 checkout.
-# 3. Retry with X-Wallet-Address while session is active.
+  "AI Agent": `Goal: retrieve complete RWA risk intelligence.
 
-agent.ask(
-  "Compare BENJI and BUIDL using grade, risk, sources, and reserve layers"
-)
-# Agent uses active wallet session to access deeper RWA data.`,
+1. Request /v1/assets/{slug}/full
+2. If HTTP 402, parse x402 payment requirement
+3. Pay with wallet-native USDC pass
+4. Retry with wallet session header
+5. Use sources + risk + events for reasoning
+
+Best for: agents, research bots, portfolio monitors`,
 };
 
 export function X402Section() {
@@ -82,6 +83,7 @@ export function X402Section() {
 
   return (
     <section
+      id="x402"
       className="py-24 px-6"
       style={{
         background:
@@ -130,101 +132,49 @@ export function X402Section() {
                   {s.text}
                 </div>
               </div>
-              {i < steps.length - 1 && (
-                <span
-                  className="arrow-pulse text-2xl rotate-90 lg:rotate-0"
-                  style={{ color: "var(--accent-cyan)" }}
-                >
-                  →
-                </span>
-              )}
+              {i < steps.length - 1 && <Zap size={18} className="hidden lg:block" style={{ color: "var(--accent-cyan)" }} />}
             </div>
           ))}
         </div>
 
-        {/* code */}
-        <FadeUp>
-          <div className="flex items-center gap-1 mb-3 border-b" style={{ borderColor: "var(--border-line)" }}>
-            {tabs.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className="px-4 py-2 text-sm font-medium transition-colors"
-                style={{
-                  color: tab === t ? "#fff" : "#8892A4",
-                  borderBottom: tab === t ? "2px solid var(--accent-cyan)" : "2px solid transparent",
-                  marginBottom: -1,
-                }}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-          <pre
-            className="text-[13px] leading-[1.7] overflow-x-auto p-6 rounded-xl font-mono"
-            style={{
-              background: "#060A14",
-              border: "1px solid rgba(0,212,255,0.2)",
-              color: "#CBD5E1",
-            }}
-          >
-            {highlight(codeSamples[tab])}
-          </pre>
-        </FadeUp>
-
-        {/* feature cards */}
-        <div className="grid md:grid-cols-3 gap-5 mt-10">
-          {[
-            { Icon: Zap, title: "Low Friction", text: "No traditional account flow. Connect wallet, unlock, and access deeper data while the session is active.", border: "rgba(0,212,255,0.3)", color: "#00D4FF" },
-            { Icon: Bot, title: "AI Agent Ready", text: "Designed for agent and data workflows that need structured RWA evidence and wallet-session access.", border: "rgba(124,58,237,0.3)", color: "#A78BFA" },
-            { Icon: Coins, title: "USDC Access Passes", text: "Free discovery, Pro 24h access, and Enterprise API/export workflows using wallet-native payment.", border: "rgba(0,255,136,0.3)", color: "#00FF88" },
-          ].map((c, i) => (
-            <FadeUp key={i} delay={i * 0.05}>
-              <div
-                className="glass-card p-7 h-full transition-all hover:-translate-y-1"
-                style={{ borderColor: c.border }}
-              >
-                <c.Icon size={28} style={{ color: c.color }} />
-                <h3 className="mt-4 text-lg font-bold text-white">{c.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                  {c.text}
-                </p>
+        <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-start">
+          <FadeUp>
+            <div className="glass-card p-6 h-full">
+              <div className="flex items-center gap-3 mb-4">
+                <Coins size={22} style={{ color: "var(--accent-green)" }} />
+                <h3 className="text-xl font-bold text-white">Pay-per-request ready</h3>
               </div>
-            </FadeUp>
-          ))}
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                Nexus RWA is designed for API-native data access where users and agents can unlock deeper asset intelligence only when they need it.
+              </p>
+            </div>
+          </FadeUp>
+
+          <FadeUp delay={0.1}>
+            <div className="glass-card overflow-hidden">
+              <div className="flex flex-wrap gap-2 p-4 border-b" style={{ borderColor: "var(--border-line)" }}>
+                {tabs.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className="px-3 py-1.5 rounded-md text-xs font-bold"
+                    style={{
+                      background: tab === t ? "rgba(0,212,255,0.12)" : "transparent",
+                      color: tab === t ? "var(--accent-cyan)" : "var(--text-secondary)",
+                      border: tab === t ? "1px solid rgba(0,212,255,0.3)" : "1px solid transparent",
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <pre className="p-6 text-xs leading-relaxed overflow-x-auto" style={{ color: "#CBD5E1" }}>
+                {codeSamples[tab]}
+              </pre>
+            </div>
+          </FadeUp>
         </div>
       </div>
     </section>
   );
-}
-
-function highlight(code: string) {
-  // Minimal token highlighting
-  const lines = code.split("\n");
-  return lines.map((line, i) => {
-    let el: React.ReactNode = line;
-    if (line.trim().startsWith("#")) {
-      el = <span style={{ color: "#4A5568", fontStyle: "italic" }}>{line}</span>;
-    } else if (/^HTTP\/|GET |POST /.test(line.trim())) {
-      el = <span style={{ color: "#00D4FF" }}>{line}</span>;
-    } else {
-      // simple string + number coloring
-      const parts = line.split(/("[^"]*")/g);
-      el = parts.map((p, j) =>
-        p.startsWith('"') ? (
-          <span key={j} style={{ color: "#00FF88" }}>{p}</span>
-        ) : (
-          <span key={j}>{p.replace(/(\b\d+\.?\d*\b)/g, (n) => n)}</span>
-        ),
-      );
-    }
-    return (
-      <div key={i}>
-        <span className="select-none mr-4 inline-block w-6 text-right" style={{ color: "#2A3548" }}>
-          {i + 1}
-        </span>
-        {el}
-      </div>
-    );
-  });
 }
