@@ -1,0 +1,260 @@
+{
+  "assetSlug": "goldfinch-gfi",
+  "assetSymbol": "GFI",
+  "assetName": "Goldfinch Protocol Token",
+  "monitoringStatus": "active-research",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "research",
+    "score": 54,
+    "baselineDate": "2026-06-09",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-09",
+    "nextManualReview": "2026-07-09",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 90,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 90,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "source": "CoinGecko",
+      "sourceUrl": "https://www.coingecko.com/en/coins/goldfinch",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "market",
+      "field": "tvl",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/protocol/goldfinch",
+      "refreshFrequencyHours": 24,
+      "notes": "Protocol-level TVL only. Do not treat as GFI token backing."
+    },
+    {
+      "layer": "market",
+      "field": "holderCount",
+      "source": "Etherscan",
+      "sourceUrl": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+      "refreshFrequencyDays": 7
+    },
+    {
+      "layer": "liquidity",
+      "field": "onchainLiquidity",
+      "source": "DeFiLlama",
+      "sourceUrl": "https://defillama.com/protocol/goldfinch",
+      "refreshFrequencyHours": 24
+    },
+    {
+      "layer": "liquidity",
+      "field": "dexPairs",
+      "source": "GeckoTerminal / DEXScreener",
+      "sourceUrl": "https://www.geckoterminal.com/",
+      "refreshFrequencyDays": 7,
+      "status": "manual-pair-url-needed"
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "reserve",
+      "field": "custodian",
+      "status": "missing",
+      "importance": "blocker",
+      "notes": "No custodian identified for native GFI token. This may remain intentionally null because GFI is not reserve-backed."
+    },
+    {
+      "layer": "reserve",
+      "field": "redemptionAsset",
+      "status": "missing",
+      "importance": "blocker",
+      "notes": "No native redemption asset identified for GFI token. This may remain intentionally null because GFI is a protocol token."
+    },
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "No reserve breakdown applies to GFI unless official documents prove economic backing."
+    },
+    {
+      "layer": "compliance",
+      "field": "primaryRegulator",
+      "status": "needs-verification",
+      "importance": "warning",
+      "sourceUrl": "https://adviserinfo.sec.gov/",
+      "notes": "Verify Heron Finance / Warbler Labs through SEC IAPD if evaluating Goldfinch Prime context."
+    },
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "No public legal opinion found for native GFI token."
+    },
+    {
+      "layer": "blockchain",
+      "field": "auditUrl",
+      "status": "missing",
+      "importance": "warning",
+      "notes": "No official external smart-contract audit report confirmed in this research pass."
+    },
+    {
+      "layer": "risk",
+      "field": "holderConcentration",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "sourceUrl": "https://etherscan.io/token/tokenholderchart/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+      "notes": "Analyze top-holder concentration, exchange wallets, treasury/team wallets, and labeled-wallet distribution."
+    },
+    {
+      "layer": "liquidity",
+      "field": "bidAskSpread",
+      "status": "needs-analysis",
+      "importance": "warning",
+      "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    }
+  ],
+  "knownBlockers": [
+    "Missing custodian",
+    "Missing redemption asset"
+  ],
+  "knownWarnings": [
+    "Missing primary regulator",
+    "KYC requirement is not confirmed for native GFI token transfer",
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing redemption period"
+  ],
+  "alertRules": [
+    {
+      "id": "market-data-stale",
+      "severity": "warning",
+      "condition": "market.lastUpdated older than 24 hours",
+      "action": "Refresh CoinGecko, CoinMarketCap, DeFiLlama, and Etherscan market fields."
+    },
+    {
+      "id": "liquidity-drop",
+      "severity": "warning",
+      "condition": "liquidity.onchainLiquidity drops by more than 30% from baseline snapshot",
+      "action": "Review DeFiLlama, GeckoTerminal, and DEX pool liquidity before changing liquidityScore."
+    },
+    {
+      "id": "holder-concentration-risk",
+      "severity": "warning",
+      "condition": "top holder or top 10 holders concentration materially increases",
+      "action": "Run holder concentration analysis and update concentrationRisk."
+    },
+    {
+      "id": "source-conflict",
+      "severity": "info",
+      "condition": "CoinGecko and CoinMarketCap market cap differ by more than 20%",
+      "action": "Keep conflict note and prefer primary source defined in market.json unless methodology changes."
+    },
+    {
+      "id": "new-legal-evidence-found",
+      "severity": "review_required",
+      "condition": "legal opinion, regulator filing, or official issuer document is found",
+      "action": "Reassess compliance, institutional, reserve, and risk layers."
+    },
+    {
+      "id": "audit-evidence-found",
+      "severity": "review_required",
+      "condition": "official external smart-contract audit or security review is found",
+      "action": "Update blockchain, sources, and smartContractRisk score."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "name": "Goldfinch official website",
+      "url": "https://www.goldfinch.finance/",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Goldfinch official docs",
+      "url": "https://docs.goldfinch.finance/goldfinch",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Goldfinch FAQ",
+      "url": "https://docs.goldfinch.finance/goldfinch/faq",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "Etherscan GFI token",
+      "url": "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+      "tier": "Tier 1",
+      "frequencyDays": 7
+    },
+    {
+      "name": "DeFiLlama Goldfinch",
+      "url": "https://defillama.com/protocol/goldfinch",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "CoinGecko Goldfinch",
+      "url": "https://www.coingecko.com/en/coins/goldfinch",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "CoinMarketCap Goldfinch Protocol",
+      "url": "https://coinmarketcap.com/currencies/goldfinch-protocol/",
+      "tier": "Tier 2",
+      "frequencyDays": 1
+    },
+    {
+      "name": "SEC IAPD search",
+      "url": "https://adviserinfo.sec.gov/",
+      "tier": "Regulator",
+      "frequencyDays": 90,
+      "status": "manual-verification-required"
+    },
+    {
+      "name": "SEC EDGAR search",
+      "url": "https://www.sec.gov/edgar/search/",
+      "tier": "Regulator",
+      "frequencyDays": 90,
+      "status": "manual-verification-required"
+    }
+  ],
+  "monitoringNotes": [
+    "This monitoring profile is scoped to GFI as a protocol/governance token.",
+    "Do not treat Goldfinch Prime product yield, withdrawal mechanics, or Heron note structure as native GFI token yield or reserve backing.",
+    "Research-grade status is expected until legal, audit, regulator, custodian, redemption asset, and holder concentration evidence improves.",
+    "This file is intended as the first monitoring.json template for future Nexus RWA assets."
+  ],
+  "templateVersion": 1
+}
