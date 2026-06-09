@@ -11,5 +11,36 @@
   "yieldMax52w": null,
   "yieldStdDev30d": null,
   "nextYieldDate": null,
-  "yieldCurrency": null
+  "yieldCurrency": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-09",
+    "reviewFrequencyDays": 30,
+    "scope": "GFI token yield layer. Native GFI token yield remains null because no official staking, coupon, dividend, or token-native yield mechanism was verified in this pass.",
+    "sourceUrls": [
+      "https://docs.goldfinch.finance/goldfinch/faq",
+      "https://defillama.com/protocol/goldfinch",
+      "https://www.coingecko.com/en/coins/goldfinch"
+    ],
+    "productYieldContext": {
+      "goldfinchPrime": {
+        "yieldDescription": "Official Goldfinch Prime FAQ describes private-credit returns as coming from interest paid by underlying private-credit funds, less product-level fees. This is product-level yield context and should not be treated as native GFI token yield.",
+        "feeContext": "Official FAQ references a 0.5% annual management fee and a 0.5% withdrawal fee for Goldfinch Prime. These are not native GFI token fees.",
+        "redemptionDistributionContext": "Official FAQ references quarterly withdrawal processing for Goldfinch Prime, subject to available liquidity and portfolio mechanics.",
+        "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq"
+      },
+      "defillamaProtocol": {
+        "apyDataAvailable": true,
+        "notes": "DeFiLlama includes protocol-level APY/yield context, but this may represent pool or product yield rather than GFI token yield. Do not import into currentYield unless Nexus defines this asset as a product/pool rather than GFI token.",
+        "sourceUrl": "https://defillama.com/protocol/goldfinch"
+      }
+    },
+    "classificationDecision": "Keep yield fields null for goldfinch-gfi. If Nexus later creates goldfinch-prime or individual Goldfinch pool assets, use product/pool yield data in those separate entries.",
+    "dataGaps": [
+      "No official native GFI staking yield verified.",
+      "No official GFI coupon, dividend, rebasing, or redemption-yield mechanism verified.",
+      "Goldfinch Prime yield needs separate product-level modeling if added as a distinct Nexus RWA asset."
+    ],
+    "confidence": "high-for-null-gfi-token-yield"
+  }
 }
