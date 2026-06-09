@@ -80,12 +80,12 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-6 max-w-[600px] mx-auto text-[18px] leading-[1.7]"
+          className="mt-6 max-w-[640px] mx-auto text-[18px] leading-[1.7]"
           style={{ color: "var(--text-secondary)" }}
         >
-          Institutional-grade RWA analytics — yield rates, risk scores, TVL
-          tracking, holder distribution — powered by X402 Protocol for
-          frictionless machine-to-machine payments.
+          Structured RWA intelligence for investors, builders, and AI agents —
+          covering reserves, compliance, liquidity, yield, risk scoring, and
+          source credibility in one evidence-based dataset.
         </motion.p>
 
         <motion.div
