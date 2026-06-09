@@ -1,0 +1,15 @@
+{
+  "backingType": "Private Credit",
+  "backingDescription": "GFI itself is a protocol/governance token and should not be treated as a direct redeemable claim on private-credit collateral. Goldfinch products provide onchain exposure to private credit, but the token does not represent a specific collateralized reserve asset in the same way as a tokenized fund share, Treasury token, or commodity-backed token.",
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null
+}
