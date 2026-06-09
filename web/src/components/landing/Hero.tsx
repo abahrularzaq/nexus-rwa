@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Sparkline } from "@/components/landing/primitives";
 
 export function Hero() {
   return (
@@ -157,12 +156,12 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* floating live card */}
+      {/* floating asset profile card */}
       <motion.div
         initial={{ opacity: 0, x: 60 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
-        className="hidden xl:block absolute right-8 top-1/2 -translate-y-1/2 w-[220px] float-card"
+        className="hidden xl:block absolute right-8 top-1/2 -translate-y-1/2 w-[240px] float-card"
         style={{
           background: "rgba(10,14,26,0.95)",
           border: "1px solid rgba(0,212,255,0.35)",
@@ -173,58 +172,46 @@ export function Hero() {
         }}
       >
         <div className="flex items-center justify-between">
-          <span className="text-white font-bold text-xs">ONDO USDY</span>
-          <span className="flex items-center gap-1.5">
-            <span
-              className="w-1.5 h-1.5 rounded-full pulse-dot"
-              style={{ background: "var(--accent-green)" }}
-            />
-            <span className="text-[10px] font-bold" style={{ color: "var(--accent-green)" }}>
-              LIVE
-            </span>
+          <span className="text-white font-bold text-xs">RWA ASSET PROFILE</span>
+          <span
+            className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+            style={{
+              background: "rgba(0,212,255,0.1)",
+              color: "var(--accent-cyan)",
+            }}
+          >
+            SAMPLE
           </span>
         </div>
         <div className="my-3 h-px" style={{ background: "var(--border-line)" }} />
-        <div className="space-y-2.5">
-          <div>
-            <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              Yield Rate
-            </div>
-            <div className="text-[28px] font-bold tabular leading-none mt-1" style={{ color: "var(--accent-green)" }}>
-              5.42%
-            </div>
-          </div>
-          <div className="flex items-end justify-between">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                TVL
+        <div className="space-y-3">
+          {[
+            { label: "Reserve Layer", value: "Source-backed" },
+            { label: "Compliance", value: "Reviewed" },
+            { label: "Risk Grade", value: "Analytics" },
+            { label: "Source Confidence", value: "High" },
+          ].map((item) => (
+            <div key={item.label}>
+              <div
+                className="text-[10px] uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {item.label}
               </div>
-              <div className="text-sm font-bold tabular" style={{ color: "var(--accent-green)" }}>
-                $892.4M ↑
+              <div
+                className="text-sm font-bold tabular mt-0.5"
+                style={{ color: "var(--accent-green)" }}
+              >
+                {item.value}
               </div>
             </div>
-            <Sparkline points={[2, 3, 2.4, 3.6, 3.2, 4.4, 4, 5]} />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              Risk Score
-            </div>
-            <span
-              className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-              style={{
-                background: "rgba(0,255,136,0.1)",
-                color: "var(--accent-green)",
-              }}
-            >
-              ● LOW
-            </span>
-          </div>
+          ))}
         </div>
         <div
           className="mt-3 text-[10px] italic"
           style={{ color: "var(--text-muted)" }}
         >
-          Updated 8s ago
+          Example intelligence card
         </div>
       </motion.div>
     </section>
