@@ -1,0 +1,21 @@
+{
+  "issuerName": "Goldfinch",
+  "issuerType": "Protocol / RWA credit platform",
+  "issuerCountry": null,
+  "fundManager": null,
+  "legalStructure": "Decentralized protocol and private-credit platform; exact issuer/legal structure for GFI requires further verification from official legal documents.",
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "Crypto/RWA users, governance participants, and eligible investors using Goldfinch private-credit products, subject to product-specific restrictions.",
+  "prospectusUrl": null,
+  "metadata": {
+    "productScopeNote": "This file is scoped to GFI as a protocol token. Goldfinch Prime or individual private-credit deals may require separate asset entries if Nexus RWA later tracks them as investable credit products.",
+    "officialWebsite": "https://www.goldfinch.finance/",
+    "officialDocs": "https://docs.goldfinch.finance/goldfinch",
+    "governanceUrl": "https://gov.goldfinch.finance/",
+    "needsLegalReview": true
+  }
+}
