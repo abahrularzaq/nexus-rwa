@@ -54,7 +54,7 @@ const tierStyle: Record<string, { bg: string; color: string }> = {
 export function ApiReference() {
   const [active, setActive] = useState(4);
   return (
-    <section className="py-24 px-6">
+    <section className="py-24 px-6" id="api">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[2fr_3fr] gap-8 items-start">
         <FadeUp>
           <div className="glass-card p-6">
@@ -130,7 +130,7 @@ export function ApiReference() {
             {colorJson(responseSample)}
           </pre>
           <a
-            href="#"
+            href="#api"
             className="inline-flex items-center gap-2 mt-4 text-sm font-semibold"
             style={{ color: "var(--accent-cyan)" }}
           >
