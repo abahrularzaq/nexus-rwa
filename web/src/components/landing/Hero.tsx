@@ -130,9 +130,9 @@ export function Hero() {
           className="mt-12 flex items-stretch justify-center gap-8 md:gap-14 text-center"
         >
           {[
-            { v: "$2.84B+", l: "Total TVL Tracked" },
-            { v: "47", l: "RWA Assets Monitored" },
-            { v: "< 12ms", l: "Average API Response" },
+            { v: "12", l: "Data Layers" },
+            { v: "Evidence", l: "Based Scoring" },
+            { v: "API", l: "Ready Dataset" },
           ].map((s, i) => (
             <div key={s.l} className="flex items-center gap-8 md:gap-14">
               <div>
