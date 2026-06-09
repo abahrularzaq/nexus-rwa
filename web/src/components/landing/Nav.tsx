@@ -6,12 +6,12 @@ import { Menu, X } from "lucide-react";
 import { HexLogo } from "@/components/landing/primitives";
 
 const links = [
-  { label: "Dashboard", href: "#" },
-  { label: "Assets", href: "#" },
-  { label: "Analytics", href: "#" },
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Assets", href: "/#assets" },
+  { label: "Methodology", href: "/methodology" },
   { label: "Glossary", href: "/glossary" },
-  { label: "API", href: "#" },
-  { label: "Pricing", href: "#" },
+  { label: "API", href: "/#api" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 export function Nav() {
@@ -50,31 +50,10 @@ export function Nav() {
             {links.map((l) => {
               const isActive = active === l.label;
 
-              if (l.href.startsWith("/")) {
-                return (
-                  <Link
-                    key={l.label}
-                    href={l.href}
-                    onClick={() => setActive(l.label)}
-                    className={`relative text-sm font-medium transition-colors ${
-                      isActive ? "text-white" : "text-text-secondary hover:text-white"
-                    }`}
-                    style={isActive ? { color: "#fff" } : { color: "#8892A4" }}
-                  >
-                    {l.label}
-                    {isActive && (
-                      <span
-                        className="absolute -bottom-[22px] left-0 right-0 h-[2px]"
-                        style={{ background: "var(--accent-cyan)" }}
-                      />
-                    )}
-                  </Link>
-                );
-              }
-
               return (
-                <button
+                <Link
                   key={l.label}
+                  href={l.href}
                   onClick={() => setActive(l.label)}
                   className={`relative text-sm font-medium transition-colors ${
                     isActive ? "text-white" : "text-text-secondary hover:text-white"
@@ -88,21 +67,21 @@ export function Nav() {
                       style={{ background: "var(--accent-cyan)" }}
                     />
                   )}
-                </button>
+                </Link>
               );
             })}
           </nav>
 
           <div className="flex items-center gap-3">
             <Link
-              href="/glossary"
+              href="/methodology"
               className="hidden sm:inline-flex text-sm font-semibold px-5 py-2 rounded-lg transition-all"
               style={{
                 border: "1px solid rgba(0,212,255,0.4)",
                 color: "var(--accent-cyan)",
               }}
             >
-              Glossary
+              Methodology
             </Link>
             <Link
               href="/dashboard"
