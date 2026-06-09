@@ -4,9 +4,58 @@
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
   "minRedemptionAmount": null,
-  "dexPairs": [],
-  "onchainLiquidity": null,
+  "dexPairs": [
+    {
+      "chain": "Ethereum",
+      "dex": "Uniswap V3",
+      "pair": "GFI / WETH",
+      "liquidityUsd": 187748,
+      "volume24hUsd": 1596,
+      "sourceUrl": "https://defillama.com/protocol/goldfinch",
+      "lastUpdated": "2026-06-09"
+    }
+  ],
+  "onchainLiquidity": 187748,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": "GFI liquidity should be evaluated through exchange/DEX markets. Do not treat GFI as directly redeemable for private-credit collateral. Goldfinch Prime and legacy pool liquidity/redemption terms are product-specific and require separate verification from official docs/app before scoring."
+  "liquidityScore": 45,
+  "liquidityNotes": "GFI token liquidity should be evaluated through secondary-market trading, not redemption against private-credit collateral. DeFiLlama snapshot shows GFI liquidity concentrated in Uniswap V3 with modest DEX liquidity and higher CEX volume. Goldfinch Prime has separate product-level withdrawal mechanics, including quarterly withdrawal processing referenced in official FAQ. Product-level Goldfinch Prime liquidity must not be used as native GFI redemption liquidity.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-09",
+    "reviewFrequencyDays": 7,
+    "scope": "GFI token liquidity layer with Goldfinch Prime liquidity kept only as related product context.",
+    "sourceUrls": [
+      "https://defillama.com/protocol/goldfinch",
+      "https://www.coingecko.com/en/coins/goldfinch",
+      "https://coinmarketcap.com/currencies/goldfinch-protocol/",
+      "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b",
+      "https://docs.goldfinch.finance/goldfinch/faq"
+    ],
+    "tokenLiquiditySnapshot": {
+      "defillamaGfiLiquidityUsd": 187748,
+      "defillamaGfiVolume24hUsd": 138115,
+      "defillamaCexVolume24hUsd": 136455,
+      "defillamaDexVolume24hUsd": 1596,
+      "dexVenue": "Uniswap V3",
+      "coinGeckoVolume24hUsd": 136134,
+      "coinMarketCapVolume24hUsd": 267712,
+      "etherscanHolderCount": 16163
+    },
+    "productLiquidityContext": {
+      "goldfinchPrime": {
+        "redemptionType": "Quarterly product-level withdrawal processing",
+        "lockup": "Official FAQ states no lockup for Goldfinch Prime, but withdrawals are processed quarterly and are subject to product liquidity mechanics.",
+        "feeContext": "Official FAQ references a 0.5% withdrawal fee for Goldfinch Prime.",
+        "sourceUrl": "https://docs.goldfinch.finance/goldfinch/faq"
+      }
+    },
+    "liquidityScoreRationale": "Score 45 is conservative. GFI has public secondary-market trading and measurable holders, but onchain DEX liquidity appears modest, bid-ask spread was not verified, redemption is not native to GFI, and product-level withdrawal mechanics do not improve token redemption liquidity.",
+    "dataGaps": [
+      "Specific CoinGecko/CoinMarketCap exchange-level order book depth not captured.",
+      "Bid-ask spread not verified from exchange order books.",
+      "Full DEX pair list and pair-specific URLs should be captured from GeckoTerminal or DEXScreener before production scoring.",
+      "Holder concentration and top-wallet liquidity risk require deeper Etherscan analysis."
+    ],
+    "needsRefreshBeforeProduction": true
+  }
 }
