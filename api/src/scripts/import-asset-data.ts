@@ -21,6 +21,14 @@ function withoutMeta<T extends Record<string, any> | null>(value: T): T {
   return rest as T;
 }
 
+function normalizeYield(value: Record<string, any> | null): Record<string, any> | null {
+  if (!value) return value;
+  return {
+    ...value,
+    yieldCurrency: value.yieldCurrency ?? 'USD',
+  };
+}
+
 function normalizeInstitutional(value: Record<string, any> | null): Record<string, any> | null {
   if (!value) return value;
   const normalized = { ...value };
@@ -44,7 +52,7 @@ async function importAsset(slug: string) {
   const market = withoutMeta(readJson(path.join(dir, 'market.json')));
   const risk = withoutMeta(readJson(path.join(dir, 'risk.json')));
   const reserve = withoutMeta(readJson(path.join(dir, 'reserve.json')));
-  const yieldData = withoutMeta(readJson(path.join(dir, 'yield.json')));
+  const yieldData = normalizeYield(withoutMeta(readJson(path.join(dir, 'yield.json'))));
   const institutional = normalizeInstitutional(withoutMeta(readJson(path.join(dir, 'institutional.json'))));
   const blockchain = readJson<any[]>(path.join(dir, 'blockchain.json')) ?? [];
   const compliance = withoutMeta(readJson(path.join(dir, 'compliance.json')));
@@ -143,12 +151,14 @@ async function importAsset(slug: string) {
     await db.assetYield.upsert({
       where: { assetId: asset.id },
       create: {
-        assetId: asset.id,
+        asset: { connect: { id: asset.id } },
         ...yieldData,
+        yieldCurrency: yieldData.yieldCurrency ?? 'USD',
         nextYieldDate: parseDate(yieldData.nextYieldDate),
       },
       update: {
         ...yieldData,
+        yieldCurrency: yieldData.yieldCurrency ?? 'USD',
         nextYieldDate: parseDate(yieldData.nextYieldDate),
       },
     });
