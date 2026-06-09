@@ -5,6 +5,37 @@ import { FadeUp, HexLogo } from "@/components/landing/primitives";
 import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { BookOpen, MessageCircle } from "lucide-react";
 
+const footerColumns = [
+  {
+    heading: "Product",
+    links: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Methodology", href: "/methodology" },
+      { label: "Glossary", href: "/glossary" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "API Reference", href: "/#api" },
+    ],
+  },
+  {
+    heading: "Developers",
+    links: [
+      { label: "API Docs", href: "/#api" },
+      { label: "X402 Integration", href: "/#x402" },
+      { label: "Source Trail", href: "/methodology" },
+      { label: "AI Agent Workflows", href: "/#api" },
+      { label: "GitHub", href: "https://github.com/abahrularzaq/nexus-rwa" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { label: "About Nexus RWA", href: "/methodology" },
+      { label: "Disclaimer", href: "#disclaimer" },
+      { label: "Contact", href: "mailto:abahrularzaq@gmail.com" },
+    ],
+  },
+];
+
 /** lucide-react v1.x does not ship a GitHub brand icon; inline SVG keeps Vercel builds stable. */
 function GithubIcon() {
   return (
@@ -117,7 +148,9 @@ export function Footer() {
           </p>
           <div className="mt-6 flex items-center gap-2">
             <a
-              href="#"
+              href="https://github.com/abahrularzaq/nexus-rwa"
+              target="_blank"
+              rel="noreferrer"
               className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
               style={{ background: "var(--border-line)", color: "var(--accent-cyan)" }}
               onMouseEnter={(e) => {
@@ -130,24 +163,38 @@ export function Footer() {
             >
               <GithubIcon />
             </a>
-            {[MessageCircle, BookOpen].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
-                style={{ background: "var(--border-line)" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(0,212,255,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(30,42,58,0.8)";
-                }}
-              >
-                <Icon size={16} style={{ color: "var(--accent-cyan)" }} />
-              </a>
-            ))}
             <a
-              href="#"
+              href="mailto:abahrularzaq@gmail.com"
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
+              style={{ background: "var(--border-line)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(0,212,255,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(30,42,58,0.8)";
+              }}
+              aria-label="Contact"
+            >
+              <MessageCircle size={16} style={{ color: "var(--accent-cyan)" }} />
+            </a>
+            <Link
+              href="/glossary"
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
+              style={{ background: "var(--border-line)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(0,212,255,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(30,42,58,0.8)";
+              }}
+              aria-label="Glossary"
+            >
+              <BookOpen size={16} style={{ color: "var(--accent-cyan)" }} />
+            </Link>
+            <a
+              href="https://x.com/abahrularzaq"
+              target="_blank"
+              rel="noreferrer"
               className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
               style={{ background: "var(--border-line)", color: "var(--accent-cyan)" }}
               onMouseEnter={(e) => {
@@ -169,28 +216,25 @@ export function Footer() {
             <span className="text-xs font-semibold text-white">Built on Base</span>
           </div>
         </div>
-        {[
-          { h: "Product", l: ["Dashboard", "Methodology", "Glossary", "Pricing", "API Reference"] },
-          { h: "Developers", l: ["API Docs", "X402 Integration", "Source Trail", "AI Agent Workflows", "GitHub"] },
-          { h: "Company", l: ["About Nexus RWA", "Blog", "X", "Discord", "Contact"] },
-        ].map((col) => (
-          <div key={col.h}>
+        {footerColumns.map((col) => (
+          <div key={col.heading}>
             <h4
               className="text-[13px] font-medium uppercase tracking-wider text-white mb-4"
             >
-              {col.h}
+              {col.heading}
             </h4>
             <ul className="space-y-2.5">
-              {col.l.map((item) => (
-                <li key={item}>
+              {col.links.map((item) => (
+                <li key={item.label}>
                   <a
-                    href="#"
+                    href={item.href}
                     className="text-sm transition-colors"
                     style={{ color: "var(--text-secondary)" }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = "#00D4FF")}
                     onMouseLeave={(e) => (e.currentTarget.style.color = "#8892A4")}
+                    {...(item.href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
                   >
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -198,7 +242,7 @@ export function Footer() {
           </div>
         ))}
       </div>
-      <div className="mt-10 max-w-[1400px] mx-auto">
+      <div id="disclaimer" className="mt-10 max-w-[1400px] mx-auto scroll-mt-24">
         <DisclaimerBanner variant="global" compact />
       </div>
       <div
