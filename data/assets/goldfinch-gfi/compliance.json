@@ -9,5 +9,41 @@
   "sanctionsScreening": false,
   "amlPolicy": null,
   "lastComplianceCheck": "2026-06-09",
-  "legalOpinionUrl": null
+  "legalOpinionUrl": null,
+  "_meta": {
+    "scope": "GFI token compliance layer. Goldfinch Prime product compliance is recorded only as related context and should not be treated as native GFI token transfer compliance.",
+    "sourceUrls": [
+      "https://docs.goldfinch.finance/goldfinch/faq",
+      "https://prime.goldfinch.finance/terms",
+      "https://app.goldfinch.finance/terms",
+      "https://adviserinfo.sec.gov/",
+      "https://www.sec.gov/edgar/search/"
+    ],
+    "gfiTokenComplianceNotes": {
+      "kycRequiredForTokenTransfer": false,
+      "transferRestrictionEvidence": "No official evidence was found in this pass that the ERC-20 GFI token itself uses KYC gating, whitelist transfer restrictions, or jurisdiction-based transfer controls.",
+      "legalOpinionStatus": "not-found"
+    },
+    "goldfinchPrimeProductComplianceContext": {
+      "kycRequired": true,
+      "unsupportedJurisdictions": [
+        "Cuba",
+        "North Korea",
+        "Iran",
+        "Sudan",
+        "Syria",
+        "Ukraine",
+        "Russia",
+        "United Kingdom",
+        "United States"
+      ],
+      "notes": "Official Goldfinch Prime FAQ says participation requires passing KYC and not being from unsupported countries. This is product-level evidence for Goldfinch Prime, not proof of GFI token transfer restrictions."
+    },
+    "regulatoryVerificationNeeded": [
+      "Verify Heron Finance / Warbler Labs status through SEC IAPD or Form ADV before production grading.",
+      "Search SEC EDGAR for Goldfinch, Warbler Labs, Goldfinch Technology Company, Heron Finance, Heron entities, and note issuers.",
+      "Find direct public legal terms or legal opinion for GFI token, if available."
+    ],
+    "reviewConclusion": "Keep compliance conservative. GFI remains research-grade until direct legal/regulatory evidence is found. Goldfinch Prime compliance data should not be copied directly into GFI token compliance fields."
+  }
 }
