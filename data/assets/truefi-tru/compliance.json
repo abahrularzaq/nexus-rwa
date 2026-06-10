@@ -1,0 +1,21 @@
+{
+  "regulatoryStatus": null,
+  "primaryRegulator": null,
+  "regulatoryFramework": null,
+  "kycRequired": false,
+  "accreditedOnly": false,
+  "blockedJurisdictions": [],
+  "allowedJurisdictions": [],
+  "sanctionsScreening": false,
+  "amlPolicy": null,
+  "lastComplianceCheck": null,
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 30,
+    "freshnessStatus": "needs-review",
+    "status": "scaffold",
+    "notes": "Default booleans are conservative import-safe placeholders, not final compliance conclusions. Verify KYC, borrower onboarding, sanctions screening, legal structure, and jurisdiction restrictions from official docs."
+  }
+}
