@@ -1,0 +1,27 @@
+{
+  "overallScore": null,
+  "overallLevel": null,
+  "smartContractRisk": null,
+  "counterpartyRisk": null,
+  "liquidityRisk": null,
+  "regulatoryRisk": null,
+  "marketRisk": null,
+  "concentrationRisk": null,
+  "riskFactors": [
+    "Protocol identity and canonical status require verification because TrueFi documentation now redirects to Brila-related documentation.",
+    "TRU may be a governance/protocol token rather than a direct tokenized claim on a specific RWA pool.",
+    "Current live TVL, loan activity, token utility, and migration status are not yet verified in this scaffold.",
+    "Legal structure, borrower exposure, reserve model, and redemption mechanics are not yet confirmed."
+  ],
+  "mitigants": [],
+  "lastAssessed": "2026-06-10",
+  "assessmentMethod": "scaffold-only-no-score",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 30,
+    "freshnessStatus": "needs-review",
+    "status": "scaffold",
+    "notes": "No scoring assigned. Complete source discovery and verify all layers before running evidence-based grading."
+  }
+}
