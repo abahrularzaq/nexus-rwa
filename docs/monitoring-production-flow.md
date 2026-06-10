@@ -20,12 +20,15 @@ Monitoring production dipakai untuk memastikan dataset Nexus RWA tetap:
 | `grade-baseline.json` | Menyimpan snapshot hasil grading pertama/terbaru sebagai baseline audit |
 | `monitoring.json` | Konfigurasi monitoring per asset: jadwal refresh, alert rules, source health checks, blocker, warning, dan field yang dipantau |
 | Prisma monitoring tables | Menyimpan health checks, source health, review tasks, sync logs |
+| `npm run validate:normalized-assets --workspace=api -- --slug={asset-slug}` | Mengecek struktur JSON normalized di `data/assets/{asset-slug}` |
 | `npm run check:freshness --workspace=api` | Mengecek apakah layer data sudah basi |
 | `npm run check:sources --workspace=api` | Mengecek URL sumber data |
 | `npm run report:monitoring --workspace=api` | Membaca ringkasan monitoring di terminal |
 | `npm run monitoring:clear --workspace=api` | Membersihkan data monitoring saat reset/dev |
 | `/v1/admin/monitoring/*` | API admin monitoring dengan `X-Admin-Key` |
 | `/dashboard/monitoring` | Dashboard web untuk membaca overview monitoring |
+
+> Catatan: `validate:asset-files` masih untuk struktur legacy `api/src/data/asset/{slug}`. Untuk dataset normalized baru, gunakan `validate:normalized-assets`.
 
 ## Standar File Monitoring per Asset
 
@@ -124,7 +127,7 @@ Gunakan status yang konsisten:
 
 Setelah semua layer research selesai:
 
-1. Validasi JSON.
+1. Validasi JSON normalized.
 2. Import asset ke database.
 3. Jalankan grading.
 4. Simpan output grading ke `grade-baseline.json`.
@@ -135,6 +138,7 @@ Setelah semua layer research selesai:
 Flow operasional:
 
 ```bash
+npm run validate:normalized-assets --workspace=api -- --slug={asset-slug}
 npm run import:asset --workspace=api -- {asset-slug}
 npm run check:freshness --workspace=api
 npm run check:sources --workspace=api
@@ -247,7 +251,7 @@ curl \
 Jalankan:
 
 ```bash
-npm run validate:asset-files --workspace=api
+npm run validate:normalized-assets --workspace=api -- --slug={asset-slug}
 npm run check:freshness --workspace=api
 npm run check:sources --workspace=api
 npm run report:monitoring --workspace=api
@@ -255,7 +259,7 @@ npm run report:monitoring --workspace=api
 
 Tujuan:
 
-- Validasi JSON tidak rusak.
+- Validasi JSON normalized tidak rusak.
 - Cek apakah `_meta.lastManualReview`, `reviewFrequencyDays`, dan data source masih aman.
 - Cek apakah `monitoring.json` sudah selaras dengan blocker/warning dari `grade-baseline.json`.
 - Melihat issue sebelum deploy.
@@ -302,7 +306,7 @@ Pastikan:
 | Mingguan | `check:sources` | Deteksi URL broken/redirect/error |
 | Bulanan | Review `risk.json` dan `monitoring.json` | Pastikan risk score, blocker, warning, dan next actions tetap relevan |
 | 90 hari | Review legal/reserve/compliance/institutional | Cek legal docs, regulator, custodian, audit, reserve evidence |
-| Setelah import aset | `check:freshness` + `check:sources` + create `grade-baseline.json` + create `monitoring.json` | Validasi kualitas data baru |
+| Setelah import aset | `validate:normalized-assets` + `check:freshness` + `check:sources` + create `grade-baseline.json` + create `monitoring.json` | Validasi kualitas data baru |
 | Sebelum release besar | `report:monitoring` | Snapshot status data sebelum deploy |
 
 Untuk tahap MVP, jalankan manual dulu. Setelah stabil, pindahkan ke GitHub Actions atau cron server.
@@ -317,58 +321,3 @@ Target production berikutnya:
 4. Tambahkan validasi keberadaan `monitoring.json` untuk asset yang sudah punya `grade-baseline.json`.
 5. Simpan log workflow sebagai audit trail.
 6. Nanti tambahkan notifikasi jika `critical > 0`, `broken sources > 0`, atau asset high-priority melewati `nextManualReview`.
-
-## Generator Target Berikutnya
-
-Agar tidak membuat `monitoring.json` satu-satu secara manual, buat script generator:
-
-```bash
-npm run generate:monitoring --workspace=api
-```
-
-Target script:
-
-1. Scan semua folder `data/assets/{slug}`.
-2. Baca `identity.json`, `market.json`, `liquidity.json`, `risk.json`, `sources.json`, dan `grade-baseline.json`.
-3. Generate `monitoring.json` jika belum ada.
-4. Update `knownBlockers` dan `knownWarnings` dari `grade-baseline.json`.
-5. Set jadwal refresh default berdasarkan grade:
-   - institutional: high priority, market/liquidity 12-24 jam, legal 30-60 hari.
-   - analytics: medium/high priority, market/liquidity 24 jam, legal 60-90 hari.
-   - research: medium/low priority, market/liquidity 24-72 jam, legal 90 hari.
-6. Jangan overwrite manual notes tanpa backup.
-
-## Interpretasi Dashboard
-
-| Area | Arti |
-|---|---|
-| Dataset health | Persentase layer yang masih current |
-| Source health | Persentase URL sumber yang healthy/redirected |
-| Open tasks | Jumlah masalah yang perlu review manual |
-| Sync issues | Jumlah sync log non-success |
-| Recent health issues | Layer stale/missing/needs review terbaru |
-| Recent source issues | URL sumber bermasalah terbaru |
-| Recent open review tasks | Queue pekerjaan manual analyst |
-| Monitoring profile | Jadwal refresh, blocker/warning, auto/manual monitored fields, dan alert rules per asset |
-
-## Rule Operasional
-
-- Jangan publish aset sebagai `institutional-grade` jika masih ada critical health issue.
-- Broken Tier-1 source harus diprioritaskan dibanding missing Tier-3 source.
-- Redirect tidak selalu buruk, tapi perlu dicek jika sumber legal/audit/reserve.
-- Manual layer seperti legal, reserve, compliance, institutional harus punya review cycle lebih ketat daripada market/yield yang bisa disinkronisasi.
-- `monitoring.json` harus dibuat setelah `grade-baseline.json` agar blocker/warning baseline bisa masuk profile monitoring.
-- `monitoring.json` boleh punya field yang tidak masuk Prisma karena file ini adalah konfigurasi monitoring repo-level.
-- Jangan menganggap blocker sebagai bug jika secara struktur asset memang bukan reserve-backed. Contoh: GFI tidak punya native custodian/redemption asset.
-- `monitoring:clear` hanya untuk local/dev reset, bukan production rutin.
-
-## Next Improvement
-
-- Tambahkan filter dashboard berdasarkan asset/status/layer.
-- Tambahkan tombol export CSV untuk review tasks.
-- Tambahkan GitHub Actions scheduled monitoring.
-- Tambahkan alert ke email/Discord/Telegram saat issue critical muncul.
-- Tambahkan audit log ketika review task ditutup.
-- Tambahkan generator `monitoring.json` untuk semua asset existing.
-- Tambahkan validasi schema ringan untuk `monitoring.json`.
-- Tambahkan kolom dashboard untuk `monitoringStatus`, `monitoringPriority`, dan `nextManualReview`.
