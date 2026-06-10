@@ -1,0 +1,62 @@
+[
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://truefi.io/",
+    "sourceUrl": "https://truefi.io/",
+    "sourceType": "official_website",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Official TrueFi website / redirect path. Verify current canonical status before production."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.truefi.io/",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Official docs path. Current docs require migration review because TrueFi documentation redirects to Brila context."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "sourceType": "block_explorer",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "Ethereum TRU token contract. Cross-check with official docs and CoinGecko before grading."
+  },
+  {
+    "layer": "market",
+    "field": "marketReference",
+    "value": "https://www.coingecko.com/en/coins/truefi",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Market data reference only. Do not import stale numbers without refresh timestamp."
+  },
+  {
+    "layer": "market",
+    "field": "tvlReference",
+    "value": "https://defillama.com/protocol/truefi",
+    "sourceUrl": "https://defillama.com/protocol/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Protocol TVL reference only. Verify whether TrueFi has current live TVL or only historical activity."
+  },
+  {
+    "layer": "governance",
+    "field": "forumReference",
+    "value": "https://forum.truefi.io/",
+    "sourceUrl": "https://forum.truefi.io/",
+    "sourceType": "governance_forum",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "Use for TFIP proposals, migration notes, and current protocol status."
+  }
+]
