@@ -15,16 +15,20 @@ import type {
 const CATEGORY_ALIASES: Record<string, AssetCategory> = {
   treasury: 'TREASURY',
   credit: 'CREDIT',
+  private_credit: 'CREDIT',
+  privatecredit: 'CREDIT',
+  private_debt: 'CREDIT',
   real_estate: 'REAL_ESTATE',
   realestate: 'REAL_ESTATE',
   commodities: 'COMMODITIES',
+  commodity: 'COMMODITIES',
   equity: 'EQUITY',
   equities: 'EQUITY',
   infrastructure: 'REAL_ESTATE',
 };
 
 export function normalizeCategory(raw?: string | null): AssetCategory {
-  if (!raw) return 'TREASURY';
+  if (!raw) return 'CREDIT';
   const upper = raw.toUpperCase().replace(/[\s-]+/g, '_') as AssetCategory;
   if (
     upper === 'TREASURY' ||
@@ -36,7 +40,7 @@ export function normalizeCategory(raw?: string | null): AssetCategory {
     return upper;
   }
   const key = raw.toLowerCase().replace(/[\s-]+/g, '_');
-  return CATEGORY_ALIASES[key] ?? 'TREASURY';
+  return CATEGORY_ALIASES[key] ?? 'CREDIT';
 }
 
 function buildMeta(sources?: string[] | null, confidence?: string | null): AssetDataMeta {
