@@ -1,0 +1,23 @@
+{
+  "currentYield": null,
+  "yieldType": null,
+  "yieldFrequency": null,
+  "yieldBenchmark": null,
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 7,
+    "freshnessStatus": "stale-until-filled",
+    "status": "scaffold",
+    "notes": "Yield fields intentionally left null. Verify whether TRU itself has no yield and whether any TrueFi/Brila credit pools expose yield separately."
+  }
+}
