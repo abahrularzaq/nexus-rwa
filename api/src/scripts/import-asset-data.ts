@@ -304,6 +304,7 @@ async function importAsset(slug: string) {
   };
 
   const grade = calculateAssetGrade(gradeInput);
+  const dbReserveScore = grade.reserveScore ?? 0;
 
   await db.assetGrade.upsert({
     where: { assetId: asset.id },
@@ -314,7 +315,7 @@ async function importAsset(slug: string) {
       completenessScore: grade.completenessScore,
       sourceScore: grade.sourceScore,
       legalScore: grade.legalScore,
-      reserveScore: grade.reserveScore,
+      reserveScore: dbReserveScore,
       liquidityScore: grade.liquidityScore,
       riskScore: grade.riskScore,
       blockers: grade.blockers,
@@ -328,13 +329,13 @@ async function importAsset(slug: string) {
       completenessScore: grade.completenessScore,
       sourceScore: grade.sourceScore,
       legalScore: grade.legalScore,
-      reserveScore: grade.reserveScore,
+      reserveScore: dbReserveScore,
       liquidityScore: grade.liquidityScore,
       riskScore: grade.riskScore,
       blockers: grade.blockers,
       warnings: grade.warnings,
       reviewedBy: grade.grade === 'institutional' ? 'manual' : null,
-      reviewedAt: grade.grade === 'institutional' ? new Date() : null,
+      reviewedAt: grade.grade === 'institutional' ? new Date(),
     },
   });
 
