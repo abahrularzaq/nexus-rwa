@@ -1,0 +1,27 @@
+{
+  "issuerName": null,
+  "issuerType": null,
+  "issuerCountry": null,
+  "fundManager": null,
+  "legalStructure": null,
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": null,
+  "prospectusUrl": null,
+  "metadata": {
+    "protocolStatus": "needs-verification",
+    "migrationReview": "Verify TrueFi to Brila transition before production grading.",
+    "assetModelQuestion": "Confirm whether TRU is tracked as protocol/governance token or whether Nexus should track specific TrueFi/Brila credit pool assets instead."
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 30,
+    "freshnessStatus": "needs-review",
+    "status": "scaffold",
+    "notes": "Institutional fields intentionally conservative until issuer/legal structure is verified from official docs, forum proposals, and any legal disclosures."
+  }
+}
