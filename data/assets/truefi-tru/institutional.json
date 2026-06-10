@@ -12,6 +12,10 @@
   "targetInvestors": "DeFi users, protocol participants, TRU holders, and credit-market participants; specific borrower/lender eligibility requires pool-level verification.",
   "prospectusUrl": null,
   "metadata": {
+    "assetClass": "rwa_infrastructure",
+    "instrumentType": "protocol_token",
+    "gradingProfile": "governance_protocol",
+    "classificationNote": "TRU is treated as a protocol/governance token for the TrueFi / Brila ecosystem, not as a direct tokenized credit pool, fund share, or reserve-backed instrument.",
     "protocolStatus": "legacy-transition-review",
     "migrationStatus": "TrueFi to Brila transition; TRU to BRLA migration referenced in official forum and Brila materials.",
     "legacyEntityNotes": "TFIP-41 references wind-down of the TrueFi Foundation in the British Virgin Islands and formation of Panama-based Brila entities, but exact public registration documents were not verified in this layer update.",
