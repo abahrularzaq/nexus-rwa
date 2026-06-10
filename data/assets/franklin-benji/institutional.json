@@ -12,6 +12,23 @@
   "targetInvestors": "U.S. individual investors via the Benji App and institutional investors via the Institutional Web Portal; non-Stellar blockchain access is subject to eligibility and approval by the Fund and transfer agent.",
   "prospectuUrl": "https://www.franklintempleton.com/forms-literature/download-preview/9001-P",
   "metadata": {
+    "classification": {
+      "assetClass": "tokenized_treasury",
+      "instrumentType": "fund_share_token",
+      "claimType": "fund_share_claim",
+      "gradingProfile": "asset_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "available",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "BENJI represents shares of the Franklin OnChain U.S. Government Money Fund, a SEC-registered government money market fund. It should be graded as an asset-backed fund/share-style RWA claim, not as a protocol token."
+    },
+    "assetClass": "tokenized_treasury",
+    "instrumentType": "fund_share_token",
+    "claimType": "fund_share_claim",
+    "gradingProfile": "asset_backed",
+    "publicSegment": "RWA Assets",
     "fundName": "Franklin OnChain U.S. Government Money Fund",
     "ticker": "FOBXX",
     "fundNumber": "BENJI",
@@ -37,12 +54,12 @@
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
-    "status": "current",
-    "notes": null
+    "status": "classification-migrated",
+    "notes": "Updated to the Nexus RWA classification standard. Legacy metadata fields are retained for backward compatibility."
   }
 }
