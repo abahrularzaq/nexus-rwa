@@ -1,0 +1,23 @@
+[
+  {
+    "chain": "Ethereum",
+    "chainId": 1,
+    "contractAddress": "0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "deployedAt": null,
+    "isVerified": true,
+    "_meta": {
+      "dataOwner": "manual-research",
+      "lastManualReview": "2026-06-10",
+      "sourceTier": "block-explorer",
+      "confidence": "medium",
+      "freshnessStatus": "needs-review",
+      "status": "scaffold",
+      "notes": "Ethereum TRU contract address should be manually cross-checked against official docs, CoinGecko, and Etherscan before import/grading."
+    }
+  }
+]
