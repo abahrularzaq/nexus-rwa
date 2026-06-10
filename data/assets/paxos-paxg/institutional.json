@@ -12,6 +12,23 @@
   "targetInvestors": "Registered Paxos customers and institutional investors; PAXG is also available through supported secondary-market venues and crypto ecosystem platforms, subject to jurisdictional restrictions.",
   "prospectuUrl": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
   "metadata": {
+    "classification": {
+      "assetClass": "tokenized_commodity",
+      "instrumentType": "commodity_backed_token",
+      "claimType": "commodity_redemption_claim",
+      "gradingProfile": "commodity_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "available",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "PAXG is a gold-backed token representing fractional ownership of London Good Delivery gold bars held by Paxos Trust. It should be graded with the commodity_backed profile because custody, vaulting, reserve attestation, and redemption evidence are central."
+    },
+    "assetClass": "tokenized_commodity",
+    "instrumentType": "commodity_backed_token",
+    "claimType": "commodity_redemption_claim",
+    "gradingProfile": "commodity_backed",
+    "publicSegment": "RWA Assets",
     "legalDocumentType": "PAX Gold Terms and Conditions",
     "legalDocumentLastModified": "2025-12-12",
     "isFund": false,
@@ -35,12 +52,12 @@
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
-    "status": "current",
-    "notes": null
+    "status": "classification-migrated",
+    "notes": "Updated to the Nexus RWA classification standard. Legacy metadata fields are retained for backward compatibility."
   }
 }
