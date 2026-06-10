@@ -1,21 +1,23 @@
 {
-  "regulatoryStatus": null,
+  "regulatoryStatus": "Not verified as a registered fund or regulated security product in this dataset pass.",
   "primaryRegulator": null,
-  "regulatoryFramework": null,
+  "regulatoryFramework": "DAO/protocol governance and DeFi credit-market context; no SEC EDGAR filing or formal fund regulatory framework verified for TRU.",
   "kycRequired": false,
   "accreditedOnly": false,
   "blockedJurisdictions": [],
   "allowedJurisdictions": [],
   "sanctionsScreening": false,
   "amlPolicy": null,
-  "lastComplianceCheck": null,
+  "lastComplianceCheck": "2026-06-10",
   "legalOpinionUrl": null,
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
-    "freshnessStatus": "needs-review",
-    "status": "scaffold",
-    "notes": "Default booleans are conservative import-safe placeholders, not final compliance conclusions. Verify KYC, borrower onboarding, sanctions screening, legal structure, and jurisdiction restrictions from official docs."
+    "sourceTier": "official-docs-and-governance-forum",
+    "confidence": "low-medium",
+    "freshnessStatus": "current-with-gaps",
+    "status": "researched-conservative",
+    "notes": "Compliance booleans describe TRU token transfer/migration context only and should not be generalized to borrower onboarding or credit vault participation. No legal opinion, prospectus, SEC filing, AML policy, sanctions-screening document, or jurisdiction list was verified for TRU."
   }
 }
