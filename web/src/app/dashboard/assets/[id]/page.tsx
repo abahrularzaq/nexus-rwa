@@ -155,6 +155,15 @@ function displayValue(value: unknown): string {
   return String(value);
 }
 
+function formatEnumLabel(value?: string | null): string | null {
+  if (!value) return null;
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function FieldRow({ label, value }: { label: string; value: unknown }) {
   return (
     <div className="rounded-lg border border-[rgba(30,42,58,0.8)] bg-[rgba(10,14,26,0.45)] px-4 py-3">
@@ -451,6 +460,10 @@ export default function AssetDetailPage() {
   const displayName = asset.identity?.name ?? asset.slug;
   const protocol = getProtocolLabel(asset);
   const launchDate = asset.identity?.launchDate;
+  const gradeContext = asset.grade?.gradeContext ?? null;
+  const claimTypeLabel = formatEnumLabel(asset.grade?.claimType);
+  const publicSegment = asset.grade?.publicSegment ?? null;
+  const reserveScoreLabel = asset.grade?.reserveScore == null ? null : `Reserve ${asset.grade.reserveScore}/100`;
 
   return (
     <div className="space-y-8 pb-10">
@@ -489,10 +502,34 @@ export default function AssetDetailPage() {
                     {asset.grade.grade} · {asset.grade.score}/100
                   </span>
                 ) : null}
+                {gradeContext ? (
+                  <span className="rounded-md border border-[rgba(0,255,136,0.28)] bg-[rgba(0,255,136,0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#00FF88]">
+                    {gradeContext}
+                  </span>
+                ) : null}
               </div>
               <p className="mt-1 text-lg text-[#8892A4]">
                 {asset.identity?.symbol ?? "—"}
               </p>
+              {(claimTypeLabel || publicSegment || reserveScoreLabel) ? (
+                <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                  {claimTypeLabel ? (
+                    <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.55)] px-3 py-1 text-[#C9D4E5]">
+                      Claim: {claimTypeLabel}
+                    </span>
+                  ) : null}
+                  {publicSegment ? (
+                    <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.55)] px-3 py-1 text-[#C9D4E5]">
+                      Segment: {publicSegment}
+                    </span>
+                  ) : null}
+                  {reserveScoreLabel ? (
+                    <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.55)] px-3 py-1 text-[#C9D4E5]">
+                      {reserveScoreLabel}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-medium text-white">{protocol}</span>
                 <span className="text-[#4A5568]">·</span>
@@ -626,6 +663,9 @@ export default function AssetDetailPage() {
               <FieldRow label="Category" value={asset.identity?.category} />
               <FieldRow label="Subcategory" value={asset.identity?.subcategory} />
               <FieldRow label="Launch date" value={asset.identity?.launchDate} />
+              <FieldRow label="Asset class" value={formatEnumLabel(asset.grade?.assetClass)} />
+              <FieldRow label="Claim type" value={formatEnumLabel(asset.grade?.claimType)} />
+              <FieldRow label="Public segment" value={asset.grade?.publicSegment} />
               <FieldRow label="Tags" value={asset.identity?.tags} />
             </div>
             {asset.identity?.description ? (
