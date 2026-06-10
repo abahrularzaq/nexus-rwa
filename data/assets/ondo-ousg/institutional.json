@@ -12,18 +12,35 @@
   "targetInvestors": "accredited",
   "prospectuUrl": "https://ondo.finance/ousg",
   "metadata": {
+    "classification": {
+      "assetClass": "tokenized_treasury",
+      "instrumentType": "yield_bearing_note",
+      "claimType": "debt_or_note_claim",
+      "gradingProfile": "asset_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "available",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "OUSG is treated as a tokenized Treasury / yield-bearing note-style RWA exposure for grading purposes. It should remain under the asset_backed profile because backing, legal structure, custody, and redemption evidence are relevant."
+    },
+    "assetClass": "tokenized_treasury",
+    "instrumentType": "yield_bearing_note",
+    "claimType": "debt_or_note_claim",
+    "gradingProfile": "asset_backed",
+    "publicSegment": "RWA Assets",
     "regulatoryFramework": "Reg D",
     "accreditedOnly": true,
     "sourceLayer": "legacy legal.md"
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
-    "status": "current",
-    "notes": null
+    "status": "classification-migrated",
+    "notes": "Updated to the Nexus RWA classification standard. Legacy metadata fields are retained for backward compatibility."
   }
 }
