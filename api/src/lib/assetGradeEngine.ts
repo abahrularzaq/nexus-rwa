@@ -4,7 +4,14 @@ export type GradingProfile =
   | 'asset_backed'
   | 'commodity_backed'
   | 'credit_pool'
+  | 'real_estate_claim'
   | 'governance_protocol';
+
+export type FieldApplicability = 'available' | 'missing' | 'not_applicable';
+
+export type GradeProfileScores = Record<string, number | null>;
+
+export type GradeApplicability = Record<string, FieldApplicability>;
 
 export interface GradeInput {
   identity?: any;
@@ -25,12 +32,19 @@ export interface GradeResult {
   completenessScore: number;
   sourceScore: number;
   legalScore: number;
-  reserveScore: number;
+  reserveScore: number | null;
   liquidityScore: number;
   riskScore: number;
   blockers: string[];
   warnings: string[];
   gradingProfile?: GradingProfile;
+  assetClass?: string | null;
+  instrumentType?: string | null;
+  claimType?: string | null;
+  publicSegment?: string | null;
+  gradeContext?: string;
+  profileScores?: GradeProfileScores;
+  applicability?: GradeApplicability;
 }
 
 function clamp(value: number): number {
@@ -52,19 +66,53 @@ function sourceExists(sources: any[], layer: string, field?: string): boolean {
   });
 }
 
-function getGradingProfile(input: GradeInput): GradingProfile {
-  const profile = input.institutional?.metadata?.gradingProfile;
+function getClassification(input: GradeInput): Record<string, any> {
+  return input.institutional?.metadata?.classification ?? input.institutional?.metadata ?? {};
+}
 
-  if (
-    profile === 'asset_backed' ||
-    profile === 'commodity_backed' ||
-    profile === 'credit_pool' ||
-    profile === 'governance_protocol'
-  ) {
-    return profile;
-  }
+function isGradingProfile(value: any): value is GradingProfile {
+  return (
+    value === 'asset_backed' ||
+    value === 'commodity_backed' ||
+    value === 'credit_pool' ||
+    value === 'real_estate_claim' ||
+    value === 'governance_protocol'
+  );
+}
+
+function getGradingProfile(input: GradeInput): GradingProfile {
+  const classification = getClassification(input);
+  const profile = classification?.gradingProfile ?? input.institutional?.metadata?.gradingProfile;
+
+  if (isGradingProfile(profile)) return profile;
 
   return 'asset_backed';
+}
+
+function getGradeContext(grade: AssetGradeLevel, gradingProfile: GradingProfile): string {
+  const gradeLabel = grade.charAt(0).toUpperCase() + grade.slice(1);
+  const profileLabel: Record<GradingProfile, string> = {
+    asset_backed: 'Asset-backed Profile',
+    commodity_backed: 'Commodity-backed Profile',
+    credit_pool: 'Credit Pool Profile',
+    real_estate_claim: 'Real Estate Claim Profile',
+    governance_protocol: 'Governance Protocol Profile',
+  };
+
+  return `${gradeLabel} — ${profileLabel[gradingProfile]}`;
+}
+
+function commonClassificationOutput(input: GradeInput, gradingProfile: GradingProfile, grade: AssetGradeLevel) {
+  const classification = getClassification(input);
+
+  return {
+    gradingProfile,
+    assetClass: classification.assetClass ?? null,
+    instrumentType: classification.instrumentType ?? null,
+    claimType: classification.claimType ?? null,
+    publicSegment: classification.publicSegment ?? null,
+    gradeContext: getGradeContext(grade, gradingProfile),
+  };
 }
 
 function resolveGrade(
@@ -91,6 +139,42 @@ function resolveGrade(
     sourceScore >= 90 &&
     legalScore >= 80 &&
     reserveScore >= 80 &&
+    liquidityScore >= 70 &&
+    riskScore >= 75 &&
+    blockers.length === 0
+  ) {
+    return 'institutional';
+  }
+
+  if (score >= 65) return 'analytics';
+
+  return 'research';
+}
+
+function resolveProtocolGrade(
+  score: number,
+  blockers: string[],
+  requirements: {
+    sourceScore?: number;
+    protocolScore?: number;
+    governanceScore?: number;
+    liquidityScore?: number;
+    riskScore?: number;
+  } = {},
+): AssetGradeLevel {
+  const {
+    sourceScore = 0,
+    protocolScore = 0,
+    governanceScore = 0,
+    liquidityScore = 0,
+    riskScore = 0,
+  } = requirements;
+
+  if (
+    score >= 85 &&
+    sourceScore >= 90 &&
+    protocolScore >= 80 &&
+    governanceScore >= 75 &&
     liquidityScore >= 70 &&
     riskScore >= 75 &&
     blockers.length === 0
@@ -509,7 +593,21 @@ function calculateAssetBackedGrade(input: GradeInput, gradingProfile: GradingPro
     riskScore,
     blockers,
     warnings,
-    gradingProfile,
+    ...commonClassificationOutput(input, gradingProfile, grade),
+    applicability: {
+      reserve: hasValue(input.reserve?.backingDescription) ? 'available' : 'missing',
+      custody: hasValue(input.reserve?.custodian) ? 'available' : 'missing',
+      redemption: hasValue(input.reserve?.redemptionAsset) ? 'available' : 'missing',
+      proofOfReserves: input.reserve?.hasProofOfReserves === true ? 'available' : 'missing',
+    },
+    profileScores: {
+      completenessScore,
+      sourceScore,
+      legalScore,
+      reserveScore,
+      liquidityScore,
+      riskScore,
+    },
   };
 }
 
@@ -562,7 +660,21 @@ function calculateCommodityBackedGrade(input: GradeInput, gradingProfile: Gradin
     riskScore,
     blockers,
     warnings,
-    gradingProfile,
+    ...commonClassificationOutput(input, gradingProfile, grade),
+    applicability: {
+      reserve: hasValue(input.reserve?.backingDescription) ? 'available' : 'missing',
+      custody: hasValue(input.reserve?.custodian) ? 'available' : 'missing',
+      redemption: hasValue(input.reserve?.redemptionAsset) ? 'available' : 'missing',
+      proofOfReserves: input.reserve?.hasProofOfReserves === true ? 'available' : 'missing',
+    },
+    profileScores: {
+      sourceScore,
+      legalScore,
+      reserveScore,
+      custodyScore,
+      liquidityScore,
+      riskScore,
+    },
   };
 }
 
@@ -615,7 +727,22 @@ function calculateCreditPoolGrade(input: GradeInput, gradingProfile: GradingProf
     riskScore,
     blockers,
     warnings,
-    gradingProfile,
+    ...commonClassificationOutput(input, gradingProfile, grade),
+    applicability: {
+      reserve: hasValue(input.reserve?.backingDescription) ? 'available' : 'missing',
+      collateral: hasValue(input.reserve?.backingDescription) ? 'available' : 'missing',
+      borrower: hasValue(input.institutional?.issuerName) ? 'available' : 'missing',
+      redemption: hasValue(input.liquidity?.redemptionType) ? 'available' : 'missing',
+      proofOfReserves: 'not_applicable',
+    },
+    profileScores: {
+      sourceScore,
+      legalScore,
+      collateralScore,
+      borrowerScore,
+      liquidityScore,
+      riskScore,
+    },
   };
 }
 
@@ -651,10 +778,10 @@ function calculateGovernanceProtocolGrade(input: GradeInput, gradingProfile: Gra
     riskScore * 0.15,
   );
 
-  const grade = resolveGrade(score, blockers, {
+  const grade = resolveProtocolGrade(score, blockers, {
     sourceScore,
-    legalScore: governanceScore,
-    reserveScore: protocolScore,
+    protocolScore,
+    governanceScore,
     liquidityScore,
     riskScore,
   });
@@ -665,12 +792,30 @@ function calculateGovernanceProtocolGrade(input: GradeInput, gradingProfile: Gra
     completenessScore: calculateProtocolCompleteness(input),
     sourceScore,
     legalScore: governanceScore,
-    reserveScore: 0,
+    reserveScore: null,
     liquidityScore,
     riskScore,
     blockers,
     warnings,
-    gradingProfile,
+    ...commonClassificationOutput(input, gradingProfile, grade),
+    applicability: {
+      reserve: 'not_applicable',
+      custody: 'not_applicable',
+      redemption: 'not_applicable',
+      proofOfReserves: 'not_applicable',
+      protocol: hasValue(input.identity?.docsUrl) ? 'available' : 'missing',
+      tokenomics: hasValue(input.market?.circulatingSupply) && hasValue(input.market?.totalSupply) ? 'available' : 'missing',
+      governance: hasValue(input.institutional?.metadata?.governanceNote) ? 'available' : 'missing',
+    },
+    profileScores: {
+      sourceScore,
+      protocolScore,
+      tokenomicsScore,
+      governanceScore,
+      liquidityScore,
+      riskScore,
+      reserveScore: null,
+    },
   };
 }
 
