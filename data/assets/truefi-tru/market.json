@@ -1,0 +1,25 @@
+{
+  "tvl": null,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": null,
+  "priceChange24h": null,
+  "marketCap": null,
+  "volume24h": null,
+  "circulatingSupply": null,
+  "totalSupply": null,
+  "holderCount": null,
+  "holderChange7d": null,
+  "aumUsd": null,
+  "lastUpdated": null,
+  "sources": [],
+  "confidence": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 7,
+    "freshnessStatus": "stale-until-filled",
+    "status": "scaffold",
+    "notes": "Market fields intentionally left null. Refresh from CoinGecko, DeFiLlama, RWA.xyz, Etherscan holders, and exchange data before import/grading."
+  }
+}
