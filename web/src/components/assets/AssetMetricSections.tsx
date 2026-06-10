@@ -10,6 +10,21 @@ type AssetMetricSectionsProps = {
   showHeader?: boolean;
 };
 
+function formatEnumLabel(value?: string | null): string | null {
+  if (!value) return null;
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function applicabilityLabel(value?: string | null): string | null {
+  if (!value) return null;
+  if (value === "not_applicable") return "Not applicable";
+  return formatEnumLabel(value);
+}
+
 export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSectionsProps) {
   const displayName = asset.identity.name ?? asset.slug;
   const symbol = asset.identity.symbol ? ` (${asset.identity.symbol})` : "";
@@ -17,6 +32,12 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
   const warnings = asset.gradeBaseline.warnings ?? [];
   const blockers = asset.gradeBaseline.blockers ?? [];
   const gradeDisclaimer = getGradeDisclaimer(grade);
+  const gradeContext = asset.gradeBaseline.gradeContext;
+  const gradingProfile = formatEnumLabel(asset.gradeBaseline.gradingProfile);
+  const claimType = formatEnumLabel(asset.gradeBaseline.claimType);
+  const publicSegment = asset.gradeBaseline.publicSegment;
+  const reserveApplicability = asset.gradeBaseline.applicability?.reserve;
+  const isReserveNotApplicable = reserveApplicability === "not_applicable";
 
   return (
     <div className="space-y-6">
@@ -38,10 +59,18 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
                   {asset.identity.description}
                 </p>
               ) : null}
+              {gradeContext ? (
+                <p className="mt-3 text-sm font-semibold" style={{ color: "var(--accent-cyan)" }}>
+                  {gradeContext}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Badge>{grade} grade</Badge>
+              {gradingProfile ? <Badge>{gradingProfile} profile</Badge> : null}
+              {publicSegment ? <Badge>{publicSegment}</Badge> : null}
+              {claimType ? <Badge>Claim: {claimType}</Badge> : null}
               {asset.identity.category ? <Badge>{asset.identity.category}</Badge> : null}
               {asset.gradeBaseline.score !== undefined && asset.gradeBaseline.score !== null ? (
                 <Badge>{asset.gradeBaseline.score}/100 score</Badge>
@@ -63,6 +92,8 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
             <MetricField fieldKey="category" value={asset.identity.category} variant="card" />
             <MetricField fieldKey="subcategory" value={asset.identity.subcategory} variant="card" />
             <MetricField fieldKey="launchDate" value={asset.identity.launchDate} variant="card" />
+            <MetricField fieldKey="assetClass" label="Asset Class" value={formatEnumLabel(asset.gradeBaseline.assetClass)} variant="card" />
+            <MetricField fieldKey="claimType" label="Claim Type" value={claimType} variant="card" />
           </MetricGrid>
         </MetricSection>
 
@@ -84,12 +115,25 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
           </MetricGrid>
         </MetricSection>
 
-        <MetricSection title="Reserve" description="Backing, custody, audit, and reserve transparency indicators.">
+        <MetricSection
+          title="Reserve"
+          description={isReserveNotApplicable
+            ? "Reserve, custody, redemption, and proof-of-reserves are not applicable for this grading profile."
+            : "Backing, custody, audit, and reserve transparency indicators."
+          }
+        >
           <MetricGrid columns={2}>
-            <MetricField fieldKey="backingType" value={asset.reserve.backingType} variant="card" />
-            <MetricField fieldKey="custodian" value={asset.reserve.custodian} variant="card" />
-            <MetricField fieldKey="hasProofOfReserves" value={asset.reserve.hasProofOfReserves} variant="card" />
-            <MetricField fieldKey="reserveScore" value={asset.gradeBaseline.reserveScore} valueSuffix=" / 100" variant="card" />
+            <MetricField fieldKey="backingType" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.backingType} variant="card" />
+            <MetricField fieldKey="custodian" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.custodian} variant="card" />
+            <MetricField fieldKey="hasProofOfReserves" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.hasProofOfReserves} variant="card" />
+            <MetricField
+              fieldKey="reserveScore"
+              value={isReserveNotApplicable ? "N/A" : asset.gradeBaseline.reserveScore}
+              valueSuffix={isReserveNotApplicable ? undefined : " / 100"}
+              variant="card"
+            />
+            <MetricField fieldKey="reserveApplicability" label="Reserve Applicability" value={applicabilityLabel(reserveApplicability)} variant="card" />
+            <MetricField fieldKey="gradingProfile" label="Grading Profile" value={gradingProfile} variant="card" />
           </MetricGrid>
         </MetricSection>
 
@@ -98,7 +142,9 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
             <MetricField fieldKey="sourceScore" value={asset.gradeBaseline.sourceScore} valueSuffix=" / 100" variant="card" />
             <MetricField fieldKey="completenessScore" value={asset.gradeBaseline.completenessScore} valueSuffix=" / 100" variant="card" />
             <MetricField fieldKey="riskScore" value={asset.gradeBaseline.riskScore} valueSuffix=" / 100" variant="card" />
-            <MetricField fieldKey="dataQualityGrade" value={grade} variant="card" />
+            <MetricField fieldKey="dataQualityGrade" value={gradeContext ?? grade} variant="card" />
+            <MetricField fieldKey="gradingProfile" label="Profile" value={gradingProfile} variant="card" />
+            <MetricField fieldKey="publicSegment" label="Public Segment" value={publicSegment} variant="card" />
           </MetricGrid>
         </MetricSection>
 
