@@ -16,6 +16,15 @@ type ProLockedSectionProps = {
   children: ReactNode;
 };
 
+function formatEnumLabel(value?: string | null): string | null {
+  if (!value) return null;
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function ProLockedSection({ title, description, children }: ProLockedSectionProps) {
   return (
     <div className="relative overflow-hidden rounded-xl">
@@ -56,6 +65,10 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
   const symbol = asset.identity.symbol ? ` (${asset.identity.symbol})` : "";
   const grade = asset.gradeBaseline.grade ?? "research";
   const gradeDisclaimer = getGradeDisclaimer(grade);
+  const gradeContext = asset.gradeBaseline.gradeContext;
+  const gradingProfile = formatEnumLabel(asset.gradeBaseline.gradingProfile);
+  const claimType = formatEnumLabel(asset.gradeBaseline.claimType);
+  const isReserveNotApplicable = asset.gradeBaseline.applicability?.reserve === "not_applicable";
 
   return (
     <section className="py-24 px-6">
@@ -90,28 +103,17 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
                 <h3 className="mt-2 text-2xl font-extrabold text-white">
                   {displayName}{symbol}
                 </h3>
+                {gradeContext ? (
+                  <p className="mt-2 text-sm font-semibold" style={{ color: "var(--accent-cyan)" }}>
+                    {gradeContext}
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
-                <div
-                  className="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold capitalize"
-                  style={{
-                    background: "rgba(0,255,136,0.1)",
-                    color: "var(--accent-green)",
-                    border: "1px solid rgba(0,255,136,0.25)",
-                  }}
-                >
-                  {grade} grade
-                </div>
-                <div
-                  className="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold"
-                  style={{
-                    background: "rgba(0,212,255,0.1)",
-                    color: "var(--accent-cyan)",
-                    border: "1px solid rgba(0,212,255,0.25)",
-                  }}
-                >
-                  Pro layers locked
-                </div>
+                <PreviewBadge tone="green">{grade} grade</PreviewBadge>
+                {gradingProfile ? <PreviewBadge tone="cyan">{gradingProfile} profile</PreviewBadge> : null}
+                {claimType ? <PreviewBadge tone="cyan">Claim: {claimType}</PreviewBadge> : null}
+                <PreviewBadge tone="cyan">Pro layers locked</PreviewBadge>
               </div>
             </div>
 
@@ -147,13 +149,21 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
 
               <ProLockedSection
                 title="Reserve"
-                description="Backing, custody, and reserve transparency indicators."
+                description={isReserveNotApplicable
+                  ? "Reserve, custody, and PoR are not applicable for this grading profile."
+                  : "Backing, custody, and reserve transparency indicators."
+                }
               >
                 <MetricGrid columns={2}>
-                  <MetricField fieldKey="backingType" value={asset.reserve.backingType} variant="card" />
-                  <MetricField fieldKey="custodian" value={asset.reserve.custodian} variant="card" />
-                  <MetricField fieldKey="hasProofOfReserves" value={asset.reserve.hasProofOfReserves} variant="card" />
-                  <MetricField fieldKey="reserveScore" value={asset.gradeBaseline.reserveScore} valueSuffix=" / 100" variant="card" />
+                  <MetricField fieldKey="backingType" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.backingType} variant="card" />
+                  <MetricField fieldKey="custodian" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.custodian} variant="card" />
+                  <MetricField fieldKey="hasProofOfReserves" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.hasProofOfReserves} variant="card" />
+                  <MetricField
+                    fieldKey="reserveScore"
+                    value={isReserveNotApplicable ? "N/A" : asset.gradeBaseline.reserveScore}
+                    valueSuffix={isReserveNotApplicable ? undefined : " / 100"}
+                    variant="card"
+                  />
                 </MetricGrid>
               </ProLockedSection>
 
@@ -165,7 +175,7 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
                   <MetricField fieldKey="sourceScore" value={asset.gradeBaseline.sourceScore} valueSuffix=" / 100" variant="card" />
                   <MetricField fieldKey="completenessScore" value={asset.gradeBaseline.completenessScore} valueSuffix=" / 100" variant="card" />
                   <MetricField fieldKey="riskScore" value={asset.gradeBaseline.riskScore} valueSuffix=" / 100" variant="card" />
-                  <MetricField fieldKey="dataQualityGrade" value={grade} variant="card" />
+                  <MetricField fieldKey="dataQualityGrade" value={gradeContext ?? grade} variant="card" />
                 </MetricGrid>
               </ProLockedSection>
             </div>
@@ -173,5 +183,20 @@ export function AssetDetailMetricsPreview({ asset }: AssetDetailMetricsPreviewPr
         </FadeUp>
       </div>
     </section>
+  );
+}
+
+function PreviewBadge({ children, tone }: { children: ReactNode; tone: "green" | "cyan" }) {
+  const color = tone === "green" ? "var(--accent-green)" : "var(--accent-cyan)";
+  const border = tone === "green" ? "rgba(0,255,136,0.25)" : "rgba(0,212,255,0.25)";
+  const background = tone === "green" ? "rgba(0,255,136,0.1)" : "rgba(0,212,255,0.1)";
+
+  return (
+    <div
+      className="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold capitalize"
+      style={{ background, color, border: `1px solid ${border}` }}
+    >
+      {children}
+    </div>
   );
 }
