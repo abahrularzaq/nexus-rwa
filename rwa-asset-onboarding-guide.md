@@ -1,24 +1,97 @@
 # Panduan Penambahan Aset RWA Baru ke Nexus RWA
 
-Dokumen ini adalah panduan operasional untuk menambahkan aset RWA baru ke pipeline **Nexus RWA institutional-grade grading system**.
+> **Status update — 2026-06-10**
+>
+> Dokumen ini tetap dipakai sebagai referensi teknis detail untuk struktur file, import, troubleshooting, dan deployment.
+>
+> Namun workflow utama Nexus RWA sekarang sudah berubah menjadi **classification-first workflow**.
+>
+> Untuk aset baru, mulai dari dokumen ini terlebih dahulu:
+>
+> ```text
+> docs/asset-addition-classification-first-sop.md
+> ```
+>
+> Standar klasifikasi resmi ada di:
+>
+> ```text
+> docs/rwa-classification-standard.md
+> ```
+>
+> Prinsip baru:
+>
+> ```text
+> slug → assetClass → instrumentType → claimType → gradingProfile → applicability → source discovery → layer research → validation → grading
+> ```
+>
+> Jangan mulai dari reserve, market, atau grading sebelum classification jelas.
 
-Workflow ini mengikuti alur yang sudah dipakai pada aset:
+---
+
+Dokumen ini adalah panduan operasional teknis untuk menambahkan aset RWA baru ke pipeline **Nexus RWA institutional-grade grading system**.
+
+Workflow ini sebelumnya dipakai pada aset:
 
 - `superstate-ustb`
 - `ondo-ousg`
 - `ondo-usdy`
 - `franklin-benji`
 
+Setelah restrukturisasi classification/grading profile, aset baru wajib mengikuti classification-first SOP terlebih dahulu.
+
 Target akhir workflow:
 
 1. Data asset tersimpan di `data/assets/{slug}/`
 2. Semua layer JSON lengkap dan valid
-3. `sources.json` menjadi audit trail
-4. `risk.json` berisi scoring evidence-based
-5. `npm run import:asset` berhasil
-6. `AssetGrade` tersimpan di database
-7. `grade-baseline.json` tersimpan di repo
-8. Asset muncul di frontend publik
+3. `institutional.json` memiliki `metadata.classification`
+4. `sources.json` menjadi audit trail
+5. `risk.json` berisi scoring evidence-based
+6. `npm run validate:classification -- --slug={slug}` berhasil
+7. `npm run import:asset` berhasil
+8. `AssetGrade` tersimpan di database
+9. `grade-baseline.json` tersimpan di repo dan memiliki `gradeContext`
+10. Asset muncul di frontend publik dengan grading profile context
+
+---
+
+## 0. Classification-First Gate
+
+Sebelum membuat layer lain, tentukan terlebih dahulu:
+
+```text
+assetClass
+instrumentType
+claimType
+gradingProfile
+publicSegment
+reserveApplicability
+custodyApplicability
+redemptionApplicability
+proofOfReservesApplicability
+```
+
+Gunakan dokumen:
+
+```text
+docs/rwa-classification-standard.md
+```
+
+Contoh mapping:
+
+| Asset Type | assetClass | instrumentType | claimType | gradingProfile | publicSegment |
+|---|---|---|---|---|---|
+| Treasury fund | `tokenized_treasury` | `fund_share_token` | `fund_share_claim` | `asset_backed` | `RWA Assets` |
+| Treasury note | `tokenized_treasury` | `yield_bearing_note` | `debt_or_note_claim` | `asset_backed` | `RWA Assets` |
+| Gold-backed token | `tokenized_commodity` | `commodity_backed_token` | `commodity_redemption_claim` | `commodity_backed` | `RWA Assets` |
+| Credit pool | `tokenized_credit` | `pool_token` | `pool_or_tranche_exposure` | `credit_pool` | `RWA Credit Pools` |
+| Governance token | `rwa_infrastructure` | `governance_token` | `governance_right` | `governance_protocol` | `RWA Protocols` |
+
+Non-negotiable:
+
+- Governance/protocol token tidak boleh dipaksa punya reserve/custodian/redemption.
+- Direct RWA claim token tidak boleh bypass reserve/legal/custody evidence.
+- Field `not_applicable` tidak boleh diperlakukan sama dengan `missing`.
+- Grade publik harus selalu menampilkan profile context, misalnya `Analytics — Governance Protocol Profile`.
 
 ---
 
@@ -192,6 +265,7 @@ Catatan penting untuk import:
 - Jangan klaim proof-of-reserves tanpa bukti eksplisit.
 - SEC/fund reporting berbeda dengan on-chain PoR.
 - Jika `reserveBreakdown` tidak tersedia dari sumber resmi, isi `null`.
+- Untuk `governance_protocol`, direct reserve/custodian/redemption biasanya `not_applicable`. Jangan isi artificial values hanya agar score naik.
 
 ---
 
@@ -238,13 +312,28 @@ Catatan:
   "fundAdmin": null,
   "transferAgent": null,
   "targetInvestors": null,
-  "prospectusUrl": null,
-  "metadata": {}
+  "prospectuUrl": null,
+  "metadata": {
+    "classification": {
+      "assetClass": null,
+      "instrumentType": null,
+      "claimType": null,
+      "gradingProfile": null,
+      "publicSegment": null,
+      "reserveApplicability": null,
+      "custodyApplicability": null,
+      "redemptionApplicability": null,
+      "proofOfReservesApplicability": null,
+      "classificationNote": null
+    }
+  }
 }
 ```
 
 Catatan penting:
 
+- `metadata.classification` wajib ada untuk aset baru.
+- Isi classification sebelum layer research.
 - `minimumInvestment` harus number atau `null`.
 - `managementFee` harus number atau `null`.
 - `performanceFee` harus number atau `null`.
@@ -426,26 +515,29 @@ Catatan:
 
 ## 4. Urutan Pengisian Data Manual
 
-Urutan terbaik:
+Urutan baru:
 
-1. `source-discovery.md`
-2. `identity.json`
-3. `blockchain.json`
-4. `reserve.json`
+1. Classification gate
+2. `source-discovery.md`
+3. `identity.json`
+4. `blockchain.json`
 5. `institutional.json`
 6. `compliance.json`
-7. `market.json`
-8. `yield.json`
-9. `liquidity.json`
-10. `sources.json`
-11. `risk.json`
+7. `reserve.json`
+8. `liquidity.json`
+9. `market.json`
+10. `yield.json`
+11. `sources.json`
+12. `risk.json`
 
 Alasan:
 
+- Classification menentukan rubric grading.
 - Source discovery menjadi peta awal.
 - Identity dan blockchain adalah fondasi.
-- Reserve, institutional, dan compliance menentukan kualitas legal/reserve.
-- Market, yield, dan liquidity melengkapi analytics.
+- Institutional dan compliance menentukan kualitas legal/access.
+- Reserve dan liquidity harus mengikuti profile applicability.
+- Market/yield melengkapi analytics.
 - Sources dibuat setelah field utama terisi.
 - Risk dibuat terakhir karena membaca semua layer.
 
@@ -469,6 +561,7 @@ liquidity.json
 Assistant membantu:
 
 ```text
+classification review
 sources.json
 risk.json
 perbaikan kompatibilitas import
@@ -477,6 +570,7 @@ grade-baseline.json setelah import berhasil
 
 Catatan:
 
+- `metadata.classification` tetap wajib di `institutional.json`.
 - `sources.json` tetap harus diverifikasi.
 - `risk.json` harus dibuat berdasarkan evidence, bukan asumsi.
 - `grade-baseline.json` harus berasal dari output import/grading.
@@ -509,6 +603,16 @@ Format minimal `source-discovery.md`:
 
 ```markdown
 # Source Discovery — {Asset Name}
+
+## Classification Summary
+
+| Field | Value |
+|---|---|
+| assetClass | tokenized_treasury |
+| instrumentType | fund_share_token |
+| claimType | fund_share_claim |
+| gradingProfile | asset_backed |
+| publicSegment | RWA Assets |
 
 ## Primary Sources
 
@@ -593,6 +697,7 @@ Aturan penting:
 - Jika `reserveBreakdown` tidak ada, reserve/transparency risk turun.
 - Jika redemption mechanism tidak jelas, `liquidityRisk` turun.
 - Jika issuer/fund manager tidak jelas, `counterpartyRisk` turun.
+- Untuk `governance_protocol`, risk dinilai dari protocol/tokenomics/governance/security/liquidity, bukan reserve risk.
 
 Contoh `riskFactors`:
 
@@ -636,6 +741,7 @@ git push origin main
 
 Setelah push, assistant bisa membaca file dari GitHub dan membantu:
 
+- Classification review
 - Menyusun `sources.json`
 - Menyusun `risk.json`
 - Mengecek kompatibilitas import
@@ -654,34 +760,44 @@ git pull --rebase origin main
 
 ---
 
-## 11. Validasi JSON Sebelum Build
+## 11. Validasi JSON dan Classification Sebelum Build
 
-Sebelum menjalankan build/import, pastikan semua file JSON valid.
+Sebelum menjalankan build/import, pastikan semua file JSON valid dan classification benar.
 
-Minimal manual check:
+Classification validator:
 
 ```bash
-node -e "JSON.parse(require('fs').readFileSync('data/assets/{asset-slug}/identity.json','utf8')); console.log('identity ok')"
+cd "D:\NEXUS RWA\nexus-rwa\api"
+npm run validate:classification -- --slug={asset-slug}
 ```
 
-Idealnya buat script khusus:
+Mode semua asset:
 
 ```bash
-npm run validate:asset -- {asset-slug}
+npm run validate:classification -- --all
+```
+
+Mode strict setelah semua asset dimigrasi:
+
+```bash
+npm run validate:classification -- --all --strict
 ```
 
 Target validasi:
 
 1. Semua file wajib ada
 2. JSON valid
-3. Numeric field bukan string
-4. Boolean non-null sudah `true`/`false`
-5. `regulatoryFramework` string, bukan array
-6. `minRedemptionAmount` number/null, bukan object
-7. `minimumInvestment` number/null, bukan string
-8. `sources.json` mencakup field penting
-9. Market/yield punya timestamp jika ada data angka
-10. `risk.json` tidak dibuat sebelum layer utama lengkap
+3. `metadata.classification` ada
+4. `assetClass`, `instrumentType`, `claimType`, `gradingProfile`, `publicSegment` valid
+5. Applicability explicit
+6. Numeric field bukan string
+7. Boolean non-null sudah `true`/`false`
+8. `regulatoryFramework` string, bukan array
+9. `minRedemptionAmount` number/null, bukan object
+10. `minimumInvestment` number/null, bukan string
+11. `sources.json` mencakup field penting
+12. Market/yield punya timestamp jika ada data angka
+13. `risk.json` tidak dibuat sebelum layer utama lengkap
 
 ---
 
@@ -710,7 +826,7 @@ npm run import:asset -- ondo-usdy
 npm run import:asset -- maple-musdc
 ```
 
-Output yang diharapkan:
+Output yang diharapkan sekarang harus memuat profile context:
 
 ```json
 {
@@ -718,17 +834,10 @@ Output yang diharapkan:
   "grade": {
     "grade": "institutional",
     "score": 91,
-    "completenessScore": 100,
-    "sourceScore": 97,
-    "legalScore": 85,
-    "reserveScore": 90,
-    "liquidityScore": 80,
-    "riskScore": 88,
-    "blockers": [],
-    "warnings": [
-      "Missing legal opinion or legal document URL",
-      "No proof-of-reserves confirmed"
-    ]
+    "gradingProfile": "asset_backed",
+    "gradeContext": "Institutional — Asset-backed Profile",
+    "profileScores": {},
+    "applicability": {}
   }
 }
 ```
@@ -862,7 +971,7 @@ Setelah import berhasil, buat:
 data/assets/{asset-slug}/grade-baseline.json
 ```
 
-Format:
+Format baru wajib menyertakan classification context:
 
 ```json
 {
@@ -875,10 +984,23 @@ Format:
   "reserveScore": 75,
   "liquidityScore": 85,
   "riskScore": 77,
+  "gradingProfile": "asset_backed",
+  "assetClass": "tokenized_treasury",
+  "instrumentType": "yield_bearing_note",
+  "claimType": "debt_or_note_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Analytics — Asset-backed Profile",
+  "profileScores": {},
+  "applicability": {
+    "reserve": "available",
+    "custody": "available",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
   "blockers": [],
   "warnings": [],
   "baselineDate": "2026-06-01",
-  "status": "analytics-grade baseline",
+  "status": "analytics-grade baseline under asset_backed profile",
   "nextActions": []
 }
 ```
@@ -886,14 +1008,14 @@ Format:
 Status options:
 
 ```text
-research-grade baseline
-analytics-grade baseline
-institutional-grade baseline
+research-grade baseline under {gradingProfile} profile
+analytics-grade baseline under {gradingProfile} profile
+institutional-grade baseline under {gradingProfile} profile
 ```
 
 Catatan:
 
-- Jangan membuat baseline manual sebelum import sukses.
+- Jangan membuat baseline manual sebelum import sukses kecuali sedang migrasi classification context.
 - `grade-baseline.json` harus berasal dari output grading/import.
 - Baseline dipakai agar repo dan database punya jejak grading yang konsisten.
 
@@ -1063,6 +1185,8 @@ Response detail harus punya:
   "grade": {
     "grade": "institutional",
     "score": 91,
+    "gradingProfile": "asset_backed",
+    "gradeContext": "Institutional — Asset-backed Profile",
     "warnings": []
   }
 }
@@ -1119,6 +1243,10 @@ Untuk setiap asset baru, cek di UI:
 - [ ] Risk tampil
 - [ ] Grade card tampil
 - [ ] Score tampil
+- [ ] Grading profile tampil
+- [ ] Claim type tampil
+- [ ] Public segment tampil
+- [ ] Reserve applicability tampil
 - [ ] Warnings tampil
 - [ ] Compliance tampil
 - [ ] Liquidity tampil
@@ -1132,6 +1260,7 @@ Cek juga:
 - [ ] Grade sesuai import output
 - [ ] Warning sesuai `grade-baseline.json`
 - [ ] API response dan frontend konsisten
+- [ ] Governance/protocol token tidak tampil seolah-olah asset-backed claim token
 
 ---
 
@@ -1158,155 +1287,15 @@ Ciri:
 
 ### Institutional-grade
 
-Minimum ideal:
+Ciri:
 
-```text
-score >= 85
-sourceScore >= 90
-legalScore >= 80
-reserveScore >= 80
-liquidityScore >= 70
-riskScore >= 75
-blockers = []
-```
-
-Syarat tambahan:
-
-- Official issuer source tersedia
-- Legal / regulatory filing atau offering document tersedia
-- Reserve / backing explanation jelas
-- Custodian / administrator / fund manager jelas
-- Blockchain contract verified
-- Redemption mechanism jelas
-- Market/yield data punya timestamp
-- Risk scoring berbasis evidence
+- Source kuat
+- Legal/reserve/custody evidence kuat sesuai profile
+- Tidak ada blocker
+- Sudah layak jadi baseline production dengan review manual
 
 Catatan:
 
-Institutional-grade adalah hasil verifikasi, bukan target yang dipaksakan.
-
----
-
-## 25. Aset yang Sudah Berhasil
-
-```text
-superstate-ustb   analytics      76
-ondo-ousg         analytics      82
-ondo-usdy         analytics      83
-franklin-benji    institutional  91
-```
-
----
-
-## 26. Alur Ringkas End-to-End
-
-1. Tentukan slug asset
-2. Buat folder `data/assets/{slug}`
-3. Buat 10 file JSON layer
-4. Buat `source-discovery.md`
-5. Isi data manual dari official/primary sources
-6. Push ke GitHub
-7. Assistant bantu buat `sources.json`
-8. Assistant bantu buat `risk.json`
-9. Assistant bantu rapikan field agar compatible dengan Prisma
-10. Pull lokal
-11. Validasi JSON
-12. `npm run build`
-13. `npm run import:asset -- {slug}`
-14. Jika error, patch JSON
-15. Import ulang
-16. Simpan `grade-baseline.json` dari output import
-17. Push origin main
-18. `npx prisma db push` ke Neon hanya jika schema berubah
-19. Import asset ke Neon production
-20. Aktifkan asset di Neon
-21. Restart Railway
-22. Cek endpoint API
-23. Redeploy Vercel jika perlu
-24. Cek frontend publik
-
----
-
-## 27. Prinsip Utama Nexus RWA
-
-- Jangan isi data hanya untuk menaikkan grade.
-- Lebih baik `null` daripada salah.
-- Setiap non-null field harus punya source.
-- Market/yield data wajib punya `lastUpdated`.
-- Risk scoring dibuat terakhir.
-- Proof-of-reserves tidak boleh diklaim tanpa bukti eksplisit.
-- SEC/fund reporting berbeda dengan on-chain PoR.
-- Legal opinion URL harus dokumen legal publik, bukan asumsi.
-- Institutional-grade adalah hasil verifikasi, bukan target yang dipaksakan.
-- Dataset harus bisa dipertanggungjawabkan oleh analyst, developer, investor, dan AI agents.
-
----
-
-## 28. Checklist Cepat per Aset
-
-Gunakan checklist ini setiap menambahkan aset baru.
-
-### Setup
-
-- [ ] Slug sudah ditentukan
-- [ ] Folder `data/assets/{slug}/` sudah dibuat
-- [ ] 10 file JSON layer sudah dibuat
-- [ ] `source-discovery.md` sudah dibuat
-
-### Data Layer
-
-- [ ] `identity.json` lengkap
-- [ ] `blockchain.json` lengkap
-- [ ] `reserve.json` lengkap
-- [ ] `institutional.json` lengkap
-- [ ] `compliance.json` lengkap
-- [ ] `market.json` lengkap
-- [ ] `yield.json` lengkap
-- [ ] `liquidity.json` lengkap
-- [ ] `sources.json` lengkap
-- [ ] `risk.json` selesai
-
-### Validasi
-
-- [ ] Semua JSON valid
-- [ ] Numeric field bukan string
-- [ ] Boolean field bukan `null`
-- [ ] `regulatoryFramework` bukan array
-- [ ] `minRedemptionAmount` bukan object
-- [ ] Semua source penting punya URL
-- [ ] Market/yield punya timestamp
-- [ ] Risk score evidence-based
-
-### Import
-
-- [ ] `git pull --rebase origin main`
-- [ ] `npm run build` sukses
-- [ ] `npm run import:asset -- {slug}` sukses
-- [ ] `grade-baseline.json` dibuat dari output import
-- [ ] Baseline di-commit dan push
-
-### Production
-
-- [ ] Neon production sudah sinkron
-- [ ] Asset `isActive = true`
-- [ ] AssetGrade tersedia
-- [ ] Railway backend restart/redeploy
-- [ ] Endpoint `/v1/assets/{slug}` tampil
-- [ ] Frontend Vercel tampil
-- [ ] Public QA selesai
-
----
-
-## 29. Suggested File Name
-
-Simpan dokumen ini sebagai:
-
-```text
-docs/rwa-asset-onboarding-guide.md
-```
-
-Atau jika ingin diletakkan dekat data:
-
-```text
-data/assets/README.md
-```
+- Grade harus selalu dibaca bersama `gradingProfile`.
+- `Analytics — Governance Protocol Profile` tidak sama dengan `Analytics — Asset-backed Profile`.
+- Category menentukan rubric, bukan langsung menentukan grade.
