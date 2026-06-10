@@ -16,6 +16,7 @@
     "import:asset": "node --import tsx/esm src/scripts/import-asset-data.ts",
     "grade:asset": "node --import tsx/esm src/scripts/import-asset-data.ts",
     "validate:asset-files": "node --import tsx/esm src/scripts/validate-asset-files.ts",
+    "validate:classification": "node --import tsx/esm src/scripts/validate-classification.ts",
     "validate:normalized-assets": "node --import tsx/esm src/scripts/validate-normalized-assets.ts",
     "import:asset-files": "node --import tsx/esm src/scripts/import-from-files.ts",
     "report:completeness": "node --import tsx/esm src/scripts/asset-completeness.ts",
