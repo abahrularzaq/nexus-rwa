@@ -1,0 +1,23 @@
+{
+  "backingType": "Private Credit",
+  "backingDescription": null,
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 30,
+    "freshnessStatus": "needs-review",
+    "status": "scaffold",
+    "notes": "Do not treat TRU as directly reserve-backed without verification. Confirm whether current exposure is protocol token, credit pool token, or legacy governance asset."
+  }
+}
