@@ -1,0 +1,387 @@
+{
+  "assetSlug": "truefi-tru",
+  "assetSymbol": "TRU",
+  "assetName": "TrueFi Protocol Token",
+  "monitoringStatus": "active-research",
+  "monitoringPriority": "medium",
+  "gradeBaseline": {
+    "grade": "research",
+    "score": 61,
+    "baselineDate": "2026-06-10",
+    "baselineFile": "grade-baseline.json"
+  },
+  "reviewSchedule": {
+    "lastManualReview": "2026-06-10",
+    "nextManualReview": "2026-07-10",
+    "manualReviewFrequencyDays": 30,
+    "marketRefreshFrequencyHours": 24,
+    "liquidityRefreshFrequencyHours": 24,
+    "sourceHealthCheckFrequencyDays": 7,
+    "legalReviewFrequencyDays": 90,
+    "riskReviewFrequencyDays": 30
+  },
+  "freshnessPolicy": {
+    "marketDataMaxAgeHours": 24,
+    "liquidityDataMaxAgeHours": 24,
+    "holderDataMaxAgeDays": 7,
+    "sourceDataMaxAgeDays": 30,
+    "legalDataMaxAgeDays": 90,
+    "riskDataMaxAgeDays": 30
+  },
+  "autoMonitoredFields": [
+    {
+      "layer": "market",
+      "field": "price",
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+      "refreshFrequencyHours": 24,
+      "notes": "TRU price is highly volatile and should be refreshed before public display."
+    },
+    {
+      "layer": "market",
+      "field": "marketCap",
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+      "refreshFrequencyHours": 24,
+      "notes": "Market cap is small and time-sensitive."
+    },
+    {
+      "layer": "market",
+      "field": "volume24h",
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+      "refreshFrequencyHours": 24,
+      "notes": "Use to detect secondary-market liquidity deterioration."
+    },
+    {
+      "layer": "market",
+      "field": "tvl",
+      "sourceUrl": "https://defillama.com/protocol/truefi",
+      "refreshFrequencyHours": 24,
+      "notes": "Protocol TVL is low and DeFiLlama active-loan methodology should be reviewed separately."
+    },
+    {
+      "layer": "liquidity",
+      "field": "dexPairs",
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+      "refreshFrequencyHours": 24,
+      "notes": "Track exchange/pair availability and whether TRU markets remain active after Brila migration."
+    },
+    {
+      "layer": "blockchain",
+      "field": "holderCount",
+      "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+      "refreshFrequencyDays": 7,
+      "notes": "Holder count is not yet populated in market.json; add after explorer/API verification."
+    }
+  ],
+  "manualMonitoredFields": [
+    {
+      "layer": "institutional",
+      "field": "issuerName",
+      "currentValue": "TrueFi / Brila",
+      "reviewFrequencyDays": 30,
+      "notes": "Verify final TrueFi-to-Brila migration status and exact legal entity names."
+    },
+    {
+      "layer": "institutional",
+      "field": "legalStructure",
+      "currentValue": "Legacy TrueFi protocol transitioning to Brila ecosystem; not verified as a registered fund or tokenized fund share.",
+      "reviewFrequencyDays": 90,
+      "notes": "Check whether any legal document, public registration, or risk disclosure becomes available."
+    },
+    {
+      "layer": "institutional",
+      "field": "prospectusUrl",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "Keep null unless direct public filing/prospectus is found."
+    },
+    {
+      "layer": "compliance",
+      "field": "primaryRegulator",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "Missing primary regulator is a grading warning. Do not infer a regulator without direct evidence."
+    },
+    {
+      "layer": "compliance",
+      "field": "kycRequired",
+      "currentValue": false,
+      "reviewFrequencyDays": 30,
+      "notes": "Current value applies only to freely transferable TRU token context, not borrower onboarding, credit pools, or BRLA access."
+    },
+    {
+      "layer": "compliance",
+      "field": "legalOpinionUrl",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "Missing legal opinion or legal document URL remains a warning."
+    },
+    {
+      "layer": "reserve",
+      "field": "custodian",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "Missing custodian is a baseline blocker. TRU should not be treated as reserve-backed unless a custodian/report is verified."
+    },
+    {
+      "layer": "reserve",
+      "field": "redemptionAsset",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "Missing redemption asset is a baseline blocker. Secondary-market trading is not the same as redemption."
+    },
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "No reserve breakdown found for TRU. Do not infer from protocol TVL or active loans."
+    },
+    {
+      "layer": "reserve",
+      "field": "hasProofOfReserves",
+      "currentValue": false,
+      "reviewFrequencyDays": 90,
+      "notes": "No proof-of-reserves confirmed."
+    },
+    {
+      "layer": "reserve",
+      "field": "lastAuditUrl",
+      "currentValue": null,
+      "reviewFrequencyDays": 90,
+      "notes": "Search for direct audit report URLs and distinguish smart-contract audits from reserve/collateral audits."
+    },
+    {
+      "layer": "liquidity",
+      "field": "redemptionPeriodDays",
+      "currentValue": null,
+      "reviewFrequencyDays": 30,
+      "notes": "Missing redemption period remains a warning because no verified asset redemption path exists for TRU."
+    },
+    {
+      "layer": "liquidity",
+      "field": "onchainLiquidity",
+      "currentValue": null,
+      "reviewFrequencyDays": 7,
+      "notes": "Missing on-chain liquidity remains a warning. Add only after direct DEX liquidity/slippage verification."
+    },
+    {
+      "layer": "risk",
+      "field": "overallScore",
+      "currentValue": 76,
+      "reviewFrequencyDays": 30,
+      "notes": "Risk score should be reviewed if migration status, liquidity, TVL, legal structure, or reserve evidence changes."
+    }
+  ],
+  "knownBlockers": [
+    {
+      "field": "reserve.custodian",
+      "message": "Missing custodian",
+      "severity": "blocker",
+      "status": "open",
+      "notes": "Expected for TRU because it is not verified as a tokenized fund share or reserve-backed asset."
+    },
+    {
+      "field": "reserve.redemptionAsset",
+      "message": "Missing redemption asset",
+      "severity": "blocker",
+      "status": "open",
+      "notes": "No verified redemption asset exists for TRU; liquidity is secondary-market only."
+    }
+  ],
+  "knownWarnings": [
+    {
+      "field": "compliance.primaryRegulator",
+      "message": "Missing primary regulator",
+      "status": "open"
+    },
+    {
+      "field": "compliance.kycRequired",
+      "message": "KYC requirement is not confirmed",
+      "status": "open"
+    },
+    {
+      "field": "compliance.legalOpinionUrl",
+      "message": "Missing legal opinion or legal document URL",
+      "status": "open"
+    },
+    {
+      "field": "reserve.reserveBreakdown",
+      "message": "Missing reserve breakdown",
+      "status": "open"
+    },
+    {
+      "field": "reserve.hasProofOfReserves",
+      "message": "No proof-of-reserves confirmed",
+      "status": "open"
+    },
+    {
+      "field": "reserve.lastAuditUrl",
+      "message": "Missing audit/report URL",
+      "status": "open"
+    },
+    {
+      "field": "liquidity.redemptionPeriodDays",
+      "message": "Missing redemption period",
+      "status": "open"
+    },
+    {
+      "field": "liquidity.onchainLiquidity",
+      "message": "Missing on-chain liquidity",
+      "status": "open"
+    }
+  ],
+  "alertRules": [
+    {
+      "id": "tru-market-data-stale",
+      "severity": "medium",
+      "condition": "market.lastUpdated older than 24 hours",
+      "action": "Refresh CoinGecko and DeFiLlama market fields before public display."
+    },
+    {
+      "id": "tru-tvl-critical-drop",
+      "severity": "medium",
+      "condition": "market.tvl drops below 10000 or becomes null",
+      "action": "Review DeFiLlama methodology and confirm whether TrueFi still has active protocol TVL."
+    },
+    {
+      "id": "tru-volume-collapse",
+      "severity": "medium",
+      "condition": "market.volume24h drops below 100000",
+      "action": "Check CoinGecko exchange markets and DEX liquidity; update liquidity score if exit liquidity weakens."
+    },
+    {
+      "id": "tru-migration-update",
+      "severity": "high",
+      "condition": "New TrueFi/Brila forum or official blog post changes TRU-to-BRLA migration status",
+      "action": "Review identity, institutional, compliance, liquidity, sources, and risk layers."
+    },
+    {
+      "id": "tru-brla-replacement-signal",
+      "severity": "high",
+      "condition": "Official sources state TRU is deprecated, no longer supported, or fully replaced by BRLA",
+      "action": "Consider marking truefi-tru as deprecated and creating/updating brila-brla or Brila RWA asset records."
+    },
+    {
+      "id": "tru-legal-document-found",
+      "severity": "medium",
+      "condition": "New legal opinion, regulator filing, prospectus, risk disclosure, or entity document is found",
+      "action": "Update institutional.json, compliance.json, sources.json, risk.json, and rerun grading."
+    },
+    {
+      "id": "tru-redemption-evidence-found",
+      "severity": "medium",
+      "condition": "Verified redemption asset, custodian, reserve report, or collateral report becomes available",
+      "action": "Update reserve.json, liquidity.json, sources.json, and rerun grading."
+    }
+  ],
+  "sourceHealthChecks": [
+    {
+      "sourceUrl": "https://docs.truefi.io/",
+      "expectedStatus": "reachable-or-redirect",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "identity",
+        "institutional",
+        "compliance",
+        "reserve",
+        "yield"
+      ],
+      "notes": "Expected to redirect into Brila documentation. Flag if the route breaks or no longer preserves TrueFi lineage."
+    },
+    {
+      "sourceUrl": "https://truefi.io/",
+      "expectedStatus": "reachable-or-redirect",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "identity"
+      ],
+      "notes": "Current TrueFi branded entry point. Review redirect behavior during migration."
+    },
+    {
+      "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "identity",
+        "institutional",
+        "compliance",
+        "risk"
+      ],
+      "notes": "Core transition reference for TrueFi to Brila."
+    },
+    {
+      "sourceUrl": "https://forum.truefi.io/t/tfip-42-timelock-migration-to-gnosis-safe-multi-sig-transition-period/2907",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "blockchain",
+        "governance",
+        "risk"
+      ],
+      "notes": "Governance/admin transition reference."
+    },
+    {
+      "sourceUrl": "https://forum.truefi.io/t/how-to-access-brla-step-by-step-guide-for-tru-holders/2908",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "liquidity",
+        "risk"
+      ],
+      "notes": "Migration liquidity context for TRU holders accessing BRLA."
+    },
+    {
+      "sourceUrl": "https://brila.finance/blog/brila-access-portal-update",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "institutional",
+        "liquidity",
+        "risk"
+      ],
+      "notes": "Official Brila update on access portal and migration participation window."
+    },
+    {
+      "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "blockchain",
+        "market",
+        "risk"
+      ],
+      "notes": "TRU Ethereum token contract, holder count, transfers, and contract verification."
+    },
+    {
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "market",
+        "liquidity"
+      ],
+      "notes": "Primary market data reference for TRU price, market cap, volume, supply, exchange markets, and social links."
+    },
+    {
+      "sourceUrl": "https://defillama.com/protocol/truefi",
+      "expectedStatus": "reachable",
+      "checkFrequencyDays": 7,
+      "layers": [
+        "market",
+        "reserve",
+        "liquidity",
+        "risk"
+      ],
+      "notes": "Protocol TVL and active-loan context. Review methodology before treating data as liquidity or reserve evidence."
+    }
+  ],
+  "monitoringNotes": [
+    "TrueFi(TRU) should remain active-research, not active-institutional, because grading output is research with score 61 and risk score 76.",
+    "TRU is a legacy/private-credit protocol token in a TrueFi-to-Brila transition, not a direct tokenized fund share.",
+    "Missing custodian and missing redemption asset are structural blockers unless new evidence shows TRU has reserve-backed redemption rights.",
+    "Market and liquidity data are highly time-sensitive and should be refreshed daily before publication.",
+    "Do not map TrueFi/Brila credit pool returns to TRU token yield unless a specific pool/vault methodology is verified.",
+    "If official sources indicate TRU is fully deprecated or replaced by BRLA, consider moving this profile to deprecated and creating a separate Brila/BRLA asset record."
+  ],
+  "templateVersion": 1
+}
