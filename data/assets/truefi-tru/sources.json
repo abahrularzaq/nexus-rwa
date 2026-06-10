@@ -1,13 +1,63 @@
 [
   {
     "layer": "identity",
+    "field": "name",
+    "value": "TrueFi",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Official docs path redirects to Brila documentation and preserves TrueFi lineage. Use with migration context."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "TRU",
+    "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "sourceType": "block_explorer",
+    "reliability": 86,
+    "checkedBy": "manual",
+    "notes": "Ethereum block explorer token page for TRU. Cross-check with CoinGecko market page."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "Legacy Ethereum ERC-20 protocol/governance token associated with TrueFi, now in TrueFi-to-Brila transition context.",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs",
+    "reliability": 85,
+    "checkedBy": "manual",
+    "notes": "Brila docs describe BrilaRWA as formerly TrueFi. Use together with TFIP-41 for transition context."
+  },
+  {
+    "layer": "identity",
+    "field": "description",
+    "value": "TRU-to-BRLA migration and sunset of TRU governance are material identity/status context.",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
+    "sourceType": "governance_forum",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "Primary governance proposal for TrueFi reconstitution and transition to Brila."
+  },
+  {
+    "layer": "identity",
+    "field": "category",
+    "value": "Private Credit",
+    "sourceUrl": "https://defillama.com/protocol/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama classifies TrueFi in uncollateralized lending / credit context. Use as category support, not legal evidence."
+  },
+  {
+    "layer": "identity",
     "field": "websiteUrl",
     "value": "https://truefi.io/",
     "sourceUrl": "https://truefi.io/",
     "sourceType": "official_website",
-    "reliability": 85,
+    "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Official TrueFi website / redirect path. Verify current canonical status before production."
+    "notes": "TrueFi branded website path. Current routing should be reviewed because TrueFi materials now point into forum / Brila context."
   },
   {
     "layer": "identity",
@@ -17,7 +67,27 @@
     "sourceType": "official_docs",
     "reliability": 85,
     "checkedBy": "manual",
-    "notes": "Official docs path. Current docs require migration review because TrueFi documentation redirects to Brila context."
+    "notes": "Official docs path. Redirects into Brila documentation and is the current documentation surface discovered for TrueFi lineage."
+  },
+  {
+    "layer": "identity",
+    "field": "twitterUrl",
+    "value": "https://x.com/truefiDAO",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "Social link reference from market aggregator. Verify directly before using in production UI."
+  },
+  {
+    "layer": "blockchain",
+    "field": "chain",
+    "value": "Ethereum",
+    "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "sourceType": "block_explorer",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "TRU token is represented on Ethereum in the current Nexus record. Add other chains only after official/explorer verification."
   },
   {
     "layer": "blockchain",
@@ -25,38 +95,328 @@
     "value": "0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
     "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
     "sourceType": "block_explorer",
-    "reliability": 78,
+    "reliability": 88,
     "checkedBy": "manual",
-    "notes": "Ethereum TRU token contract. Cross-check with official docs and CoinGecko before grading."
+    "notes": "Ethereum TRU ERC-20 token contract. Cross-checked conceptually against CoinGecko market page."
   },
   {
-    "layer": "market",
-    "field": "marketReference",
-    "value": "https://www.coingecko.com/en/coins/truefi",
+    "layer": "blockchain",
+    "field": "tokenStandard",
+    "value": "ERC-20",
+    "sourceUrl": "https://etherscan.io/token/0x4c19596f5aaff459fa38b0f7ed92f11ae6543784",
+    "sourceType": "block_explorer",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Token standard derived from Ethereum token contract context."
+  },
+  {
+    "layer": "blockchain",
+    "field": "isTransferable",
+    "value": "true",
     "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
     "sourceType": "market_aggregator",
     "reliability": 72,
     "checkedBy": "manual",
-    "notes": "Market data reference only. Do not import stale numbers without refresh timestamp."
+    "notes": "Ongoing secondary-market trading supports transferability. Use explorer transfer history for final validation if needed."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "Private Credit",
+    "sourceUrl": "https://defillama.com/protocol/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Used only as protocol-sector context. TRU itself is not verified as a direct claim on a private-credit reserve."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "TRU is not verified as directly reserve-backed; underlying credit exposure, if any, should be researched at pool/vault level.",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Docs establish protocol/credit-market context, but no TRU reserve backing document was identified."
+  },
+  {
+    "layer": "reserve",
+    "field": "hasProofOfReserves",
+    "value": "false",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs_absence_review",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "No official proof-of-reserves oracle, reserve report, or custodian report was found for TRU during source discovery."
+  },
+  {
+    "layer": "reserve",
+    "field": "collateralizationRatio",
+    "value": "null",
+    "sourceUrl": "https://forum.truefi.io/",
+    "sourceType": "governance_forum_absence_review",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "No verified token-level collateralization ratio found. Do not infer from TVL or active loans."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "TrueFi / Brila",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
+    "sourceType": "governance_forum",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "TFIP-41 is the key source for TrueFi-to-Brila transition and should be used for issuer/status context."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerType",
+    "value": "DAO / protocol ecosystem",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
+    "sourceType": "governance_forum",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "Governance proposal context supports DAO/protocol ecosystem classification, but does not equal formal legal registration."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Legacy TrueFi protocol transitioning to Brila ecosystem; not verified as a registered fund or tokenized fund share.",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
+    "sourceType": "governance_forum",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "TFIP-41 references TrueFi Foundation wind-down and Brila entity formation. Exact public entity registration documents remain a data gap."
+  },
+  {
+    "layer": "institutional",
+    "field": "targetInvestors",
+    "value": "DeFi users, protocol participants, TRU holders, and credit-market participants.",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Broad participant framing only. Borrower/lender eligibility should be verified at pool/vault level."
+  },
+  {
+    "layer": "institutional",
+    "field": "prospectusUrl",
+    "value": "null",
+    "sourceUrl": "https://www.sec.gov/edgar/search/",
+    "sourceType": "regulator_search_absence_review",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "No SEC EDGAR prospectus or registered fund filing was identified for TRU in this pass. Keep prospectusUrl null unless a direct filing is verified."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryStatus",
+    "value": "Not verified as a registered fund or regulated security product in this dataset pass.",
+    "sourceUrl": "https://www.sec.gov/edgar/search/",
+    "sourceType": "regulator_search_absence_review",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Absence-review source only. Do not treat as legal conclusion."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryFramework",
+    "value": "DAO/protocol governance and DeFi credit-market context; no SEC EDGAR filing or formal fund regulatory framework verified for TRU.",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
+    "sourceType": "governance_forum",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "Governance/transition materials provide protocol context, not a formal regulated-fund framework."
+  },
+  {
+    "layer": "compliance",
+    "field": "kycRequired",
+    "value": "false",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "Set only for freely transferable TRU token context. Does not describe borrower onboarding, pool participation, or BRLA access requirements."
+  },
+  {
+    "layer": "compliance",
+    "field": "legalOpinionUrl",
+    "value": "null",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs_absence_review",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "No public TRU legal opinion URL was identified in official docs/source discovery."
   },
   {
     "layer": "market",
-    "field": "tvlReference",
-    "value": "https://defillama.com/protocol/truefi",
+    "field": "price",
+    "value": "0.00109",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive market price captured for 2026-06-10. Refresh before publication."
+  },
+  {
+    "layer": "market",
+    "field": "priceChange24h",
+    "value": "60.1",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive 24h price change captured for 2026-06-10. Refresh before publication."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": "1370538",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive market cap captured for 2026-06-10. Refresh before publication."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": "1498444",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive 24h trading volume captured for 2026-06-10. Refresh before publication."
+  },
+  {
+    "layer": "market",
+    "field": "circulatingSupply",
+    "value": "1257020975",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Supply data captured from CoinGecko. Cross-check with token contract and other market aggregators before production."
+  },
+  {
+    "layer": "market",
+    "field": "totalSupply",
+    "value": "1257020975",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Supply data captured from CoinGecko. Cross-check with token contract and other market aggregators before production."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": "21699",
     "sourceUrl": "https://defillama.com/protocol/truefi",
     "sourceType": "market_aggregator",
     "reliability": 72,
     "checkedBy": "manual",
-    "notes": "Protocol TVL reference only. Verify whether TrueFi has current live TVL or only historical activity."
+    "notes": "Protocol TVL captured for 2026-06-10. DeFiLlama active-loan treatment must be reviewed because active loans may be displayed separately from default TVL."
   },
   {
-    "layer": "governance",
-    "field": "forumReference",
-    "value": "https://forum.truefi.io/",
-    "sourceUrl": "https://forum.truefi.io/",
+    "layer": "yield",
+    "field": "yieldType",
+    "value": "Not yield-bearing at TRU token level",
+    "sourceUrl": "https://docs.truefi.io/",
+    "sourceType": "official_docs_absence_review",
+    "reliability": 75,
+    "checkedBy": "manual",
+    "notes": "No verified token-level TRU yield was found. Pool/vault lending returns, if any, should be tracked separately."
+  },
+  {
+    "layer": "yield",
+    "field": "currentYield",
+    "value": "null",
+    "sourceUrl": "https://defillama.com/protocol/truefi",
+    "sourceType": "market_aggregator_absence_review",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Do not map protocol active loans or credit-market returns directly to TRU token yield without pool-level methodology."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "Secondary-market trading only; no verified asset redemption for TRU",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "CoinGecko supports ongoing secondary-market trading context. It does not establish asset redemption rights."
+  },
+  {
+    "layer": "liquidity",
+    "field": "dexPairs",
+    "value": "Uniswap V2 TRU/WETH and centralized spot markets listed by CoinGecko",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Use exchange/pair list as secondary-market liquidity reference. Refresh exchange and DEX liquidity before publication."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityScore",
+    "value": "35",
+    "sourceUrl": "https://www.coingecko.com/en/coins/truefi",
+    "sourceType": "internal_analysis_from_market_data",
+    "reliability": 60,
+    "checkedBy": "manual",
+    "notes": "Conservative internal score based on observable secondary-market trading but no verified institutional redemption path. Must be reviewed manually."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityScore",
+    "value": "35",
+    "sourceUrl": "https://defillama.com/protocol/truefi",
+    "sourceType": "internal_analysis_from_protocol_tvl",
+    "reliability": 60,
+    "checkedBy": "manual",
+    "notes": "Low protocol TVL and migration context support conservative liquidity scoring. Must be reviewed manually."
+  },
+  {
+    "layer": "risk",
+    "field": "migrationRiskReference",
+    "value": "TrueFi-to-Brila transition and TRU-to-BRLA migration",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-41-truefi-reconstitution-and-transition-to-brila/2883",
     "sourceType": "governance_forum",
     "reliability": 82,
     "checkedBy": "manual",
-    "notes": "Use for TFIP proposals, migration notes, and current protocol status."
+    "notes": "Primary source for migration and governance continuity risk. Use in risk.json."
+  },
+  {
+    "layer": "risk",
+    "field": "governanceAdminRiskReference",
+    "value": "Timelock migration to Gnosis Safe multi-sig transition period",
+    "sourceUrl": "https://forum.truefi.io/t/tfip-42-timelock-migration-to-gnosis-safe-multi-sig-transition-period/2907",
+    "sourceType": "governance_forum",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Use for governance/admin transition risk review before final risk scoring."
+  },
+  {
+    "layer": "risk",
+    "field": "migrationLiquidityReference",
+    "value": "BRLA access portal and TRU holder migration context",
+    "sourceUrl": "https://forum.truefi.io/t/how-to-access-brla-step-by-step-guide-for-tru-holders/2908",
+    "sourceType": "governance_forum",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "Use for migration/liquidity context; does not establish redemption rights or final asset value."
+  },
+  {
+    "layer": "risk",
+    "field": "brilaPortalStatusReference",
+    "value": "Brila Access Portal Update",
+    "sourceUrl": "https://brila.finance/blog/brila-access-portal-update",
+    "sourceType": "official_blog",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Use to evaluate finality of migration participation window and post-migration TRU status."
   }
 ]
