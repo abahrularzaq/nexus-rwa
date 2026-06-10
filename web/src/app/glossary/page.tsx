@@ -4,6 +4,7 @@ import { HexLogo } from "@/components/landing/primitives";
 
 const categoryOrder: FieldCategory[] = [
   "Identity",
+  "Classification",
   "Blockchain",
   "Market",
   "Yield",
@@ -18,6 +19,7 @@ const categoryOrder: FieldCategory[] = [
 
 const categoryDescriptions: Record<FieldCategory, string> = {
   Identity: "Core asset identity, naming, classification, and official references.",
+  Classification: "Asset class, instrument type, claim type, grading profile, and public segmentation context.",
   Blockchain: "On-chain deployment, token contract, transfer mechanics, and explorer verification.",
   Market: "Scale, price, volume, holder, TVL, AUM, and short-term movement indicators.",
   Yield: "Reported yield, benchmark context, frequency, stability, and distribution timing.",
@@ -78,127 +80,62 @@ export default function GlossaryPage() {
               Methodology Glossary
             </div>
             <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-gradient md:text-6xl">
-              Nexus RWA Field Definitions
+              Data dictionary for every Nexus RWA field
             </h1>
-            <p className="mt-5 max-w-3xl text-base leading-relaxed md:text-lg" style={{ color: "var(--text-secondary)" }}>
-              A transparent data dictionary for the parameters used across Nexus RWA asset profiles,
-              dashboards, grading, compliance, reserve, liquidity, and source-quality layers.
+            <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              Understand what each data field means, why it matters, and how it supports asset classification, grading, and evidence review.
             </p>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:min-w-64">
-            <StatCard label="Fields" value={totalFields.toString()} />
-            <StatCard label="Categories" value={categoryOrder.length.toString()} />
+          <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+            <div className="text-4xl font-extrabold text-white">{totalFields}</div>
+            <div className="mt-1 text-xs label-eyebrow" style={{ color: "var(--text-secondary)" }}>
+              tracked fields
+            </div>
           </div>
         </header>
 
-        <section className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {categoryOrder.map((category) => (
-            <a
-              key={category}
-              href={`#${category.toLowerCase()}`}
-              className="rounded-xl p-4 transition-transform hover:-translate-y-0.5"
-              style={{
-                background: "rgba(15,22,41,0.62)",
-                border: "1px solid var(--border-line)",
-              }}
-            >
-              <div className="text-sm font-bold text-white">{category}</div>
-              <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                {grouped[category].length} fields
-              </div>
-            </a>
-          ))}
-        </section>
+        <div className="mt-10 space-y-8">
+          {categoryOrder.map((category) => {
+            const fields = grouped[category];
+            if (!fields.length) return null;
 
-        <div className="mt-12 space-y-10">
-          {categoryOrder.map((category) => (
-            <section key={category} id={category.toLowerCase()} className="scroll-mt-24">
-              <div className="mb-4">
-                <h2 className="text-2xl font-extrabold text-white">{category}</h2>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                  {categoryDescriptions[category]}
-                </p>
-              </div>
+            return (
+              <section key={category} className="rounded-2xl p-5 md:p-6" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+                <div className="mb-5">
+                  <h2 className="text-2xl font-bold text-white">{category}</h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {categoryDescriptions[category]}
+                  </p>
+                </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {grouped[category].map(({ key, definition }) => (
-                  <article
-                    key={key}
-                    className="rounded-2xl p-5"
-                    style={{
-                      background: "rgba(15,22,41,0.62)",
-                      border: "1px solid var(--border-line)",
-                    }}
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-white">{definition.label}</h3>
-                        <code
-                          className="mt-2 inline-block rounded-md px-2 py-1 text-xs"
-                          style={{
-                            background: "rgba(0,212,255,0.08)",
-                            color: "var(--accent-cyan)",
-                            border: "1px solid rgba(0,212,255,0.18)",
-                          }}
-                        >
-                          {key}
-                        </code>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {fields.map(({ key, definition }) => (
+                    <div key={key} className="rounded-xl p-4" style={{ background: "rgba(10,14,26,0.58)", border: "1px solid var(--border-line)" }}>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <h3 className="text-base font-bold text-white">{definition.label}</h3>
+                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide" style={{ background: "rgba(0,212,255,0.1)", color: "var(--accent-cyan)", border: "1px solid rgba(0,212,255,0.25)" }}>
+                          {definition.valueType}
+                        </span>
                       </div>
-                      <span
-                        className="w-fit rounded-full px-2.5 py-1 text-[11px] font-bold capitalize"
-                        style={{
-                          background: "rgba(255,255,255,0.05)",
-                          color: "#CBD5E1",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                        }}
-                      >
-                        {definition.valueType}
-                      </span>
-                    </div>
-
-                    <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                      {definition.shortDescription}
-                    </p>
-
-                    <div className="mt-4 rounded-xl p-3" style={{ background: "rgba(10,14,26,0.58)" }}>
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                        Why it matters
-                      </div>
-                      <p className="mt-2 text-sm leading-relaxed" style={{ color: "#CBD5E1" }}>
-                        {definition.whyItMatters}
+                      <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                        {definition.shortDescription}
                       </p>
+                      <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        <span className="font-semibold text-white">Why it matters:</span> {definition.whyItMatters}
+                      </p>
+                      {definition.example ? (
+                        <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                          <span className="font-semibold text-white">Example:</span> {definition.example}
+                        </p>
+                      ) : null}
                     </div>
-
-                    {definition.example ? (
-                      <div className="mt-4 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        <span className="font-bold text-white">Example:</span> {definition.example}
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))}
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       </div>
     </main>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      className="rounded-xl p-4 text-center"
-      style={{
-        background: "rgba(15,22,41,0.62)",
-        border: "1px solid var(--border-line)",
-      }}
-    >
-      <div className="text-3xl font-extrabold text-white">{value}</div>
-      <div className="mt-1 text-[11px] label-eyebrow" style={{ color: "var(--text-secondary)" }}>
-        {label}
-      </div>
-    </div>
   );
 }
