@@ -12,6 +12,23 @@
   "targetInvestors": "Institutional / qualified lenders subject to Maple onboarding and pool-specific eligibility rules",
   "prospectuUrl": null,
   "metadata": {
+    "classification": {
+      "assetClass": "tokenized_credit",
+      "instrumentType": "pool_token",
+      "claimType": "pool_or_tranche_exposure",
+      "gradingProfile": "credit_pool",
+      "publicSegment": "RWA Credit Pools",
+      "reserveApplicability": "available",
+      "custodyApplicability": "missing",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "not_applicable",
+      "classificationNote": "Maple mUSDC is treated as exposure to an institutional credit/lending pool, not as a Treasury fund share or direct reserve-backed token. It should be graded with the credit_pool profile where pool composition, borrower/originator evidence, collateral, liquidity terms, and risk data matter more than generic reserve custody fields."
+    },
+    "assetClass": "tokenized_credit",
+    "instrumentType": "pool_token",
+    "claimType": "pool_or_tranche_exposure",
+    "gradingProfile": "credit_pool",
+    "publicSegment": "RWA Credit Pools",
     "legacySeedSlug": "maple-usdc",
     "legacyFolderSlug": "maple-musdc",
     "legacyMasterPath": "asset/maple-usdc-pool/master.md",
@@ -25,12 +42,12 @@
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-07",
+    "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
     "sourceTier": "repo-seed / legacy-master",
     "confidence": "low-medium",
     "freshnessStatus": "needs-refresh",
-    "status": "corrected-asset-identity",
-    "notes": "Removed Cash Management Pool / MPLcashUSDC legal structure. Needs fresh source discovery for the exact Maple USDC Pool variant."
+    "status": "classification-migrated",
+    "notes": "Updated to the Nexus RWA classification standard. Removed Cash Management Pool / MPLcashUSDC legal structure. Needs fresh source discovery for the exact Maple USDC Pool variant."
   }
 }
