@@ -1,6 +1,6 @@
 {
   "backingType": "Private Credit",
-  "backingDescription": null,
+  "backingDescription": "TRU is not verified as a directly reserve-backed token or a tokenized fund share. It is best classified as a legacy protocol/governance token associated with TrueFi's historical uncollateralized lending and private-credit markets. Underlying credit exposure, if any, should be researched at the pool/vault level rather than assumed for TRU itself.",
   "collateralizationRatio": null,
   "custodian": null,
   "custodianUrl": null,
@@ -16,8 +16,10 @@
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
-    "freshnessStatus": "needs-review",
-    "status": "scaffold",
-    "notes": "Do not treat TRU as directly reserve-backed without verification. Confirm whether current exposure is protocol token, credit pool token, or legacy governance asset."
+    "sourceTier": "official-docs-and-aggregator-context",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-gaps",
+    "status": "researched-conservative",
+    "notes": "No public reserve report, proof-of-reserves oracle, custodian report, or collateralization ratio was verified for TRU. Do not treat protocol TVL or active loans as TRU reserves."
   }
 }
