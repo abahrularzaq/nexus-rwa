@@ -13,11 +13,11 @@
     "_meta": {
       "dataOwner": "manual-research",
       "lastManualReview": "2026-06-10",
-      "sourceTier": "block-explorer",
-      "confidence": "medium",
-      "freshnessStatus": "needs-review",
-      "status": "scaffold",
-      "notes": "Ethereum TRU contract address should be manually cross-checked against official docs, CoinGecko, and Etherscan before import/grading."
+      "sourceTier": "block-explorer-and-market-crosscheck",
+      "confidence": "medium-high",
+      "freshnessStatus": "current-with-migration-risk",
+      "status": "researched",
+      "notes": "TRU is tracked as an Ethereum ERC-20 token. Migration materials state TRU holders needed TRU on Ethereum to access BRLA. Cross-check any additional chains before adding them."
     }
   }
 ]
