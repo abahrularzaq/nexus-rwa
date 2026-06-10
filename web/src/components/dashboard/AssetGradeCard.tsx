@@ -8,7 +8,7 @@ type AssetGradeCardProps = {
 const SCORE_ITEMS = [
   { key: "completenessScore", label: "Completeness" },
   { key: "sourceScore", label: "Source" },
-  { key: "legalScore", label: "Legal" },
+  { key: "legalScore", label: "Legal / Governance" },
   { key: "reserveScore", label: "Reserve" },
   { key: "liquidityScore", label: "Liquidity" },
   { key: "riskScore", label: "Risk" },
@@ -26,9 +26,22 @@ function gradeTone(value: string): string {
   return "border-[rgba(255,184,0,0.35)] bg-[rgba(255,184,0,0.08)] text-[#FFB800]";
 }
 
-function clampScore(value: number): number {
-  if (!Number.isFinite(value)) return 0;
+function clampScore(value: number | null | undefined): number {
+  if (value == null || !Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function formatEnumLabel(value?: string | null): string | null {
+  if (!value) return null;
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function isNotApplicable(grade: AssetGrade, key: string): boolean {
+  return grade.applicability?.[key] === "not_applicable";
 }
 
 export function AssetGradeCard({ grade }: AssetGradeCardProps) {
@@ -47,6 +60,9 @@ export function AssetGradeCard({ grade }: AssetGradeCardProps) {
   const score = clampScore(grade.score);
   const warnings = grade.warnings ?? [];
   const blockers = grade.blockers ?? [];
+  const profileLabel = formatEnumLabel(grade.gradingProfile);
+  const claimTypeLabel = formatEnumLabel(grade.claimType);
+  const segmentLabel = grade.publicSegment ?? null;
 
   return (
     <section className="rounded-xl border border-[rgba(30,42,58,0.8)] bg-[rgba(15,22,41,0.55)] p-6">
@@ -58,12 +74,30 @@ export function AssetGradeCard({ grade }: AssetGradeCardProps) {
               <ShieldCheck className="size-3.5" />
               {gradeLabel(normalizedGrade)} grade
             </span>
+            {profileLabel ? (
+              <span className="inline-flex rounded-md border border-[rgba(0,212,255,0.28)] bg-[rgba(0,212,255,0.08)] px-2.5 py-1 text-xs font-semibold text-[#00D4FF]">
+                {profileLabel} Profile
+              </span>
+            ) : null}
           </div>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#8892A4]">
-            Nexus RWA grading combines data completeness, source quality, legal clarity,
-            reserve transparency, liquidity, and risk assessment. Institutional grade
-            requires stronger reserve and source evidence with no blockers.
+            {grade.gradeContext ??
+              "Nexus RWA grading combines data completeness, source quality, legal clarity, reserve transparency, liquidity, and risk assessment."}
           </p>
+          {(claimTypeLabel || segmentLabel) ? (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+              {claimTypeLabel ? (
+                <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.55)] px-3 py-1 text-[#C9D4E5]">
+                  Claim: {claimTypeLabel}
+                </span>
+              ) : null}
+              {segmentLabel ? (
+                <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.55)] px-3 py-1 text-[#C9D4E5]">
+                  Segment: {segmentLabel}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="shrink-0 rounded-xl border border-[rgba(0,212,255,0.2)] bg-[rgba(0,212,255,0.06)] px-5 py-4 text-left lg:text-right">
@@ -78,7 +112,8 @@ export function AssetGradeCard({ grade }: AssetGradeCardProps) {
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {SCORE_ITEMS.map(({ key, label }) => {
-          const value = clampScore(grade[key]);
+          const notApplicable = key === "reserveScore" && isNotApplicable(grade, "reserve");
+          const value = notApplicable ? null : clampScore(grade[key]);
           return (
             <div
               key={key}
@@ -88,14 +123,19 @@ export function AssetGradeCard({ grade }: AssetGradeCardProps) {
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-[#8892A4]">
                   {label}
                 </span>
-                <span className="text-sm font-bold tabular-nums text-white">{value}</span>
+                <span className="text-sm font-bold tabular-nums text-white">
+                  {notApplicable ? "N/A" : value}
+                </span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[rgba(30,42,58,0.9)]">
                 <div
                   className="h-full rounded-full bg-[#00D4FF]"
-                  style={{ width: `${value}%` }}
+                  style={{ width: `${notApplicable ? 0 : value}%` }}
                 />
               </div>
+              {notApplicable ? (
+                <p className="mt-2 text-[11px] text-[#8892A4]">Not applicable for this profile</p>
+              ) : null}
             </div>
           );
         })}
