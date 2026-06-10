@@ -1,20 +1,35 @@
 {
-  "redemptionType": null,
+  "redemptionType": "Secondary-market trading only; no verified asset redemption for TRU",
   "redemptionPeriodDays": null,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
   "minRedemptionAmount": null,
-  "dexPairs": [],
+  "dexPairs": [
+    {
+      "venue": "Uniswap V2",
+      "pair": "TRU/WETH",
+      "chain": "Ethereum",
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi"
+    },
+    {
+      "venue": "Centralized exchanges listed by CoinGecko",
+      "pair": "TRU spot markets",
+      "chain": null,
+      "sourceUrl": "https://www.coingecko.com/en/coins/truefi"
+    }
+  ],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": null,
-  "liquidityNotes": "Scaffold only. TRU may trade as a transferable ERC-20 governance/protocol token, but this does not confirm redemption rights into private credit exposure. Verify secondary-market liquidity and whether any live credit pool token has separate redemption mechanics.",
+  "liquidityScore": 35,
+  "liquidityNotes": "TRU remains transferable and traded on secondary markets according to CoinGecko, with 24h volume reported around $1.5m on 2026-06-10. However, the token is a legacy governance/protocol token in a TrueFi-to-Brila transition, not a verified redeemable claim on private-credit assets. DeFiLlama showed low protocol TVL around $21.7k, while active loans were displayed separately and not included in default TVL. Liquidity score is therefore conservative: secondary-market token liquidity exists, but asset-level redemption and institutional exit mechanics are not verified.",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 7,
-    "freshnessStatus": "needs-review",
-    "status": "scaffold",
-    "notes": "Do not assign liquidityScore until DEX/CEX liquidity, pool status, redemption rights, and migration status are verified."
+    "sourceTier": "market-aggregator-and-protocol-tvl",
+    "confidence": "medium",
+    "freshnessStatus": "current-time-sensitive",
+    "status": "researched-conservative",
+    "notes": "Liquidity score reflects weak institutional liquidity/redemption quality despite observable secondary-market volume. Refresh exchange markets, DEX liquidity, slippage, migration status, and any BRLA access-portal implications before publication."
   }
 }
