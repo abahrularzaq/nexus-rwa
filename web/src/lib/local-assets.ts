@@ -71,6 +71,14 @@ type AssetGradeBaseline = {
   warnings?: string[];
   baselineDate?: string | null;
   status?: string | null;
+  gradingProfile?: string | null;
+  assetClass?: string | null;
+  instrumentType?: string | null;
+  claimType?: string | null;
+  publicSegment?: string | null;
+  gradeContext?: string | null;
+  profileScores?: Record<string, number | null>;
+  applicability?: Record<string, string>;
 };
 
 export type LocalAssetMetrics = {
