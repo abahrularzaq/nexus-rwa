@@ -27,7 +27,7 @@ import { ERROR_CODES } from '../shared/index.js';
 const LIST_CACHE_TTL = 5 * 60;
 const DETAIL_CACHE_TTL = 10 * 60;
 
-const LIST_LAYERS_FREE: LayerName[] = ['identity', 'market', 'risk', 'yield', 'grade'];
+const LIST_LAYERS_FREE: LayerName[] = ['identity', 'market', 'risk', 'yield', 'grade', 'institutional'];
 const LIST_LAYERS_PRO: LayerName[] = [
   'identity',
   'market',
@@ -37,6 +37,7 @@ const LIST_LAYERS_PRO: LayerName[] = [
   'compliance',
   'liquidity',
   'grade',
+  'institutional',
 ];
 const DETAIL_LAYERS_FREE: LayerName[] = [
   'identity',
@@ -45,6 +46,7 @@ const DETAIL_LAYERS_FREE: LayerName[] = [
   'risk',
   'blockchain',
   'grade',
+  'institutional',
   'events',
 ];
 const DETAIL_LAYERS_PRO: LayerName[] = [
@@ -66,6 +68,30 @@ const DETAIL_LAYERS_PRO: LayerName[] = [
 
 export type AssetAccessTier = AccessTier;
 
+export type ProfileAwareGrade = {
+  grade: AssetGrade['grade'];
+  score: number;
+  completenessScore: number;
+  sourceScore: number;
+  legalScore: number;
+  reserveScore: number | null;
+  liquidityScore: number;
+  riskScore: number;
+  blockers: string[];
+  warnings: string[];
+  reviewedBy?: string | null;
+  reviewedAt?: Date | null;
+  updatedAt?: Date | null;
+  gradingProfile?: string | null;
+  assetClass?: string | null;
+  instrumentType?: string | null;
+  claimType?: string | null;
+  publicSegment?: string | null;
+  gradeContext?: string | null;
+  profileScores?: Record<string, number | null>;
+  applicability?: Record<string, string>;
+};
+
 export type AssetListItemFree = {
   id: string;
   slug: string;
@@ -74,7 +100,7 @@ export type AssetListItemFree = {
   market: Pick<AssetMarket, 'tvl' | 'tvl7dChange' | 'price' | 'holderCount'> | null;
   yield: Pick<AssetYield, 'currentYield' | 'yieldType' | 'yieldFrequency'> | null;
   risk: { overallLevel: string | null } | null;
-  grade: Pick<AssetGrade, 'grade' | 'score'> | null;
+  grade: ProfileAwareGrade | null;
 };
 
 export type AssetListItemPro = AssetListItemFree & {
@@ -118,7 +144,7 @@ export type AssetDetailFree = {
     AssetBlockchain,
     'chain' | 'chainId' | 'contractAddress' | 'tokenStandard' | 'explorerUrl'
   >>;
-  grade: Pick<AssetGrade, 'grade' | 'score'> | null;
+  grade: ProfileAwareGrade | null;
   events: Array<Pick<
     AssetEvent,
     'title' | 'eventType' | 'severity' | 'occurredAt' | 'sourceUrl' | 'isVerified'
@@ -134,7 +160,7 @@ export type AssetDetailPro = AssetDetailFree & {
   blockchain: AssetBlockchain[];
   liquidity: AssetLiquidity | null;
   compliance: AssetCompliance | null;
-  grade: AssetGrade | null;
+  grade: ProfileAwareGrade | null;
   sources: AssetSource[];
   events: AssetEvent[];
   history: AssetHistory[];
@@ -186,6 +212,57 @@ function detailCacheKey(slug: string, tier: AssetAccessTier): string {
   return `asset:${slug}:${tier}`;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+function stringOrNull(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function classificationFromInstitutional(
+  institutional: AssetInstitutional | null | undefined,
+): Record<string, unknown> | null {
+  const metadata = asRecord(institutional?.metadata);
+  if (!metadata) return null;
+
+  const classification = asRecord(metadata.classification);
+  return classification ?? metadata;
+}
+
+function profileLabel(profile?: string | null): string | null {
+  if (!profile) return null;
+  const labels: Record<string, string> = {
+    asset_backed: 'Asset-backed Profile',
+    commodity_backed: 'Commodity-backed Profile',
+    credit_pool: 'Credit Pool Profile',
+    real_estate_claim: 'Real Estate Claim Profile',
+    governance_protocol: 'Governance Protocol Profile',
+  };
+  return labels[profile] ?? profile;
+}
+
+function gradeLabel(grade?: string | null): string {
+  if (grade === 'institutional') return 'Institutional';
+  if (grade === 'analytics') return 'Analytics';
+  if (grade === 'research') return 'Research';
+  return grade ? grade.charAt(0).toUpperCase() + grade.slice(1) : 'Research';
+}
+
+function buildApplicability(
+  classification: Record<string, unknown> | null,
+): Record<string, string> | undefined {
+  if (!classification) return undefined;
+
+  return {
+    reserve: stringOrNull(classification.reserveApplicability) ?? 'missing',
+    custody: stringOrNull(classification.custodyApplicability) ?? 'missing',
+    redemption: stringOrNull(classification.redemptionApplicability) ?? 'missing',
+    proofOfReserves: stringOrNull(classification.proofOfReservesApplicability) ?? 'missing',
+  };
+}
+
 function pickIdentitySummary(
   identity: AssetIdentity | null | undefined,
 ): AssetListItemFree['identity'] {
@@ -224,11 +301,49 @@ function pickYieldSummary(
 
 function pickGradeSummary(
   grade: AssetGrade | null | undefined,
-): AssetListItemFree['grade'] {
+  institutional?: AssetInstitutional | null,
+): ProfileAwareGrade | null {
   if (!grade) return null;
+
+  const classification = classificationFromInstitutional(institutional);
+  const gradingProfile = stringOrNull(classification?.gradingProfile);
+  const assetClass = stringOrNull(classification?.assetClass);
+  const instrumentType = stringOrNull(classification?.instrumentType);
+  const claimType = stringOrNull(classification?.claimType);
+  const publicSegment = stringOrNull(classification?.publicSegment);
+  const applicability = buildApplicability(classification);
+  const reserveScore = gradingProfile === 'governance_protocol' ? null : grade.reserveScore;
+  const profileName = profileLabel(gradingProfile);
+
   return {
     grade: grade.grade,
     score: grade.score,
+    completenessScore: grade.completenessScore,
+    sourceScore: grade.sourceScore,
+    legalScore: grade.legalScore,
+    reserveScore,
+    liquidityScore: grade.liquidityScore,
+    riskScore: grade.riskScore,
+    blockers: grade.blockers,
+    warnings: grade.warnings,
+    reviewedBy: grade.reviewedBy,
+    reviewedAt: grade.reviewedAt,
+    updatedAt: grade.updatedAt,
+    gradingProfile,
+    assetClass,
+    instrumentType,
+    claimType,
+    publicSegment,
+    gradeContext: profileName ? `${gradeLabel(grade.grade)} — ${profileName}` : null,
+    profileScores: {
+      completenessScore: grade.completenessScore,
+      sourceScore: grade.sourceScore,
+      legalScore: grade.legalScore,
+      reserveScore,
+      liquidityScore: grade.liquidityScore,
+      riskScore: grade.riskScore,
+    },
+    applicability,
   };
 }
 
@@ -309,7 +424,7 @@ function mapListItemFree(row: AssetWithLayers): AssetListItemFree {
     risk: row.risk
       ? { overallLevel: row.risk.overallLevel }
       : null,
-    grade: pickGradeSummary(row.grade),
+    grade: pickGradeSummary(row.grade, row.institutional),
   };
 }
 
@@ -359,7 +474,7 @@ function mapDetailFree(row: AssetWithLayers): AssetDetailFree {
       : null,
     yield: pickYieldFreeDetail(row.yield),
     blockchain: pickBlockchainFreeDetail(row.blockchain),
-    grade: pickGradeSummary(row.grade),
+    grade: pickGradeSummary(row.grade, row.institutional),
     events: pickEventsFreeDetail(row.events),
   };
 }
@@ -376,7 +491,7 @@ function mapDetailPro(row: AssetWithLayers): AssetDetailPro {
     blockchain: row.blockchain ?? [],
     liquidity: row.liquidity ?? null,
     compliance: row.compliance ?? null,
-    grade: row.grade ?? null,
+    grade: pickGradeSummary(row.grade, row.institutional),
     sources: row.sources ?? [],
     events: row.events ?? [],
     history: row.history ?? [],
