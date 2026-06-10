@@ -1,5 +1,20 @@
 /** 12-layer asset types — mirror API `AssetWithLayers` / tier-scoped list items. */
 
+export type FieldApplicability = "available" | "missing" | "not_applicable" | string;
+
+export type AssetClassification = {
+  assetClass?: string | null;
+  instrumentType?: string | null;
+  claimType?: string | null;
+  gradingProfile?: string | null;
+  publicSegment?: string | null;
+  reserveApplicability?: FieldApplicability | null;
+  custodyApplicability?: FieldApplicability | null;
+  redemptionApplicability?: FieldApplicability | null;
+  proofOfReservesApplicability?: FieldApplicability | null;
+  classificationNote?: string | null;
+};
+
 export type AssetIdentity = {
   name: string;
   symbol: string;
@@ -108,6 +123,10 @@ export type AssetInstitutional = {
   issuerCountry?: string | null;
   legalStructure?: string | null;
   targetInvestors?: string | null;
+  metadata?: {
+    classification?: AssetClassification;
+    [key: string]: unknown;
+  } | null;
 };
 
 export type AssetAiNarrative = {
@@ -128,7 +147,7 @@ export type AssetGrade = {
   completenessScore: number;
   sourceScore: number;
   legalScore: number;
-  reserveScore: number;
+  reserveScore: number | null;
   liquidityScore: number;
   riskScore: number;
   blockers: string[];
@@ -136,6 +155,14 @@ export type AssetGrade = {
   reviewedBy?: string | null;
   reviewedAt?: string | null;
   updatedAt?: string | null;
+  gradingProfile?: string | null;
+  assetClass?: string | null;
+  instrumentType?: string | null;
+  claimType?: string | null;
+  publicSegment?: string | null;
+  gradeContext?: string | null;
+  profileScores?: Record<string, number | null>;
+  applicability?: Record<string, FieldApplicability>;
 };
 
 /** Full detail (FREE+); reserve/institutional on `/full` PRO response. */
