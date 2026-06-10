@@ -8,6 +8,26 @@
   "reserveScore": 90,
   "liquidityScore": 54,
   "riskScore": 84,
+  "gradingProfile": "commodity_backed",
+  "assetClass": "tokenized_commodity",
+  "instrumentType": "commodity_backed_token",
+  "claimType": "commodity_redemption_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Analytics — Commodity-backed Profile",
+  "profileScores": {
+    "completenessScore": 85,
+    "sourceScore": 97,
+    "legalScore": 85,
+    "reserveScore": 90,
+    "liquidityScore": 54,
+    "riskScore": 84
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "available",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
   "blockers": [],
   "warnings": [
     "Missing legal opinion or legal document URL",
@@ -15,8 +35,8 @@
     "Missing redemption period",
     "Missing on-chain liquidity"
   ],
-  "baselineDate": "2026-06-04",
-  "status": "analytics-grade baseline",
+  "baselineDate": "2026-06-10",
+  "status": "analytics-grade baseline under commodity_backed profile",
   "nextActions": [
     "Confirm whether any public legal opinion URL exists for PAXG or keep legalOpinionUrl as null.",
     "Confirm whether Paxos provides any explicit on-chain proof-of-reserves oracle for PAXG; otherwise keep hasProofOfReserves false.",
