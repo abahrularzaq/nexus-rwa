@@ -1,27 +1,36 @@
 {
-  "issuerName": null,
-  "issuerType": null,
+  "issuerName": "TrueFi / Brila",
+  "issuerType": "DAO / protocol ecosystem",
   "issuerCountry": null,
   "fundManager": null,
-  "legalStructure": null,
+  "legalStructure": "Legacy TrueFi protocol transitioning to Brila ecosystem; not verified as a registered fund or tokenized fund share.",
   "minimumInvestment": null,
   "managementFee": null,
   "performanceFee": null,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": null,
+  "targetInvestors": "DeFi users, protocol participants, TRU holders, and credit-market participants; specific borrower/lender eligibility requires pool-level verification.",
   "prospectusUrl": null,
   "metadata": {
-    "protocolStatus": "needs-verification",
-    "migrationReview": "Verify TrueFi to Brila transition before production grading.",
-    "assetModelQuestion": "Confirm whether TRU is tracked as protocol/governance token or whether Nexus should track specific TrueFi/Brila credit pool assets instead."
+    "protocolStatus": "legacy-transition-review",
+    "migrationStatus": "TrueFi to Brila transition; TRU to BRLA migration referenced in official forum and Brila materials.",
+    "legacyEntityNotes": "TFIP-41 references wind-down of the TrueFi Foundation in the British Virgin Islands and formation of Panama-based Brila entities, but exact public registration documents were not verified in this layer update.",
+    "assetModelQuestion": "TRU should be tracked as a legacy protocol/governance token. Any live Brila/TrueFi credit vaults should be researched as separate asset records if they represent specific RWA exposures.",
+    "institutionalGradeBlockers": [
+      "No verified prospectus or fund document for TRU.",
+      "No verified transfer agent or fund administrator for TRU.",
+      "No verified custodian or reserve report for TRU.",
+      "Migration to Brila creates issuer/governance continuity risk."
+    ]
   },
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
-    "freshnessStatus": "needs-review",
-    "status": "scaffold",
-    "notes": "Institutional fields intentionally conservative until issuer/legal structure is verified from official docs, forum proposals, and any legal disclosures."
+    "sourceTier": "official-docs-and-governance-forum",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-migration-risk",
+    "status": "researched-conservative",
+    "notes": "Use official Brila docs and TrueFi forum proposals as primary sources. Do not classify as institutional-grade until legal entity, governance, audit, and live credit exposure are verified."
   }
 }
