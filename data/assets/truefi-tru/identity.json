@@ -1,0 +1,31 @@
+{
+  "name": "TrueFi",
+  "symbol": "TRU",
+  "fullName": "TrueFi Protocol Token",
+  "description": "TrueFi is a legacy DeFi credit protocol associated with tokenized credit and undercollateralized lending markets. Current official documentation redirects to Brila, which describes BrilaRWA as formerly TrueFi, so TRU should be treated as a migration-sensitive protocol/governance token until canonical issuer, protocol status, and asset scope are verified.",
+  "category": "Private Credit",
+  "subcategory": "Legacy private credit protocol token",
+  "logoUrl": null,
+  "websiteUrl": "https://truefi.io/",
+  "docsUrl": "https://docs.truefi.io/",
+  "twitterUrl": null,
+  "tags": [
+    "private-credit",
+    "legacy-protocol",
+    "governance-token",
+    "migration-review-required",
+    "needs-verification"
+  ],
+  "launchDate": null,
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-10",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "mixed",
+    "confidence": "low",
+    "freshnessStatus": "needs-review",
+    "status": "scaffold",
+    "notes": "Initial scaffold for TrueFi/TRU. Verify whether Nexus should track TRU as a current asset, legacy protocol token, or migrate to Brila-related asset model."
+  }
+}
