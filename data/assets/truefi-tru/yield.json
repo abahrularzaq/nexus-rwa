@@ -1,6 +1,6 @@
 {
   "currentYield": null,
-  "yieldType": null,
+  "yieldType": "Not yield-bearing at TRU token level",
   "yieldFrequency": null,
   "yieldBenchmark": null,
   "yieldVsBenchmark": null,
@@ -15,9 +15,9 @@
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
-    "reviewFrequencyDays": 7,
-    "freshnessStatus": "stale-until-filled",
-    "status": "scaffold",
-    "notes": "Yield fields intentionally left null. Verify whether TRU itself has no yield and whether any TrueFi/Brila credit pools expose yield separately."
+    "reviewFrequencyDays": 30,
+    "freshnessStatus": "current-with-gaps",
+    "status": "researched-conservative",
+    "notes": "No verified token-level yield for TRU was found. TrueFi/Brila credit markets may have pool-level lending returns, and DeFiLlama references active loans, but those should not be mapped to TRU token yield without specific pool/vault data and methodology."
   }
 }
