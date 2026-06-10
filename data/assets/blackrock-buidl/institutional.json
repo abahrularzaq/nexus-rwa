@@ -12,6 +12,23 @@
   "targetInvestors": "U.S. Qualified Purchasers",
   "prospectuUrl": null,
   "metadata": {
+    "classification": {
+      "assetClass": "tokenized_treasury",
+      "instrumentType": "fund_share_token",
+      "claimType": "fund_share_claim",
+      "gradingProfile": "asset_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "available",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "BUIDL is treated as a tokenized fund/share-style Treasury and cash-equivalent RWA exposure. It should be graded with the asset_backed profile because legal structure, fund holdings, custody, reporting, and redemption evidence are central."
+    },
+    "assetClass": "tokenized_treasury",
+    "instrumentType": "fund_share_token",
+    "claimType": "fund_share_claim",
+    "gradingProfile": "asset_backed",
+    "publicSegment": "RWA Assets",
     "tokenizationProvider": "Securitize",
     "custodian": "BNY Mellon",
     "aumUsd": 2415026981,
@@ -26,12 +43,12 @@
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
-    "status": "current",
-    "notes": null
+    "status": "classification-migrated",
+    "notes": "Updated to the Nexus RWA classification standard. Existing BUIDL research data was preserved; classification block and legacy fallback fields were added for profile-aware grading."
   }
 }
