@@ -3,8 +3,8 @@
   "symbol": "TRU",
   "fullName": "TrueFi Protocol Token",
   "description": "TrueFi (TRU) is a legacy Ethereum ERC-20 protocol/governance token associated with TrueFi, an uncollateralized lending and private-credit protocol now transitioning into Brila. Current Brila documentation describes BrilaRWA as formerly TrueFi, while forum proposals describe a TRU-to-BRLA migration and planned sunset of TRU governance.",
-  "category": "Private Credit",
-  "subcategory": "Legacy private-credit protocol / governance token",
+  "category": "Credit",
+  "subcategory": "Private Credit / Legacy private-credit protocol governance token",
   "logoUrl": null,
   "websiteUrl": "https://truefi.io/",
   "docsUrl": "https://docs.truefi.io/",
@@ -28,6 +28,6 @@
     "confidence": "medium",
     "freshnessStatus": "current-with-migration-risk",
     "status": "researched",
-    "notes": "Current canonical docs redirect to Brila. Brila docs state BrilaRWA, formerly TrueFi, launched in November 2020 and originated more than $1.7bn in loans. Keep TRU as a legacy/transition record, not as a clean tokenized fund share."
+    "notes": "Current canonical docs redirect to Brila. Brila docs state BrilaRWA, formerly TrueFi, launched in November 2020 and originated more than $1.7bn in loans. Keep TRU as a legacy/transition record, not as a clean tokenized fund share. Category normalized to Credit for API/web enum compatibility; private-credit detail is preserved in subcategory and tags."
   }
 }
