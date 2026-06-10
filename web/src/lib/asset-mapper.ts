@@ -1,5 +1,5 @@
 import type { AssetCategory, AssetDataMeta, AssetSummary, RiskLevel } from "@/lib/shared";
-import type { AssetListItem, AssetWithLayers } from "@/types/asset";
+import type { AssetClassification, AssetListItem, AssetWithLayers } from "@/types/asset";
 
 const CATEGORY_MAP: Record<string, AssetCategory> = {
   treasury: "TREASURY",
@@ -81,6 +81,44 @@ function parseOptionalNumber(val: unknown): number | null {
 
 function stringArray(val: unknown): string[] {
   return Array.isArray(val) ? val.filter((x): x is string => typeof x === "string") : [];
+}
+
+function parseStringRecord(val: unknown): Record<string, unknown> | null {
+  return val && typeof val === "object" && !Array.isArray(val) ? (val as Record<string, unknown>) : null;
+}
+
+function parseClassification(raw: unknown): AssetClassification | undefined {
+  const o = parseStringRecord(raw);
+  if (!o) return undefined;
+  return {
+    assetClass: o.assetClass != null ? String(o.assetClass) : null,
+    instrumentType: o.instrumentType != null ? String(o.instrumentType) : null,
+    claimType: o.claimType != null ? String(o.claimType) : null,
+    gradingProfile: o.gradingProfile != null ? String(o.gradingProfile) : null,
+    publicSegment: o.publicSegment != null ? String(o.publicSegment) : null,
+    reserveApplicability: o.reserveApplicability != null ? String(o.reserveApplicability) : null,
+    custodyApplicability: o.custodyApplicability != null ? String(o.custodyApplicability) : null,
+    redemptionApplicability: o.redemptionApplicability != null ? String(o.redemptionApplicability) : null,
+    proofOfReservesApplicability:
+      o.proofOfReservesApplicability != null ? String(o.proofOfReservesApplicability) : null,
+    classificationNote: o.classificationNote != null ? String(o.classificationNote) : null,
+  };
+}
+
+function parseNumberRecord(raw: unknown): Record<string, number | null> | undefined {
+  const o = parseStringRecord(raw);
+  if (!o) return undefined;
+  return Object.fromEntries(
+    Object.entries(o).map(([key, value]) => [key, parseOptionalNumber(value)]),
+  );
+}
+
+function parseApplicability(raw: unknown): Record<string, string> | undefined {
+  const o = parseStringRecord(raw);
+  if (!o) return undefined;
+  return Object.fromEntries(
+    Object.entries(o).map(([key, value]) => [key, value != null ? String(value) : "missing"]),
+  );
 }
 
 function parseIdentity(raw: unknown): AssetWithLayers["identity"] {
@@ -270,6 +308,7 @@ function parseReserve(raw: unknown): AssetWithLayers["reserve"] {
 function parseInstitutional(raw: unknown): AssetWithLayers["institutional"] {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
+  const metadata = parseStringRecord(o.metadata);
   return {
     issuerName: o.issuerName != null ? String(o.issuerName) : null,
     issuerType: o.issuerType != null ? String(o.issuerType) : null,
@@ -278,6 +317,12 @@ function parseInstitutional(raw: unknown): AssetWithLayers["institutional"] {
       o.legalStructure != null ? String(o.legalStructure) : null,
     targetInvestors:
       o.targetInvestors != null ? String(o.targetInvestors) : null,
+    metadata: metadata
+      ? {
+          ...metadata,
+          classification: parseClassification(metadata.classification),
+        }
+      : null,
   };
 }
 
@@ -291,7 +336,7 @@ function parseGrade(raw: unknown): AssetWithLayers["grade"] {
     completenessScore: parseOptionalNumber(o.completenessScore) ?? 0,
     sourceScore: parseOptionalNumber(o.sourceScore) ?? 0,
     legalScore: parseOptionalNumber(o.legalScore) ?? 0,
-    reserveScore: parseOptionalNumber(o.reserveScore) ?? 0,
+    reserveScore: parseOptionalNumber(o.reserveScore),
     liquidityScore: parseOptionalNumber(o.liquidityScore) ?? 0,
     riskScore: parseOptionalNumber(o.riskScore) ?? 0,
     blockers: stringArray(o.blockers),
@@ -299,6 +344,14 @@ function parseGrade(raw: unknown): AssetWithLayers["grade"] {
     reviewedBy: o.reviewedBy != null ? String(o.reviewedBy) : null,
     reviewedAt: o.reviewedAt != null ? String(o.reviewedAt) : null,
     updatedAt: o.updatedAt != null ? String(o.updatedAt) : null,
+    gradingProfile: o.gradingProfile != null ? String(o.gradingProfile) : null,
+    assetClass: o.assetClass != null ? String(o.assetClass) : null,
+    instrumentType: o.instrumentType != null ? String(o.instrumentType) : null,
+    claimType: o.claimType != null ? String(o.claimType) : null,
+    publicSegment: o.publicSegment != null ? String(o.publicSegment) : null,
+    gradeContext: o.gradeContext != null ? String(o.gradeContext) : null,
+    profileScores: parseNumberRecord(o.profileScores),
+    applicability: parseApplicability(o.applicability),
   };
 }
 
