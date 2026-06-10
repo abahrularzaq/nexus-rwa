@@ -1,27 +1,41 @@
 {
-  "overallScore": null,
-  "overallLevel": null,
-  "smartContractRisk": null,
-  "counterpartyRisk": null,
-  "liquidityRisk": null,
-  "regulatoryRisk": null,
-  "marketRisk": null,
-  "concentrationRisk": null,
+  "overallScore": 76,
+  "overallLevel": "HIGH",
+  "smartContractRisk": 68,
+  "counterpartyRisk": 82,
+  "liquidityRisk": 78,
+  "regulatoryRisk": 84,
+  "marketRisk": 74,
+  "concentrationRisk": 72,
   "riskFactors": [
-    "Protocol identity and canonical status require verification because TrueFi documentation now redirects to Brila-related documentation.",
-    "TRU may be a governance/protocol token rather than a direct tokenized claim on a specific RWA pool.",
-    "Current live TVL, loan activity, token utility, and migration status are not yet verified in this scaffold.",
-    "Legal structure, borrower exposure, reserve model, and redemption mechanics are not yet confirmed."
+    "Migration and identity risk: official source discovery indicates TrueFi/TRU is in a TrueFi-to-Brila transition, with TRU-to-BRLA migration and sunset of legacy TRU governance referenced in forum/governance materials.",
+    "TRU is not a clean tokenized fund share: the dataset classifies it as a legacy private-credit protocol/governance token rather than a direct claim on a reserve pool, fund, or specific private-credit asset.",
+    "No proof-of-reserves: reserve.json sets hasProofOfReserves to false and no official reserve report, custodian report, PoR oracle, or token-level collateralization ratio was verified.",
+    "No verified institutional legal package: no SEC filing, prospectus, transfer agent, fund administrator, legal opinion URL, or regulated fund framework was verified for TRU.",
+    "Weak redemption quality: liquidity is based on secondary-market trading only; no verified redemption path from TRU into private-credit assets, reserves, or cash was identified.",
+    "Low protocol TVL and transition context: market.json records low protocol TVL from DeFiLlama while active loans, if any, require separate methodology and should not be treated as TRU reserves or liquidity.",
+    "Market volatility and thin market risk: CoinGecko market data captured on 2026-06-10 showed small market capitalization relative to larger institutional RWA assets and a large 24h price move, indicating unstable secondary-market conditions.",
+    "Governance/admin transition risk: TFIP-42 references timelock migration to a Gnosis Safe multi-sig during the transition period, which should be reviewed as a governance continuity and admin-control risk.",
+    "Yield attribution risk: TRU is not verified as token-level yield-bearing; any TrueFi/Brila credit pool returns should be tracked separately at pool/vault level.",
+    "RWA classification risk: TrueFi is relevant to private credit and uncollateralized lending, but TRU itself may be a protocol token rather than a direct RWA exposure."
   ],
-  "mitigants": [],
+  "mitigants": [
+    "The TRU token contract is publicly visible on Ethereum and tracked by Etherscan, allowing transfer, holder, and contract activity review.",
+    "Secondary-market trading for TRU is still visible through market aggregators, providing some exit path for token holders even though asset redemption is not verified.",
+    "TrueFi has a long operating history in DeFi credit markets, and Brila documentation preserves the TrueFi lineage and historical loan origination context.",
+    "Official forum/governance sources provide unusually transparent migration context, including TFIP-41 and TFIP-42, which helps analysts assess continuity and transition risk.",
+    "The dataset now separates TRU, BRLA, and any future Brila/TrueFi credit vault assets, reducing the risk of misclassifying a governance token as a direct RWA claim."
+  ],
   "lastAssessed": "2026-06-10",
-  "assessmentMethod": "scaffold-only-no-score",
+  "assessmentMethod": "evidence-based manual scoring from identity, blockchain, reserve, institutional, compliance, market, yield, liquidity, and sources layers",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 30,
-    "freshnessStatus": "needs-review",
-    "status": "scaffold",
-    "notes": "No scoring assigned. Complete source discovery and verify all layers before running evidence-based grading."
+    "sourceTier": "mixed-official-docs-governance-forum-explorer-aggregators",
+    "confidence": "medium",
+    "freshnessStatus": "current-time-sensitive",
+    "status": "researched-high-risk",
+    "notes": "Recommended classification: research-grade / legacy-transition-review. Do not classify TRU as institutional-grade unless legal structure, audit reports, migration finality, live credit exposure, redemption mechanics, and current market/liquidity data are re-verified. Scores use higher number as higher risk."
   }
 }
