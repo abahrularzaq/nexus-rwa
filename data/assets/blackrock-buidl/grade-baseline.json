@@ -8,6 +8,26 @@
   "reserveScore": 65,
   "liquidityScore": 80,
   "riskScore": 76,
+  "gradingProfile": "asset_backed",
+  "assetClass": "tokenized_treasury",
+  "instrumentType": "fund_share_token",
+  "claimType": "fund_share_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Analytics — Asset-backed Profile",
+  "profileScores": {
+    "completenessScore": 96,
+    "sourceScore": 81,
+    "legalScore": 85,
+    "reserveScore": 65,
+    "liquidityScore": 80,
+    "riskScore": 76
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "available",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
   "blockers": [],
   "warnings": [
     "Missing legal opinion or legal document URL",
@@ -15,13 +35,20 @@
     "No proof-of-reserves confirmed",
     "Missing audit/report URL"
   ],
-  "baselineDate": "2026-06-02",
-  "status": "analytics-grade baseline",
+  "baselineDate": "2026-06-10",
+  "status": "analytics-grade baseline under asset_backed profile",
+  "notes": [
+    "BUIDL is classified as a tokenized Treasury / fund-share-style RWA exposure and remains under the asset_backed grading profile.",
+    "Existing research scores were preserved during the classification migration; this update only adds grading profile context and applicability metadata.",
+    "The current baseline remains analytics-grade because primary public reserve breakdown, audit/report URL, legal opinion/private placement memorandum URL, and explicit proof-of-reserves evidence are still missing.",
+    "BUIDL and BUIDL-I should not be aggregated unless a source explicitly supports aggregation across share classes/contracts."
+  ],
   "nextActions": [
     "Find a public legal opinion, prospectus, private placement memorandum, or equivalent legal document URL if available.",
     "Find a primary reserve breakdown or official fund reporting source that can support reserve composition fields.",
     "Confirm whether any public proof-of-reserves or attestation source exists; keep hasProofOfReserves false until explicit evidence is found.",
     "Find a public audit/report URL or primary auditor confirmation source for the fund.",
-    "Refresh market, AUM, yield, holder count, and liquidity values before production publication."
+    "Refresh market, AUM, yield, holder count, and liquidity values before production publication.",
+    "Decide whether legacy grade.json should be archived after the classification-aware baseline becomes the source of truth."
   ]
 }
