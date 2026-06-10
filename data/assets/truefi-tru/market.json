@@ -1,25 +1,28 @@
 {
-  "tvl": null,
+  "tvl": 21699,
   "tvl7dChange": null,
   "tvl30dChange": null,
-  "price": null,
-  "priceChange24h": null,
-  "marketCap": null,
-  "volume24h": null,
-  "circulatingSupply": null,
-  "totalSupply": null,
+  "price": 0.00109,
+  "priceChange24h": 60.1,
+  "marketCap": 1370538,
+  "volume24h": 1498444,
+  "circulatingSupply": 1257020975,
+  "totalSupply": 1257020975,
   "holderCount": null,
   "holderChange7d": null,
   "aumUsd": null,
-  "lastUpdated": null,
-  "sources": [],
-  "confidence": null,
+  "lastUpdated": "2026-06-10",
+  "sources": [
+    "https://www.coingecko.com/en/coins/truefi",
+    "https://defillama.com/protocol/truefi"
+  ],
+  "confidence": "medium",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-10",
     "reviewFrequencyDays": 7,
-    "freshnessStatus": "stale-until-filled",
-    "status": "scaffold",
-    "notes": "Market fields intentionally left null. Refresh from CoinGecko, DeFiLlama, RWA.xyz, Etherscan holders, and exchange data before import/grading."
+    "freshnessStatus": "current-time-sensitive",
+    "status": "researched",
+    "notes": "Market fields use CoinGecko for TRU price, market cap, volume, supply, and CoinGecko/DeFiLlama for TVL. DeFiLlama reported protocol TVL around $21.7k, with active loans shown separately and not included in default TVL. Treat all numbers as highly time-sensitive and refresh before publication."
   }
 }
