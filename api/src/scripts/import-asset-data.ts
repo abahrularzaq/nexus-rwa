@@ -335,7 +335,7 @@ async function importAsset(slug: string) {
       blockers: grade.blockers,
       warnings: grade.warnings,
       reviewedBy: grade.grade === 'institutional' ? 'manual' : null,
-      reviewedAt: grade.grade === 'institutional' ? new Date(),
+      reviewedAt: grade.grade === 'institutional' ? new Date() : null,
     },
   });
 
