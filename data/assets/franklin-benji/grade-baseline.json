@@ -8,13 +8,33 @@
   "reserveScore": 90,
   "liquidityScore": 80,
   "riskScore": 88,
+  "gradingProfile": "asset_backed",
+  "assetClass": "tokenized_treasury",
+  "instrumentType": "fund_share_token",
+  "claimType": "fund_share_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Institutional — Asset-backed Profile",
+  "profileScores": {
+    "completenessScore": 100,
+    "sourceScore": 97,
+    "legalScore": 85,
+    "reserveScore": 90,
+    "liquidityScore": 80,
+    "riskScore": 88
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "available",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
   "blockers": [],
   "warnings": [
     "Missing legal opinion or legal document URL",
     "No proof-of-reserves confirmed"
   ],
-  "baselineDate": "2026-06-01",
-  "status": "institutional-grade baseline",
+  "baselineDate": "2026-06-10",
+  "status": "institutional-grade baseline under asset_backed profile",
   "nextActions": [
     "Confirm whether a public legal opinion URL exists or whether SEC registration and prospectus should be considered sufficient legal documentation for grading purposes",
     "Clarify that BENJI has audited fund reporting and SEC filings but no on-chain proof-of-reserves oracle",
