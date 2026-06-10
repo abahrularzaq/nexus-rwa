@@ -8,6 +8,30 @@
   "reserveScore": 45,
   "liquidityScore": 61,
   "riskScore": 57,
+  "gradingProfile": "credit_pool",
+  "assetClass": "tokenized_credit",
+  "instrumentType": "pool_token",
+  "claimType": "pool_or_tranche_exposure",
+  "publicSegment": "RWA Credit Pools",
+  "gradeContext": "Research — Credit Pool Profile",
+  "profileScores": {
+    "completenessScore": 89,
+    "sourceScore": 54,
+    "legalScore": 70,
+    "collateralScore": 45,
+    "borrowerScore": 55,
+    "liquidityScore": 61,
+    "riskScore": 57,
+    "reserveScore": 45
+  },
+  "applicability": {
+    "reserve": "available",
+    "collateral": "available",
+    "borrower": "missing",
+    "custody": "missing",
+    "redemption": "available",
+    "proofOfReserves": "not_applicable"
+  },
   "blockers": [
     "Missing custodian"
   ],
@@ -19,13 +43,19 @@
     "Missing audit/report URL",
     "Missing on-chain liquidity"
   ],
-  "baselineDate": "2026-06-07",
-  "status": "research-grade baseline",
+  "baselineDate": "2026-06-10",
+  "status": "research-grade baseline under credit_pool profile",
+  "notes": [
+    "Maple mUSDC is classified as a tokenized credit pool / pool token exposure, not as a Treasury fund share or direct reserve-backed asset.",
+    "This baseline preserves the prior score and blockers until the credit_pool engine is rerun with refreshed Maple source discovery.",
+    "Proof-of-reserves is marked not_applicable for this credit pool profile, but collateral, borrower/originator, pool composition, and liquidity evidence remain required."
+  ],
   "nextActions": [
     "Confirm whether a public custodian is disclosed for Maple USDC Pool / mUSDC; if none is public, keep custodian null.",
     "Find current legal/offering documents and identify primary regulator if applicable.",
-    "Add reserve breakdown, audit/report URL, or proof-of-reserves only if a reliable public source explicitly confirms it.",
+    "Add borrower/originator roster, pool composition, collateral breakdown, audit/report URL, or proof-of-collateral only if a reliable public source explicitly confirms it.",
     "Add on-chain liquidity data only if reliable DEX, pool liquidity, or on-chain source evidence becomes available.",
-    "Improve source coverage with direct official URLs for every non-null market, yield, liquidity, reserve, and legal field."
+    "Improve source coverage with direct official URLs for every non-null market, yield, liquidity, reserve, and legal field.",
+    "Rerun grading with the credit_pool profile after fresh Maple source discovery is complete."
   ]
 }
