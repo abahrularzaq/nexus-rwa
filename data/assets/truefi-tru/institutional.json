@@ -12,10 +12,23 @@
   "targetInvestors": "DeFi users, protocol participants, TRU holders, and credit-market participants; specific borrower/lender eligibility requires pool-level verification.",
   "prospectusUrl": null,
   "metadata": {
+    "classification": {
+      "assetClass": "rwa_infrastructure",
+      "instrumentType": "protocol_token",
+      "claimType": "protocol_utility",
+      "gradingProfile": "governance_protocol",
+      "publicSegment": "RWA Protocols",
+      "reserveApplicability": "not_applicable",
+      "custodyApplicability": "not_applicable",
+      "redemptionApplicability": "not_applicable",
+      "proofOfReservesApplicability": "not_applicable",
+      "classificationNote": "TRU is treated as a legacy protocol/governance and utility token for the TrueFi / Brila ecosystem. It is not a direct tokenized credit pool, fund share, note, tranche, or reserve-backed instrument. Any live Brila/TrueFi credit vaults should be researched as separate RWA asset records."
+    },
     "assetClass": "rwa_infrastructure",
     "instrumentType": "protocol_token",
+    "claimType": "protocol_utility",
     "gradingProfile": "governance_protocol",
-    "classificationNote": "TRU is treated as a protocol/governance token for the TrueFi / Brila ecosystem, not as a direct tokenized credit pool, fund share, or reserve-backed instrument.",
+    "publicSegment": "RWA Protocols",
     "protocolStatus": "legacy-transition-review",
     "migrationStatus": "TrueFi to Brila transition; TRU to BRLA migration referenced in official forum and Brila materials.",
     "legacyEntityNotes": "TFIP-41 references wind-down of the TrueFi Foundation in the British Virgin Islands and formation of Panama-based Brila entities, but exact public registration documents were not verified in this layer update.",
@@ -23,18 +36,17 @@
     "institutionalGradeBlockers": [
       "No verified prospectus or fund document for TRU.",
       "No verified transfer agent or fund administrator for TRU.",
-      "No verified custodian or reserve report for TRU.",
       "Migration to Brila creates issuer/governance continuity risk."
     ]
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-10",
+    "lastManualReview": "2026-06-11",
     "reviewFrequencyDays": 30,
     "sourceTier": "official-docs-and-governance-forum",
     "confidence": "medium",
     "freshnessStatus": "current-with-migration-risk",
-    "status": "researched-conservative",
-    "notes": "Use official Brila docs and TrueFi forum proposals as primary sources. Do not classify as institutional-grade until legal entity, governance, audit, and live credit exposure are verified."
+    "status": "classification-migrated",
+    "notes": "Migrated to the Nexus RWA classification-first standard. TRU is treated as a governance/protocol asset, so reserve, custody, redemption, and proof-of-reserves are not applicable rather than missing evidence."
   }
 }
