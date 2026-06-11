@@ -1,6 +1,6 @@
 {
-  "backingType": "Private Credit",
-  "backingDescription": "GFI is a protocol/governance token and is not a direct redeemable claim on a specific credit portfolio, fund share, reserve account, or collateral pool. Goldfinch Prime is described separately in official docs as providing private-credit exposure through Heron-issued contingent payment notes backed by equity interests in third-party private-credit funds. That product-level structure should not be treated as native GFI backing.",
+  "backingType": null,
+  "backingDescription": "GFI is a protocol/governance token and is not a direct redeemable claim on a specific credit portfolio, fund share, reserve account, note, tranche, or collateral pool. Goldfinch Prime and other private-credit products may have separate product-level exposure, but that structure should not be treated as native GFI backing.",
   "collateralizationRatio": null,
   "custodian": null,
   "custodianUrl": null,
@@ -13,13 +13,13 @@
   "reserveBreakdown": null,
   "redemptionAsset": null,
   "_meta": {
-    "lastManualReview": "2026-06-09",
+    "lastManualReview": "2026-06-11",
     "sourceUrls": [
       "https://docs.goldfinch.finance/goldfinch",
       "https://docs.goldfinch.finance/goldfinch/faq",
       "https://etherscan.io/token/0xdab396cCF3d84Cf2D07C4454e10C8A6F5b008D2b"
     ],
-    "classificationNote": "Reserve layer is intentionally conservative. Goldfinch Prime private-credit exposure is product-level context, while GFI itself has no verified reserve, custodian, PoR oracle, or redemption asset.",
+    "classificationNote": "Reserve layer fields are intentionally null because GFI is a governance/protocol asset. Goldfinch Prime private-credit exposure is product-level context, while GFI itself has no verified reserve, custodian, PoR oracle, or redemption asset.",
     "needsFurtherReview": [
       "Verify whether any official document treats GFI as having economic rights to protocol revenue, pools, reserves, or collateral.",
       "If Goldfinch Prime is modeled as a separate Nexus asset, research Heron entities, note structure, underlying BDC/private-credit fund exposure, service providers, and redemption mechanics separately."
