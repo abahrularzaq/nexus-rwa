@@ -8,6 +8,26 @@
   "reserveScore": 60,
   "liquidityScore": 48,
   "riskScore": 68,
+  "gradingProfile": "commodity_backed",
+  "assetClass": "tokenized_commodity",
+  "instrumentType": "commodity_backed_token",
+  "claimType": "commodity_redemption_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Analytics — Commodity-backed Profile",
+  "profileScores": {
+    "completenessScore": 81,
+    "sourceScore": 69,
+    "legalScore": 65,
+    "reserveScore": 60,
+    "liquidityScore": 48,
+    "riskScore": 68
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "missing",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
   "blockers": [
     "Missing legal structure",
     "Missing custodian"
@@ -15,12 +35,12 @@
   "warnings": [
     "Missing legal opinion or legal document URL",
     "No proof-of-reserves confirmed",
-    "Missing audit/report URL",
+    "Missing latest official audit/report URL",
     "Missing redemption period",
-    "Missing on-chain liquidity"
+    "Missing on-chain liquidity depth metrics"
   ],
-  "baselineDate": "2026-06-05",
-  "status": "analytics-grade baseline",
+  "baselineDate": "2026-06-11",
+  "status": "analytics-grade baseline under commodity_backed profile",
   "nextActions": [
     "Manually verify official Tether Gold legal documents and update legalStructure, issuer details, restricted jurisdictions, AML policy, and legalOpinionUrl if available",
     "Open the latest official Tether Gold reserve report and update lastAuditDate, lastAuditUrl, auditor, reserveBreakdown, and custodian fields",
@@ -29,16 +49,15 @@
     "Verify direct redemption mechanics from official FAQ, legal, and fee pages, including redemption period, minimum redemption amount, physical delivery threshold, and fees",
     "Refresh market data from RWA.xyz, CoinGecko, CoinMarketCap, and Etherscan before production publication",
     "Analyze holder concentration and top-wallet distribution to improve concentrationRisk scoring",
-    "Review smart-contract proxy and implementation contracts for upgradeability, admin-key, whitelist, and transfer-restriction risks",
-    "Run npm run build after import succeeds and confirm the asset appears correctly on the frontend"
+    "Review smart-contract proxy and implementation contracts for upgradeability, admin-key, whitelist, and transfer-restriction risks"
   ],
-  "notes": "Tether Gold / XAUT is graded as analytics-grade baseline because it has strong market adoption and a simple commodity-backed model, but institutional-grade publication is blocked by missing legal structure and custodian evidence. Reserve, legal, and liquidity fields require manual verification from official Tether Gold JavaScript-rendered pages and latest reserve reports.",
-  "generatedFrom": "npm run import:asset -- tether-gold-xaut",
+  "notes": "Migrated to classification-first grading. XAUt is treated as a commodity-backed gold token. Analytics grade is retained because market adoption and commodity model are clear, but institutional-grade publication remains blocked by missing legal structure and custodian evidence.",
+  "generatedFrom": "classification-first migration",
   "sourceStatus": "mixed official, explorer, and secondary aggregator sources; several official pages require manual browser verification",
   "dataQuality": {
     "identity": "complete baseline",
     "blockchain": "multi-chain baseline with verified explorer links for Ethereum, BNB Chain, and Arbitrum One",
-    "reserve": "partial; physical gold backing identified, but custodian, latest report URL, report date, and detailed reserve breakdown missing",
+    "reserve": "partial; physical gold backing identified, but custodian, latest report URL, report date, and detailed reserve breakdown need verification",
     "institutional": "partial; secondary-source baseline only for several legal-entity fields",
     "compliance": "partial; KYC indicated, but jurisdiction and sanctions details missing",
     "market": "current aggregator baseline as of 2026-06-05; refresh required before publication",
