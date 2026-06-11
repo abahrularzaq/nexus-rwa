@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { HexLogo } from "@/components/landing/primitives";
 import { FIELD_DEFINITIONS, type FieldCategory, type FieldDefinition } from "@/lib/field-definitions";
-import { GLOSSARY_TERMS } from "../../../../../shared/src/glossary";
+import { GLOSSARY_TERMS } from "../../../../shared/src/glossary";
 
 import { GlossaryExplorer } from "./glossary-explorer";
 
