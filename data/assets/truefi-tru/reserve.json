@@ -1,6 +1,6 @@
 {
-  "backingType": "Private Credit",
-  "backingDescription": "TRU is not verified as a directly reserve-backed token or a tokenized fund share. It is best classified as a legacy protocol/governance token associated with TrueFi's historical uncollateralized lending and private-credit markets. Underlying credit exposure, if any, should be researched at the pool/vault level rather than assumed for TRU itself.",
+  "backingType": null,
+  "backingDescription": "TRU is not verified as a directly reserve-backed token, tokenized fund share, pool token, note, tranche, or redeemable RWA claim. It is classified as a legacy protocol/governance and utility token associated with the TrueFi / Brila ecosystem. Any underlying credit exposure should be researched at the pool or vault level rather than assumed for TRU itself.",
   "collateralizationRatio": null,
   "custodian": null,
   "custodianUrl": null,
@@ -14,12 +14,12 @@
   "redemptionAsset": null,
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-10",
+    "lastManualReview": "2026-06-11",
     "reviewFrequencyDays": 30,
     "sourceTier": "official-docs-and-aggregator-context",
     "confidence": "medium",
     "freshnessStatus": "current-with-gaps",
-    "status": "researched-conservative",
-    "notes": "No public reserve report, proof-of-reserves oracle, custodian report, or collateralization ratio was verified for TRU. Do not treat protocol TVL or active loans as TRU reserves."
+    "status": "classification-migrated",
+    "notes": "Reserve fields are intentionally null because TRU is a governance/protocol asset. Do not treat protocol TVL, active loans, or Brila/TrueFi vault activity as TRU reserves."
   }
 }
