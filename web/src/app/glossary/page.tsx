@@ -1,6 +1,10 @@
 import Link from "next/link";
-import { FIELD_DEFINITIONS, type FieldCategory, type FieldDefinition } from "@/lib/field-definitions";
+
 import { HexLogo } from "@/components/landing/primitives";
+import { FIELD_DEFINITIONS, type FieldCategory, type FieldDefinition } from "@/lib/field-definitions";
+
+import { GlossaryExplorer } from "./glossary-explorer";
+import { GLOSSARY_TERMS } from "../../../../shared/src/glossary";
 
 const categoryOrder: FieldCategory[] = [
   "Identity",
@@ -56,6 +60,7 @@ function getGroupedDefinitions() {
 export default function GlossaryPage() {
   const grouped = getGroupedDefinitions();
   const totalFields = Object.keys(FIELD_DEFINITIONS).length;
+  const totalTerms = GLOSSARY_TERMS.length;
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12" style={{ background: "var(--bg-primary)" }}>
@@ -77,64 +82,95 @@ export default function GlossaryPage() {
                 color: "var(--accent-cyan)",
               }}
             >
-              Methodology Glossary
+              RWA Intelligence Dictionary
             </div>
             <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-gradient md:text-6xl">
-              Data dictionary for every Nexus RWA field
+              Glossary for RWA terms and Nexus data fields
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              Understand what each data field means, why it matters, and how it supports asset classification, grading, and evidence review.
+            <p className="mt-4 max-w-3xl text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              Understand RWA concepts, market metrics, reserve evidence, legal structure, yield terms, and the data fields used by Nexus RWA to classify and grade assets.
             </p>
           </div>
-          <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
-            <div className="text-4xl font-extrabold text-white">{totalFields}</div>
-            <div className="mt-1 text-xs label-eyebrow" style={{ color: "var(--text-secondary)" }}>
-              tracked fields
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
+            <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+              <div className="text-4xl font-extrabold text-white">{totalTerms}</div>
+              <div className="mt-1 text-xs label-eyebrow" style={{ color: "var(--text-secondary)" }}>
+                RWA terms
+              </div>
+            </div>
+            <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+              <div className="text-4xl font-extrabold text-white">{totalFields}</div>
+              <div className="mt-1 text-xs label-eyebrow" style={{ color: "var(--text-secondary)" }}>
+                tracked fields
+              </div>
             </div>
           </div>
         </header>
 
-        <div className="mt-10 space-y-8">
-          {categoryOrder.map((category) => {
-            const fields = grouped[category];
-            if (!fields.length) return null;
+        <GlossaryExplorer />
 
-            return (
-              <section key={category} className="rounded-2xl p-5 md:p-6" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
-                <div className="mb-5">
-                  <h2 className="text-2xl font-bold text-white">{category}</h2>
-                  <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    {categoryDescriptions[category]}
-                  </p>
-                </div>
+        <section className="mt-12 border-t pt-10" style={{ borderColor: "var(--border-line)" }}>
+          <div className="mb-6">
+            <div
+              className="inline-block rounded-full px-3 py-1 text-[11px] label-eyebrow"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid var(--border-line)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              Nexus Field Dictionary
+            </div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+              Data fields used across the Nexus RWA asset layers
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              These definitions explain the structured fields used in identity, blockchain, market, yield, reserve, institutional, compliance, liquidity, risk, grading, and source layers.
+            </p>
+          </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  {fields.map(({ key, definition }) => (
-                    <div key={key} className="rounded-xl p-4" style={{ background: "rgba(10,14,26,0.58)", border: "1px solid var(--border-line)" }}>
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h3 className="text-base font-bold text-white">{definition.label}</h3>
-                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide" style={{ background: "rgba(0,212,255,0.1)", color: "var(--accent-cyan)", border: "1px solid rgba(0,212,255,0.25)" }}>
-                          {definition.valueType}
-                        </span>
-                      </div>
-                      <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                        {definition.shortDescription}
-                      </p>
-                      <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        <span className="font-semibold text-white">Why it matters:</span> {definition.whyItMatters}
-                      </p>
-                      {definition.example ? (
-                        <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                          <span className="font-semibold text-white">Example:</span> {definition.example}
+          <div className="space-y-8">
+            {categoryOrder.map((category) => {
+              const fields = grouped[category];
+              if (!fields.length) return null;
+
+              return (
+                <section key={category} className="rounded-2xl p-5 md:p-6" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+                  <div className="mb-5">
+                    <h3 className="text-2xl font-bold text-white">{category}</h3>
+                    <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+                      {categoryDescriptions[category]}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {fields.map(({ key, definition }) => (
+                      <div key={key} className="rounded-xl p-4" style={{ background: "rgba(10,14,26,0.58)", border: "1px solid var(--border-line)" }}>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <h4 className="text-base font-bold text-white">{definition.label}</h4>
+                          <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide" style={{ background: "rgba(0,212,255,0.1)", color: "var(--accent-cyan)", border: "1px solid rgba(0,212,255,0.25)" }}>
+                            {definition.valueType}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                          {definition.shortDescription}
                         </p>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </div>
+                        <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                          <span className="font-semibold text-white">Why it matters:</span> {definition.whyItMatters}
+                        </p>
+                        {definition.example ? (
+                          <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <span className="font-semibold text-white">Example:</span> {definition.example}
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </section>
       </div>
     </main>
   );
