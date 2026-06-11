@@ -5,31 +5,46 @@
   "completenessScore": 70,
   "sourceScore": 85,
   "legalScore": 60,
-  "reserveScore": 35,
+  "reserveScore": null,
   "liquidityScore": 37,
   "riskScore": 76,
-  "blockers": [
-    "Missing custodian",
-    "Missing redemption asset"
-  ],
+  "gradingProfile": "governance_protocol",
+  "assetClass": "rwa_infrastructure",
+  "instrumentType": "protocol_token",
+  "claimType": "protocol_utility",
+  "publicSegment": "RWA Protocols",
+  "gradeContext": "Research — Governance Protocol Profile",
+  "profileScores": {
+    "completenessScore": 70,
+    "sourceScore": 85,
+    "legalScore": 60,
+    "reserveScore": null,
+    "liquidityScore": 37,
+    "riskScore": 76
+  },
+  "applicability": {
+    "reserve": "not_applicable",
+    "custody": "not_applicable",
+    "redemption": "not_applicable",
+    "proofOfReserves": "not_applicable"
+  },
+  "blockers": [],
   "warnings": [
-    "Missing primary regulator",
-    "KYC requirement is not confirmed",
-    "Missing legal opinion or legal document URL",
-    "Missing reserve breakdown",
-    "No proof-of-reserves confirmed",
-    "Missing audit/report URL",
-    "Missing redemption period",
-    "Missing on-chain liquidity"
+    "Legacy TrueFi to Brila migration status requires ongoing verification",
+    "Primary regulator is not confirmed",
+    "KYC requirement is not confirmed for protocol-token secondary-market access",
+    "No legal opinion or protocol-token legal document URL verified",
+    "No direct smart-contract audit report URL verified in this baseline",
+    "Missing on-chain liquidity depth metrics"
   ],
-  "baselineDate": "2026-06-10",
-  "status": "research-grade legacy-transition baseline",
+  "baselineDate": "2026-06-11",
+  "status": "research-grade baseline under governance_protocol profile",
   "nextActions": [
     "Confirm final TrueFi-to-Brila migration status and whether TRU remains active, deprecated, or only residual secondary-market token",
     "Verify whether any Brila/TrueFi credit vaults should be modeled as separate RWA asset records instead of mapping credit exposure to TRU",
     "Search for direct audit report URLs and distinguish smart contract audits from reserve/collateral audits",
-    "Verify whether any legal entity, regulator filing, prospectus, legal opinion, or public risk disclosure exists for TRU or successor Brila structures",
-    "Refresh CoinGecko, DeFiLlama, Etherscan holder count, DEX liquidity, and exchange markets before public production display",
-    "Keep TRU classified as research-grade unless custodian, redemption asset, reserve evidence, legal structure, and current liquidity improve materially"
-  ]
+    "Verify whether any legal entity, regulator filing, protocol-token legal document, or public risk disclosure exists for TRU or successor Brila structures",
+    "Refresh CoinGecko, DeFiLlama, Etherscan holder count, DEX liquidity, and exchange markets before public production display"
+  ],
+  "notes": "Migrated to classification-first grading. TRU is a governance/protocol token, so reserve, custody, redemption, and proof-of-reserves are not applicable rather than blockers. Any live RWA credit exposure should be modeled through separate pool or vault asset records."
 }
