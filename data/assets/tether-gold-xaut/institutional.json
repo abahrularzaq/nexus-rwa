@@ -12,6 +12,23 @@
   "targetInvestors": "Non-U.S. Investor",
   "prospectuUrl": null,
   "metadata": {
+    "classification": {
+      "assetClass": "tokenized_commodity",
+      "instrumentType": "commodity_backed_token",
+      "claimType": "commodity_redemption_claim",
+      "gradingProfile": "commodity_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "missing",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "XAUt is treated as a tokenized commodity-backed gold token. It should be graded with the commodity_backed profile because custody, vaulting, reserve attestation, legal terms, and redemption evidence are central. Custody evidence remains a data gap until verified from official Tether Gold documents or reserve reports."
+    },
+    "assetClass": "tokenized_commodity",
+    "instrumentType": "commodity_backed_token",
+    "claimType": "commodity_redemption_claim",
+    "gradingProfile": "commodity_backed",
+    "publicSegment": "RWA Assets",
     "assetType": "tokenized_physical_gold",
     "expectedYieldBearing": false,
     "tokenizationType": "Distributed",
@@ -21,16 +38,22 @@
     "physicalDeliveryMinimumXaut": 430,
     "directPurchaseMinimumDescription": "RWA.xyz states direct purchase from Tether Gold verified users requires a minimum of 50 fine troy oz of gold, i.e. 50 XAUt tokens, and lists Min. Investment as 200,000 USD.",
     "regulatoryFrameworkCandidate": "El Salvador Digital Asset Law (LEAD); CNAD - El Salvador National Commission of Digital Assets",
-    "verificationStatus": "secondary-source-baseline"
+    "verificationStatus": "secondary-source-baseline",
+    "dataGaps": [
+      "Official legal structure requires manual verification from Tether Gold legal and terms pages.",
+      "Official custodian or vault operator has not been verified in this dataset.",
+      "Latest reserve report date, URL, and full reserve breakdown require manual verification.",
+      "No explicit on-chain proof-of-reserves oracle address has been verified."
+    ]
   },
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-11",
     "reviewFrequencyDays": 30,
-    "sourceTier": null,
-    "confidence": null,
-    "freshnessStatus": "current",
-    "status": "current",
-    "notes": null
+    "sourceTier": "mixed official, explorer, and secondary aggregator sources",
+    "confidence": "medium-low",
+    "freshnessStatus": "needs-official-manual-verification",
+    "status": "classification-migrated-with-custody-gap",
+    "notes": "Migrated to the Nexus RWA classification-first standard. XAUt is commodity-backed, but legal structure and custodian evidence remain blockers until official documents are manually verified."
   }
 }
