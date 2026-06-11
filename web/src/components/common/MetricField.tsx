@@ -14,6 +14,7 @@ type MetricFieldProps = {
   emptyValue?: string;
   valueSuffix?: string;
   valuePrefix?: string;
+  glossarySlug?: string;
   orientation?: "vertical" | "horizontal";
   variant?: "default" | "card" | "compact";
   className?: string;
@@ -27,6 +28,7 @@ export function MetricField({
   emptyValue = "Not available",
   valueSuffix = "",
   valuePrefix = "",
+  glossarySlug,
   orientation = "vertical",
   variant = "default",
   className = "",
@@ -51,7 +53,7 @@ export function MetricField({
     >
       <div className="min-w-0">
         <div className="text-[11px] label-eyebrow" style={{ color: "var(--text-secondary)" }}>
-          <FieldInfo fieldKey={fieldKey} label={label} />
+          <FieldInfo fieldKey={fieldKey} label={label} glossarySlug={glossarySlug} />
         </div>
         {helperText ? (
           <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
