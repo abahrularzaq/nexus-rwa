@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { HexLogo } from "@/components/landing/primitives";
 import { FIELD_DEFINITIONS, type FieldCategory, type FieldDefinition } from "@/lib/field-definitions";
+import { GLOSSARY_TERMS } from "@nexus-rwa/shared";
 
 import { GlossaryExplorer } from "./glossary-explorer";
-import { GLOSSARY_TERMS } from "../../../../shared/src/glossary";
 
 const categoryOrder: FieldCategory[] = [
   "Identity",
