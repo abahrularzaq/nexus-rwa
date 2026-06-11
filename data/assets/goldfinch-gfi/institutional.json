@@ -3,15 +3,32 @@
   "issuerType": "Protocol / RWA private-credit platform",
   "issuerCountry": null,
   "fundManager": null,
-  "legalStructure": "GFI is treated in this dataset as the Goldfinch protocol token, while Goldfinch Prime is a separate private-credit product experience described in official documentation. The exact legal issuer structure for GFI requires further verification from official token/legal documents. Goldfinch Prime documentation references Heron-issued contingent payment notes backed by equity interests in third-party private-credit funds, but that product-level structure should not be assigned directly to GFI.",
+  "legalStructure": "GFI is treated in this dataset as the Goldfinch protocol/governance token, while Goldfinch Prime and legacy Goldfinch credit pools should be researched as separate product or pool contexts if Nexus RWA later tracks them as investable private-credit assets.",
   "minimumInvestment": null,
   "managementFee": null,
   "performanceFee": null,
   "fundAdmin": null,
   "transferAgent": null,
-  "targetInvestors": "GFI: protocol participants, governance participants, and secondary-market token holders. Goldfinch Prime: eligible non-U.S. individual purchasers and other product-specific participants, subject to official terms and jurisdiction restrictions.",
+  "targetInvestors": "GFI: protocol participants, governance participants, and secondary-market token holders. Goldfinch Prime or other private-credit products may have separate eligibility, terms, and jurisdiction restrictions.",
   "prospectusUrl": null,
   "metadata": {
+    "classification": {
+      "assetClass": "rwa_infrastructure",
+      "instrumentType": "governance_token",
+      "claimType": "governance_right",
+      "gradingProfile": "governance_protocol",
+      "publicSegment": "RWA Protocols",
+      "reserveApplicability": "not_applicable",
+      "custodyApplicability": "not_applicable",
+      "redemptionApplicability": "not_applicable",
+      "proofOfReservesApplicability": "not_applicable",
+      "classificationNote": "GFI is the Goldfinch protocol/governance token. It is not a direct redeemable claim on a specific credit portfolio, fund share, note, tranche, or reserve-backed asset. Goldfinch Prime and other credit products should be modeled separately if tracked as investable RWA exposure."
+    },
+    "assetClass": "rwa_infrastructure",
+    "instrumentType": "governance_token",
+    "claimType": "governance_right",
+    "gradingProfile": "governance_protocol",
+    "publicSegment": "RWA Protocols",
     "productScopeNote": "This layer is scoped to GFI as a protocol token. Goldfinch Prime, Heron-issued notes, and legacy Goldfinch V1 pools should be researched as separate product contexts if Nexus RWA later tracks them as investable private-credit assets.",
     "officialWebsite": "https://www.goldfinch.finance/",
     "officialDocs": "https://docs.goldfinch.finance/goldfinch",
@@ -36,7 +53,18 @@
     "dataGaps": [
       "Direct issuer/legal entity for GFI token not confirmed from a public legal document.",
       "No GFI prospectus, offering memorandum, or legal opinion URL found in this review.",
-      "Heron/Warbler regulatory status should be verified through SEC IAPD/EDGAR before any institutional-grade classification."
+      "Heron/Warbler regulatory status should be verified through SEC IAPD/EDGAR before any institutional-grade classification.",
+      "Any live private-credit product exposure should be split into separate asset records rather than mapped directly to GFI."
     ]
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-11",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "official-docs-and-secondary-context",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-product-scope-risk",
+    "status": "classification-migrated",
+    "notes": "Migrated to the Nexus RWA classification-first standard. GFI is treated as a governance/protocol asset, so reserve, custody, redemption, and proof-of-reserves are not applicable rather than missing evidence."
   }
 }
