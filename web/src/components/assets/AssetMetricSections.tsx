@@ -89,29 +89,29 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
         <MetricSection title="Identity" description="Core asset identity, classification, and official references.">
           <MetricGrid columns={2}>
             <MetricField fieldKey="symbol" value={asset.identity.symbol} variant="card" />
-            <MetricField fieldKey="category" value={asset.identity.category} variant="card" />
-            <MetricField fieldKey="subcategory" value={asset.identity.subcategory} variant="card" />
+            <MetricField fieldKey="category" value={asset.identity.category} glossarySlug="real-world-asset" variant="card" />
+            <MetricField fieldKey="subcategory" value={asset.identity.subcategory} glossarySlug="underlying-asset" variant="card" />
             <MetricField fieldKey="launchDate" value={asset.identity.launchDate} variant="card" />
-            <MetricField fieldKey="assetClass" label="Asset Class" value={formatEnumLabel(asset.gradeBaseline.assetClass)} variant="card" />
-            <MetricField fieldKey="claimType" label="Claim Type" value={claimType} variant="card" />
+            <MetricField fieldKey="assetClass" label="Asset Class" value={formatEnumLabel(asset.gradeBaseline.assetClass)} glossarySlug="real-world-asset" variant="card" />
+            <MetricField fieldKey="claimType" label="Claim Type" value={claimType} glossarySlug="underlying-asset" variant="card" />
           </MetricGrid>
         </MetricSection>
 
         <MetricSection title="Compliance" description="Investor eligibility, regulatory status, and screening signals.">
           <MetricGrid columns={2}>
-            <MetricField fieldKey="kycRequired" value={asset.compliance.kycRequired} variant="card" />
-            <MetricField fieldKey="accreditedOnly" value={asset.compliance.accreditedOnly} variant="card" />
-            <MetricField fieldKey="regulatoryStatus" value={asset.compliance.regulatoryStatus} variant="card" />
-            <MetricField fieldKey="sanctionsScreening" value={asset.compliance.sanctionsScreening} variant="card" />
+            <MetricField fieldKey="kycRequired" value={asset.compliance.kycRequired} glossarySlug="kyc" variant="card" />
+            <MetricField fieldKey="accreditedOnly" value={asset.compliance.accreditedOnly} glossarySlug="kyc" variant="card" />
+            <MetricField fieldKey="regulatoryStatus" value={asset.compliance.regulatoryStatus} glossarySlug="prospectus" variant="card" />
+            <MetricField fieldKey="sanctionsScreening" value={asset.compliance.sanctionsScreening} glossarySlug="aml" variant="card" />
           </MetricGrid>
         </MetricSection>
 
         <MetricSection title="Liquidity" description="Redemption access, lock-up constraints, and exit quality.">
           <MetricGrid columns={2}>
-            <MetricField fieldKey="redemptionType" value={asset.liquidity.redemptionType} variant="card" />
-            <MetricField fieldKey="redemptionPeriodDays" value={asset.liquidity.redemptionPeriodDays} valueSuffix=" day" variant="card" />
-            <MetricField fieldKey="lockupPeriodDays" value={asset.liquidity.lockupPeriodDays} valueSuffix=" days" variant="card" />
-            <MetricField fieldKey="liquidityScore" value={asset.gradeBaseline.liquidityScore ?? asset.liquidity.liquidityScore} valueSuffix=" / 100" variant="card" />
+            <MetricField fieldKey="redemptionType" value={asset.liquidity.redemptionType} glossarySlug="redemption" variant="card" />
+            <MetricField fieldKey="redemptionPeriodDays" value={asset.liquidity.redemptionPeriodDays} valueSuffix=" day" glossarySlug="redemption-period" variant="card" />
+            <MetricField fieldKey="lockupPeriodDays" value={asset.liquidity.lockupPeriodDays} valueSuffix=" days" glossarySlug="liquidity" variant="card" />
+            <MetricField fieldKey="liquidityScore" value={asset.gradeBaseline.liquidityScore ?? asset.liquidity.liquidityScore} valueSuffix=" / 100" glossarySlug="liquidity" variant="card" />
           </MetricGrid>
         </MetricSection>
 
@@ -123,37 +123,38 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
           }
         >
           <MetricGrid columns={2}>
-            <MetricField fieldKey="backingType" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.backingType} variant="card" />
-            <MetricField fieldKey="custodian" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.custodian} variant="card" />
-            <MetricField fieldKey="hasProofOfReserves" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.hasProofOfReserves} variant="card" />
+            <MetricField fieldKey="backingType" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.backingType} glossarySlug="asset-backed-token" variant="card" />
+            <MetricField fieldKey="custodian" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.custodian} glossarySlug="custodian" variant="card" />
+            <MetricField fieldKey="hasProofOfReserves" value={isReserveNotApplicable ? "Not applicable" : asset.reserve.hasProofOfReserves} glossarySlug="proof-of-reserves" variant="card" />
             <MetricField
               fieldKey="reserveScore"
               value={isReserveNotApplicable ? "N/A" : asset.gradeBaseline.reserveScore}
               valueSuffix={isReserveNotApplicable ? undefined : " / 100"}
+              glossarySlug="reserve"
               variant="card"
             />
-            <MetricField fieldKey="reserveApplicability" label="Reserve Applicability" value={applicabilityLabel(reserveApplicability)} variant="card" />
-            <MetricField fieldKey="gradingProfile" label="Grading Profile" value={gradingProfile} variant="card" />
+            <MetricField fieldKey="reserveApplicability" label="Reserve Applicability" value={applicabilityLabel(reserveApplicability)} glossarySlug="reserve" variant="card" />
+            <MetricField fieldKey="gradingProfile" label="Grading Profile" value={gradingProfile} glossarySlug="institutional-grade" variant="card" />
           </MetricGrid>
         </MetricSection>
 
         <MetricSection title="Grading" description="Evidence quality, completeness, and final data quality signals.">
           <MetricGrid columns={2}>
-            <MetricField fieldKey="sourceScore" value={asset.gradeBaseline.sourceScore} valueSuffix=" / 100" variant="card" />
-            <MetricField fieldKey="completenessScore" value={asset.gradeBaseline.completenessScore} valueSuffix=" / 100" variant="card" />
-            <MetricField fieldKey="riskScore" value={asset.gradeBaseline.riskScore} valueSuffix=" / 100" variant="card" />
-            <MetricField fieldKey="dataQualityGrade" value={gradeContext ?? grade} variant="card" />
-            <MetricField fieldKey="gradingProfile" label="Profile" value={gradingProfile} variant="card" />
-            <MetricField fieldKey="publicSegment" label="Public Segment" value={publicSegment} variant="card" />
+            <MetricField fieldKey="sourceScore" value={asset.gradeBaseline.sourceScore} valueSuffix=" / 100" glossarySlug="risk-score" variant="card" />
+            <MetricField fieldKey="completenessScore" value={asset.gradeBaseline.completenessScore} valueSuffix=" / 100" glossarySlug="risk-score" variant="card" />
+            <MetricField fieldKey="riskScore" value={asset.gradeBaseline.riskScore} valueSuffix=" / 100" glossarySlug="risk-score" variant="card" />
+            <MetricField fieldKey="dataQualityGrade" value={gradeContext ?? grade} glossarySlug="institutional-grade" variant="card" />
+            <MetricField fieldKey="gradingProfile" label="Profile" value={gradingProfile} glossarySlug="institutional-grade" variant="card" />
+            <MetricField fieldKey="publicSegment" label="Public Segment" value={publicSegment} glossarySlug="real-world-asset" variant="card" />
           </MetricGrid>
         </MetricSection>
 
         <MetricSection title="Review Signals" description="Blockers, warnings, baseline status, and review date.">
           <MetricGrid columns={2}>
-            <MetricField fieldKey="blockers" value={blockers} variant="card" emptyValue="No blockers" />
-            <MetricField fieldKey="warnings" value={warnings} variant="card" emptyValue="No warnings" />
+            <MetricField fieldKey="blockers" value={blockers} glossarySlug="blocker" variant="card" emptyValue="No blockers" />
+            <MetricField fieldKey="warnings" value={warnings} glossarySlug="warning" variant="card" emptyValue="No warnings" />
             <MetricField fieldKey="lastUpdated" label="Baseline Date" value={asset.gradeBaseline.baselineDate} variant="card" />
-            <MetricField fieldKey="dataQualityGrade" label="Status" value={asset.gradeBaseline.status} variant="card" />
+            <MetricField fieldKey="dataQualityGrade" label="Status" value={asset.gradeBaseline.status} glossarySlug="analytic-grade" variant="card" />
           </MetricGrid>
         </MetricSection>
       </div>
