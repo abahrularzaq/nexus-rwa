@@ -9,7 +9,7 @@ import {
   GLOSSARY_TERMS,
   type GlossaryCategory,
   type GlossaryTerm,
-} from "@nexus-rwa/shared";
+} from "../../../../../shared/src/glossary";
 
 type GroupedGlossaryTerms = Record<GlossaryCategory, GlossaryTerm[]>;
 
