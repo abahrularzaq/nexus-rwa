@@ -8,18 +8,38 @@
   "reserveScore": 60,
   "liquidityScore": 72,
   "riskScore": 76,
+  "gradingProfile": "asset_backed",
+  "assetClass": "tokenized_treasury",
+  "instrumentType": "fund_share_token",
+  "claimType": "fund_share_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Analytics — Asset-backed Profile",
+  "profileScores": {
+    "completenessScore": 81,
+    "sourceScore": 81,
+    "legalScore": 85,
+    "reserveScore": 60,
+    "liquidityScore": 72,
+    "riskScore": 76
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "missing",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
   "blockers": [
     "Missing custodian"
   ],
   "warnings": [
-    "Missing legal opinion or legal document URL",
+    "Missing public prospectus, offering memorandum, or legal opinion URL",
     "No proof-of-reserves confirmed",
-    "Missing audit/report URL",
-    "Missing on-chain liquidity"
+    "Missing public audit/report URL",
+    "Missing verified on-chain liquidity depth metrics"
   ],
-  "baselineDate": "2026-06-07",
+  "baselineDate": "2026-06-11",
   "lastRefreshed": "2026-06-07",
-  "status": "analytics-grade baseline after market-yield-liquidity refresh",
+  "status": "analytics-grade baseline under asset_backed profile",
   "refreshedFields": {
     "market": [
       "tvl",
@@ -57,5 +77,5 @@
     "Check holder distribution or top-holder concentration from explorers or RWA.xyz API for concentration risk scoring",
     "Re-run import after any reserve/legal/custody evidence update to test whether grade can improve beyond analytics"
   ],
-  "notes": "Hashnote USYC market, yield, and liquidity layers were refreshed using RWA.xyz plus official Circle/Hashnote sources, but the computed grade remained analytics with score 76. The grade is constrained by missing custodian evidence, no public legal opinion/prospectus URL, no confirmed proof-of-reserves, no public audit/report URL, and missing verified on-chain liquidity. Market and yield completeness improved, but the grading engine still penalizes reserve/legal/liquidity evidence gaps."
+  "notes": "Migrated to classification-first grading. USYC is treated as an asset-backed tokenized fund/share-style Treasury and repo exposure. Market, yield, and liquidity layers were previously refreshed using RWA.xyz plus official Circle/Hashnote sources, but grade remains constrained by missing public custodian evidence, no public legal opinion/prospectus URL, no confirmed proof-of-reserves, no public audit/report URL, and missing verified on-chain liquidity."
 }
