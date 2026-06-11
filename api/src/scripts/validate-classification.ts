@@ -129,6 +129,17 @@ function hasValue(value: unknown): boolean {
   return true;
 }
 
+function hasBlocker(grade: Record<string, unknown> | null, terms: string[]): boolean {
+  const blockers = grade?.blockers;
+  if (!Array.isArray(blockers)) return false;
+
+  return blockers.some((blocker) => {
+    if (typeof blocker !== 'string') return false;
+    const normalized = blocker.toLowerCase();
+    return terms.every((term) => normalized.includes(term.toLowerCase()));
+  });
+}
+
 function issue(
   issues: ValidationIssue[],
   severity: Severity,
@@ -277,6 +288,7 @@ function validateEvidenceApplicability(
   reserve: Record<string, unknown> | null,
   liquidity: Record<string, unknown> | null,
   institutional: Record<string, unknown> | null,
+  grade: Record<string, unknown> | null,
 ): void {
   if (c.gradingProfile === 'governance_protocol') {
     if (hasValue(reserve?.backingType)) {
@@ -295,16 +307,16 @@ function validateEvidenceApplicability(
   }
 
   if (c.gradingProfile === 'asset_backed') {
-    if (!hasValue(reserve?.backingType)) issue(issues, 'error', slug, 'reserve.backingType', 'asset_backed assets require backingType evidence or a blocker');
-    if (!hasValue(reserve?.backingDescription)) issue(issues, 'error', slug, 'reserve.backingDescription', 'asset_backed assets require backingDescription evidence or a blocker');
-    if (!hasValue(reserve?.custodian)) issue(issues, 'error', slug, 'reserve.custodian', 'asset_backed assets require custodian/custody evidence or a blocker');
-    if (!hasValue(reserve?.redemptionAsset)) issue(issues, 'error', slug, 'reserve.redemptionAsset', 'asset_backed assets require redemptionAsset evidence or a blocker');
+    if (!hasValue(reserve?.backingType) && !hasBlocker(grade, ['backing'])) issue(issues, 'error', slug, 'reserve.backingType', 'asset_backed assets require backingType evidence or a blocker');
+    if (!hasValue(reserve?.backingDescription) && !hasBlocker(grade, ['backing'])) issue(issues, 'error', slug, 'reserve.backingDescription', 'asset_backed assets require backingDescription evidence or a blocker');
+    if (!hasValue(reserve?.custodian) && !hasBlocker(grade, ['custodian'])) issue(issues, 'error', slug, 'reserve.custodian', 'asset_backed assets require custodian/custody evidence or a blocker');
+    if (!hasValue(reserve?.redemptionAsset) && !hasBlocker(grade, ['redemption'])) issue(issues, 'error', slug, 'reserve.redemptionAsset', 'asset_backed assets require redemptionAsset evidence or a blocker');
   }
 
   if (c.gradingProfile === 'commodity_backed') {
-    if (!hasValue(reserve?.backingType)) issue(issues, 'error', slug, 'reserve.backingType', 'commodity_backed assets require commodity backingType evidence');
-    if (!hasValue(reserve?.custodian)) issue(issues, 'error', slug, 'reserve.custodian', 'commodity_backed assets require custodian/vault evidence');
-    if (!hasValue(reserve?.redemptionAsset)) issue(issues, 'error', slug, 'reserve.redemptionAsset', 'commodity_backed assets require redemptionAsset evidence');
+    if (!hasValue(reserve?.backingType) && !hasBlocker(grade, ['backing'])) issue(issues, 'error', slug, 'reserve.backingType', 'commodity_backed assets require commodity backingType evidence or a blocker');
+    if (!hasValue(reserve?.custodian) && !hasBlocker(grade, ['custodian'])) issue(issues, 'error', slug, 'reserve.custodian', 'commodity_backed assets require custodian/vault evidence or a blocker');
+    if (!hasValue(reserve?.redemptionAsset) && !hasBlocker(grade, ['redemption'])) issue(issues, 'error', slug, 'reserve.redemptionAsset', 'commodity_backed assets require redemptionAsset evidence or a blocker');
   }
 
   if (c.gradingProfile === 'credit_pool') {
@@ -377,7 +389,7 @@ function validateAsset(slug: string, strict: boolean): ValidationIssue[] {
   }
 
   validateProfileConsistency(issues, slug, classification);
-  validateEvidenceApplicability(issues, slug, classification, reserve, liquidity, institutional);
+  validateEvidenceApplicability(issues, slug, classification, reserve, liquidity, institutional, grade);
   validateGradeBaseline(issues, slug, classification, grade);
 
   return issues;
