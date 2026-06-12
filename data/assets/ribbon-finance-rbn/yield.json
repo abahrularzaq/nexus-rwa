@@ -1,0 +1,25 @@
+{
+  "currentYield": null,
+  "yieldType": null,
+  "yieldFrequency": null,
+  "yieldBenchmark": null,
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "USD",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "official-docs-governance-explorer-market-crosscheck",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "RBN itself is not modeled as a yield-bearing RWA note, fund share, or credit pool token. Historical veRBN fee-sharing and gauge mechanics existed in Ribbonomics, but RGP-33 proposed Ribbonomics wind-down and AEVO migration."
+  }
+}
