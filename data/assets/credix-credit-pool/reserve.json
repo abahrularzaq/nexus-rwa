@@ -1,0 +1,25 @@
+{
+  "backingType": "Receivables",
+  "backingDescription": "Credix/CrediPay is tied to B2B credit operations where sellers offer payment terms to business buyers and receive upfront settlement; the economic exposure is best treated as receivables or private-credit loan exposure. Specific pool composition, borrower concentration, collateral package, and legal claim documents were not publicly verified.",
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "limited",
+    "status": "partial",
+    "notes": "Credit-pool reserve evidence is incomplete; do not treat this as a reserve-backed treasury or commodity asset."
+  }
+}
