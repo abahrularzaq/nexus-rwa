@@ -1,0 +1,152 @@
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Backed GOVIES 0-6 Months Euro Investment Grade",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Backed product page."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "bC3M",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Backed product page."
+  },
+  {
+    "layer": "identity",
+    "field": "isin",
+    "value": "CH1173294286",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Product details on official page."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://assets.backed.fi/products/bc3m",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official product page."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Backed Assets (JE) Limited",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Product details on official page."
+  },
+  {
+    "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Certificate tracker of an underlying",
+    "sourceUrl": "https://assets.backed.fi/legal-documentation",
+    "sourceType": "official_legal_documentation",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Legal documentation page states legal category and Swiss law."
+  },
+  {
+    "layer": "institutional",
+    "field": "underlying",
+    "value": "Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Underlying information on official product page."
+  },
+  {
+    "layer": "reserve",
+    "field": "custodian",
+    "value": "Alpaca Securities LLC; InCore Bank AG; Maerki Baumann & Co. AG",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Service provider list on official product page."
+  },
+  {
+    "layer": "reserve",
+    "field": "securityAgent",
+    "value": "Security Agent Services AG",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Service provider list on official product page."
+  },
+  {
+    "layer": "compliance",
+    "field": "regulatoryStatus",
+    "value": "Approved in Liechtenstein by FMA as of 2026-05-08",
+    "sourceUrl": "https://assets.backed.fi/legal-documentation",
+    "sourceType": "official_legal_documentation",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Legal documentation page."
+  },
+  {
+    "layer": "compliance",
+    "field": "blockedJurisdictions",
+    "value": "U.S. persons prohibited; UK clients not offered/promoted",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "Legal restrictions on official product page."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
+    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "CoinGecko provides full MetaMask import address and lists supported EVM chains; official page confirms EVM/ERC-20 support but does not expose text contract address in accessible crawl."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": "10041676",
+    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
+    "sourceType": "market_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "Time-sensitive market data captured on 2026-06-12."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": "0",
+    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
+    "sourceType": "market_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "CoinGecko warning indicates low/no recent trading activity."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionType",
+    "value": "Existing bToken holders can redeem through Backed; new issuance is no longer available for bTokens. Product page states redemption is fully supported for existing holders.",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "Official product page states bTokens are closed to new issuance but redemption remains supported."
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "overallScore": 55,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 60,
+  "counterpartyRisk": 62,
+  "liquidityRisk": 28,
+  "regulatoryRisk": 70,
+  "marketRisk": 55,
+  "concentrationRisk": 50,
+  "riskFactors": [
+    "Backed states bTokens are no longer available for new issuance, which limits primary-market growth and makes the product more redemption-only for existing holders.",
+    "CoinGecko showed $0 24h trading volume and warned that BC3M tokens had stopped trading on listed exchanges, indicating weak observable secondary liquidity.",
+    "No bC3M-specific public proof-of-reserves, reserve breakdown, or audit/report URL was confirmed from the accessible official product page.",
+    "The token is exposed to issuer/certificate structure risk, service-provider risk, and the underlying Amundi ETF tracking Eurozone short-term government bills.",
+    "The product is restricted for U.S. persons and not promoted/offered to UK clients; investor eligibility and jurisdiction restrictions reduce accessibility.",
+    "Contract verification status was not confirmed for all listed chain deployments in this pass."
+  ],
+  "mitigants": [
+    "The official product page identifies Backed Assets (JE) Limited as issuer and lists the product ISIN, underlying ETF, underlying ISIN, service providers, custodian entities, and security agent.",
+    "Backed's legal documentation page states its Base Prospectus was approved in Liechtenstein by the FMA as of May 8, 2026, with Swiss law as applicable law for products.",
+    "The underlying exposure is a short-duration Eurozone government bill ETF rather than a long-duration or unsecured private-credit asset.",
+    "Backed states redemption remains fully supported for existing bToken holders even though new issuance is closed.",
+    "The product has a clear official product page and public legal documentation hub."
+  ],
+  "lastAssessed": "2026-06-12",
+  "assessmentMethod": "ai-assisted",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
+}
