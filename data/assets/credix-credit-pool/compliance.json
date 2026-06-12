@@ -1,0 +1,25 @@
+{
+  "regulatoryStatus": null,
+  "primaryRegulator": null,
+  "regulatoryFramework": null,
+  "kycRequired": null,
+  "accreditedOnly": null,
+  "blockedJurisdictions": [],
+  "allowedJurisdictions": [
+    "BR"
+  ],
+  "sanctionsScreening": null,
+  "amlPolicy": null,
+  "lastComplianceCheck": "2026-06-12",
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "limited",
+    "status": "incomplete",
+    "notes": "Public CrediPay docs confirm Brazil-focused B2B seller/buyer flows, but do not provide enough public securities/compliance detail for this RWA dataset baseline."
+  }
+}
