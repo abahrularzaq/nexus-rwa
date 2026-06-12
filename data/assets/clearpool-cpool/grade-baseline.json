@@ -1,0 +1,50 @@
+{
+  "slug": "clearpool-cpool",
+  "grade": "analytic",
+  "score": 66,
+  "completenessScore": 88,
+  "sourceScore": 82,
+  "legalScore": 55,
+  "reserveScore": null,
+  "liquidityScore": 62,
+  "riskScore": 66,
+  "blockers": [],
+  "warnings": [
+    "CPOOL is a governance/protocol token and does not represent a direct RWA claim.",
+    "Reserve, custodian, redemption, and proof-of-reserves fields are intentionally not_applicable.",
+    "No public legal opinion or regulator-supervised fund/share structure was normalized.",
+    "Market, liquidity, TVL, and volume data are time-sensitive and should be refreshed before production publication."
+  ],
+  "baselineDate": "2026-06-12",
+  "status": "analytic governance-protocol baseline",
+  "gradeContext": {
+    "gradingProfile": "governance_protocol",
+    "publicSegment": "RWA Protocols",
+    "assetClass": "rwa_infrastructure",
+    "instrumentType": "protocol_token",
+    "claimType": "protocol_utility",
+    "reserveApplicability": "not_applicable",
+    "custodyApplicability": "not_applicable",
+    "redemptionApplicability": "not_applicable",
+    "proofOfReservesApplicability": "not_applicable",
+    "displayLabel": "Analytics — Governance Protocol Profile",
+    "contextNote": "This grade evaluates CPOOL as the Clearpool protocol utility/governance token. It does not grade CPOOL as a reserve-backed, redeemable, or fund-share RWA asset."
+  },
+  "nextActions": [
+    "Run npm run validate:classification -- --slug=clearpool-cpool from api folder.",
+    "Run npm run import:asset -- clearpool-cpool after validation.",
+    "Refresh CoinGecko and DeFiLlama market metrics before publication.",
+    "Manually verify each non-Ethereum bridge/token address against chain explorers and Clearpool docs.",
+    "Consider adding a separate asset entry for specific Clearpool credit pool tokens or USDX T-Pool exposure if Nexus wants direct RWA claim assets."
+  ],
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
+}
