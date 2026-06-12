@@ -1,0 +1,50 @@
+{
+  "issuerName": "Backed Assets (JE) Limited",
+  "issuerType": "issuer_spv",
+  "issuerCountry": "JE",
+  "fundManager": null,
+  "legalStructure": "Swiss-law tracker certificate tracking an underlying UCITS ETF",
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "professional/qualified investors; non-U.S. persons; existing bToken holders for redemption",
+  "prospectuUrl": "https://assets.backed.fi/legal-documentation",
+  "metadata": {
+    "classification": {
+      "assetClass": "tokenized_treasury",
+      "instrumentType": "yield_bearing_note",
+      "claimType": "direct_asset_claim",
+      "gradingProfile": "asset_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "available",
+      "redemptionApplicability": "available",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "bC3M is classified as tokenized_treasury because it tracks a Eurozone government bill ETF. It uses the asset_backed profile because issuer/legal structure, underlying exposure, custody, redemption, and market liquidity evidence are central to grading."
+    },
+    "assetClass": "tokenized_treasury",
+    "instrumentType": "yield_bearing_note",
+    "claimType": "direct_asset_claim",
+    "gradingProfile": "asset_backed",
+    "publicSegment": "RWA Assets",
+    "underlyingIssuer": "Amundi",
+    "underlyingName": "Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF",
+    "underlyingIsin": "FR0010754200",
+    "underlyingSymbol": "C3M",
+    "issuerProductIsin": "CH1173294286",
+    "issuanceRedemptionFeeRaw": "0.5% for issuance and redemption",
+    "newIssuanceAvailable": false
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Field name prospectuUrl follows existing repository schema typo for compatibility."
+  }
+}

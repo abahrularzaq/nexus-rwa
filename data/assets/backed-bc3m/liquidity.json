@@ -1,0 +1,22 @@
+{
+  "redemptionType": "Existing bToken holders can redeem through Backed; new issuance is no longer available for bTokens. Product page states redemption is fully supported for existing holders.",
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": 0.5,
+  "minRedemptionAmount": null,
+  "dexPairs": [],
+  "onchainLiquidity": null,
+  "bidAskSpread": null,
+  "liquidityScore": 25,
+  "liquidityNotes": "bC3M receives a conservative monthly/low-liquidity score because Backed states bTokens are closed to new issuance and CoinGecko showed $0 24h volume with a warning that listed exchange trading had stopped. Redemption is still supported for existing holders, but secondary liquidity appears weak.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
+}
