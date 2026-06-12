@@ -1,0 +1,22 @@
+{
+  "redemptionType": null,
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": null,
+  "dexPairs": [],
+  "onchainLiquidity": null,
+  "bidAskSpread": null,
+  "liquidityScore": 35,
+  "liquidityNotes": "Credix is a private-credit / receivables exposure with limited public evidence of secondary liquidity. DeFiLlama shows active-loan exposure but negligible TVL, and no verified public DEX market or redemption schedule was found in official docs.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "limited",
+    "status": "conservative-baseline",
+    "notes": "Score is conservative because redemption and secondary-market evidence are incomplete."
+  }
+}
