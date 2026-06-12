@@ -1,0 +1,41 @@
+{
+  "summary": "OUSG is an analytics-grade tokenized treasury asset issued by Ondo Finance. The Nexus RWA dataset shows clear treasury-style backing, institutional access orientation, and a strong legal score, but the current baseline still flags missing legal opinion evidence, missing public audit or report URL, no confirmed proof-of-reserves, and missing on-chain liquidity data.",
+  "whatThisAssetIs": "OUSG is a tokenized fund product designed to provide blockchain-based exposure to short-term U.S. Treasury securities and related cash-equivalent instruments.",
+  "whyItMatters": "OUSG is important because it represents a major RWA use case: bringing short-term U.S. Treasury exposure into on-chain markets through a regulated and compliance-aware product structure.",
+  "keyStrengths": [
+    "Clear tokenized treasury positioning",
+    "Recognizable RWA issuer through Ondo Finance",
+    "Reserve layer identifies U.S. Treasury and cash-equivalent backing",
+    "Reserve breakdown is available across institutional tokenized fund components",
+    "Legal and reserve scores are relatively strong within the current baseline"
+  ],
+  "keyRisks": [
+    "Access is likely permissioned and may require qualified or institutional investor eligibility",
+    "On-chain proof-of-reserves is not confirmed in the current dataset",
+    "Public audit or assurance report URL is missing in the current reserve layer",
+    "On-chain liquidity data is missing, so secondary market depth should not be assumed",
+    "Risk score remains below institutional-grade threshold in the current baseline"
+  ],
+  "investorFit": "Best suited for users researching tokenized U.S. Treasury exposure through a compliance-aware RWA issuer. It is not ideal for users who require fully permissionless access, confirmed on-chain liquidity, or complete public reserve assurance data.",
+  "dataConfidence": "medium",
+  "missingEvidence": [
+    "Missing legal opinion or legal document URL",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity",
+    "Need refreshed market TVL, AUM, current yield, and holder count from live sources"
+  ],
+  "watchReason": "Watch reserve assurance, proof-of-reserves status, and on-chain liquidity confirmation before treating OUSG as institutional-grade in Nexus RWA.",
+  "accessTier": "pro",
+  "generatedFrom": [
+    "identity.json",
+    "reserve.json",
+    "institutional.json",
+    "compliance.json",
+    "liquidity.json",
+    "risk.json",
+    "grade-baseline.json",
+    "sources.json"
+  ],
+  "lastUpdated": "2026-06-12"
+}
