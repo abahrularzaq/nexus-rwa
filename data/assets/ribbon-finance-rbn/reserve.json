@@ -1,0 +1,25 @@
+{
+  "backingType": null,
+  "backingDescription": "RBN is a protocol/governance token and is not documented as a direct reserve-backed, collateral-backed, fund-share, note, or redeemable RWA claim token.",
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "official-docs-and-negative-evidence",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "For governance_protocol classification, direct backingType, custodian, redemptionAsset, and proof-of-reserves are not applicable and therefore left null/false. Do not treat Ribbon vault collateral or protocol TVL as RBN backing."
+  }
+}
