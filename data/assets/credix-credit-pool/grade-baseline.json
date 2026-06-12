@@ -1,0 +1,61 @@
+{
+  "slug": "credix-credit-pool",
+  "grade": "research",
+  "score": 48,
+  "completenessScore": 60,
+  "sourceScore": 61,
+  "legalScore": 20,
+  "reserveScore": 50,
+  "liquidityScore": 12,
+  "riskScore": 78,
+  "blockers": [
+    "Missing legal structure",
+    "Missing regulatory status",
+    "Missing redemption type"
+  ],
+  "warnings": [
+    "Missing primary regulator",
+    "KYC requirement is not confirmed",
+    "Missing legal opinion or legal document URL",
+    "Missing pool composition or reserve breakdown",
+    "Missing pool redemption type",
+    "Missing pool redemption period",
+    "Missing pool audit/report URL",
+    "Missing pool legal structure",
+    "Missing borrower, loan book, or pool composition details",
+    "Missing redemption period",
+    "Missing on-chain liquidity"
+  ],
+  "gradingProfile": "credit_pool",
+  "assetClass": "tokenized_credit",
+  "instrumentType": "pool_token",
+  "claimType": "pool_or_tranche_exposure",
+  "publicSegment": "RWA Credit Pools",
+  "gradeContext": "Research — Credit Pool Profile",
+  "applicability": {
+    "reserve": "available",
+    "collateral": "available",
+    "borrower": "available",
+    "redemption": "missing",
+    "proofOfReserves": "not_applicable"
+  },
+  "profileScores": {
+    "sourceScore": 61,
+    "legalScore": 20,
+    "collateralScore": 50,
+    "borrowerScore": 60,
+    "liquidityScore": 12,
+    "riskScore": 78
+  },
+  "baselineDate": "2026-06-12",
+  "status": "research-grade baseline",
+  "nextActions": [
+    "Verify current Credix legal structure and issuer/fund vehicle from official legal documents or investor materials",
+    "Confirm regulatory status, primary regulator, KYC/AML requirements, and eligible investor restrictions",
+    "Find official pool composition, borrower/originator details, loan book, maturity schedule, and default/loss history",
+    "Verify redemption or withdrawal mechanics, redemption period, lockup, and any withdrawal fees",
+    "Identify current Solana program, pool account, token mint, or verified on-chain deployment if publicly available",
+    "Locate smart contract audit, pool audit/report URL, or third-party performance report if available",
+    "Refresh DeFiLlama active loans, APY, and TVL before production publication"
+  ]
+}
