@@ -1,0 +1,51 @@
+{
+  "issuerName": "Ribbon DAO / Aevo transition context",
+  "issuerType": "DAO / protocol ecosystem",
+  "issuerCountry": null,
+  "fundManager": null,
+  "legalStructure": "Legacy Ribbon DAO governance/protocol token; not verified as a registered fund, note, credit pool, or tokenized RWA claim instrument. RGP-33 proposed folding Ribbon into Aevo and enabling RBN holders to migrate to AEVO 1:1.",
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "DeFi users, protocol participants, RBN holders, and governance participants; not a documented regulated fund-share investor base.",
+  "prospectusUrl": null,
+  "metadata": {
+    "classification": {
+      "assetClass": "rwa_infrastructure",
+      "instrumentType": "governance_token",
+      "claimType": "governance_right",
+      "gradingProfile": "governance_protocol",
+      "publicSegment": "RWA Protocols",
+      "reserveApplicability": "not_applicable",
+      "custodyApplicability": "not_applicable",
+      "redemptionApplicability": "not_applicable",
+      "proofOfReservesApplicability": "not_applicable",
+      "classificationNote": "RBN is a legacy Ribbon DAO governance token. It is related to DeFi structured products and, historically, Ribbon Lend/Treasury products, but it does not represent a direct claim on loans, Treasuries, reserves, collateral, or fund shares. Track any specific Ribbon/Aevo vault or credit product separately if Nexus wants product-level RWA exposure."
+    },
+    "assetClass": "rwa_infrastructure",
+    "instrumentType": "governance_token",
+    "claimType": "governance_right",
+    "gradingProfile": "governance_protocol",
+    "publicSegment": "RWA Protocols",
+    "protocolStatus": "legacy-migration-review",
+    "migrationStatus": "RGP-33 proposed RBN-to-AEVO migration at a 1:1 exchange rate and Ribbonomics wind-down.",
+    "assetModelQuestion": "RBN should be tracked as a legacy governance/protocol token. Ribbon Lend, Ribbon Treasury, structured-product vaults, or Aevo products should be modeled separately if they represent investable exposure.",
+    "institutionalGradeBlockers": [
+      "No verified prospectus, offering memorandum, legal opinion, fund administrator, or transfer agent for RBN.",
+      "RBN does not represent a direct legal/economic claim on RWA collateral.",
+      "RBN-to-AEVO migration creates legacy-token continuity and liquidity risk."
+    ]
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "official-docs-governance-explorer-market-crosscheck",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "Classification-first treatment follows Nexus governance_protocol profile. Reserve, custody, redemption, and PoR fields are intentionally not applicable, not missing."
+  }
+}

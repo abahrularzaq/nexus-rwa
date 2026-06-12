@@ -1,0 +1,24 @@
+[
+  {
+    "chain": "Ethereum",
+    "chainId": 1,
+    "contractAddress": "0x6123b0049f904d730db3c36a31167d9d4121fa6b",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://etherscan.io/token/0x6123b0049f904d730db3c36a31167d9d4121fa6b",
+    "deployedAt": null,
+    "isVerified": true,
+    "_meta": {
+      "dataOwner": "manual-research",
+      "lastManualReview": "2026-06-12",
+      "reviewFrequencyDays": 30,
+      "sourceTier": "block-explorer-and-market-crosscheck",
+      "confidence": "medium-high",
+      "freshnessStatus": "current-with-legacy-migration-risk",
+      "status": "researched",
+      "notes": "Etherscan identifies the Ethereum token contract as RibbonToken with 18 decimals and shows verified source code via similar match. No Etherscan-submitted contract security audit was identified on the token page."
+    }
+  }
+]

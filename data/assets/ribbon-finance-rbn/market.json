@@ -1,0 +1,30 @@
+{
+  "tvl": 4050104,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": 0.01901,
+  "priceChange24h": null,
+  "marketCap": 1574882,
+  "volume24h": 3.04,
+  "circulatingSupply": 82854729,
+  "totalSupply": 1000000000,
+  "holderCount": 6544,
+  "holderChange7d": null,
+  "aumUsd": null,
+  "lastUpdated": "2026-06-12T00:00:00.000Z",
+  "sources": [
+    "https://www.coingecko.com/en/coins/ribbon-finance",
+    "https://etherscan.io/token/0x6123b0049f904d730db3c36a31167d9d4121fa6b"
+  ],
+  "confidence": "medium",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "market-data-and-block-explorer",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "CoinGecko values are volatile snapshots and should be refreshed before production promotion. DeFiLlama TVL shown by CoinGecko is protocol-level TVL, not RBN token backing. Etherscan holder count and circulating supply market panel differ from CoinGecko snapshots, so values should be reconciled before scoring upgrade."
+  }
+}
