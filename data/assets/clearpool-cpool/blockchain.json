@@ -1,0 +1,74 @@
+[
+  {
+    "chain": "Ethereum",
+    "chainId": 1,
+    "contractAddress": "0x66761fa41377003622aee3c7675fc7b5c1c2fac5",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://etherscan.io/token/0x66761fa41377003622aee3c7675fc7b5c1c2fac5",
+    "deployedAt": null,
+    "isVerified": true
+  },
+  {
+    "chain": "Solana",
+    "chainId": null,
+    "contractAddress": "AeXrLftu8chuY4ctc6oDeG4dUx6Yr4aqeakUMFNvACdg",
+    "tokenStandard": "SPL Token",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://solscan.io/token/AeXrLftu8chuY4ctc6oDeG4dUx6Yr4aqeakUMFNvACdg",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "Polygon",
+    "chainId": 137,
+    "contractAddress": "0xb08b3603C5F2629eF83510E6049eDEeFdc3A2D91",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://polygonscan.com/token/0xb08b3603C5F2629eF83510E6049eDEeFdc3A2D91",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "Mantle",
+    "chainId": 5000,
+    "contractAddress": "0x0c8927de225Bb1eD9DB05aA7d641E434B95279d8",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://explorer.mantle.xyz/token/0x0c8927de225Bb1eD9DB05aA7d641E434B95279d8",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "Optimism",
+    "chainId": 10,
+    "contractAddress": "0xc3630b805F10E91c2de084Ac26C66bCD91F3D3fE",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://optimistic.etherscan.io/token/0xc3630b805F10E91c2de084Ac26C66bCD91F3D3fE",
+    "deployedAt": null,
+    "isVerified": false
+  },
+  {
+    "chain": "Polygon zkEVM",
+    "chainId": 1101,
+    "contractAddress": "0xc3630b805F10E91c2de084Ac26C66bCD91F3D3fE",
+    "tokenStandard": "ERC-20",
+    "isTransferable": true,
+    "hasWhitelist": false,
+    "hasTransferRestrictions": false,
+    "explorerUrl": "https://zkevm.polygonscan.com/token/0xc3630b805F10E91c2de084Ac26C66bCD91F3D3fE",
+    "deployedAt": null,
+    "isVerified": false
+  }
+]

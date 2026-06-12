@@ -1,0 +1,39 @@
+{
+  "overallScore": 66,
+  "overallLevel": "MEDIUM",
+  "smartContractRisk": 72,
+  "counterpartyRisk": 60,
+  "liquidityRisk": 62,
+  "regulatoryRisk": 55,
+  "marketRisk": 52,
+  "concentrationRisk": 58,
+  "riskFactors": [
+    "CPOOL is a protocol utility/governance token, not a direct claim on Clearpool loan pools, USDX reserves, T-bills, or receivable-backed vault assets.",
+    "Market data is volatile: CoinGecko snapshot shows small-cap token metrics with about $23.65M market cap and about $881K 24h volume on 2026-06-12.",
+    "The token is down substantially from its all-time high according to CoinGecko, indicating material market-price risk.",
+    "Protocol exposure is tied to Clearpool adoption, borrower quality, credit-market cycles, staking participation, and protocol revenue/fee sustainability.",
+    "No public legal opinion, securities-registration analysis, or regulator-supervised fund structure was normalized for CPOOL.",
+    "Multi-chain deployments increase bridge, monitoring, and contract-address verification complexity.",
+    "DeFiLlama reports protocol TVL is highly concentrated on Flare, so protocol activity concentration should be monitored."
+  ],
+  "mitigants": [
+    "Clearpool has official documentation, official contract listings, and a dedicated contracts/audits page.",
+    "Clearpool docs describe audited on-chain pools and real-world lending products, including Dynamic, Prime, Fintech Vaults, RLOC, and USDX Treasury Pool.",
+    "CPOOL has exchange availability across multiple centralized venues and DEX venues listed in official Clearpool documentation.",
+    "Clearpool docs explicitly define CPOOL utility: delegated staking, borrower staking requirements, LP rewards, and governance participation.",
+    "DeFiLlama tracks Clearpool protocol TVL, fees, yields, active loans, liquidity, and chain distribution, improving market observability.",
+    "The asset is classified under governance_protocol, so missing reserve/custodian/redemption fields are not treated as asset-backed blockers."
+  ],
+  "lastAssessed": "2026-06-12",
+  "assessmentMethod": "ai-assisted",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Risk score is a governance/protocol profile score, not comparable one-to-one with asset-backed institutional-grade scores."
+  }
+}

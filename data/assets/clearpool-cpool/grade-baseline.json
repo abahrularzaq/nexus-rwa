@@ -1,0 +1,61 @@
+{
+  "slug": "clearpool-cpool",
+  "grade": "analytics",
+  "score": 78,
+  "completenessScore": 96,
+  "sourceScore": 57,
+  "legalScore": 85,
+  "reserveScore": null,
+  "liquidityScore": 75,
+  "riskScore": 66,
+  "blockers": [],
+  "warnings": [
+    "Reserve, custodian, redemption asset, and proof-of-reserves fields are not applicable for governance_protocol grading.",
+    "Missing holder count",
+    "Missing governance note",
+    "Missing token holder count"
+  ],
+  "gradingProfile": "governance_protocol",
+  "assetClass": "rwa_infrastructure",
+  "instrumentType": "protocol_token",
+  "claimType": "protocol_utility",
+  "publicSegment": "RWA Protocols",
+  "gradeContext": "Analytics — Governance Protocol Profile",
+  "applicability": {
+    "reserve": "not_applicable",
+    "custody": "not_applicable",
+    "redemption": "not_applicable",
+    "proofOfReserves": "not_applicable",
+    "protocol": "available",
+    "tokenomics": "available",
+    "governance": "missing"
+  },
+  "profileScores": {
+    "sourceScore": 57,
+    "protocolScore": 100,
+    "tokenomicsScore": 85,
+    "governanceScore": 85,
+    "liquidityScore": 75,
+    "riskScore": 66,
+    "reserveScore": null
+  },
+  "baselineDate": "2026-06-12",
+  "status": "analytics governance-protocol baseline from import engine",
+  "nextActions": [
+    "Add verified holder count or token holder count source if available.",
+    "Add a governance note to improve governance-profile completeness.",
+    "Refresh CoinGecko and DeFiLlama market metrics before production publication.",
+    "Manually verify each non-Ethereum bridge/token address against chain explorers and Clearpool docs.",
+    "Consider adding a separate asset entry for specific Clearpool credit pool tokens or USDX T-Pool exposure if Nexus wants direct RWA claim assets."
+  ],
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "synced-with-import-output",
+    "notes": "Updated after local import output. Grade baseline mirrors calculateAssetGrade result for governance_protocol profile."
+  }
+}

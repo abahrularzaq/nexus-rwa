@@ -1,0 +1,26 @@
+{
+  "currentYield": null,
+  "yieldType": "CPOOL staking rewards / protocol incentive yield",
+  "yieldFrequency": "Clearpool staking rewards are calculated and distributed at the end of each two-week epoch; rewards can be claimed at any time.",
+  "yieldBenchmark": null,
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "CPOOL",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": "No fixed or officially verified current CPOOL staking APR was normalized. Clearpool docs state staking yield varies by total CPOOL staked, active Oracles, and Oracle voting power."
+  }
+}

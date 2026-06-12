@@ -1,0 +1,222 @@
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Clearpool",
+    "sourceUrl": "https://clearpool.finance/",
+    "sourceType": "official_website",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Official Clearpool website."
+  },
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "CPOOL",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official Clearpool CPOOL documentation lists ticker and token type."
+  },
+  {
+    "layer": "identity",
+    "field": "launchDate",
+    "value": "2021-10-28",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool/tokenomics",
+    "sourceType": "official_docs",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "TGE date from official tokenomics page."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://clearpool.finance/",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/resources/official-links",
+    "sourceType": "official_docs",
+    "reliability": 96,
+    "checkedBy": "manual",
+    "notes": "Official links page says only listed links are official resources."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "Ethereum: 0x66761fa41377003622aee3c7675fc7b5c1c2fac5",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official CPOOL docs and contracts page list Ethereum address."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "Solana: AeXrLftu8chuY4ctc6oDeG4dUx6Yr4aqeakUMFNvACdg",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official CPOOL docs list Solana address."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "Polygon: 0xb08b3603C5F2629eF83510E6049eDEeFdc3A2D91",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official CPOOL docs list Polygon address."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "Mantle: 0x0c8927de225Bb1eD9DB05aA7d641E434B95279d8",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official CPOOL docs list Mantle address."
+  },
+  {
+    "layer": "blockchain",
+    "field": "contractAddress",
+    "value": "Optimism and Polygon zkEVM: 0xc3630b805F10E91c2de084Ac26C66bCD91F3D3fE",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official CPOOL docs list Optimism and Polygon zkEVM addresses."
+  },
+  {
+    "layer": "institutional",
+    "field": "classification",
+    "value": "rwa_infrastructure / protocol_token / protocol_utility / governance_protocol",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Classification derived from official docs saying CPOOL is Clearpool's native utility and governance token."
+  },
+  {
+    "layer": "institutional",
+    "field": "tokenUtility",
+    "value": "Delegated staking, borrower staking, LP rewards",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool/utility",
+    "sourceType": "official_docs",
+    "reliability": 94,
+    "checkedBy": "manual",
+    "notes": "Official utility page lists token utility."
+  },
+  {
+    "layer": "institutional",
+    "field": "initialTotalSupply",
+    "value": "1000000000",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "official_docs",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Official CPOOL page lists initial total supply."
+  },
+  {
+    "layer": "institutional",
+    "field": "totalRaisedUsd",
+    "value": "3000000",
+    "sourceUrl": "https://defillama.com/protocol/clearpool",
+    "sourceType": "market_aggregator",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama protocol page lists total raised and seed investors."
+  },
+  {
+    "layer": "compliance",
+    "field": "blockedJurisdictions",
+    "value": "Restricted countries listed in Clearpool docs",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/terms-and-conditions/restricted-countries",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official restricted countries page."
+  },
+  {
+    "layer": "market",
+    "field": "price",
+    "value": "0.02373",
+    "sourceUrl": "https://www.coingecko.com/en/coins/clearpool",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "CoinGecko snapshot on 2026-06-12."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": "23649343",
+    "sourceUrl": "https://www.coingecko.com/en/coins/clearpool",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "CoinGecko snapshot on 2026-06-12."
+  },
+  {
+    "layer": "market",
+    "field": "volume24h",
+    "value": "881476",
+    "sourceUrl": "https://www.coingecko.com/en/coins/clearpool",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "CoinGecko snapshot on 2026-06-12."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": "26560000",
+    "sourceUrl": "https://defillama.com/protocol/clearpool",
+    "sourceType": "market_aggregator",
+    "reliability": 76,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama protocol TVL snapshot."
+  },
+  {
+    "layer": "liquidity",
+    "field": "dexPairs",
+    "value": "Uniswap v3 CPOOL/USDC, Uniswap v3 CPOOL/WETH, Raydium CPOOL/USDC",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool/cex-and-dex-markets",
+    "sourceType": "official_docs",
+    "reliability": 91,
+    "checkedBy": "manual",
+    "notes": "Official market listings page."
+  },
+  {
+    "layer": "liquidity",
+    "field": "onchainLiquidity",
+    "value": "1200000",
+    "sourceUrl": "https://defillama.com/protocol/clearpool",
+    "sourceType": "market_aggregator",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama reports CPOOL liquidity split between Uniswap V3 and Raydium."
+  },
+  {
+    "layer": "yield",
+    "field": "yieldFrequency",
+    "value": "Rewards calculated and distributed every two-week epoch",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/staking",
+    "sourceType": "official_docs",
+    "reliability": 91,
+    "checkedBy": "manual",
+    "notes": "Official staking docs."
+  },
+  {
+    "layer": "risk",
+    "field": "riskFactors",
+    "value": "Protocol token risk, market volatility, no direct RWA claim, multi-chain complexity",
+    "sourceUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+    "sourceType": "analyst_synthesis",
+    "reliability": 80,
+    "checkedBy": "manual",
+    "notes": "Risk synthesis based on official token classification and market data."
+  }
+]
