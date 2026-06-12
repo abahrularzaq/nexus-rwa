@@ -1,0 +1,25 @@
+{
+  "overallScore": 42,
+  "overallLevel": "high",
+  "smartContractRisk": 55,
+  "counterpartyRisk": 45,
+  "liquidityRisk": 85,
+  "regulatoryRisk": 70,
+  "marketRisk": 82,
+  "concentrationRisk": 70,
+  "riskFactors": [
+    "RBN is a legacy governance/protocol token, not a direct RWA claim instrument.",
+    "RGP-33 proposed migration from RBN to AEVO at 1:1 and winding down Ribbonomics, creating continuity and relevance risk for standalone RBN.",
+    "Current market snapshots show extremely low RBN trading volume and limited tracked markets.",
+    "No RBN-specific prospectus, legal opinion, fund administrator, transfer agent, or regulated-claim documentation was verified.",
+    "Etherscan shows no contract security audit submitted on the RBN token page, though Ribbon protocol docs reference audits for product contracts."
+  ],
+  "mitigants": [
+    "Official Ribbon docs and governance forum provide clear protocol/tokenomics and migration context.",
+    "RBN token contract is publicly visible on Ethereum and source code is shown as verified/similar-match on Etherscan.",
+    "Ribbon protocol docs state product contracts were audited and maintain a bug bounty for specified contracts.",
+    "RBN holders were proposed to have a 1:1 path to AEVO governance, reducing some migration uncertainty if the route remains available."
+  ],
+  "lastAssessed": "2026-06-12T00:00:00.000Z",
+  "assessmentMethod": "Manual classification-first governance_protocol assessment using official docs, official governance proposal, Etherscan, and CoinGecko market snapshot. Scores are conservative because RBN is a legacy migration token with weak liquidity and no direct RWA claim."
+}
