@@ -1,0 +1,30 @@
+{
+  "redemptionType": "RBN-to-AEVO token migration context; no direct RWA redemption right",
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": null,
+  "dexPairs": [
+    {
+      "chain": "Ethereum",
+      "dex": "Uniswap V3",
+      "pair": "RBN/WETH",
+      "sourceUrl": "https://www.coingecko.com/en/coins/ribbon-finance",
+      "notes": "CoinGecko identifies Uniswap V3 (Ethereum) RBN/WETH as the most active tracked pair, but 24h trading volume is extremely low and must be refreshed."
+    }
+  ],
+  "onchainLiquidity": null,
+  "bidAskSpread": null,
+  "liquidityScore": 18,
+  "liquidityNotes": "Liquidity appears very weak in current market snapshots, with CoinGecko showing only one tracked exchange/market and minimal 24h volume. RBN-to-AEVO migration/legacy-token status materially reduces standalone RBN liquidity quality.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "market-data-and-governance-proposal",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "Liquidity score is conservative because RBN is a legacy migration asset with extremely low observed 24h volume. Refresh GeckoTerminal/DEXScreener depth before production decisions."
+  }
+}
