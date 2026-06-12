@@ -1,49 +1,51 @@
 {
   "slug": "ribbon-finance-rbn",
-  "grade": "research",
-  "score": 42,
-  "completenessScore": 66,
-  "sourceScore": 60,
-  "legalScore": 42,
+  "grade": "analytics",
+  "score": 75,
+  "completenessScore": 96,
+  "sourceScore": 65,
+  "legalScore": 85,
   "reserveScore": null,
-  "liquidityScore": 18,
+  "liquidityScore": 52,
   "riskScore": 42,
   "gradingProfile": "governance_protocol",
   "assetClass": "rwa_infrastructure",
   "instrumentType": "governance_token",
   "claimType": "governance_right",
   "publicSegment": "RWA Protocols",
-  "gradeContext": "Research — Governance Protocol Profile",
+  "gradeContext": "Analytics — Governance Protocol Profile",
   "profileScores": {
-    "completenessScore": 66,
-    "sourceScore": 60,
-    "legalScore": 42,
-    "reserveScore": null,
-    "liquidityScore": 18,
-    "riskScore": 42
+    "sourceScore": 65,
+    "protocolScore": 100,
+    "tokenomicsScore": 100,
+    "governanceScore": 85,
+    "liquidityScore": 52,
+    "riskScore": 42,
+    "reserveScore": null
   },
   "applicability": {
     "reserve": "not_applicable",
     "custody": "not_applicable",
     "redemption": "not_applicable",
-    "proofOfReserves": "not_applicable"
+    "proofOfReserves": "not_applicable",
+    "protocol": "available",
+    "tokenomics": "available",
+    "governance": "missing"
   },
   "blockers": [],
   "warnings": [
-    "RBN is a legacy governance/protocol token and should not be promoted as a direct RWA asset claim.",
-    "RBN-to-AEVO migration and Ribbonomics wind-down materially affect standalone token relevance.",
-    "No RBN-specific legal opinion, prospectus, regulated fund document, fund administrator, or transfer agent verified.",
-    "Current token liquidity appears extremely weak and needs fresh DEX depth validation.",
-    "No Etherscan-submitted RBN token contract security audit identified; protocol product audits should not be treated as token-level audit coverage."
+    "Reserve, custodian, redemption asset, and proof-of-reserves fields are not applicable for governance_protocol grading.",
+    "Missing governance note",
+    "Missing token on-chain liquidity"
   ],
   "baselineDate": "2026-06-12",
-  "status": "research-grade baseline under governance_protocol profile",
+  "status": "analytics-grade baseline under governance_protocol profile",
   "nextActions": [
-    "Verify current RBN-to-AEVO migration status directly from Aevo/Ribbon official channels before promoting this asset.",
-    "Refresh CoinGecko, CoinMarketCap, Etherscan, GeckoTerminal, and DEXScreener values before import to production database.",
-    "Analyze top-holder concentration and labeled wallets from Etherscan/Arkham.",
-    "Find canonical AEVO migration contract/documentation and decide whether AEVO should replace RBN as the active protocol record.",
-    "Model any specific Ribbon Lend, Treasury, vault, or Aevo structured product as a separate asset if it represents investable RWA exposure."
+    "Add explicit governance note to institutional metadata or a dedicated governance field if supported by importer/grading engine.",
+    "Add token on-chain liquidity evidence, including DEX pair URL, pool liquidity/depth, and source timestamp.",
+    "Refresh CoinGecko, CoinMarketCap, Etherscan, GeckoTerminal, and DEXScreener values before production promotion.",
+    "Verify current RBN-to-AEVO migration status directly from Aevo/Ribbon official channels.",
+    "Decide whether AEVO should become the active protocol record while RBN remains a legacy asset record."
   ],
-  "notes": "Classification-first baseline. RBN is treated as a governance/protocol token in the RWA infrastructure segment. Reserve, custody, redemption, and proof-of-reserves are not applicable rather than missing."
+  "notes": "Synced to import/grading engine output after successful import. RBN is treated as a governance/protocol token in the RWA infrastructure segment. Reserve, custody, redemption, and proof-of-reserves are not applicable rather than missing."
 }
