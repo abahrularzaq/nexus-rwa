@@ -1,0 +1,26 @@
+{
+  "redemptionType": null,
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": null,
+  "dexPairs": [
+    "Uniswap v3 Ethereum CPOOL/USDC",
+    "Uniswap v3 Ethereum CPOOL/WETH",
+    "Raydium Solana CPOOL/USDC"
+  ],
+  "onchainLiquidity": 1200000,
+  "bidAskSpread": null,
+  "liquidityScore": 62,
+  "liquidityNotes": "CPOOL is tradable on centralized and decentralized exchanges, including official market listings for Bybit, Binance Alpha, Bitget, MEXC, Gate, KuCoin, BingX, Kraken, Uniswap v3, and Raydium. DeFiLlama reports about $1.2M CPOOL liquidity, with Uniswap v3 and Raydium as the primary on-chain liquidity venues. There is no issuer redemption path because CPOOL is a protocol token, not a redeemable RWA claim.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "Liquidity score reflects exchange availability and on-chain liquidity, but no direct redemption rights."
+  }
+}

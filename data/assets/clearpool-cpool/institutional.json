@@ -1,0 +1,75 @@
+{
+  "issuerName": "Clearpool",
+  "issuerType": "Decentralized RWA credit marketplace / protocol operator",
+  "issuerCountry": null,
+  "fundManager": null,
+  "legalStructure": "CPOOL is documented as the native utility and governance token of the Clearpool protocol. It is used for governance, delegated staking with Clearpool Oracles, borrower staking requirements, and liquidity-provider rewards. It is not documented as a fund share, note, pool token, or redeemable claim on a specific real-world asset reserve.",
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "Crypto market participants, protocol users, borrowers meeting Clearpool staking requirements, liquidity providers, and governance participants subject to app restrictions and jurisdictional limitations.",
+  "prospectuUrl": null,
+  "metadata": {
+    "classification": {
+      "assetClass": "rwa_infrastructure",
+      "instrumentType": "protocol_token",
+      "claimType": "protocol_utility",
+      "gradingProfile": "governance_protocol",
+      "publicSegment": "RWA Protocols",
+      "reserveApplicability": "not_applicable",
+      "custodyApplicability": "not_applicable",
+      "redemptionApplicability": "not_applicable",
+      "proofOfReservesApplicability": "not_applicable",
+      "classificationNote": "CPOOL is Clearpool's native utility and governance token. It should be graded under the governance/protocol profile, not as an asset-backed RWA claim token."
+    },
+    "assetClass": "rwa_infrastructure",
+    "instrumentType": "protocol_token",
+    "claimType": "protocol_utility",
+    "gradingProfile": "governance_protocol",
+    "publicSegment": "RWA Protocols",
+    "protocolName": "Clearpool",
+    "tokenRole": [
+      "governance",
+      "delegated_staking",
+      "borrower_staking_requirement",
+      "lp_rewards"
+    ],
+    "tgeDate": "2021-10-28",
+    "initialTotalSupply": 1000000000,
+    "totalRaisedUsd": 3000000,
+    "investors": [
+      "Arrington XRP Capital",
+      "AscendEX",
+      "BCW Group",
+      "FBG Capital",
+      "Genesis Block Ventures",
+      "Hashkey Capital",
+      "Hex Trust",
+      "Huobi Ventures",
+      "Kinetic",
+      "Mentha Partners",
+      "Parsiq",
+      "Plutus VC",
+      "Sequoia Capital"
+    ],
+    "protocolProducts": [
+      "USDX Treasury Pool",
+      "Fintech Vaults",
+      "Clearpool Prime",
+      "Clearpool Dynamic",
+      "Revolving Line of Credit"
+    ]
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "classification-first-baseline",
+    "notes": "Added under classification-first SOP as governance_protocol, not asset_backed."
+  }
+}

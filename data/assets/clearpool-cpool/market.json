@@ -1,0 +1,31 @@
+{
+  "tvl": 26560000,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": 0.02373,
+  "priceChange24h": 2.9,
+  "marketCap": 23649343,
+  "volume24h": 881476,
+  "circulatingSupply": 1000000000,
+  "totalSupply": 1000000000,
+  "holderCount": null,
+  "holderChange7d": null,
+  "aumUsd": null,
+  "lastUpdated": "2026-06-12",
+  "sources": [
+    "https://www.coingecko.com/en/coins/clearpool",
+    "https://defillama.com/protocol/clearpool"
+  ],
+  "confidence": "MEDIUM",
+  "_meta": {
+    "dataOwner": "auto-sync",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": null,
+    "syncStatus": "not-configured",
+    "confidence": null,
+    "freshnessStatus": "needs-sync",
+    "status": "needs-sync",
+    "notes": "Market values are time-sensitive snapshots from CoinGecko and DeFiLlama on 2026-06-12; refresh before production publication."
+  }
+}

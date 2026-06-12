@@ -1,0 +1,32 @@
+{
+  "name": "Clearpool",
+  "symbol": "CPOOL",
+  "fullName": "Clearpool CPOOL",
+  "description": "CPOOL is Clearpool’s native utility and governance token. It supports protocol governance, borrower staking requirements, delegated staking to Clearpool Oracles, and liquidity-provider incentive mechanics across Clearpool’s real-world credit and yield marketplace. CPOOL is not a direct claim on a specific loan pool, treasury reserve, or redeemable real-world asset.",
+  "category": "RWA Infrastructure",
+  "subcategory": "Protocol Utility and Governance Token",
+  "logoUrl": null,
+  "websiteUrl": "https://clearpool.finance/",
+  "docsUrl": "https://docs.clearpool.finance/clearpool/token/cpool",
+  "twitterUrl": "https://x.com/ClearpoolFin",
+  "tags": [
+    "rwa-infrastructure",
+    "governance-token",
+    "protocol-token",
+    "private-credit",
+    "staking",
+    "multi-chain"
+  ],
+  "launchDate": "2021-10-28",
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": null
+  }
+}
