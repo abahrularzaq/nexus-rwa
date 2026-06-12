@@ -1,39 +1,50 @@
 {
   "slug": "clearpool-cpool",
-  "grade": "analytic",
-  "score": 66,
-  "completenessScore": 88,
-  "sourceScore": 82,
-  "legalScore": 55,
+  "grade": "analytics",
+  "score": 78,
+  "completenessScore": 96,
+  "sourceScore": 57,
+  "legalScore": 85,
   "reserveScore": null,
-  "liquidityScore": 62,
+  "liquidityScore": 75,
   "riskScore": 66,
   "blockers": [],
   "warnings": [
-    "CPOOL is a governance/protocol token and does not represent a direct RWA claim.",
-    "Reserve, custodian, redemption, and proof-of-reserves fields are intentionally not_applicable.",
-    "No public legal opinion or regulator-supervised fund/share structure was normalized.",
-    "Market, liquidity, TVL, and volume data are time-sensitive and should be refreshed before production publication."
+    "Reserve, custodian, redemption asset, and proof-of-reserves fields are not applicable for governance_protocol grading.",
+    "Missing holder count",
+    "Missing governance note",
+    "Missing token holder count"
   ],
-  "baselineDate": "2026-06-12",
-  "status": "analytic governance-protocol baseline",
-  "gradeContext": {
-    "gradingProfile": "governance_protocol",
-    "publicSegment": "RWA Protocols",
-    "assetClass": "rwa_infrastructure",
-    "instrumentType": "protocol_token",
-    "claimType": "protocol_utility",
-    "reserveApplicability": "not_applicable",
-    "custodyApplicability": "not_applicable",
-    "redemptionApplicability": "not_applicable",
-    "proofOfReservesApplicability": "not_applicable",
-    "displayLabel": "Analytics — Governance Protocol Profile",
-    "contextNote": "This grade evaluates CPOOL as the Clearpool protocol utility/governance token. It does not grade CPOOL as a reserve-backed, redeemable, or fund-share RWA asset."
+  "gradingProfile": "governance_protocol",
+  "assetClass": "rwa_infrastructure",
+  "instrumentType": "protocol_token",
+  "claimType": "protocol_utility",
+  "publicSegment": "RWA Protocols",
+  "gradeContext": "Analytics — Governance Protocol Profile",
+  "applicability": {
+    "reserve": "not_applicable",
+    "custody": "not_applicable",
+    "redemption": "not_applicable",
+    "proofOfReserves": "not_applicable",
+    "protocol": "available",
+    "tokenomics": "available",
+    "governance": "missing"
   },
+  "profileScores": {
+    "sourceScore": 57,
+    "protocolScore": 100,
+    "tokenomicsScore": 85,
+    "governanceScore": 85,
+    "liquidityScore": 75,
+    "riskScore": 66,
+    "reserveScore": null
+  },
+  "baselineDate": "2026-06-12",
+  "status": "analytics governance-protocol baseline from import engine",
   "nextActions": [
-    "Run npm run validate:classification -- --slug=clearpool-cpool from api folder.",
-    "Run npm run import:asset -- clearpool-cpool after validation.",
-    "Refresh CoinGecko and DeFiLlama market metrics before publication.",
+    "Add verified holder count or token holder count source if available.",
+    "Add a governance note to improve governance-profile completeness.",
+    "Refresh CoinGecko and DeFiLlama market metrics before production publication.",
     "Manually verify each non-Ethereum bridge/token address against chain explorers and Clearpool docs.",
     "Consider adding a separate asset entry for specific Clearpool credit pool tokens or USDX T-Pool exposure if Nexus wants direct RWA claim assets."
   ],
@@ -44,7 +55,7 @@
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
-    "status": "current",
-    "notes": null
+    "status": "synced-with-import-output",
+    "notes": "Updated after local import output. Grade baseline mirrors calculateAssetGrade result for governance_protocol profile."
   }
 }
