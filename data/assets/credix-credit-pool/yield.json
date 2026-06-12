@@ -1,0 +1,26 @@
+{
+  "currentYield": 0.11,
+  "yieldType": "variable",
+  "yieldFrequency": null,
+  "yieldBenchmark": "Private credit / B2B receivables yield",
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "USD",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": "defillama",
+    "syncStatus": "not-configured",
+    "confidence": "LOW",
+    "freshnessStatus": "needs-sync",
+    "status": "research-baseline",
+    "notes": "DeFiLlama reported one tracked yield pool with average APY around 0.11%; needs refresh before production use."
+  }
+}
