@@ -1,0 +1,32 @@
+{
+  "name": "Credix Credit Pool",
+  "symbol": null,
+  "fullName": "Credix / CrediPay B2B Private Credit Pool",
+  "description": "Credix is an institutional private-credit and B2B credit platform associated with CrediPay, a Brazil-focused BNPL solution for B2B sales. For Nexus RWA, this baseline treats Credix as a credit-pool / receivables exposure rather than a liquid direct-claim token. Verified on-chain pool contract and investor-token data were not found in public official sources, so token-specific fields remain null.",
+  "category": "Private Credit",
+  "subcategory": "B2B Credit / Receivables",
+  "logoUrl": null,
+  "websiteUrl": "https://credix.finance/",
+  "docsUrl": "https://docs.credipay.credix.finance/",
+  "twitterUrl": "https://x.com/Credix_finance",
+  "tags": [
+    "private-credit",
+    "rwa-lending",
+    "receivables",
+    "b2b-credit",
+    "solana",
+    "research-stage"
+  ],
+  "launchDate": null,
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "research-baseline",
+    "notes": "Credix currently presents public documentation under CrediPay; legacy on-chain private-credit details are limited in official public docs."
+  }
+}

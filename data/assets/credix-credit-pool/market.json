@@ -1,0 +1,31 @@
+{
+  "tvl": 1,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": null,
+  "priceChange24h": null,
+  "marketCap": null,
+  "volume24h": null,
+  "circulatingSupply": null,
+  "totalSupply": null,
+  "holderCount": null,
+  "holderChange7d": null,
+  "aumUsd": 10730000,
+  "lastUpdated": "2026-06-12",
+  "sources": [
+    "defillama",
+    "official_docs"
+  ],
+  "confidence": "LOW",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastAutoSync": null,
+    "syncFrequencyHours": 24,
+    "syncProvider": "defillama",
+    "syncStatus": "not-configured",
+    "confidence": "LOW",
+    "freshnessStatus": "needs-sync",
+    "status": "research-baseline",
+    "notes": "DeFiLlama page showed TVL around $1 and Active Loans around $10.73m at review time. Treat TVL as low-confidence because active-loan accounting is more relevant for this credit-pool profile."
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "overallScore": 78,
+  "overallLevel": "HIGH",
+  "smartContractRisk": 75,
+  "counterpartyRisk": 82,
+  "liquidityRisk": 85,
+  "regulatoryRisk": 78,
+  "marketRisk": 72,
+  "concentrationRisk": 80,
+  "riskFactors": [
+    "Credit-pool transparency is limited: public official documentation does not disclose a verified loan book, borrower concentration, maturity ladder, default history, or tranche waterfall.",
+    "On-chain evidence is incomplete: DeFiLlama identifies Credix on Solana, but no verified public pool token or program address was confirmed from official docs in this pass.",
+    "Liquidity risk is high because no public DEX pairs, bid/ask spread, secondary-market depth, or redemption period were verified.",
+    "Legal-structure risk is elevated because public documents reviewed did not provide issuer vehicle, investor claim structure, custodian, trustee, or legal opinion details.",
+    "DeFiLlama shows active-loan exposure but negligible TVL, suggesting standard TVL may not reflect the economics of the credit book.",
+    "Credix public positioning appears to have shifted toward CrediPay B2B BNPL infrastructure, which may reduce comparability with older RWA protocol listings."
+  ],
+  "mitigants": [
+    "The product category is economically relevant to RWA because it maps to B2B credit, receivables, and private-credit financing.",
+    "Official CrediPay documentation describes an operational credit lifecycle involving sellers, buyers, orders, invoices, repayments, and upfront seller settlement.",
+    "DeFiLlama still tracks Credix as an RWA Lending protocol and reports active loans, providing at least one external market-data reference point.",
+    "Credix maintains a public GitHub organization with historical Solana and application repositories, supporting technical traceability even though current contract evidence remains incomplete.",
+    "Using the credit_pool grading profile prevents inappropriate treasury-style reserve scoring and keeps missing pool-specific evidence visible."
+  ],
+  "lastAssessed": "2026-06-12",
+  "assessmentMethod": "ai-assisted",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "limited",
+    "status": "research-grade-baseline",
+    "notes": "Conservative risk baseline pending official legal, pool, contract, and performance data."
+  }
+}
