@@ -1,0 +1,23 @@
+{
+  "regulatoryStatus": "Not verified as a regulated security, fund share, note, or RWA claim token in this review.",
+  "primaryRegulator": null,
+  "regulatoryFramework": null,
+  "kycRequired": false,
+  "accreditedOnly": false,
+  "blockedJurisdictions": [],
+  "allowedJurisdictions": [],
+  "sanctionsScreening": false,
+  "amlPolicy": null,
+  "lastComplianceCheck": "2026-06-12T00:00:00.000Z",
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "official-docs-governance-and-negative-evidence",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "Native RBN token transferability/governance is separated from any KYC/AML requirements that may apply to specific Ribbon Lend, Treasury, vault, or Aevo products. No RBN-specific legal opinion URL was verified."
+  }
+}
