@@ -1,0 +1,49 @@
+{
+  "slug": "backed-bc3m",
+  "grade": "research",
+  "score": 58,
+  "completenessScore": 86,
+  "sourceScore": 68,
+  "legalScore": 72,
+  "reserveScore": 55,
+  "liquidityScore": 25,
+  "riskScore": 55,
+  "gradingProfile": "asset_backed",
+  "assetClass": "tokenized_treasury",
+  "instrumentType": "yield_bearing_note",
+  "claimType": "direct_asset_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Research — Asset-backed Profile",
+  "profileScores": {
+    "completenessScore": 86,
+    "sourceScore": 68,
+    "legalScore": 72,
+    "reserveScore": 55,
+    "liquidityScore": 25,
+    "riskScore": 55
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "available",
+    "redemption": "available",
+    "proofOfReserves": "missing"
+  },
+  "blockers": [],
+  "warnings": [
+    "bTokens are no longer available for new issuance",
+    "CoinGecko shows $0 24h volume and stopped-trading warning",
+    "No bC3M-specific public proof-of-reserves confirmed",
+    "Missing reserve breakdown",
+    "Missing audit/report URL",
+    "Contract verification not confirmed across all chains"
+  ],
+  "baselineDate": "2026-06-12",
+  "status": "research-grade baseline under asset_backed profile",
+  "nextActions": [
+    "Verify all chain-specific contract addresses directly from Backed or official explorers before production publication",
+    "Find bC3M-specific proof-of-reserves or reserve/collateral reporting, if available",
+    "Find final terms, KID, and base prospectus PDF URLs that are directly associated with bC3M",
+    "Refresh market data from CoinGecko/RWA.xyz/DeFiLlama and confirm whether exchange trading remains inactive",
+    "Clarify redemption mechanics, settlement period, and minimum redemption size from issuer documentation"
+  ]
+}
