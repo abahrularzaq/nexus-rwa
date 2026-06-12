@@ -1,0 +1,152 @@
+[
+  {
+    "layer": "identity",
+    "field": "name",
+    "value": "Credix Credit Pool",
+    "sourceUrl": "https://defillama.com/protocol/credix",
+    "sourceType": "market_aggregator",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama protocol page identifies Credix as institutional capital markets ecosystem for debt financing and private credit."
+  },
+  {
+    "layer": "identity",
+    "field": "websiteUrl",
+    "value": "https://credix.finance/",
+    "sourceUrl": "https://credix.finance/",
+    "sourceType": "official_website",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "Official website currently presents Credix/CrediPay B2B credit positioning."
+  },
+  {
+    "layer": "identity",
+    "field": "docsUrl",
+    "value": "https://docs.credipay.credix.finance/",
+    "sourceUrl": "https://docs.credipay.credix.finance/",
+    "sourceType": "official_docs",
+    "reliability": 86,
+    "checkedBy": "manual",
+    "notes": "Official CrediPay developer hub."
+  },
+  {
+    "layer": "identity",
+    "field": "twitterUrl",
+    "value": "https://x.com/Credix_finance",
+    "sourceUrl": "https://github.com/credix-finance",
+    "sourceType": "official_github_profile",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "Credix GitHub organization links X profile @Credix_finance."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingType",
+    "value": "Receivables",
+    "sourceUrl": "https://docs.credipay.credix.finance/docs/getting-started-introduction",
+    "sourceType": "official_docs",
+    "reliability": 76,
+    "checkedBy": "manual",
+    "notes": "CrediPay docs describe B2B BNPL flow, boleto installments, upfront seller receipt, and buyer repayment; classified as receivables/private credit."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "B2B credit / receivables exposure",
+    "sourceUrl": "https://docs.credipay.credix.finance/docs/getting-started-glossary.md",
+    "sourceType": "official_docs",
+    "reliability": 76,
+    "checkedBy": "manual",
+    "notes": "Glossary defines seller, buyer, order, invoice, repayments, and credit limit concepts used in CrediPay credit lifecycle."
+  },
+  {
+    "layer": "institutional",
+    "field": "issuerName",
+    "value": "Credix Finance",
+    "sourceUrl": "https://github.com/credix-finance",
+    "sourceType": "official_github_profile",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Official GitHub organization profile lists Credix Finance and website."
+  },
+  {
+    "layer": "institutional",
+    "field": "metadata.classification",
+    "value": "credit_pool",
+    "sourceUrl": "internal://docs/rwa-classification-standard.md",
+    "sourceType": "internal_standard",
+    "reliability": 95,
+    "checkedBy": "manual",
+    "notes": "Nexus classification standard maps credit pools/private credit/receivables to credit_pool profile."
+  },
+  {
+    "layer": "compliance",
+    "field": "allowedJurisdictions",
+    "value": "BR",
+    "sourceUrl": "https://docs.credipay.credix.finance/docs/getting-started-introduction",
+    "sourceType": "official_docs",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "Docs state CrediPay is developed for companies selling to other companies in Brazil."
+  },
+  {
+    "layer": "blockchain",
+    "field": "chain",
+    "value": "solana",
+    "sourceUrl": "https://defillama.com/protocol/credix",
+    "sourceType": "market_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama lists Credix TVL by chain as Solana; contract/program remains unverified."
+  },
+  {
+    "layer": "market",
+    "field": "tvl",
+    "value": "1",
+    "sourceUrl": "https://defillama.com/protocol/credix",
+    "sourceType": "market_aggregator",
+    "reliability": 58,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama page displayed Total Value Locked around $1; this is low-confidence for economic size."
+  },
+  {
+    "layer": "market",
+    "field": "aumUsd",
+    "value": "10730000",
+    "sourceUrl": "https://defillama.com/protocol/credix",
+    "sourceType": "market_aggregator",
+    "reliability": 68,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama page displayed Active Loans around $10.73m; mapped to aumUsd for credit-pool economics pending better field support."
+  },
+  {
+    "layer": "yield",
+    "field": "currentYield",
+    "value": "0.11",
+    "sourceUrl": "https://defillama.com/protocol/credix",
+    "sourceType": "market_aggregator",
+    "reliability": 58,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama displayed one tracked yield pool with average APY around 0.11%; needs refresh."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityScore",
+    "value": "35",
+    "sourceUrl": "internal://manual-risk-assessment",
+    "sourceType": "internal_analysis",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Conservative score based on missing redemption schedule, no verified DEX pairs, and private-credit pool profile."
+  },
+  {
+    "layer": "risk",
+    "field": "assessmentMethod",
+    "value": "ai-assisted",
+    "sourceUrl": "internal://manual-risk-assessment",
+    "sourceType": "internal_analysis",
+    "reliability": 70,
+    "checkedBy": "manual",
+    "notes": "Risk assessment synthesized from official CrediPay docs, DeFiLlama, public GitHub, and missing-evidence checks."
+  }
+]
