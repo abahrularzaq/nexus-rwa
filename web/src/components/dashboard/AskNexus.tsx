@@ -19,8 +19,8 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").re
 );
 
 const SUGGESTED = [
-  "Which RWA has the best risk-adjusted yield?",
-  "Compare treasury vs real estate performance this month",
+  "Compare BENJI vs USTB across reserve, liquidity, and risk evidence",
+  "Which treasury RWA has strong evidence quality but weaker liquidity?",
 ] as const;
 
 type ChatMessage = {
@@ -64,12 +64,14 @@ export function AskNexus() {
       if (!question.trim() || streaming) return;
 
       if (!address) {
-        setError("Connect your wallet to use Ask Nexus.");
+        setError("Connect your wallet to use Ask Nexus AI.");
         return;
       }
 
       if (!isEnterprise) {
-        setError("Enterprise tier required for Ask Nexus AI.");
+        setError(
+          "Ask Nexus AI is available for Enterprise users. Pro access includes Asset Intelligence Summary and Daily Market Narrative; Enterprise unlocks custom questions across assets, layers, risk, yield, and sources.",
+        );
         return;
       }
 
@@ -110,7 +112,7 @@ export function AskNexus() {
             setX402(parsed.x402);
             setPaywallOpen(true);
           } else {
-            setError("Payment required for Ask Nexus.");
+            setError("Enterprise payment required for Ask Nexus AI.");
           }
           setMessages((prev) => prev.filter((m) => m.id !== assistantId));
           return;
@@ -173,7 +175,7 @@ export function AskNexus() {
           }
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to reach Ask Nexus.");
+        setError(e instanceof Error ? e.message : "Failed to reach Ask Nexus AI.");
         setMessages((prev) => prev.filter((m) => m.id !== assistantId));
       } finally {
         setStreaming(false);
@@ -216,7 +218,10 @@ export function AskNexus() {
             <header className="flex items-center justify-between border-b border-[rgba(30,42,58,0.8)] px-4 py-3">
               <div className="flex items-center gap-2">
                 <MessageCircle className="size-5 text-[#00D4FF]" />
-                <h2 className="font-bold text-white">Ask Nexus</h2>
+                <div>
+                  <h2 className="font-bold text-white">Ask Nexus AI</h2>
+                  <p className="text-xs text-[#8892A4]">Interactive analyst chat</p>
+                </div>
                 <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase text-[#C084FC] ring-1 ring-[#C084FC]/40">
                   Enterprise
                 </span>
@@ -233,11 +238,15 @@ export function AskNexus() {
 
             <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
               {messages.length === 0 ? (
-                <div className="space-y-3">
-                  <p className="text-sm text-[#8892A4]">
-                    Ask anything about RWA assets. Answers stream from Claude using
-                    live Nexus data.
-                  </p>
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-[rgba(0,212,255,0.2)] bg-[rgba(0,212,255,0.06)] px-3 py-3">
+                    <p className="text-sm text-[#C5CED9]">
+                      Ask custom questions across Nexus RWA datasets. Enterprise access unlocks interactive reasoning across assets, layers, risk, yield, liquidity, and evidence.
+                    </p>
+                    <p className="mt-2 text-xs text-[#8892A4]">
+                      Pro includes prepared AI Insight cards. Enterprise adds live analyst-style chat.
+                    </p>
+                  </div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-[#8892A4]">
                     Suggested
                   </p>
@@ -285,8 +294,8 @@ export function AskNexus() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={
                     isEnterprise
-                      ? "Ask about yields, risk, categories…"
-                      : "Upgrade to Enterprise to chat"
+                      ? "Ask across assets, layers, risk, yield, sources…"
+                      : "Enterprise required for interactive chat"
                   }
                   disabled={streaming || !isEnterprise}
                   className="min-w-0 flex-1 rounded-lg border border-[rgba(30,42,58,0.8)] bg-[rgba(10,14,26,0.8)] px-3 py-2 text-sm text-white placeholder:text-[#4A5568] focus:border-[#00D4FF]/50 focus:outline-none disabled:opacity-50"
