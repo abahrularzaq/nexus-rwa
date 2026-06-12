@@ -1,0 +1,33 @@
+{
+  "name": "Ribbon Finance",
+  "symbol": "RBN",
+  "fullName": "Ribbon Finance Governance Token",
+  "description": "Ribbon Finance (RBN) is a legacy Ethereum ERC-20 governance token for Ribbon DAO, a DeFi structured-products protocol. Official governance materials proposed folding Ribbon into Aevo and allowing RBN holders to migrate 1:1 into AEVO, so RBN should be tracked as a legacy governance/protocol token rather than a direct RWA claim asset.",
+  "category": "Derivatives",
+  "subcategory": "Structured Products / Legacy protocol governance token",
+  "logoUrl": null,
+  "websiteUrl": "https://www.ribbon.finance/",
+  "docsUrl": "https://docs.ribbon.finance/",
+  "twitterUrl": "https://twitter.com/ribbonfinance",
+  "tags": [
+    "structured-products",
+    "defi-options",
+    "governance-token",
+    "rwa-protocol",
+    "legacy-token",
+    "migration-review-required",
+    "aevo-migration"
+  ],
+  "launchDate": null,
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "official-docs-governance-explorer-market-crosscheck",
+    "confidence": "medium",
+    "freshnessStatus": "current-with-legacy-migration-risk",
+    "status": "researched",
+    "notes": "Ribbon docs describe Ribbon as a suite of DeFi protocols for crypto structured products. RGP-33 proposes migrating RBN to AEVO 1:1 and folding Ribbon into Aevo, so this record is intentionally classified as a legacy protocol/governance token."
+  }
+}
