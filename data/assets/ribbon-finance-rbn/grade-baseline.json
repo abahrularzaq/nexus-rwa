@@ -1,0 +1,49 @@
+{
+  "slug": "ribbon-finance-rbn",
+  "grade": "research",
+  "score": 42,
+  "completenessScore": 66,
+  "sourceScore": 60,
+  "legalScore": 42,
+  "reserveScore": null,
+  "liquidityScore": 18,
+  "riskScore": 42,
+  "gradingProfile": "governance_protocol",
+  "assetClass": "rwa_infrastructure",
+  "instrumentType": "governance_token",
+  "claimType": "governance_right",
+  "publicSegment": "RWA Protocols",
+  "gradeContext": "Research — Governance Protocol Profile",
+  "profileScores": {
+    "completenessScore": 66,
+    "sourceScore": 60,
+    "legalScore": 42,
+    "reserveScore": null,
+    "liquidityScore": 18,
+    "riskScore": 42
+  },
+  "applicability": {
+    "reserve": "not_applicable",
+    "custody": "not_applicable",
+    "redemption": "not_applicable",
+    "proofOfReserves": "not_applicable"
+  },
+  "blockers": [],
+  "warnings": [
+    "RBN is a legacy governance/protocol token and should not be promoted as a direct RWA asset claim.",
+    "RBN-to-AEVO migration and Ribbonomics wind-down materially affect standalone token relevance.",
+    "No RBN-specific legal opinion, prospectus, regulated fund document, fund administrator, or transfer agent verified.",
+    "Current token liquidity appears extremely weak and needs fresh DEX depth validation.",
+    "No Etherscan-submitted RBN token contract security audit identified; protocol product audits should not be treated as token-level audit coverage."
+  ],
+  "baselineDate": "2026-06-12",
+  "status": "research-grade baseline under governance_protocol profile",
+  "nextActions": [
+    "Verify current RBN-to-AEVO migration status directly from Aevo/Ribbon official channels before promoting this asset.",
+    "Refresh CoinGecko, CoinMarketCap, Etherscan, GeckoTerminal, and DEXScreener values before import to production database.",
+    "Analyze top-holder concentration and labeled wallets from Etherscan/Arkham.",
+    "Find canonical AEVO migration contract/documentation and decide whether AEVO should replace RBN as the active protocol record.",
+    "Model any specific Ribbon Lend, Treasury, vault, or Aevo structured product as a separate asset if it represents investable RWA exposure."
+  ],
+  "notes": "Classification-first baseline. RBN is treated as a governance/protocol token in the RWA infrastructure segment. Reserve, custody, redemption, and proof-of-reserves are not applicable rather than missing."
+}
