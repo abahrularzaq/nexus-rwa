@@ -2,13 +2,13 @@
   "regulatoryStatus": null,
   "primaryRegulator": null,
   "regulatoryFramework": null,
-  "kycRequired": null,
-  "accreditedOnly": null,
+  "kycRequired": false,
+  "accreditedOnly": false,
   "blockedJurisdictions": [],
   "allowedJurisdictions": [
     "BR"
   ],
-  "sanctionsScreening": null,
+  "sanctionsScreening": false,
   "amlPolicy": null,
   "lastComplianceCheck": "2026-06-12",
   "legalOpinionUrl": null,
@@ -20,6 +20,6 @@
     "confidence": null,
     "freshnessStatus": "limited",
     "status": "incomplete",
-    "notes": "Public CrediPay docs confirm Brazil-focused B2B seller/buyer flows, but do not provide enough public securities/compliance detail for this RWA dataset baseline."
+    "notes": "Public CrediPay docs confirm Brazil-focused B2B seller/buyer flows, but do not provide enough public securities/compliance detail for this RWA dataset baseline. Boolean fields are schema-compatible placeholders, not verified negative compliance claims."
   }
 }
