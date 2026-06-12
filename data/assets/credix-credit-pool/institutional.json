@@ -1,0 +1,45 @@
+{
+  "issuerName": "Credix Finance",
+  "issuerType": "credit_platform",
+  "issuerCountry": null,
+  "fundManager": null,
+  "legalStructure": null,
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "institutional",
+  "prospectuUrl": null,
+  "metadata": {
+    "classification": {
+      "assetClass": "tokenized_credit",
+      "instrumentType": "pool_token",
+      "claimType": "pool_or_tranche_exposure",
+      "gradingProfile": "credit_pool",
+      "publicSegment": "RWA Credit Pools",
+      "reserveApplicability": "available",
+      "custodyApplicability": "missing",
+      "redemptionApplicability": "missing",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "Credix should be treated as a credit-pool / receivables-backed private-credit exposure, not as a governance token or treasury-style reserve-backed asset. Pool structure, borrower/originator evidence, loan book, maturity, default history, redemption terms, and smart-contract evidence are central to grading."
+    },
+    "assetClass": "tokenized_credit",
+    "instrumentType": "pool_token",
+    "claimType": "pool_or_tranche_exposure",
+    "gradingProfile": "credit_pool",
+    "publicSegment": "RWA Credit Pools",
+    "productLine": "CrediPay B2B credit / BNPL",
+    "sourceLayer": "manual source discovery"
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "limited",
+    "status": "classification-baseline",
+    "notes": "Issuer/legal-structure fields require legal-document verification before institutional-grade scoring."
+  }
+}
