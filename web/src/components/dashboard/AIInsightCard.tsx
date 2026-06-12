@@ -180,7 +180,7 @@ export function AIInsightCard({ apiBaseUrl, assetId }: AIInsightCardProps) {
             <MockInsightBlurred />
             <BlurredPreview
               title="Nexus AI Insight"
-              priceLabel="Pro — $0.001 ETH"
+              priceLabel="Pro — 3 USDC / 24h"
               onUnlock={openPaywall}
             />
             <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
