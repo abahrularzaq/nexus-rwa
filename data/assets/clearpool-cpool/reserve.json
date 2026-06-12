@@ -1,0 +1,25 @@
+{
+  "backingType": null,
+  "backingDescription": null,
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "CPOOL is a protocol utility/governance token. Reserve, custodian, collateralization, and redemption fields are classified as not_applicable in institutional.metadata.classification."
+  }
+}
