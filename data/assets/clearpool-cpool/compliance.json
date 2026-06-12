@@ -27,7 +27,7 @@
     "Syria"
   ],
   "allowedJurisdictions": [],
-  "sanctionsScreening": null,
+  "sanctionsScreening": false,
   "amlPolicy": null,
   "lastComplianceCheck": "2026-06-12",
   "legalOpinionUrl": null,
@@ -39,6 +39,6 @@
     "confidence": null,
     "freshnessStatus": "current",
     "status": "current",
-    "notes": "Clearpool docs list restricted countries for app usage. CPOOL itself is treated as a protocol token; no public legal opinion or securities registration record was added."
+    "notes": "Clearpool docs list restricted countries for app usage. CPOOL itself is treated as a protocol token; no public legal opinion or securities registration record was added. sanctionsScreening is set to false because the Prisma schema requires a non-null Boolean; no explicit protocol-level sanctions-screening policy was verified."
   }
 }
