@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { AssetAiInsightCard } from "@/components/assets/AssetAiInsightCard";
 import { DisclaimerBanner } from "@/components/common/DisclaimerBanner";
 import { MetricField, MetricGrid, MetricSection } from "@/components/common/MetricField";
 import { getGradeDisclaimer } from "@/lib/disclaimers";
@@ -84,6 +85,8 @@ export function AssetMetricSections({ asset, showHeader = true }: AssetMetricSec
         <DisclaimerBanner variant="asset" />
         <DisclaimerBanner disclaimer={gradeDisclaimer} />
       </div>
+
+      <AssetAiInsightCard asset={asset} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MetricSection title="Identity" description="Core asset identity, classification, and official references.">

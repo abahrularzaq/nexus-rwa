@@ -81,6 +81,21 @@ type AssetGradeBaseline = {
   applicability?: Record<string, string>;
 };
 
+type AssetAiInsight = {
+  summary?: string | null;
+  whatThisAssetIs?: string | null;
+  whyItMatters?: string | null;
+  keyStrengths?: string[];
+  keyRisks?: string[];
+  investorFit?: string | null;
+  dataConfidence?: "high" | "medium" | "low" | string | null;
+  missingEvidence?: string[];
+  watchReason?: string | null;
+  accessTier?: "free" | "pro" | "enterprise" | string | null;
+  generatedFrom?: string[];
+  lastUpdated?: string | null;
+};
+
 export type LocalAssetMetrics = {
   slug: string;
   identity: AssetIdentity;
@@ -88,6 +103,7 @@ export type LocalAssetMetrics = {
   liquidity: AssetLiquidity;
   reserve: AssetReserve;
   gradeBaseline: AssetGradeBaseline;
+  aiInsight: AssetAiInsight;
 };
 
 export function getLocalAssetSlugs() {
@@ -114,6 +130,7 @@ export function getLocalAssetMetrics(slug: string): LocalAssetMetrics {
     liquidity: readAssetJson<AssetLiquidity>(slug, "liquidity.json"),
     reserve: readAssetJson<AssetReserve>(slug, "reserve.json"),
     gradeBaseline: readAssetJson<AssetGradeBaseline>(slug, "grade-baseline.json"),
+    aiInsight: readAssetJson<AssetAiInsight>(slug, "ai-insight.json"),
   };
 }
 

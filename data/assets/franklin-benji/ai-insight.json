@@ -1,0 +1,38 @@
+{
+  "summary": "BENJI is an institutional-grade tokenized money market fund asset associated with Franklin Templeton. The available Nexus RWA data shows strong completeness, source coverage, reserve evidence, liquidity scoring, and risk scoring, but public legal opinion evidence and on-chain proof-of-reserves remain unconfirmed.",
+  "whatThisAssetIs": "BENJI represents shares of the Franklin OnChain U.S. Government Money Fund, a U.S.-registered government money market fund whose shares are represented through blockchain-integrated recordkeeping.",
+  "whyItMatters": "BENJI is one of the clearest examples of a traditional asset manager using blockchain infrastructure for regulated fund access, transfer-agent recordkeeping, and tokenized money market exposure.",
+  "keyStrengths": [
+    "Recognizable institutional issuer through Franklin Templeton",
+    "Strong normalized data completeness across Nexus RWA layers",
+    "Money market fund backing with U.S. government securities, cash, and fully collateralized repurchase agreements",
+    "Named custodian and auditor are available in the dataset",
+    "Institutional-grade baseline score under the asset-backed profile"
+  ],
+  "keyRisks": [
+    "Access and transferability may depend on eligibility, compliance checks, and jurisdictional rules",
+    "Redemption depends on issuer and fund processes rather than fully permissionless DeFi liquidity",
+    "On-chain proof-of-reserves is not confirmed in the current dataset",
+    "Public legal opinion URL is still missing or requires confirmation"
+  ],
+  "investorFit": "Best suited for users researching institutional-style tokenized treasury or money market fund exposure. It is less suitable for users looking for fully permissionless, freely transferable DeFi assets.",
+  "dataConfidence": "high",
+  "missingEvidence": [
+    "Missing legal opinion or legal document URL",
+    "No on-chain proof-of-reserves confirmed",
+    "Need continued refresh of AUM, yield, holder count, and market values before production publication"
+  ],
+  "watchReason": null,
+  "accessTier": "pro",
+  "generatedFrom": [
+    "identity.json",
+    "reserve.json",
+    "institutional.json",
+    "compliance.json",
+    "liquidity.json",
+    "risk.json",
+    "grade-baseline.json",
+    "sources.json"
+  ],
+  "lastUpdated": "2026-06-12"
+}

@@ -1,0 +1,43 @@
+{
+  "summary": "USTB is an analytics-grade tokenized short-duration U.S. Treasury Bill fund from Superstate. The Nexus RWA dataset shows strong completeness, a clear legal and redemption structure, and multi-chain token representation, but source coverage, reserve breakdown, proof-of-reserves, audit/report URL, and on-chain liquidity evidence still require improvement.",
+  "whatThisAssetIs": "USTB represents access to the Superstate Short Duration US Government Securities Fund, a private fund invested in short-duration U.S. Treasury Bills with shares represented as tokens or book-entry shares.",
+  "whyItMatters": "USTB matters because it shows how tokenized fund shares can bring short-duration U.S. Treasury exposure onto multiple blockchain networks while retaining a compliance-aware private fund structure.",
+  "keyStrengths": [
+    "Clear short-duration U.S. Treasury Bill exposure",
+    "Named custodian is available in the reserve layer",
+    "Redemption asset supports USD or USDC in the current dataset",
+    "Strong completeness score across normalized Nexus RWA fields",
+    "Multi-chain representation across Ethereum, Solana, and Plume is described in the identity layer"
+  ],
+  "keyRisks": [
+    "Access is restricted to qualified purchasers and compliance-approved participants",
+    "Reserve breakdown is missing in the current reserve layer",
+    "On-chain proof-of-reserves is not confirmed",
+    "Public audit or assurance report URL is missing",
+    "Source score is materially lower than institutional-grade threshold",
+    "On-chain liquidity data is missing, so liquidity should not be assumed from token availability alone"
+  ],
+  "investorFit": "Best suited for users researching compliance-aware tokenized Treasury Bill exposure with institutional-style fund structure. It is less suitable for users who require open retail access, complete public reserve transparency, or confirmed on-chain liquidity depth.",
+  "dataConfidence": "medium",
+  "missingEvidence": [
+    "Missing legal opinion or legal document URL",
+    "Missing reserve breakdown",
+    "No proof-of-reserves confirmed",
+    "Missing audit/report URL",
+    "Missing on-chain liquidity",
+    "Need stronger source coverage across required Nexus RWA fields"
+  ],
+  "watchReason": "Watch source coverage, reserve breakdown, audit/report evidence, and on-chain liquidity before upgrading USTB beyond analytics-grade confidence.",
+  "accessTier": "pro",
+  "generatedFrom": [
+    "identity.json",
+    "reserve.json",
+    "institutional.json",
+    "compliance.json",
+    "liquidity.json",
+    "risk.json",
+    "grade-baseline.json",
+    "sources.json"
+  ],
+  "lastUpdated": "2026-06-12"
+}
