@@ -1,0 +1,25 @@
+{
+  "currentYield": null,
+  "yieldType": "Underlying ETF total-return / coupons reinvested exposure",
+  "yieldFrequency": null,
+  "yieldBenchmark": "FTSE Eurozone Government Bill 0-6 Month Capped Index",
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "EUR",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-12",
+    "reviewFrequencyDays": 30,
+    "sourceTier": null,
+    "confidence": null,
+    "freshnessStatus": "current",
+    "status": "current",
+    "notes": "No current yield/APY was verified from accessible official bC3M materials; do not infer yield from underlying price or ETF objective."
+  }
+}
