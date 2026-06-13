@@ -13,7 +13,6 @@ import {
   YAxis,
 } from "recharts";
 import {
-  Activity,
   ArrowUpRight,
   BarChart3,
   Clock,
