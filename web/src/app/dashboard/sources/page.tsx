@@ -9,11 +9,17 @@ import {
   ExternalLink,
   FileSearch,
   Filter,
+  Lock,
   RefreshCw,
   Search,
   ShieldCheck,
+  Sparkles,
   TriangleAlert,
 } from "lucide-react";
+import { useAccount } from "wagmi";
+
+import { PaywallModal } from "@/components/paywall/PaywallModal";
+import { parseX402Response, type AccessTier, type X402Details } from "@/types/x402";
 
 type SourceTier = "Tier 1" | "Tier 2" | "Tier 3";
 type SourceStatus = "healthy" | "redirected" | "restricted" | "broken" | "manual_required" | "unchecked" | "timeout" | "error";
@@ -42,8 +48,19 @@ type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
 
+type SessionResponse = {
+  success?: boolean;
+  data?: {
+    active?: boolean;
+    tier?: AccessTier;
+    expiresAt?: string | null;
+  };
+};
+
 const ADMIN_KEY_STORAGE = "nexus_admin_key";
 const SOURCE_LIBRARY_URL = "/api/admin/monitoring/sources?limit=250";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").replace(/\/$/, "");
+const DEFAULT_UNLOCK_SLUG = "ondo-ousg";
 
 const fallbackRows: SourceRow[] = [
   {
@@ -176,7 +193,13 @@ function tierClass(tier: SourceTier): string {
   return "border-white/15 bg-white/[0.04] text-[var(--text-secondary)]";
 }
 
-function reliabilityLabel(score: number): string {
+function reliabilityLabel(score: number, isProAccess: boolean): string {
+  if (!isProAccess) {
+    if (score >= 90) return "90+";
+    if (score >= 80) return "80–89";
+    if (score >= 70) return "70–79";
+    return "<70";
+  }
   if (score >= 90) return "Institutional";
   if (score >= 80) return "Strong";
   if (score >= 70) return "Acceptable";
@@ -205,17 +228,30 @@ function normalizeRows(rows: Array<Record<string, unknown>>): SourceRow[] {
     .filter((row) => row.sourceUrl.startsWith("http"));
 }
 
+function isPaidTier(tier: AccessTier | "free"): boolean {
+  return tier === "pro" || tier === "enterprise";
+}
+
 export default function SourcesPage() {
+  const { address } = useAccount();
   const [rows, setRows] = useState<SourceRow[]>(fallbackRows);
   const [sourceMode, setSourceMode] = useState<"fallback" | "api">("fallback");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accessTier, setAccessTier] = useState<AccessTier | "free">("free");
+  const [accessExpiresAt, setAccessExpiresAt] = useState<string | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paymentData, setPaymentData] = useState<X402Details | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [unlockSlug, setUnlockSlug] = useState(DEFAULT_UNLOCK_SLUG);
   const [search, setSearch] = useState("");
   const [assetSlug, setAssetSlug] = useState("");
   const [layer, setLayer] = useState("");
   const [tier, setTier] = useState("");
   const [status, setStatus] = useState("");
   const [sourceType, setSourceType] = useState("");
+
+  const isProAccess = isPaidTier(accessTier);
 
   const loadSources = useCallback(async () => {
     const adminKey = window.localStorage.getItem(ADMIN_KEY_STORAGE)?.trim();
@@ -252,18 +288,107 @@ export default function SourcesPage() {
     }
   }, []);
 
+  const checkAccess = useCallback(async () => {
+    if (!address) {
+      setAccessTier("free");
+      setAccessExpiresAt(null);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/v1/session?wallet=${address}`, {
+        headers: { Accept: "application/json", "X-Wallet-Address": address },
+        cache: "no-store",
+      });
+      const body = (await response.json().catch(() => null)) as SessionResponse | null;
+      const tierFromSession = body?.data?.active ? body.data.tier ?? "free" : "free";
+      setAccessTier(tierFromSession);
+      setAccessExpiresAt(body?.data?.expiresAt ?? null);
+    } catch {
+      setAccessTier("free");
+      setAccessExpiresAt(null);
+    }
+  }, [address]);
+
   useEffect(() => {
     void loadSources();
   }, [loadSources]);
 
+  useEffect(() => {
+    void checkAccess();
+  }, [checkAccess]);
+
   const rowsWithTier = useMemo<SourceRowWithTier[]>(() => rows.map((row) => ({ ...row, tier: getTier(row) })), [rows]);
+
+  const selectedUnlockSlug = useMemo(() => assetSlug || rowsWithTier[0]?.assetSlug || DEFAULT_UNLOCK_SLUG, [assetSlug, rowsWithTier]);
+
+  const requestProAccess = useCallback(async () => {
+    if (!address) {
+      setPaymentError("Connect wallet dulu untuk membuka Pro source access.");
+      return;
+    }
+
+    const slug = selectedUnlockSlug;
+    setUnlockSlug(slug);
+    setPaymentError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/v1/assets/${slug}/sources`, {
+        headers: { Accept: "application/json", "X-Wallet-Address": address },
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        await checkAccess();
+        setAccessTier("pro");
+        return;
+      }
+
+      const body = await response.json().catch(() => null);
+      const parsed = parseX402Response(body, `/v1/assets/${slug}/sources`);
+      if (!parsed) throw new Error("Payment metadata tidak tersedia dari API.");
+
+      setPaymentData(parsed.x402);
+      setPaywallOpen(true);
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Gagal menyiapkan Pro source access.");
+    }
+  }, [address, checkAccess, selectedUnlockSlug]);
+
+  const onPaymentSuccess = useCallback(async (paymentHeader: string) => {
+    if (!address) return;
+
+    try {
+      const response = await fetch(`${API_URL}/v1/assets/${unlockSlug}/sources`, {
+        headers: {
+          Accept: "application/json",
+          "X-Wallet-Address": address,
+          "X-Payment-Tx": paymentHeader,
+        },
+        cache: "no-store",
+      });
+
+      if (!response.ok) throw new Error(`Payment verification failed (${response.status}).`);
+
+      setPaywallOpen(false);
+      setPaymentData(null);
+      setPaymentError(null);
+      setAccessTier("pro");
+      await checkAccess();
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Payment berhasil dibuat, tapi session belum terverifikasi.");
+    }
+  }, [address, checkAccess, unlockSlug]);
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
     return rowsWithTier.filter((row) => {
+      const searchableValues = isProAccess
+        ? [row.assetSlug, row.layer, row.field, row.sourceType, row.sourceUrl, row.checkedBy, row.notes, row.errorMessage]
+        : [row.assetSlug, row.layer, row.field, row.sourceType, hostname(row.sourceUrl), row.status, row.tier];
       const matchesQuery =
         !query ||
-        [row.assetSlug, row.layer, row.field, row.sourceType, row.sourceUrl, row.checkedBy, row.notes, row.errorMessage]
+        searchableValues
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
 
@@ -276,7 +401,7 @@ export default function SourcesPage() {
         (!sourceType || row.sourceType === sourceType)
       );
     });
-  }, [assetSlug, layer, rowsWithTier, search, sourceType, status, tier]);
+  }, [assetSlug, isProAccess, layer, rowsWithTier, search, sourceType, status, tier]);
 
   const manualRows = rowsWithTier.filter((row) => row.status === "manual_required" || row.checkedBy === "manual_required");
   const tier1Count = rowsWithTier.filter((row) => row.tier === "Tier 1").length;
@@ -309,6 +434,33 @@ export default function SourcesPage() {
         </div>
       </header>
 
+      <section className="rounded-xl border border-[var(--border-line)] bg-[#080D19] p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${isProAccess ? "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]" : "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]"}`}>
+                {isProAccess ? `${String(accessTier).toUpperCase()} access active` : "FREE source access"}
+              </span>
+              {accessExpiresAt ? <span className="text-xs text-[var(--text-muted)]">expires {formatDate(accessExpiresAt)}</span> : null}
+            </div>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Free users see evidence summary, domains, tier, status, and reliability bands. Pro unlocks full URLs, field-level notes, manual review detail, and exact reliability scores.
+            </p>
+            {paymentError ? <p className="mt-2 text-xs text-[#FF8888]">{paymentError}</p> : null}
+          </div>
+          {!isProAccess ? (
+            <button
+              type="button"
+              onClick={() => void requestProAccess()}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B983FF]/35 bg-[#B983FF]/10 px-4 py-2 text-sm font-medium text-[#D8B4FE] hover:bg-[#B983FF]/20"
+            >
+              <Sparkles className="size-4" />
+              Unlock Pro source audit
+            </button>
+          ) : null}
+        </div>
+      </section>
+
       {error ? (
         <section className="rounded-xl border border-[#FFB800]/25 bg-[#FFB800]/[0.06] p-4 text-sm text-[var(--text-secondary)]">
           <div className="flex gap-3">
@@ -336,12 +488,12 @@ export default function SourcesPage() {
         <div className="data-surface p-4">
           <p className="terminal-label mb-2">Manual Review</p>
           <div className="terminal-data text-2xl font-semibold text-white">{manualRows.length}</div>
-          <p className="mt-2 text-xs text-[var(--text-secondary)]">Not treated as broken</p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">{isProAccess ? "Open field notes" : "Count only in Free"}</p>
         </div>
         <div className="data-surface p-4">
           <p className="terminal-label mb-2">Avg Reliability</p>
-          <div className="terminal-data text-2xl font-semibold text-white">{avgReliability}</div>
-          <p className="mt-2 text-xs text-[var(--text-secondary)]">Evidence confidence score</p>
+          <div className="terminal-data text-2xl font-semibold text-white">{isProAccess ? avgReliability : `${Math.round(avgReliability / 10) * 10}s`}</div>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">{isProAccess ? "Exact evidence score" : "Rounded public band"}</p>
         </div>
       </section>
 
@@ -363,7 +515,7 @@ export default function SourcesPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search asset, field, URL..."
+              placeholder={isProAccess ? "Search asset, field, URL, notes..." : "Search asset, field, domain..."}
               className="w-full rounded-lg border border-[var(--border-line)] bg-[#080D19] py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-[var(--accent-cyan)]"
             />
           </label>
@@ -397,7 +549,7 @@ export default function SourcesPage() {
           <table className="w-full min-w-[1180px] text-left text-sm">
             <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
               <tr>
-                <th className="px-4 py-3 font-medium">Asset</th><th className="px-4 py-3 font-medium">Layer</th><th className="px-4 py-3 font-medium">Field</th><th className="px-4 py-3 font-medium">Type</th><th className="px-4 py-3 font-medium">Tier</th><th className="px-4 py-3 font-medium">Reliability</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Checked</th><th className="px-4 py-3 font-medium">URL</th>
+                <th className="px-4 py-3 font-medium">Asset</th><th className="px-4 py-3 font-medium">Layer</th><th className="px-4 py-3 font-medium">Field</th><th className="px-4 py-3 font-medium">Type</th><th className="px-4 py-3 font-medium">Tier</th><th className="px-4 py-3 font-medium">Reliability</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Checked</th><th className="px-4 py-3 font-medium">Source</th>
               </tr>
             </thead>
             <tbody>
@@ -410,10 +562,16 @@ export default function SourcesPage() {
                   <td className="px-4 py-3 text-white">{row.field}</td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">{row.sourceType}</td>
                   <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${tierClass(row.tier)}`}>{row.tier}</span></td>
-                  <td className="px-4 py-3"><span className="terminal-data text-white">{row.reliability}</span><span className="ml-2 text-xs text-[var(--text-muted)]">{reliabilityLabel(row.reliability)}</span></td>
+                  <td className="px-4 py-3"><span className="terminal-data text-white">{isProAccess ? row.reliability : reliabilityLabel(row.reliability, false)}</span><span className="ml-2 text-xs text-[var(--text-muted)]">{reliabilityLabel(row.reliability, isProAccess)}</span></td>
                   <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></td>
-                  <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{formatDate(row.lastCheckedAt ?? row.checkedAt)}</td>
-                  <td className="max-w-[220px] px-4 py-3"><a href={row.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex max-w-[220px] items-center gap-1 truncate text-[var(--accent-cyan)] hover:underline"><span className="truncate">{hostname(row.sourceUrl)}</span><ExternalLink className="size-3 shrink-0" /></a></td>
+                  <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{isProAccess ? formatDate(row.lastCheckedAt ?? row.checkedAt) : <span className="inline-flex items-center gap-1"><Lock className="size-3" /> Pro</span>}</td>
+                  <td className="max-w-[240px] px-4 py-3">
+                    {isProAccess ? (
+                      <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex max-w-[240px] items-center gap-1 truncate text-[var(--accent-cyan)] hover:underline"><span className="truncate">{row.sourceUrl}</span><ExternalLink className="size-3 shrink-0" /></a>
+                    ) : (
+                      <span className="inline-flex max-w-[220px] items-center gap-1 truncate text-[var(--text-secondary)]"><span className="truncate">{hostname(row.sourceUrl)}</span><Lock className="size-3 shrink-0 text-[#FFB800]" /></span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -422,14 +580,19 @@ export default function SourcesPage() {
       </section>
 
       <section className="terminal-panel p-5">
-        <p className="terminal-label">Manual Review Needed</p>
-        <h2 className="mt-1 text-base font-semibold text-white">Sources excluded from automatic broken status</h2>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="terminal-label">Manual Review Needed</p>
+            <h2 className="mt-1 text-base font-semibold text-white">Sources excluded from automatic broken status</h2>
+          </div>
+          {!isProAccess ? <button type="button" onClick={() => void requestProAccess()} className="inline-flex items-center gap-2 rounded-lg border border-[#B983FF]/30 px-3 py-2 text-xs font-medium text-[#D8B4FE]"><Lock className="size-3.5" /> Unlock notes</button> : null}
+        </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {manualRows.length === 0 ? <p className="text-sm text-[var(--text-secondary)]">No manual-required sources in current filters.</p> : manualRows.map((row) => (
             <div key={`${row.assetSlug}-${row.field}-${row.sourceUrl}`} className="rounded-xl border border-[#B983FF]/20 bg-[#B983FF]/[0.06] p-4">
               <div className="flex items-start justify-between gap-3"><div><p className="terminal-data text-white">{row.assetSlug}</p><p className="mt-1 text-sm text-[var(--text-secondary)]">{row.layer}.{row.field}</p></div><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></div>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">{row.notes ?? row.errorMessage ?? "Manual verification is required before this source can be treated as production-grade."}</p>
-              <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--accent-cyan)] hover:underline">{hostname(row.sourceUrl)} <ExternalLink className="size-3" /></a>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">{isProAccess ? (row.notes ?? row.errorMessage ?? "Manual verification is required before this source can be treated as production-grade.") : "Manual review note is locked for Pro users. Free users can see the count and affected field only."}</p>
+              {isProAccess ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--accent-cyan)] hover:underline">{hostname(row.sourceUrl)} <ExternalLink className="size-3" /></a> : <span className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--text-muted)]"><Lock className="size-3" /> {hostname(row.sourceUrl)}</span>}
             </div>
           ))}
         </div>
@@ -451,6 +614,16 @@ export default function SourcesPage() {
           {checks.map((check) => <li key={check} className="flex gap-2 leading-relaxed"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-amber)]" />{check}</li>)}
         </ul>
       </section>
+
+      {paymentData ? (
+        <PaywallModal
+          isOpen={paywallOpen}
+          onClose={() => setPaywallOpen(false)}
+          x402Data={paymentData}
+          requiredTier="pro"
+          onPaymentSuccess={onPaymentSuccess}
+        />
+      ) : null}
     </div>
   );
 }
