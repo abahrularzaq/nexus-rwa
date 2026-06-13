@@ -36,6 +36,8 @@ type SourceRow = {
   httpStatus?: number | null;
 };
 
+type SourceRowWithTier = SourceRow & { tier: SourceTier };
+
 type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
@@ -87,7 +89,7 @@ const sourceTiers = [
     description: "Reputable media, commentary, and secondary references that should not override primary documents.",
     icon: TriangleAlert,
   },
-];
+] as const;
 
 const checks = [
   "Every non-null field should have a source URL.",
@@ -105,8 +107,15 @@ function normalizeStatus(value: unknown): SourceStatus {
   return "unchecked";
 }
 
+function normalizeTier(value: unknown): SourceTier | undefined {
+  if (value === "Tier 1" || value === "Tier 2" || value === "Tier 3") return value;
+  return undefined;
+}
+
 function getTier(source: SourceRow): SourceTier {
-  if (source.tier) return source.tier;
+  const normalized = normalizeTier(source.tier);
+  if (normalized) return normalized;
+
   const type = source.sourceType.toLowerCase();
   const url = source.sourceUrl.toLowerCase();
 
@@ -150,7 +159,7 @@ function formatDate(value: unknown): string {
   return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function uniqueValues(rows: SourceRow[], key: keyof SourceRow): string[] {
+function uniqueValues(rows: SourceRowWithTier[], key: keyof SourceRow): string[] {
   return Array.from(new Set(rows.map((row) => String(row[key] ?? "")).filter(Boolean))).sort();
 }
 
@@ -176,7 +185,7 @@ function reliabilityLabel(score: number): string {
 
 function normalizeRows(rows: Array<Record<string, unknown>>): SourceRow[] {
   return rows
-    .map((row) => ({
+    .map<SourceRow>((row) => ({
       id: typeof row.id === "string" ? row.id : undefined,
       assetSlug: String(row.assetSlug ?? "unknown"),
       layer: String(row.layer ?? "unknown"),
@@ -186,7 +195,7 @@ function normalizeRows(rows: Array<Record<string, unknown>>): SourceRow[] {
       reliability: Number(row.reliability ?? 0),
       checkedBy: String(row.checkedBy ?? "manual"),
       status: normalizeStatus(row.status),
-      tier: row.tier === "Tier 1" || row.tier === "Tier 2" || row.tier === "Tier 3" ? row.tier : undefined,
+      tier: normalizeTier(row.tier),
       checkedAt: typeof row.checkedAt === "string" ? row.checkedAt : undefined,
       lastCheckedAt: typeof row.lastCheckedAt === "string" ? row.lastCheckedAt : undefined,
       notes: typeof row.notes === "string" ? row.notes : null,
@@ -247,7 +256,7 @@ export default function SourcesPage() {
     void loadSources();
   }, [loadSources]);
 
-  const rowsWithTier = useMemo(() => rows.map((row) => ({ ...row, tier: getTier(row) })), [rows]);
+  const rowsWithTier = useMemo<SourceRowWithTier[]>(() => rows.map((row) => ({ ...row, tier: getTier(row) })), [rows]);
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -392,7 +401,9 @@ export default function SourcesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((row) => (
+              {filteredRows.length === 0 ? (
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-[var(--text-secondary)]">No sources match the current filters.</td></tr>
+              ) : filteredRows.map((row) => (
                 <tr key={`${row.id ?? "source"}-${row.assetSlug}-${row.layer}-${row.field}-${row.sourceUrl}`} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
                   <td className="px-4 py-3 terminal-data text-white">{row.assetSlug}</td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">{row.layer}</td>
