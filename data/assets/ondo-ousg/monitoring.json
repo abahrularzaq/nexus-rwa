@@ -86,6 +86,20 @@
       "status": "needs-analysis",
       "importance": "warning",
       "notes": "Check exchange order books and DEX price impact before improving liquidity score."
+    },
+    {
+      "layer": "reserve",
+      "field": "reserveBreakdown",
+      "status": "manual-verification-required",
+      "importance": "warning",
+      "notes": "Legacy RWA.xyz aggregator URL returned 404 in source-health checks. Refresh manually and replace with a stable official or aggregator source before enabling automatic URL checks."
+    },
+    {
+      "layer": "compliance",
+      "field": "blockedJurisdictions",
+      "status": "manual-verification-required",
+      "importance": "warning",
+      "notes": "Legacy Ondo terms-of-service URL returned 404 in source-health checks. Verify the current Ondo legal source manually before enabling automatic URL checks."
     }
   ],
   "knownBlockers": [],
@@ -162,13 +176,15 @@
       "name": "reserve.reserveBreakdown",
       "url": "https://app.rwa.xyz/protocols/ondo-finance",
       "tier": "Tier 2",
-      "frequencyDays": 30
+      "frequencyDays": 90,
+      "status": "manual-verification-required"
     },
     {
       "name": "compliance.blockedJurisdictions",
       "url": "https://ondo.finance/terms-of-service",
       "tier": "Tier 2",
-      "frequencyDays": 30
+      "frequencyDays": 90,
+      "status": "manual-verification-required"
     },
     {
       "name": "blockchain.contractAddress",
@@ -180,7 +196,8 @@
   "monitoringNotes": [
     "Generated from ondo-ousg asset layer files.",
     "Review manually before treating this as a production monitoring profile.",
-    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json.",
+    "reserve.reserveBreakdown and compliance.blockedJurisdictions are intentionally manual-required until stable current source URLs are verified."
   ],
   "templateVersion": 1
 }
