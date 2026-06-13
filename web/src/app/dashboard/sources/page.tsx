@@ -56,7 +56,7 @@ type SourceQualityRow = {
   healthyCoverage: number;
   avgReliability: number;
   sourceScore: number;
-  quality: "Institutional" | "Strong" | "Developing" | "Weak";
+  quality: "Excellent" | "Strong" | "Developing" | "Weak";
 };
 
 type ApiResponse<T> =
@@ -222,7 +222,7 @@ function reliabilityLabel(score: number, isProAccess: boolean): string {
 }
 
 function qualityClass(quality: SourceQualityRow["quality"]): string {
-  if (quality === "Institutional") return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
+  if (quality === "Excellent") return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   if (quality === "Strong") return "border-[#00D1FF]/30 bg-[#00D1FF]/10 text-[#7BE8FF]";
   if (quality === "Developing") return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
   return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
@@ -233,7 +233,7 @@ function clampScore(score: number): number {
 }
 
 function sourceQualityLabel(score: number): SourceQualityRow["quality"] {
-  if (score >= 90) return "Institutional";
+  if (score >= 90) return "Excellent";
   if (score >= 80) return "Strong";
   if (score >= 65) return "Developing";
   return "Weak";
