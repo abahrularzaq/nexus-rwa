@@ -18,19 +18,19 @@ const RISK_TONE_STYLES: Record<
   elevated: {
     label: "Elevated",
     className:
-      "border-[rgba(196,92,92,0.4)] bg-[rgba(196,92,92,0.12)] text-[var(--data-negative)]",
+      "border-[#FF4444]/35 bg-[#FF4444]/12 text-[#FFA0A0] shadow-[0_0_18px_rgba(255,68,68,0.12)]",
     Icon: AlertTriangle,
   },
   stable: {
     label: "Stable",
     className:
-      "border-[var(--border-panel)] bg-[var(--bg-panel)] text-[var(--text-secondary)]",
+      "border-[#00D1FF]/25 bg-[#00D1FF]/[0.06] text-[#8DEBFF] shadow-[0_0_18px_rgba(0,209,255,0.08)]",
     Icon: Minus,
   },
   improving: {
     label: "Improving",
     className:
-      "border-[rgba(61,154,110,0.4)] bg-[rgba(61,154,110,0.12)] text-[var(--data-positive)]",
+      "border-[#00FF88]/35 bg-[#00FF88]/12 text-[#74FFB8] shadow-[0_0_18px_rgba(0,255,136,0.12)]",
     Icon: TrendingUp,
   },
 };
@@ -56,7 +56,7 @@ function BriefSkeleton() {
         <div className="h-3 w-[92%] animate-pulse rounded bg-[rgba(30,42,58,0.7)]" />
         <div className="h-3 w-[80%] animate-pulse rounded bg-[rgba(30,42,58,0.65)]" />
       </div>
-      <div className="mt-auto space-y-2 border-t border-[var(--border-panel)] pt-4">
+      <div className="mt-auto space-y-2 border-t border-[#00D1FF]/15 pt-4">
         <div className="h-3 w-28 animate-pulse rounded bg-[rgba(30,42,58,0.8)]" />
         <div className="h-3 w-full animate-pulse rounded bg-[rgba(30,42,58,0.7)]" />
       </div>
@@ -71,17 +71,18 @@ export function MarketBriefCard() {
   const ToneIcon = tone?.Icon ?? Minus;
 
   return (
-    <section className="terminal-panel flex h-full min-h-[280px] flex-col p-4 lg:min-h-0">
-      <div className="flex items-start justify-between gap-2">
+    <section className="terminal-panel relative flex h-full min-h-[420px] flex-col overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_38px_rgba(0,209,255,0.06)]">
+      <div className="pointer-events-none absolute right-[-120px] top-[-140px] h-72 w-72 rounded-full bg-[#00D1FF]/10 blur-3xl" />
+      <div className="relative flex items-start justify-between gap-2">
         <div>
-          <p className="terminal-label">Market brief</p>
+          <p className="terminal-label text-[#8DEBFF]">Market brief</p>
           <h2 className="mt-1 text-base font-semibold text-white">Daily narrative</h2>
         </div>
         <button
           type="button"
           onClick={() => void refetch()}
           disabled={isLoading || isFetching}
-          className="inline-flex shrink-0 items-center gap-1 rounded border border-[var(--border-panel)] bg-[var(--bg-panel)] px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-[var(--text-label)] transition-colors hover:border-[var(--accent-amber)]/40 hover:text-[var(--accent-amber)] disabled:opacity-50"
+          className="inline-flex shrink-0 items-center gap-1 rounded border border-[#00D1FF]/20 bg-[#00D1FF]/[0.06] px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-[#8DEBFF] transition-colors hover:border-[#00D1FF]/40 hover:bg-[#00D1FF]/10 disabled:opacity-50"
           aria-label="Refresh market brief"
         >
           <RefreshCw className={`size-3 ${isFetching ? "animate-spin" : ""}`} />
@@ -90,12 +91,12 @@ export function MarketBriefCard() {
       </div>
 
       {isLoading ? (
-        <div className="mt-4 flex flex-1 flex-col">
+        <div className="relative mt-4 flex flex-1 flex-col">
           <BriefSkeleton />
         </div>
       ) : error ? (
-        <div className="mt-4 flex flex-1 flex-col">
-          <p className="text-sm text-[var(--data-negative)]">
+        <div className="relative mt-4 flex flex-1 flex-col">
+          <p className="text-sm text-[#FFA0A0]">
             {error instanceof Error ? error.message : "Could not load market brief"}
           </p>
           <p className="mt-2 flex-1 text-sm text-[var(--text-secondary)]">
@@ -104,14 +105,14 @@ export function MarketBriefCard() {
           <button
             type="button"
             onClick={() => void refetch()}
-            className="mt-4 inline-flex w-fit items-center gap-2 rounded border border-[var(--accent-amber)]/35 bg-[var(--accent-amber-dim)] px-3 py-1.5 text-xs font-medium text-[var(--accent-amber)] hover:bg-[var(--accent-amber)]/20"
+            className="mt-4 inline-flex w-fit items-center gap-2 rounded border border-[#FFB800]/35 bg-[#FFB800]/10 px-3 py-1.5 text-xs font-medium text-[#FFD36A] hover:bg-[#FFB800]/20"
           >
             <RefreshCw className="size-3.5" />
             Retry
           </button>
         </div>
       ) : brief ? (
-        <div className="mt-4 flex flex-1 flex-col gap-4">
+        <div className="relative mt-4 flex flex-1 flex-col gap-4">
           {tone ? (
             <span
               className={`inline-flex w-fit items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${tone.className}`}
@@ -128,12 +129,12 @@ export function MarketBriefCard() {
 
           {brief.whatChanged.length > 0 ? (
             <div>
-              <p className="terminal-label mb-2">What changed (7d)</p>
+              <p className="terminal-label mb-2 text-[#8DEBFF]">What changed (7d)</p>
               <ul className="space-y-1.5 text-sm text-[var(--text-secondary)]">
                 {brief.whatChanged.map((item) => (
                   <li key={item} className="flex gap-2 leading-snug">
                     <span
-                      className="mt-2 size-1 shrink-0 rounded-full bg-[var(--accent-amber)]"
+                      className="mt-2 size-1 shrink-0 rounded-full bg-[#FFD36A]"
                       aria-hidden
                     />
                     <span>{item}</span>
@@ -145,12 +146,12 @@ export function MarketBriefCard() {
 
           {brief.watchList.length > 0 ? (
             <div>
-              <p className="terminal-label mb-2">Watch</p>
+              <p className="terminal-label mb-2 text-[#8DEBFF]">Watch</p>
               <ul className="space-y-1.5 text-sm text-[var(--text-secondary)]">
                 {brief.watchList.map((item) => (
                   <li key={item} className="flex gap-2 leading-snug">
                     <span
-                      className="mt-2 size-1 shrink-0 rounded-full bg-[var(--text-label)]"
+                      className="mt-2 size-1 shrink-0 rounded-full bg-[#8DEBFF]"
                       aria-hidden
                     />
                     <span>{item}</span>
@@ -160,19 +161,19 @@ export function MarketBriefCard() {
             </div>
           ) : null}
 
-          <p className="terminal-label mt-auto border-t border-[var(--border-panel)] pt-3">
+          <p className="terminal-label mt-auto border-t border-[#00D1FF]/15 pt-3 text-[#8DEBFF]">
             Generated {formatGeneratedAt(brief.generatedAt)}
           </p>
         </div>
       ) : (
-        <p className="mt-4 flex-1 text-sm text-[var(--text-secondary)]">
+        <p className="relative mt-4 flex-1 text-sm text-[var(--text-secondary)]">
           No brief available.
         </p>
       )}
 
       <Link
-        href="/dashboard/risk"
-        className="terminal-label mt-3 inline-flex items-center gap-1 text-[var(--accent-amber)] hover:underline"
+        href="/dashboard/risk-grade"
+        className="terminal-label relative mt-3 inline-flex items-center gap-1 text-[#8DEBFF] hover:underline"
       >
         Cross-asset risk matrix
         <ArrowUpRight className="size-3" />
