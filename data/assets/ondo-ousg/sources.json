@@ -96,8 +96,8 @@
     "sourceUrl": "https://app.rwa.xyz/protocols/ondo-finance",
     "sourceType": "market_aggregator",
     "reliability": 84,
-    "checkedBy": "manual",
-    "notes": "Reserve composition migrated from legacy reserve.md; should be refreshed before production publication because holdings can change."
+    "checkedBy": "manual_required",
+    "notes": "Legacy aggregator URL has returned 404 in source-health checks. Keep this field out of automatic URL reachability checks until a stable official or aggregator source is verified; refresh reserve composition manually before production publication because holdings can change."
   },
   {
     "layer": "reserve",
@@ -166,8 +166,8 @@
     "sourceUrl": "https://ondo.finance/terms-of-service",
     "sourceType": "terms_of_service",
     "reliability": 81,
-    "checkedBy": "manual",
-    "notes": "Migrated from legacy legal.md source table."
+    "checkedBy": "manual_required",
+    "notes": "Legacy terms-of-service URL has returned 404 in source-health checks. Keep this field out of automatic URL reachability checks until a current Ondo legal source is verified; blocked jurisdictions require manual legal review before production publication."
   },
   {
     "layer": "blockchain",
