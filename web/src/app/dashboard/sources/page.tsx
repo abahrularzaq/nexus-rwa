@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowUpRight,
+  BarChart3,
   Database,
   ExternalLink,
   FileSearch,
@@ -43,6 +44,20 @@ type SourceRow = {
 };
 
 type SourceRowWithTier = SourceRow & { tier: SourceTier };
+
+type SourceQualityRow = {
+  assetSlug: string;
+  totalSources: number;
+  tier1Count: number;
+  tier1Coverage: number;
+  manualReview: number;
+  broken: number;
+  healthy: number;
+  healthyCoverage: number;
+  avgReliability: number;
+  sourceScore: number;
+  quality: "Institutional" | "Strong" | "Developing" | "Weak";
+};
 
 type ApiResponse<T> =
   | { success: true; data: T }
@@ -206,6 +221,24 @@ function reliabilityLabel(score: number, isProAccess: boolean): string {
   return "Context";
 }
 
+function qualityClass(quality: SourceQualityRow["quality"]): string {
+  if (quality === "Institutional") return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
+  if (quality === "Strong") return "border-[#00D1FF]/30 bg-[#00D1FF]/10 text-[#7BE8FF]";
+  if (quality === "Developing") return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
+  return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
+}
+
+function clampScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function sourceQualityLabel(score: number): SourceQualityRow["quality"] {
+  if (score >= 90) return "Institutional";
+  if (score >= 80) return "Strong";
+  if (score >= 65) return "Developing";
+  return "Weak";
+}
+
 function normalizeRows(rows: Array<Record<string, unknown>>): SourceRow[] {
   return rows
     .map<SourceRow>((row) => ({
@@ -226,6 +259,44 @@ function normalizeRows(rows: Array<Record<string, unknown>>): SourceRow[] {
       httpStatus: typeof row.httpStatus === "number" ? row.httpStatus : null,
     }))
     .filter((row) => row.sourceUrl.startsWith("http"));
+}
+
+function buildSourceQuality(rows: SourceRowWithTier[]): SourceQualityRow[] {
+  const grouped = rows.reduce<Map<string, SourceRowWithTier[]>>((acc, row) => {
+    const existing = acc.get(row.assetSlug) ?? [];
+    existing.push(row);
+    acc.set(row.assetSlug, existing);
+    return acc;
+  }, new Map());
+
+  return Array.from(grouped.entries())
+    .map(([assetSlug, assetRows]) => {
+      const totalSources = assetRows.length;
+      const tier1Count = assetRows.filter((row) => row.tier === "Tier 1").length;
+      const manualReview = assetRows.filter((row) => row.status === "manual_required" || row.checkedBy === "manual_required").length;
+      const broken = assetRows.filter((row) => ["broken", "error", "timeout"].includes(row.status)).length;
+      const healthy = assetRows.filter((row) => ["healthy", "redirected"].includes(row.status)).length;
+      const avgReliability = totalSources > 0 ? Math.round(assetRows.reduce((sum, row) => sum + row.reliability, 0) / totalSources) : 0;
+      const tier1Coverage = totalSources > 0 ? Math.round((tier1Count / totalSources) * 100) : 0;
+      const healthyCoverage = totalSources > 0 ? Math.round((healthy / totalSources) * 100) : 0;
+      const penalty = manualReview * 2 + broken * 6;
+      const sourceScore = clampScore(avgReliability * 0.5 + tier1Coverage * 0.3 + healthyCoverage * 0.2 - penalty);
+
+      return {
+        assetSlug,
+        totalSources,
+        tier1Count,
+        tier1Coverage,
+        manualReview,
+        broken,
+        healthy,
+        healthyCoverage,
+        avgReliability,
+        sourceScore,
+        quality: sourceQualityLabel(sourceScore),
+      };
+    })
+    .sort((a, b) => b.sourceScore - a.sourceScore || b.totalSources - a.totalSources || a.assetSlug.localeCompare(b.assetSlug));
 }
 
 function isPaidTier(tier: AccessTier | "free"): boolean {
@@ -319,6 +390,8 @@ export default function SourcesPage() {
   }, [checkAccess]);
 
   const rowsWithTier = useMemo<SourceRowWithTier[]>(() => rows.map((row) => ({ ...row, tier: getTier(row) })), [rows]);
+  const sourceQualityRows = useMemo(() => buildSourceQuality(rowsWithTier), [rowsWithTier]);
+  const topSourceQuality = sourceQualityRows[0];
 
   const selectedUnlockSlug = useMemo(() => assetSlug || rowsWithTier[0]?.assetSlug || DEFAULT_UNLOCK_SLUG, [assetSlug, rowsWithTier]);
 
@@ -494,6 +567,77 @@ export default function SourcesPage() {
           <p className="terminal-label mb-2">Avg Reliability</p>
           <div className="terminal-data text-2xl font-semibold text-white">{isProAccess ? avgReliability : `${Math.round(avgReliability / 10) * 10}s`}</div>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">{isProAccess ? "Exact evidence score" : "Rounded public band"}</p>
+        </div>
+      </section>
+
+      <section className="terminal-panel p-5">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="terminal-label">Phase 3</p>
+            <h2 className="mt-1 text-base font-semibold text-white">Source Quality per Asset</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              Asset-level evidence quality summary built from field-level sources, tier coverage, health status, manual review, and reliability.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <BarChart3 className="size-4 text-[var(--accent-cyan)]" />
+            {sourceQualityRows.length} assets scored
+          </div>
+        </div>
+
+        <div className="mb-4 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-4">
+            <p className="terminal-label mb-2">Top Source Quality</p>
+            <div className="terminal-data text-xl font-semibold text-white">{topSourceQuality?.assetSlug ?? "—"}</div>
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">Score {isProAccess ? topSourceQuality?.sourceScore ?? "—" : topSourceQuality ? `${Math.round(topSourceQuality.sourceScore / 10) * 10}s` : "—"}</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-4">
+            <p className="terminal-label mb-2">Assets with Manual Review</p>
+            <div className="terminal-data text-xl font-semibold text-white">{sourceQualityRows.filter((row) => row.manualReview > 0).length}</div>
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">Requires human evidence verification</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-4">
+            <p className="terminal-label mb-2">Assets with Broken Sources</p>
+            <div className="terminal-data text-xl font-semibold text-white">{sourceQualityRows.filter((row) => row.broken > 0).length}</div>
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">Broken, timeout, or error status</p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-[var(--border-line)]">
+          <table className="w-full min-w-[1050px] text-left text-sm">
+            <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+              <tr>
+                <th className="px-4 py-3 font-medium">Asset</th>
+                <th className="px-4 py-3 font-medium">Sources</th>
+                <th className="px-4 py-3 font-medium">Tier 1</th>
+                <th className="px-4 py-3 font-medium">Healthy</th>
+                <th className="px-4 py-3 font-medium">Manual</th>
+                <th className="px-4 py-3 font-medium">Broken</th>
+                <th className="px-4 py-3 font-medium">Avg Reliability</th>
+                <th className="px-4 py-3 font-medium">Source Score</th>
+                <th className="px-4 py-3 font-medium">Quality</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sourceQualityRows.map((row) => (
+                <tr key={row.assetSlug} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
+                  <td className="px-4 py-3">
+                    <button type="button" onClick={() => setAssetSlug(row.assetSlug)} className="terminal-data text-left text-white hover:text-[var(--accent-cyan)]">
+                      {row.assetSlug}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.totalSources}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.tier1Coverage}%</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.healthyCoverage}%</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.manualReview}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.broken}</td>
+                  <td className="px-4 py-3 text-white">{isProAccess ? row.avgReliability : reliabilityLabel(row.avgReliability, false)}</td>
+                  <td className="px-4 py-3 text-white">{isProAccess ? row.sourceScore : `${Math.round(row.sourceScore / 10) * 10}s`}</td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${qualityClass(row.quality)}`}>{row.quality}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
