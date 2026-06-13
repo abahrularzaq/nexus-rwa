@@ -1,0 +1,48 @@
+{
+  "issuerName": "Anemoy Capital / Janus Henderson",
+  "issuerType": "Tokenized fund sponsor / investment manager relationship; exact token issuer entity not yet verified",
+  "issuerCountry": null,
+  "fundManager": "Janus Henderson Investors",
+  "legalStructure": "Public evidence confirms Janus Henderson's JAAA strategy is an actively managed AAA CLO ETF and that Janus Henderson planned to assume day-to-day management of Anemoy's on-chain Liquid Treasury Fund. However, a public official document specifically defining Janus Henderson Anemoy JAAA's token issuer, fund domicile, shareholder rights, and legal wrapper was not found during this pass.",
+  "minimumInvestment": null,
+  "managementFee": null,
+  "performanceFee": null,
+  "fundAdmin": null,
+  "transferAgent": null,
+  "targetInvestors": "Likely professional or permissioned investors, but token-specific eligibility is not verified from official documents.",
+  "prospectuUrl": null,
+  "metadata": {
+    "classification": {
+      "assetClass": "tokenized_fund",
+      "instrumentType": "fund_share_token",
+      "claimType": "fund_share_claim",
+      "gradingProfile": "asset_backed",
+      "publicSegment": "RWA Assets",
+      "reserveApplicability": "available",
+      "custodyApplicability": "missing",
+      "redemptionApplicability": "missing",
+      "proofOfReservesApplicability": "missing",
+      "classificationNote": "JAAA is classified as a tokenized fund-share style RWA exposure because the user-specified asset references Janus Henderson, Anemoy, and the JAAA fund identity. Asset-backed grading is appropriate, but custody, redemption, contract, and legal wrapper evidence must be verified before institutional grading."
+    },
+    "assetClass": "tokenized_fund",
+    "instrumentType": "fund_share_token",
+    "claimType": "fund_share_claim",
+    "gradingProfile": "asset_backed",
+    "publicSegment": "RWA Assets",
+    "relatedTraditionalFund": "Janus Henderson AAA CLO ETF",
+    "relatedTraditionalTicker": "JAAA",
+    "underlyingExposure": "AAA-rated collateralized loan obligations / structured credit",
+    "tokenSpecificLegalDocsStatus": "missing",
+    "contractVerificationStatus": "missing"
+  },
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "secondary-confirmed; official-token-docs-missing",
+    "confidence": "medium-low",
+    "freshnessStatus": "needs-refresh",
+    "status": "classification-baseline",
+    "notes": "Classification intentionally conservative; official token documents should override this baseline if they identify a different legal wrapper or claim type."
+  }
+}
