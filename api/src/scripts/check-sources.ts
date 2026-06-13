@@ -7,6 +7,8 @@ const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_CONCURRENCY = 8;
 
+const AUTO_SKIP_CHECKED_BY = new Set(['manual_required', 'manual-review-required']);
+
 type Options = {
   slug: string | null;
   concurrency: number;
@@ -21,6 +23,7 @@ type SourceItem = {
   sourceUrl: string;
   sourceType?: string | null;
   reliability?: number | null;
+  checkedBy?: string | null;
 };
 
 type SourceJob = SourceItem & {
@@ -68,6 +71,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function normalizeCheckedBy(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  return value.trim().toLowerCase().replace(/\s+/g, '_');
+}
+
+function shouldAutoCheckSource(item: SourceItem): boolean {
+  if (!item.sourceUrl.startsWith('http')) return false;
+  if (item.checkedBy && AUTO_SKIP_CHECKED_BY.has(item.checkedBy)) return false;
+  return true;
+}
+
 function readSources(assetSlug: string): SourceItem[] {
   const filePath = path.join(ASSETS_DIR, assetSlug, 'sources.json');
   if (!fs.existsSync(filePath)) return [];
@@ -85,8 +99,9 @@ function readSources(assetSlug: string): SourceItem[] {
       sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : '',
       sourceType: typeof item.sourceType === 'string' ? item.sourceType : null,
       reliability: typeof item.reliability === 'number' ? item.reliability : null,
+      checkedBy: normalizeCheckedBy(item.checkedBy),
     }))
-    .filter((item) => item.sourceUrl.startsWith('http'));
+    .filter(shouldAutoCheckSource);
 }
 
 function buildJobs(assetSlugs: string[]): SourceJob[] {
@@ -154,6 +169,34 @@ async function checkUrl(job: SourceJob, timeoutMs: number): Promise<SourceCheckR
   }
 }
 
+function buildReviewReason(result: SourceCheckResult): string {
+  return `Source URL issue for ${result.layer}.${result.field ?? 'unknown'}: ${result.sourceUrl} (${result.status}${result.httpStatus ? ` ${result.httpStatus}` : ''})`;
+}
+
+async function createReviewTaskIfMissing(result: SourceCheckResult): Promise<void> {
+  const reason = buildReviewReason(result);
+  const existingOpenTask = await db.reviewTask.findFirst({
+    where: {
+      assetSlug: result.assetSlug,
+      layer: result.layer,
+      reason,
+      status: 'open',
+    },
+  });
+
+  if (existingOpenTask) return;
+
+  await db.reviewTask.create({
+    data: {
+      assetSlug: result.assetSlug,
+      layer: result.layer,
+      priority: result.status === 'broken' ? 'high' : 'medium',
+      reason,
+      status: 'open',
+    },
+  });
+}
+
 async function saveSourceResult(result: SourceCheckResult): Promise<void> {
   await db.sourceHealth.create({
     data: {
@@ -171,15 +214,7 @@ async function saveSourceResult(result: SourceCheckResult): Promise<void> {
   });
 
   if (result.status !== 'healthy' && result.status !== 'redirected') {
-    await db.reviewTask.create({
-      data: {
-        assetSlug: result.assetSlug,
-        layer: result.layer,
-        priority: result.status === 'broken' ? 'high' : 'medium',
-        reason: `Source URL issue for ${result.layer}.${result.field ?? 'unknown'}: ${result.sourceUrl} (${result.status}${result.httpStatus ? ` ${result.httpStatus}` : ''})`,
-        status: 'open',
-      },
-    });
+    await createReviewTaskIfMissing(result);
   }
 }
 
