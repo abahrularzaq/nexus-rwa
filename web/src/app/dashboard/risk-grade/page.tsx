@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   FileSearch,
   GitBranch,
-  Layers,
   Scale,
   ShieldAlert,
   ShieldCheck,
@@ -56,12 +55,6 @@ type BlockerSummary = {
   label: string;
   count: number;
 };
-
-function fmtChange7d(change7d: number): string {
-  const pct = change7d * 100;
-  const sign = pct >= 0 ? "+" : "";
-  return `${sign}${pct.toFixed(2)}%`;
-}
 
 function toBadgeLevel(
   level: string,
@@ -158,7 +151,7 @@ function assetBlockers(asset: AssetSummary): string[] {
   if (!hasUsefulNumber(asset.holderCount)) blockers.push("Holder data missing");
   if (!isFresh(asset)) blockers.push("Stale evidence");
 
-  return blockers.length ? blockers : ["No major blocker" ];
+  return blockers.length ? blockers : ["No major blocker"];
 }
 
 function keyBlocker(asset: AssetSummary): string {
