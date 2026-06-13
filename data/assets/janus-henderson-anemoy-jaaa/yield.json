@@ -1,0 +1,25 @@
+{
+  "currentYield": null,
+  "yieldType": "Floating-rate CLO income / fund distribution; token-specific yield not verified",
+  "yieldFrequency": null,
+  "yieldBenchmark": "SOFR / AAA CLO spreads",
+  "yieldVsBenchmark": null,
+  "yieldAvg7d": null,
+  "yieldAvg30d": null,
+  "yieldAvg90d": null,
+  "yieldMin52w": null,
+  "yieldMax52w": null,
+  "yieldStdDev30d": null,
+  "nextYieldDate": null,
+  "yieldCurrency": "USD",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 14,
+    "sourceTier": "secondary-confirmed; official-token-yield-missing",
+    "confidence": "low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "Do not use the traditional JAAA ETF yield as token yield unless official Anemoy/JHA documents confirm exact pass-through and fee mechanics."
+  }
+}
