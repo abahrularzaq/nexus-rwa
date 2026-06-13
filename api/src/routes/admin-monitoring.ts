@@ -57,6 +57,11 @@ function normalizeCheckedBy(value: unknown): string | null {
   return value.trim().toLowerCase().replace(/\s+/g, '_');
 }
 
+function isManualRequired(value: unknown): boolean {
+  const checkedBy = normalizeCheckedBy(value);
+  return Boolean(checkedBy && MANUAL_REQUIRED_CHECKED_BY.has(checkedBy));
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -110,6 +115,49 @@ function uniqueLatestSourceRows<T extends SourceHealthRow>(rows: T[]): T[] {
   }
 
   return [...unique.values()];
+}
+
+function latestHealthMap(rows: SourceHealthRow[]): Map<string, SourceHealthRow> {
+  const latest = new Map<string, SourceHealthRow>();
+
+  for (const row of rows) {
+    const key = `${row.assetSlug}::${row.layer}::${row.field ?? ''}::${row.url}`;
+    if (!latest.has(key)) latest.set(key, row);
+  }
+
+  return latest;
+}
+
+function sourceTier(sourceType: string | null, sourceUrl: string): 'Tier 1' | 'Tier 2' | 'Tier 3' {
+  const type = (sourceType ?? '').toLowerCase();
+  const url = sourceUrl.toLowerCase();
+
+  if (
+    type.includes('official') ||
+    type.includes('legal') ||
+    type.includes('terms') ||
+    type.includes('transparency') ||
+    type.includes('audit') ||
+    type.includes('sec') ||
+    type.includes('block_explorer') ||
+    url.includes('etherscan.io') ||
+    url.includes('sec.gov')
+  ) {
+    return 'Tier 1';
+  }
+
+  if (
+    type.includes('market') ||
+    type.includes('aggregator') ||
+    url.includes('rwa.xyz') ||
+    url.includes('defillama') ||
+    url.includes('coingecko') ||
+    url.includes('coinmarketcap')
+  ) {
+    return 'Tier 2';
+  }
+
+  return 'Tier 3';
 }
 
 function internalError(c: any, err: unknown, fallback: string) {
@@ -183,6 +231,62 @@ adminMonitoringRouter.get('/overview', async (c) => {
     });
   } catch (err) {
     return internalError(c, err, 'Monitoring overview failed');
+  }
+});
+
+adminMonitoringRouter.get('/sources', async (c) => {
+  try {
+    const query = parseQuery(c);
+    const [sources, healthRows] = await Promise.all([
+      db.assetSource.findMany({
+        where: {
+          ...(query.assetSlug ? { asset: { slug: query.assetSlug } } : {}),
+        },
+        orderBy: { checkedAt: 'desc' },
+        take: 5000,
+        include: { asset: { select: { slug: true } } },
+      }),
+      db.sourceHealth.findMany({
+        where: {
+          ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
+        },
+        orderBy: { lastCheckedAt: 'desc' },
+        take: 10000,
+        select: { status: true, assetSlug: true, layer: true, field: true, url: true, httpStatus: true, errorMessage: true, lastCheckedAt: true },
+      }),
+    ]);
+
+    const latest = latestHealthMap(healthRows);
+    const rows = sources.map((source) => {
+      const assetSlug = source.asset.slug;
+      const key = `${assetSlug}::${source.layer}::${source.field ?? ''}::${source.sourceUrl}`;
+      const health = latest.get(key);
+      const manualRequired = isManualRequired(source.checkedBy);
+
+      return {
+        id: source.id,
+        assetSlug,
+        layer: source.layer,
+        field: source.field,
+        value: source.value,
+        sourceUrl: source.sourceUrl,
+        sourceType: source.sourceType,
+        tier: sourceTier(source.sourceType, source.sourceUrl),
+        reliability: source.reliability,
+        checkedBy: source.checkedBy ?? null,
+        checkedAt: source.checkedAt,
+        status: manualRequired ? 'manual_required' : health?.status ?? 'unchecked',
+        httpStatus: health?.httpStatus ?? null,
+        errorMessage: health?.errorMessage ?? null,
+        lastCheckedAt: health?.lastCheckedAt ?? source.checkedAt,
+        notes: source.notes ?? null,
+      };
+    });
+
+    const filtered = query.status ? rows.filter((row) => row.status === query.status) : rows;
+    return c.json({ success: true, data: filtered.slice(0, query.limit) });
+  } catch (err) {
+    return internalError(c, err, 'Source evidence library query failed');
   }
 });
 
