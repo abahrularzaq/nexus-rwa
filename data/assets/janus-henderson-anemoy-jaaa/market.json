@@ -1,0 +1,30 @@
+{
+  "tvl": null,
+  "tvl7dChange": null,
+  "tvl30dChange": null,
+  "price": null,
+  "priceChange24h": null,
+  "marketCap": null,
+  "volume24h": null,
+  "circulatingSupply": null,
+  "totalSupply": null,
+  "holderCount": null,
+  "holderChange7d": null,
+  "aumUsd": null,
+  "lastUpdated": "2026-06-13",
+  "sources": [
+    "https://www.reuters.com/business/fidelity-joins-roster-firms-offering-collateralized-loan-obligations-etfs-2026-02-12/",
+    "https://www.ft.com/content/648f2249-5783-4e98-8412-4056f56ad1b0"
+  ],
+  "confidence": "low",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 14,
+    "sourceTier": "secondary-confirmed; official-token-market-data-missing",
+    "confidence": "low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "Reuters reported the traditional Janus Henderson JAAA ETF at 26.85B USD assets in February 2026, but token-specific AUM/TVL for Janus Henderson Anemoy JAAA was not verified and is therefore left null."
+  }
+}
