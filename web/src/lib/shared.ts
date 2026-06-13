@@ -124,6 +124,32 @@ export interface AssetDataMeta {
   methodology: string;
 }
 
+export type AssetGradeBand = 'research' | 'analytics' | 'institutional' | string;
+
+export interface AssetGradeSummary {
+  grade: AssetGradeBand;
+  score: number;
+  completenessScore: number;
+  sourceScore: number;
+  legalScore: number;
+  reserveScore: number | null;
+  liquidityScore: number;
+  riskScore: number;
+  blockers: string[];
+  warnings: string[];
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  updatedAt?: string | null;
+  gradingProfile?: string | null;
+  assetClass?: string | null;
+  instrumentType?: string | null;
+  claimType?: string | null;
+  publicSegment?: string | null;
+  gradeContext?: string | null;
+  profileScores?: Record<string, number | null>;
+  applicability?: Record<string, string>;
+}
+
 export interface AssetSummary {
   id: string;
   name: string;
@@ -133,7 +159,10 @@ export interface AssetSummary {
   chain?: Chain;
   tvl: number;
   yieldRate: number;
+  /** Risk level used for heatmaps and risk badges. */
   riskScore: RiskLevel;
+  /** Numeric grading output from AssetGrade / grade-baseline; independent from risk level. */
+  grade?: AssetGradeSummary | null;
   change7d: number;
   holderCount?: number;
   _meta: AssetDataMeta;
@@ -258,74 +287,28 @@ export const PAGINATION = {
 export const API_VERSION = 'v1' as const;
 
 export const NETWORKS = {
-  MAINNET: 'base',
-  TESTNET: 'base-sepolia',
-} as const;
-
-export const USDC_BASE_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-
-export const ERROR_CODES = {
-  ASSET_NOT_FOUND: 'ASSET_NOT_FOUND',
-  INVALID_PARAMS: 'INVALID_PARAMS',
-  PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
-  PAYMENT_INVALID: 'PAYMENT_INVALID',
-  RATE_LIMITED: 'RATE_LIMITED',
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-  DATA_NOT_AVAILABLE: 'DATA_NOT_AVAILABLE',
+  ETHEREUM: 'ethereum',
+  BASE: 'base',
+  POLYGON: 'polygon',
+  ARBITRUM: 'arbitrum',
 } as const;
 
 // ============================================
-// UTILS (Web Crypto — aman di client & server Next.js)
+// UTILS
 // ============================================
 
-function randomRequestIdSuffix(): string {
-  const c = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
-  if (c && typeof c.randomUUID === 'function') {
-    return c.randomUUID().replace(/-/g, '').slice(0, 20);
-  }
-  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`.replace(/-/g, '').slice(0, 20);
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
-export function createMeta(cached = false): ResponseMeta {
-  return {
-    timestamp: new Date().toISOString(),
-    requestId: `req_${randomRequestIdSuffix()}`,
-    cached,
-  };
+export function formatPercentage(value: number): string {
+  return `${value.toFixed(2)}%`;
 }
 
-export function paginate<T>(
-  data: T[],
-  total: number,
-  params: PaginationParams
-): PaginatedResponse<T> {
-  const totalPages = Math.ceil(total / params.limit);
-  return {
-    data,
-    pagination: {
-      page: params.page,
-      limit: params.limit,
-      total,
-      totalPages,
-      hasNext: params.page < totalPages,
-      hasPrev: params.page > 1,
-    },
-  };
-}
-
-export function formatLargeNumber(num: number | null | undefined): string {
-  if (num == null || !Number.isFinite(num)) return "0";
-  if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(1)}B`;
-  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
-  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-  return num.toString();
-}
-
-export function formatYield(rate: number): string {
-  return `${rate.toFixed(2)}%`;
-}
-
-export function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+export function formatYield(value: number): string {
+  return `${value.toFixed(2)}%`;
 }
