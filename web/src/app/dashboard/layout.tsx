@@ -46,7 +46,7 @@ const navItems = [
     exact: false,
   },
   {
-    label: "Layers",
+    label: "Data Layers",
     href: "/dashboard/layers",
     icon: Database,
     exact: false,
@@ -83,6 +83,18 @@ const navItems = [
   },
 ] as const;
 
+const breadcrumbLabels: Record<string, string> = {
+  dashboard: "Dashboard",
+  layers: "Data Layers",
+  assets: "Assets",
+  screener: "Screener",
+  market: "Market",
+  "risk-grade": "Risk & Grade",
+  sources: "Sources",
+  monitoring: "Monitoring",
+  "api-docs": "API Docs",
+};
+
 function normalizePath(path: string) {
   if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
   return path;
@@ -102,12 +114,11 @@ function breadcrumbsFromPathname(pathname: string) {
   for (const seg of segments) {
     acc += `/${seg}`;
     const label =
-      seg === "dashboard"
-        ? "Dashboard"
-        : seg
-            .split("-")
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" ");
+      breadcrumbLabels[seg] ??
+      seg
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
     items.push({ label, href: acc });
   }
   return items;
