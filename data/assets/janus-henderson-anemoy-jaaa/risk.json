@@ -1,0 +1,36 @@
+{
+  "overallScore": 54,
+  "overallLevel": "MEDIUM-HIGH",
+  "smartContractRisk": 35,
+  "counterpartyRisk": 58,
+  "liquidityRisk": 35,
+  "regulatoryRisk": 55,
+  "marketRisk": 60,
+  "concentrationRisk": 45,
+  "riskFactors": [
+    "Token-specific contract address, chain deployment, source-code verification, and transfer restriction details were not verified from official sources.",
+    "Token-specific legal wrapper, issuer entity, custody chain, redemption terms, and investor eligibility were not found in official public documents during this pass.",
+    "The related JAAA strategy is exposed to structured credit / CLO market risks, including credit spread widening, underlying loan default stress, valuation opacity, and ETF discount/premium dislocation under stress.",
+    "Traditional JAAA ETF AUM and liquidity should not be treated as token-specific TVL, token liquidity, or direct redemption depth without official Anemoy/JHA confirmation.",
+    "No on-chain proof-of-reserves oracle, reserve attestation, or token-specific portfolio reporting URL was verified."
+  ],
+  "mitigants": [
+    "Janus Henderson is an established global asset manager and JAAA is a known AAA CLO ETF franchise in traditional markets.",
+    "Secondary market reporting confirms that Janus Henderson's JAAA ETF is large and has meaningful adoption in the CLO ETF market.",
+    "Public reporting confirms Janus Henderson has engaged with Anemoy on tokenized fund structures, supporting the plausibility of an on-chain RWA product relationship.",
+    "AAA CLO exposure is higher in the capital structure than junior CLO tranches, although it still carries structured credit and liquidity risks.",
+    "The asset is kept at research baseline with explicit blockers rather than being forced into analytic or institutional grade."
+  ],
+  "lastAssessed": "2026-06-13",
+  "assessmentMethod": "ai-assisted manual research; conservative evidence-based baseline",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "secondary-confirmed; official-token-docs-missing",
+    "confidence": "low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "Risk score should be recalculated after official token docs, contract, custody, redemption and market data are verified."
+  }
+}
