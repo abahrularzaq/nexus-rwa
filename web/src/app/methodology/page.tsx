@@ -1,66 +1,30 @@
 import Link from "next/link";
 import { HexLogo } from "@/components/landing/primitives";
 
-const dataLayers = [
+const workflow = [
   {
-    title: "Identity",
+    step: "01",
+    title: "Collect verified RWA data",
     description:
-      "Defines the asset name, symbol, category, issuer reference, official website, and core public identity.",
+      "Nexus RWA starts from issuer pages, regulatory filings, fund documents, attestations, blockchain explorers, and trusted market references.",
   },
   {
-    title: "Blockchain",
+    step: "02",
+    title: "Validate sources",
     description:
-      "Tracks chain deployment, token contracts, explorer links, transfer model, and on-chain verification status.",
+      "Official and primary sources are prioritized. Missing or unverifiable claims are not forced into the dataset.",
   },
   {
-    title: "Reserve",
+    step: "03",
+    title: "Score risk and readiness",
     description:
-      "Reviews backing assets, custody, audit evidence, proof-of-reserves status, collateral details, and redemption asset.",
+      "Reserve quality, legal structure, compliance signals, liquidity, market data, and source credibility are reviewed together.",
   },
   {
-    title: "Institutional",
+    step: "04",
+    title: "Publish transparent grades",
     description:
-      "Maps issuer structure, fund vehicle, service providers, target investors, fee model, and operating framework.",
-  },
-  {
-    title: "Compliance",
-    description:
-      "Captures KYC, investor eligibility, sanctions screening, jurisdiction, transfer restrictions, and regulatory disclosures.",
-  },
-  {
-    title: "Market",
-    description:
-      "Measures asset scale, TVL, AUM, price, volume, supply, holder count, and market adoption indicators.",
-  },
-  {
-    title: "Yield",
-    description:
-      "Reviews reported yield, benchmark context, distribution schedule, yield type, history, and stability indicators.",
-  },
-  {
-    title: "Liquidity",
-    description:
-      "Evaluates redemption period, lock-up, minimum redemption, exit channels, DEX liquidity, and practical exit quality.",
-  },
-  {
-    title: "Risk",
-    description:
-      "Consolidates smart contract, reserve, legal, market, liquidity, concentration, and operational risk signals.",
-  },
-  {
-    title: "Sources",
-    description:
-      "Creates an audit trail of official sources, secondary sources, reliability tier, freshness, and known data gaps.",
-  },
-  {
-    title: "Grading",
-    description:
-      "Translates evidence quality and risk signals into research, analytics, or institutional-grade readiness.",
-  },
-  {
-    title: "Review",
-    description:
-      "Records blockers, warnings, next actions, baseline date, and production-readiness review notes.",
+      "Each asset receives a research, analytics, or institutional-grade baseline with warnings, blockers, and review notes.",
   },
 ];
 
@@ -68,22 +32,22 @@ const principles = [
   {
     title: "Evidence first",
     description:
-      "Every non-null field should be supported by a traceable source. Official issuer, regulator, audit, filing, and explorer sources are preferred.",
+      "Every meaningful claim should be traceable. Official issuer, regulator, audit, filing, and explorer sources are preferred.",
   },
   {
     title: "No unsupported assumptions",
     description:
-      "Missing or unverifiable data should remain null instead of being estimated. This protects the dataset from false precision.",
+      "Missing or unverifiable data stays empty instead of being estimated. This keeps the platform away from false precision.",
   },
   {
     title: "Source quality matters",
     description:
-      "Official documents and primary sources carry more weight than aggregators or media references. Aggregators are useful, but not treated as final authority.",
+      "Aggregators are useful, but they are not treated as final authority when official documents are available.",
   },
   {
     title: "Risk is contextual",
     description:
-      "A high TVL or strong yield does not automatically mean institutional quality. Legal clarity, reserves, liquidity, and source credibility matter together.",
+      "A high TVL or attractive yield does not automatically mean institutional quality. Reserves, liquidity, legal clarity, and source quality matter together.",
   },
 ];
 
@@ -133,17 +97,17 @@ export default function MethodologyPage() {
           </div>
 
           <h1 className="mt-5 max-w-4xl text-4xl font-extrabold tracking-tight text-gradient md:text-6xl">
-            How Nexus RWA Evaluates Real World Assets
+            How Nexus RWA Works
           </h1>
 
           <p className="mt-5 max-w-3xl text-base leading-relaxed md:text-lg" style={{ color: "var(--text-secondary)" }}>
-            Nexus RWA uses a structured, evidence-based methodology to transform fragmented RWA information into comparable asset intelligence across reserves, compliance, liquidity, yield, risk, and source credibility.
+            Nexus RWA turns fragmented real-world asset information into comparable intelligence by collecting evidence, validating sources, scoring risk, and publishing transparent asset grades.
           </p>
         </header>
 
         <section className="mt-10 grid gap-4 md:grid-cols-3">
           {[
-            { value: "12", label: "Data Layers" },
+            { value: "4", label: "Method Steps" },
             { value: "3", label: "Grade Levels" },
             { value: "0", label: "Guesswork Policy" },
           ].map((item) => (
@@ -161,6 +125,43 @@ export default function MethodologyPage() {
               </div>
             </div>
           ))}
+        </section>
+
+        <section className="mt-14">
+          <div className="mb-6">
+            <h2 className="text-2xl font-extrabold text-white">From verified sources to transparent RWA grades</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              The public methodology explains the evaluation flow at a high level. The dashboard contains the operational data-layer architecture for deeper review.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {workflow.map((item) => (
+              <article
+                key={item.step}
+                className="rounded-2xl p-6"
+                style={{
+                  background: "rgba(15,22,41,0.62)",
+                  border: "1px solid var(--border-line)",
+                }}
+              >
+                <span
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold"
+                  style={{
+                    background: "rgba(0,212,255,0.1)",
+                    color: "var(--accent-cyan)",
+                    border: "1px solid rgba(0,212,255,0.25)",
+                  }}
+                >
+                  {item.step}
+                </span>
+                <h3 className="mt-5 text-lg font-bold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                  {item.description}
+                </p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="mt-14">
@@ -184,45 +185,6 @@ export default function MethodologyPage() {
                 <h3 className="text-lg font-bold text-white">{principle.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                   {principle.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-14">
-          <div className="mb-6">
-            <h2 className="text-2xl font-extrabold text-white">12-Layer Asset Review</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              Each RWA asset is reviewed as a layered dataset, not only as a token price or yield product.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {dataLayers.map((layer, index) => (
-              <article
-                key={layer.title}
-                className="rounded-2xl p-5"
-                style={{
-                  background: "rgba(15,22,41,0.62)",
-                  border: "1px solid var(--border-line)",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold"
-                    style={{
-                      background: "rgba(0,212,255,0.1)",
-                      color: "var(--accent-cyan)",
-                      border: "1px solid rgba(0,212,255,0.25)",
-                    }}
-                  >
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="text-lg font-bold text-white">{layer.title}</h3>
-                </div>
-                <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                  {layer.description}
                 </p>
               </article>
             ))}
@@ -281,14 +243,14 @@ export default function MethodologyPage() {
               Explore Dashboard →
             </Link>
             <Link
-              href="/glossary"
+              href="/dashboard/layers"
               className="w-fit rounded-[10px] px-6 py-3 text-sm font-semibold"
               style={{
                 border: "1px solid rgba(0,212,255,0.4)",
                 color: "var(--accent-cyan)",
               }}
             >
-              View Field Glossary
+              View Data Layers
             </Link>
           </div>
         </section>
