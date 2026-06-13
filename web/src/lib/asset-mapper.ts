@@ -1,4 +1,10 @@
-import type { AssetCategory, AssetDataMeta, AssetSummary, RiskLevel } from "@/lib/shared";
+import type {
+  AssetCategory,
+  AssetDataMeta,
+  AssetGradeSummary,
+  AssetSummary,
+  RiskLevel,
+} from "@/lib/shared";
 import type { AssetClassification, AssetListItem, AssetWithLayers } from "@/types/asset";
 
 const CATEGORY_MAP: Record<string, AssetCategory> = {
@@ -60,13 +66,8 @@ function buildMeta(market?: AssetWithLayers["market"]): AssetDataMeta {
 
 /** Detect 12-layer API payload (not legacy flat / snapshot detail). */
 export function isLayeredAsset(raw: Record<string, unknown>): boolean {
-  if (raw.snapshot != null && typeof raw.snapshot === "object") {
-    return false;
-  }
-  return (
-    typeof raw.slug === "string" &&
-    (raw.identity != null || raw.market != null)
-  );
+  if (raw.snapshot != null && typeof raw.snapshot === "object") return false;
+  return typeof raw.slug === "string" && (raw.identity != null || raw.market != null);
 }
 
 function parseOptionalNumber(val: unknown): number | null {
@@ -175,20 +176,15 @@ function parseRisk(raw: unknown): AssetWithLayers["risk"] {
   return {
     overallScore: typeof o.overallScore === "number" ? o.overallScore : null,
     overallLevel: o.overallLevel != null ? String(o.overallLevel) : null,
-    smartContractRisk:
-      typeof o.smartContractRisk === "number" ? o.smartContractRisk : null,
-    counterpartyRisk:
-      typeof o.counterpartyRisk === "number" ? o.counterpartyRisk : null,
+    smartContractRisk: typeof o.smartContractRisk === "number" ? o.smartContractRisk : null,
+    counterpartyRisk: typeof o.counterpartyRisk === "number" ? o.counterpartyRisk : null,
     liquidityRisk: typeof o.liquidityRisk === "number" ? o.liquidityRisk : null,
-    regulatoryRisk:
-      typeof o.regulatoryRisk === "number" ? o.regulatoryRisk : null,
+    regulatoryRisk: typeof o.regulatoryRisk === "number" ? o.regulatoryRisk : null,
     marketRisk: typeof o.marketRisk === "number" ? o.marketRisk : null,
-    concentrationRisk:
-      typeof o.concentrationRisk === "number" ? o.concentrationRisk : null,
+    concentrationRisk: typeof o.concentrationRisk === "number" ? o.concentrationRisk : null,
     riskFactors: stringArray(o.riskFactors),
     mitigants: stringArray(o.mitigants),
-    assessmentMethod:
-      o.assessmentMethod != null ? String(o.assessmentMethod) : null,
+    assessmentMethod: o.assessmentMethod != null ? String(o.assessmentMethod) : null,
     lastAssessed: o.lastAssessed != null ? String(o.lastAssessed) : null,
   };
 }
@@ -202,8 +198,7 @@ function parseYield(raw: unknown): AssetWithLayers["yield"] {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const current =
-    parseOptionalNumber(o.currentYield) ??
-    parseYieldFromRate(parseOptionalNumber(o.yieldRate));
+    parseOptionalNumber(o.currentYield) ?? parseYieldFromRate(parseOptionalNumber(o.yieldRate));
   return {
     currentYield: current,
     yieldType: o.yieldType != null ? String(o.yieldType) : null,
@@ -212,10 +207,8 @@ function parseYield(raw: unknown): AssetWithLayers["yield"] {
     yieldMin52w: parseOptionalNumber(o.yieldMin52w),
     yieldMax52w: parseOptionalNumber(o.yieldMax52w),
     yieldBenchmark: o.yieldBenchmark != null ? String(o.yieldBenchmark) : null,
-    yieldVsBenchmark:
-      typeof o.yieldVsBenchmark === "number" ? o.yieldVsBenchmark : null,
-    yieldFrequency:
-      o.yieldFrequency != null ? String(o.yieldFrequency) : null,
+    yieldVsBenchmark: typeof o.yieldVsBenchmark === "number" ? o.yieldVsBenchmark : null,
+    yieldFrequency: o.yieldFrequency != null ? String(o.yieldFrequency) : null,
   };
 }
 
@@ -223,20 +216,16 @@ function parseCompliance(raw: unknown): AssetWithLayers["compliance"] {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   return {
-    regulatoryStatus:
-      o.regulatoryStatus != null ? String(o.regulatoryStatus) : null,
-    primaryRegulator:
-      o.primaryRegulator != null ? String(o.primaryRegulator) : null,
-    regulatoryFramework:
-      o.regulatoryFramework != null ? String(o.regulatoryFramework) : null,
+    regulatoryStatus: o.regulatoryStatus != null ? String(o.regulatoryStatus) : null,
+    primaryRegulator: o.primaryRegulator != null ? String(o.primaryRegulator) : null,
+    regulatoryFramework: o.regulatoryFramework != null ? String(o.regulatoryFramework) : null,
     kycRequired: Boolean(o.kycRequired),
     accreditedOnly: Boolean(o.accreditedOnly),
     blockedJurisdictions: stringArray(o.blockedJurisdictions),
     allowedJurisdictions: stringArray(o.allowedJurisdictions),
     sanctionsScreening: Boolean(o.sanctionsScreening),
     amlPolicy: o.amlPolicy != null ? String(o.amlPolicy) : null,
-    lastComplianceCheck:
-      o.lastComplianceCheck != null ? String(o.lastComplianceCheck) : null,
+    lastComplianceCheck: o.lastComplianceCheck != null ? String(o.lastComplianceCheck) : null,
   };
 }
 
@@ -244,22 +233,13 @@ function parseLiquidity(raw: unknown): AssetWithLayers["liquidity"] {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   return {
-    redemptionType:
-      o.redemptionType != null ? String(o.redemptionType) : null,
-    redemptionPeriodDays:
-      typeof o.redemptionPeriodDays === "number"
-        ? o.redemptionPeriodDays
-        : null,
-    lockupPeriodDays:
-      typeof o.lockupPeriodDays === "number" ? o.lockupPeriodDays : null,
-    liquidityScore:
-      typeof o.liquidityScore === "number" ? o.liquidityScore : null,
-    onchainLiquidity:
-      typeof o.onchainLiquidity === "number" ? o.onchainLiquidity : null,
-    minRedemptionAmount:
-      typeof o.minRedemptionAmount === "number" ? o.minRedemptionAmount : null,
-    liquidityNotes:
-      o.liquidityNotes != null ? String(o.liquidityNotes) : null,
+    redemptionType: o.redemptionType != null ? String(o.redemptionType) : null,
+    redemptionPeriodDays: typeof o.redemptionPeriodDays === "number" ? o.redemptionPeriodDays : null,
+    lockupPeriodDays: typeof o.lockupPeriodDays === "number" ? o.lockupPeriodDays : null,
+    liquidityScore: typeof o.liquidityScore === "number" ? o.liquidityScore : null,
+    onchainLiquidity: typeof o.onchainLiquidity === "number" ? o.onchainLiquidity : null,
+    minRedemptionAmount: typeof o.minRedemptionAmount === "number" ? o.minRedemptionAmount : null,
+    liquidityNotes: o.liquidityNotes != null ? String(o.liquidityNotes) : null,
   };
 }
 
@@ -273,8 +253,7 @@ function parseBlockchain(raw: unknown): AssetWithLayers["blockchain"] {
         chain: String(o.chain ?? "ethereum"),
         chainId: typeof o.chainId === "number" ? o.chainId : null,
         contractAddress: String(o.contractAddress ?? ""),
-        tokenStandard:
-          o.tokenStandard != null ? String(o.tokenStandard) : null,
+        tokenStandard: o.tokenStandard != null ? String(o.tokenStandard) : null,
         explorerUrl: o.explorerUrl != null ? String(o.explorerUrl) : null,
         isVerified: Boolean(o.isVerified),
         hasWhitelist: Boolean(o.hasWhitelist),
@@ -288,17 +267,13 @@ function parseReserve(raw: unknown): AssetWithLayers["reserve"] {
   const o = raw as Record<string, unknown>;
   return {
     backingType: o.backingType != null ? String(o.backingType) : null,
-    backingDescription:
-      o.backingDescription != null ? String(o.backingDescription) : null,
+    backingDescription: o.backingDescription != null ? String(o.backingDescription) : null,
     collateralizationRatio:
-      typeof o.collateralizationRatio === "number"
-        ? o.collateralizationRatio
-        : null,
+      typeof o.collateralizationRatio === "number" ? o.collateralizationRatio : null,
     custodian: o.custodian != null ? String(o.custodian) : null,
     custodianUrl: o.custodianUrl != null ? String(o.custodianUrl) : null,
     hasProofOfReserves: Boolean(o.hasProofOfReserves),
-    lastAuditDate:
-      o.lastAuditDate != null ? String(o.lastAuditDate) : null,
+    lastAuditDate: o.lastAuditDate != null ? String(o.lastAuditDate) : null,
     lastAuditUrl: o.lastAuditUrl != null ? String(o.lastAuditUrl) : null,
     auditor: o.auditor != null ? String(o.auditor) : null,
     redemptionAsset: o.redemptionAsset != null ? String(o.redemptionAsset) : null,
@@ -313,10 +288,8 @@ function parseInstitutional(raw: unknown): AssetWithLayers["institutional"] {
     issuerName: o.issuerName != null ? String(o.issuerName) : null,
     issuerType: o.issuerType != null ? String(o.issuerType) : null,
     issuerCountry: o.issuerCountry != null ? String(o.issuerCountry) : null,
-    legalStructure:
-      o.legalStructure != null ? String(o.legalStructure) : null,
-    targetInvestors:
-      o.targetInvestors != null ? String(o.targetInvestors) : null,
+    legalStructure: o.legalStructure != null ? String(o.legalStructure) : null,
+    targetInvestors: o.targetInvestors != null ? String(o.targetInvestors) : null,
     metadata: metadata
       ? {
           ...metadata,
@@ -355,6 +328,10 @@ function parseGrade(raw: unknown): AssetWithLayers["grade"] {
   };
 }
 
+function toGradeSummary(grade: AssetWithLayers["grade"]): AssetGradeSummary | null {
+  return grade ? { ...grade } : null;
+}
+
 /** Parse API JSON into layered asset (supports legacy flat fallback). */
 export function parseAssetWithLayers(raw: Record<string, unknown>): AssetWithLayers {
   if (isLayeredAsset(raw)) {
@@ -376,35 +353,19 @@ export function parseAssetWithLayers(raw: Record<string, unknown>): AssetWithLay
   }
 
   const slug = String(raw.slug ?? raw.id ?? "");
-  const snap =
-    raw.snapshot && typeof raw.snapshot === "object"
-      ? (raw.snapshot as Record<string, unknown>)
-      : null;
-  const holder =
-    raw.holder && typeof raw.holder === "object"
-      ? (raw.holder as Record<string, unknown>)
-      : null;
-  const riskObj =
-    raw.risk && typeof raw.risk === "object"
-      ? (raw.risk as Record<string, unknown>)
-      : null;
-  const riskLevel = String(
-    riskObj?.level ?? riskObj?.overallLevel ?? raw.riskScore ?? "MEDIUM",
-  );
-  const tvl =
-    parseOptionalNumber(raw.tvl) ?? parseOptionalNumber(snap?.tvl);
-  const yieldRate =
-    parseOptionalNumber(raw.yieldRate) ??
-    parseOptionalNumber(snap?.yieldRate);
+  const snap = raw.snapshot && typeof raw.snapshot === "object" ? (raw.snapshot as Record<string, unknown>) : null;
+  const holder = raw.holder && typeof raw.holder === "object" ? (raw.holder as Record<string, unknown>) : null;
+  const riskObj = raw.risk && typeof raw.risk === "object" ? (raw.risk as Record<string, unknown>) : null;
+  const riskLevel = String(riskObj?.level ?? riskObj?.overallLevel ?? raw.riskScore ?? "MEDIUM");
+  const tvl = parseOptionalNumber(raw.tvl) ?? parseOptionalNumber(snap?.tvl);
+  const yieldRate = parseOptionalNumber(raw.yieldRate) ?? parseOptionalNumber(snap?.yieldRate);
   const holderCount =
     parseOptionalNumber(raw.holderCount) ??
     parseOptionalNumber(snap?.holderCount) ??
     parseOptionalNumber(holder?.totalHolders);
   const change7d =
     parseOptionalNumber(raw.change7d) ??
-    (parseOptionalNumber(raw.tvl7dChange) != null
-      ? (parseOptionalNumber(raw.tvl7dChange) ?? 0) / 100
-      : null);
+    (parseOptionalNumber(raw.tvl7dChange) != null ? (parseOptionalNumber(raw.tvl7dChange) ?? 0) / 100 : null);
 
   return {
     id: String(raw.id ?? slug),
@@ -450,11 +411,10 @@ export function toAssetSummary(asset: AssetWithLayers): AssetSummary {
     symbol: asset.identity?.symbol ?? "",
     category: normalizeCategory(asset.identity?.category),
     tvl: asset.market?.tvl ?? 0,
-    yieldRate:
-      asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : 0,
+    yieldRate: asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : 0,
     riskScore: normalizeRiskLevel(asset.risk?.overallLevel),
-    change7d:
-      asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : 0,
+    grade: toGradeSummary(asset.grade),
+    change7d: asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : 0,
     holderCount: asset.market?.holderCount ?? undefined,
     _meta: meta,
   };

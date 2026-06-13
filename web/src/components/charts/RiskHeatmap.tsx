@@ -215,14 +215,14 @@ export function RiskHeatmap({
     <section className="terminal-panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="terminal-label">Risk matrix</p>
+          <p className="terminal-label">Risk concentration</p>
           <h2 className="mt-1 text-base font-semibold text-white">
-            Cross-asset risk matrix
+            {compact ? "Risk heatmap" : "Risk concentration map"}
           </h2>
           {!compact ? (
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              Category × risk level — cell shows asset count and average yield.
-              {onSelectCell ? " Click a cell to filter the table below." : null}
+              Identify where risk clusters across RWA categories. Cell intensity shows
+              relative asset count; click a populated cell to isolate assets that need review.
             </p>
           ) : (
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
@@ -278,10 +278,10 @@ export function RiskHeatmap({
 
       {showFooterLink ? (
         <Link
-          href="/dashboard/risk"
+          href="/dashboard/risk-grade"
           className="terminal-label mt-4 inline-flex items-center gap-1 text-[var(--accent-amber)] hover:underline"
         >
-          Open risk workspace
+          Open grade workspace
           <ArrowUpRight className="size-3.5" />
         </Link>
       ) : null}

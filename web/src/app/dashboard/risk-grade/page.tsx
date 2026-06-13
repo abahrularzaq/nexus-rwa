@@ -83,7 +83,7 @@ function isFresh(asset: AssetSummary): boolean {
   return (Date.now() - updatedAt) / 86_400_000 <= 30;
 }
 
-function gradeScore(asset: AssetSummary): number {
+function fallbackGradeScore(asset: AssetSummary): number {
   let score = riskToBaseScore(toBadgeLevel(String(asset.riskScore)));
 
   if (asset._meta?.sources?.length) score += 3;
@@ -101,10 +101,24 @@ function gradeScore(asset: AssetSummary): number {
   return Math.max(35, Math.min(95, Math.round(score)));
 }
 
-function gradeLabel(score: number): GradeBand {
+function gradeScore(asset: AssetSummary): number {
+  return asset.grade?.score != null && Number.isFinite(asset.grade.score)
+    ? asset.grade.score
+    : fallbackGradeScore(asset);
+}
+
+function gradeLabelFromScore(score: number): GradeBand {
   if (score >= 85) return "Institutional";
   if (score >= 70) return "Analytic";
   return "Research";
+}
+
+function gradeLabel(asset: AssetSummary): GradeBand {
+  const raw = asset.grade?.grade?.toLowerCase();
+  if (raw === "institutional") return "Institutional";
+  if (raw === "analytics" || raw === "analytic") return "Analytic";
+  if (raw === "research") return "Research";
+  return gradeLabelFromScore(gradeScore(asset));
 }
 
 function gradeTone(grade: GradeBand): string {
@@ -118,6 +132,22 @@ function gradeTone(grade: GradeBand): string {
 }
 
 function evidenceQuality(asset: AssetSummary): EvidenceQuality {
+  if (asset.grade) {
+    const strong =
+      asset.grade.completenessScore >= 90 &&
+      asset.grade.sourceScore >= 90 &&
+      asset.grade.blockers.length === 0;
+    if (strong) return "Strong";
+
+    const medium =
+      asset.grade.completenessScore >= 65 &&
+      asset.grade.sourceScore >= 65 &&
+      asset.grade.blockers.length <= 2;
+    if (medium) return "Medium";
+
+    return "Partial";
+  }
+
   const evidencePoints = [
     asset._meta?.sources?.length ? 1 : 0,
     asset._meta?.confidence === "HIGH" ? 1 : 0,
@@ -141,7 +171,7 @@ function evidenceTone(quality: EvidenceQuality): string {
   return "border-[var(--border-panel)] bg-[var(--bg-panel)] text-[var(--text-label)]";
 }
 
-function assetBlockers(asset: AssetSummary): string[] {
+function fallbackBlockers(asset: AssetSummary): string[] {
   const blockers: string[] = [];
   const risk = toBadgeLevel(String(asset.riskScore));
 
@@ -151,20 +181,36 @@ function assetBlockers(asset: AssetSummary): string[] {
   if (!hasUsefulNumber(asset.holderCount)) blockers.push("Holder data missing");
   if (!isFresh(asset)) blockers.push("Stale evidence");
 
-  return blockers.length ? blockers : ["No major blocker"];
+  return blockers;
+}
+
+function assetBlockers(asset: AssetSummary): string[] {
+  const explicit = asset.grade?.blockers ?? [];
+  if (explicit.length > 0) return explicit;
+
+  const fallback = fallbackBlockers(asset);
+  return fallback.length ? fallback : ["No major blocker"];
+}
+
+function assetWarnings(asset: AssetSummary): string[] {
+  return asset.grade?.warnings ?? [];
 }
 
 function keyBlocker(asset: AssetSummary): string {
-  return assetBlockers(asset)[0] ?? "No major blocker";
+  const blockers = assetBlockers(asset);
+  if (blockers[0] && blockers[0] !== "No major blocker") return blockers[0];
+  const warning = assetWarnings(asset)[0];
+  return warning ? `Warning: ${warning}` : "No major blocker";
 }
 
 function buildBlockerSummary(assets: AssetSummary[]): BlockerSummary[] {
   const counts = new Map<string, number>();
 
   for (const asset of assets) {
-    for (const blocker of assetBlockers(asset)) {
-      if (blocker === "No major blocker") continue;
-      counts.set(blocker, (counts.get(blocker) ?? 0) + 1);
+    const blockers = assetBlockers(asset).filter((b) => b !== "No major blocker");
+    const warnings = assetWarnings(asset).map((warning) => `Warning: ${warning}`);
+    for (const label of [...blockers, ...warnings]) {
+      counts.set(label, (counts.get(label) ?? 0) + 1);
     }
   }
 
@@ -172,6 +218,14 @@ function buildBlockerSummary(assets: AssetSummary[]): BlockerSummary[] {
     .map(([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
+}
+
+function openBlockerCount(assets: AssetSummary[]): number {
+  return assets.reduce((sum, asset) => {
+    const blockers = asset.grade?.blockers;
+    if (blockers) return sum + blockers.length;
+    return sum + fallbackBlockers(asset).length;
+  }, 0);
 }
 
 export default function RiskGradePage() {
@@ -187,7 +241,7 @@ export default function RiskGradePage() {
   const gradeCounts = useMemo(() => {
     const counts = { institutional: 0, analytic: 0, research: 0 };
     for (const asset of assets) {
-      const label = gradeLabel(gradeScore(asset));
+      const label = gradeLabel(asset);
       if (label === "Institutional") counts.institutional += 1;
       else if (label === "Analytic") counts.analytic += 1;
       else counts.research += 1;
@@ -203,7 +257,7 @@ export default function RiskGradePage() {
   }, [assets]);
 
   const blockerSummary = useMemo(() => buildBlockerSummary(assets), [assets]);
-  const openBlockers = blockerSummary.reduce((sum, blocker) => sum + blocker.count, 0);
+  const openBlockers = useMemo(() => openBlockerCount(assets), [assets]);
 
   const sortedAssets = useMemo(
     () => [...filteredAssets].sort((a, b) => gradeScore(b) - gradeScore(a)),
@@ -260,13 +314,13 @@ export default function RiskGradePage() {
           icon={<Scale className="size-5 text-[var(--accent-amber)]" />}
           label="Avg grade score"
           value={isLoading ? "—" : `${avgGradeScore}/100`}
-          helper="Across tracked assets"
+          helper="From AssetGrade baseline"
         />
         <GradeMetricCard
           icon={<ShieldAlert className="size-5 text-[var(--accent-amber)]" />}
           label="Open blockers"
           value={isLoading ? "—" : String(openBlockers)}
-          helper="Source, market, risk gaps"
+          helper="From grade blockers"
         />
       </section>
 
@@ -399,7 +453,7 @@ export default function RiskGradePage() {
             ) : blockerSummary.length === 0 ? (
               <div className="rounded-lg border border-[rgba(0,255,136,0.2)] bg-[rgba(0,255,136,0.06)] p-4">
                 <p className="text-sm font-medium text-[var(--data-positive)]">
-                  No major blocker detected in the current summary dataset.
+                  No major blocker detected in the current grade dataset.
                 </p>
               </div>
             ) : (
@@ -502,7 +556,7 @@ function GradeMetricCard({
 
 function GradeDecisionRow({ row }: { row: AssetSummary }) {
   const score = gradeScore(row);
-  const grade = gradeLabel(score);
+  const grade = gradeLabel(row);
   const evidence = evidenceQuality(row);
   const blocker = keyBlocker(row);
 
@@ -526,8 +580,8 @@ function GradeDecisionRow({ row }: { row: AssetSummary }) {
       <td className="px-4 py-3">
         <RiskBadge level={toBadgeLevel(String(row.riskScore))} showDot />
       </td>
-      <td className="px-4 py-3 text-[var(--text-secondary)]">
-        {blocker}
+      <td className="max-w-[260px] px-4 py-3 text-[var(--text-secondary)]">
+        <span className="line-clamp-2">{blocker}</span>
       </td>
       <td className="px-4 py-3">
         <span className={`rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-wide ${evidenceTone(evidence)}`}>
