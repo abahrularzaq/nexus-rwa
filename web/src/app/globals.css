@@ -180,6 +180,51 @@ span[class*="border-[rgba(0,212,255,0.35)]"][class*="text-[#00D4FF]"]:has(+ span
   display: none;
 }
 
+/* Sources dashboard table polish */
+.min-w-\[1180px\] {
+  min-width: 1340px;
+  table-layout: fixed;
+}
+.min-w-\[1180px\] th,
+.min-w-\[1180px\] td {
+  vertical-align: middle;
+}
+.min-w-\[1180px\] th:nth-child(1),
+.min-w-\[1180px\] td:nth-child(1) { width: 124px; }
+.min-w-\[1180px\] th:nth-child(2),
+.min-w-\[1180px\] td:nth-child(2) { width: 108px; }
+.min-w-\[1180px\] th:nth-child(3),
+.min-w-\[1180px\] td:nth-child(3) { width: 230px; }
+.min-w-\[1180px\] th:nth-child(4),
+.min-w-\[1180px\] td:nth-child(4) { width: 168px; }
+.min-w-\[1180px\] th:nth-child(5),
+.min-w-\[1180px\] td:nth-child(5) { width: 112px; }
+.min-w-\[1180px\] th:nth-child(6),
+.min-w-\[1180px\] td:nth-child(6) { width: 150px; }
+.min-w-\[1180px\] th:nth-child(7),
+.min-w-\[1180px\] td:nth-child(7) { width: 154px; }
+.min-w-\[1180px\] th:nth-child(8),
+.min-w-\[1180px\] td:nth-child(8) { width: 128px; }
+.min-w-\[1180px\] th:nth-child(9),
+.min-w-\[1180px\] td:nth-child(9) { width: 266px; }
+.min-w-\[1180px\] td:nth-child(1),
+.min-w-\[1180px\] td:nth-child(2),
+.min-w-\[1180px\] td:nth-child(3),
+.min-w-\[1180px\] td:nth-child(4) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.min-w-\[1180px\] td:nth-child(5) span {
+  display: inline-flex;
+  min-width: 58px;
+  justify-content: center;
+  white-space: nowrap;
+}
+.min-w-\[1180px\] td:nth-child(6) {
+  white-space: nowrap;
+}
+
 /* Keyframes */
 @keyframes ticker-scroll {
   from { transform: translateX(0); }
@@ -258,9 +303,3 @@ span[class*="border-[rgba(0,212,255,0.35)]"][class*="text-[#00D4FF]"]:has(+ span
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-}
