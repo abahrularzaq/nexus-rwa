@@ -1,0 +1,32 @@
+{
+  "name": "Janus Henderson Anemoy JAAA",
+  "symbol": "JAAA",
+  "fullName": "Janus Henderson Anemoy JAAA",
+  "description": "Janus Henderson Anemoy JAAA is treated as a tokenized fund-share style RWA exposure linked to Janus Henderson's AAA CLO strategy and Anemoy's on-chain fund/tokenization infrastructure. Public evidence confirms Janus Henderson's JAAA franchise is a large AAA CLO ETF and that Janus Henderson has worked with Anemoy on tokenized fund structures, but token-specific JAAA legal, contract, custody, and redemption documents still require official verification.",
+  "category": "Fund",
+  "subcategory": "Tokenized Structured Credit / AAA CLO Fund Exposure",
+  "logoUrl": null,
+  "websiteUrl": "https://www.janushenderson.com/",
+  "docsUrl": null,
+  "twitterUrl": "https://x.com/JanusHenderson",
+  "tags": [
+    "tokenized-fund",
+    "structured-credit",
+    "clo",
+    "aaa-clo",
+    "permissioned",
+    "requires-verification"
+  ],
+  "launchDate": null,
+  "isin": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "secondary-confirmed; official-token-docs-missing",
+    "confidence": "medium-low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "Do not treat this as fully verified until official Anemoy/JHA token documentation, legal documents, and contract addresses are confirmed."
+  }
+}

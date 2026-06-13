@@ -1,0 +1,23 @@
+{
+  "regulatoryStatus": "Traditional JAAA ETF is SEC-registered; token-specific regulatory status not verified",
+  "primaryRegulator": "SEC for the related U.S. Janus Henderson AAA CLO ETF; token-specific regulator not verified",
+  "regulatoryFramework": "Investment Company Act / Securities Act framework for the related U.S. ETF; token-specific Anemoy JAAA framework missing",
+  "kycRequired": true,
+  "accreditedOnly": false,
+  "blockedJurisdictions": [],
+  "allowedJurisdictions": [],
+  "sanctionsScreening": false,
+  "amlPolicy": null,
+  "lastComplianceCheck": "2026-06-13",
+  "legalOpinionUrl": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "secondary-confirmed; official-token-docs-missing",
+    "confidence": "medium-low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "KYC is set true conservatively because tokenized fund access is expected to be permissioned, but token-specific onboarding/compliance rules still require official confirmation."
+  }
+}

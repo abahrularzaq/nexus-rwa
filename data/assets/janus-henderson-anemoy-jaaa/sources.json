@@ -1,0 +1,62 @@
+[
+  {
+    "layer": "identity",
+    "field": "symbol",
+    "value": "JAAA",
+    "sourceUrl": "https://www.reuters.com/business/fidelity-joins-roster-firms-offering-collateralized-loan-obligations-etfs-2026-02-12/",
+    "sourceType": "secondary_news",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "Reuters identifies Janus Henderson's AAA CLO ETF as JAAA and reports its scale in February 2026."
+  },
+  {
+    "layer": "institutional",
+    "field": "fundManager",
+    "value": "Janus Henderson Investors",
+    "sourceUrl": "https://www.ft.com/content/648f2249-5783-4e98-8412-4056f56ad1b0",
+    "sourceType": "secondary_news",
+    "reliability": 76,
+    "checkedBy": "manual",
+    "notes": "Financial Times reports Janus Henderson planned to assume day-to-day management of Anemoy's on-chain Liquid Treasury Fund; this supports Anemoy/JHA relationship but not token-specific JAAA details."
+  },
+  {
+    "layer": "reserve",
+    "field": "backingDescription",
+    "value": "AAA CLO exposure",
+    "sourceUrl": "https://www.reuters.com/business/fidelity-joins-roster-firms-offering-collateralized-loan-obligations-etfs-2026-02-12/",
+    "sourceType": "secondary_news",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "Reuters reports Janus Henderson's JAAA ETF is the Janus Henderson AAA CLO ETF and describes AAA CLO fund positioning."
+  },
+  {
+    "layer": "market",
+    "field": "aumUsd",
+    "value": null,
+    "sourceUrl": "https://www.reuters.com/business/fidelity-joins-roster-firms-offering-collateralized-loan-obligations-etfs-2026-02-12/",
+    "sourceType": "secondary_news",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "Reuters reports 26.85B USD assets for the traditional JAAA ETF, but token-specific AUM/TVL is not verified; normalized market.aumUsd remains null."
+  },
+  {
+    "layer": "liquidity",
+    "field": "liquidityNotes",
+    "value": "Token-specific liquidity unverified",
+    "sourceUrl": "https://www.marketwatch.com/story/private-credit-etfs-are-here-why-your-retirement-account-may-be-their-next-target-71a282be",
+    "sourceType": "secondary_news",
+    "reliability": 72,
+    "checkedBy": "manual",
+    "notes": "MarketWatch discusses stress in Janus Henderson JAAA ETF liquidity/discount dynamics; used as structured-credit liquidity risk context, not token-specific liquidity evidence."
+  },
+  {
+    "layer": "risk",
+    "field": "riskFactors",
+    "value": "CLO and structured-credit liquidity risk",
+    "sourceUrl": "https://www.ft.com/content/42a7bacb-05f3-4c04-80eb-c29b9f720d8d",
+    "sourceType": "secondary_news",
+    "reliability": 74,
+    "checkedBy": "manual",
+    "notes": "Financial Times discusses CLO ETF stress and JAAA outflows; used as risk context."
+  }
+]

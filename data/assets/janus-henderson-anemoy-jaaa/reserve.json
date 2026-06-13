@@ -1,0 +1,25 @@
+{
+  "backingType": "Private Credit",
+  "backingDescription": "The related Janus Henderson JAAA strategy is associated with AAA-rated collateralized loan obligation exposure. Public secondary sources describe JAAA as the Janus Henderson AAA CLO ETF and report that it invests primarily in AAA CLO tranches. Token-specific reserve composition, custody chain, and claim mechanics for Janus Henderson Anemoy JAAA were not verified from official documents in this pass.",
+  "collateralizationRatio": null,
+  "custodian": null,
+  "custodianUrl": null,
+  "hasProofOfReserves": false,
+  "porOracleAddress": null,
+  "porOracleChain": null,
+  "lastAuditDate": null,
+  "lastAuditUrl": null,
+  "auditor": null,
+  "reserveBreakdown": null,
+  "redemptionAsset": null,
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 30,
+    "sourceTier": "secondary-confirmed; official-token-docs-missing",
+    "confidence": "medium-low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "Backing type is based on the related JAAA AAA CLO strategy. Do not publish as institutional-grade until token-specific reserve/custody documents are found."
+  }
+}

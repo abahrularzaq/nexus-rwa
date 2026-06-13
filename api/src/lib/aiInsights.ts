@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { getCached } from './redis.js';
 import { claudeComplete, claudeStream, parseJsonFromModelText } from './claude.js';
+import { geminiComplete } from './gemini.js';
 import { logger } from './logger.js';
 import type { AssetInsight, AssetWithHistory, RiskLevel } from '../shared/index.js';
 import {
@@ -14,18 +15,31 @@ import {
 import { ERROR_CODES } from '../shared/index.js';
 
 const INSIGHT_CACHE_TTL_SECONDS = 12 * 60 * 60;
-const INSIGHT_CACHE_KEY_PREFIX = 'insight:v2';
+const INSIGHT_CACHE_KEY_PREFIX = 'insight:v3';
+
+type AiProvider = 'gemini' | 'anthropic';
+
+function getAiProvider(): AiProvider {
+  const provider = process.env.AI_PROVIDER?.trim().toLowerCase();
+  if (provider === 'anthropic' || provider === 'claude') return 'anthropic';
+  return 'gemini';
+}
 
 const RWA_ANALYST_SYSTEM = `You are an RWA (Real World Asset) analyst. Analyze the provided asset data and return
-a JSON object with:
-- summary (2 sentences)
-- opportunities (array of 2-3 strings)
-- risks (array of 2-3 strings)
+strict JSON with:
+- summary (2 sentences; evidence-aware, not promotional)
+- opportunities (array of 2-3 strings; these are key strengths, not investment recommendations)
+- risks (array of 2-3 strings; include missing evidence where relevant)
 - whatChanged (array of 2-3 bullet strings on meaningful recent yield/TVL/risk shifts for this asset)
-- watchList (array of 2-3 bullet strings on what investors should monitor next)
+- watchList (array of 2-3 bullet strings on what users should monitor next, including missing evidence)
 - outlook ('bullish'|'neutral'|'bearish')
 - confidence ('high'|'medium'|'low')
-Be specific, data-driven, concise. Return ONLY valid JSON, no markdown.`;
+Rules:
+- Use only the supplied Nexus RWA asset data.
+- Do not invent reserve, legal, liquidity, audit, or proof-of-reserves information.
+- Do not call the asset safe, guaranteed, risk-free, or best.
+- Do not provide financial advice.
+- Return ONLY valid JSON, no markdown.`;
 
 const insightSchema = z.object({
   summary: z.string().min(1),
@@ -119,22 +133,7 @@ function buildFallbackInsight(asset: AssetWithHistory): AssetInsight {
   };
 }
 
-async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsight> {
-  const raw = await claudeComplete({
-    system: RWA_ANALYST_SYSTEM,
-    user: JSON.stringify(asset, null, 2),
-    maxTokens: 800,
-  });
-
-  let parsed: z.infer<typeof insightSchema>;
-  try {
-    parsed = insightSchema.parse(parseJsonFromModelText(raw));
-  } catch (err) {
-    logger.warn({ err, assetId: asset.id }, 'Claude insight JSON parse failed');
-    throw new Error('Invalid insight response from AI');
-  }
-
-  const generatedAt = new Date().toISOString();
+function normalizeInsight(asset: AssetWithHistory, parsed: z.infer<typeof insightSchema>): AssetInsight {
   return {
     assetId: asset.id,
     summary: parsed.summary,
@@ -144,24 +143,63 @@ async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsig
     watchList: parsed.watchList.slice(0, 3),
     outlook: parsed.outlook,
     confidence: parsed.confidence,
-    generatedAt,
+    generatedAt: new Date().toISOString(),
   };
+}
+
+async function callClaudeForInsight(asset: AssetWithHistory): Promise<AssetInsight> {
+  const raw = await claudeComplete({
+    system: RWA_ANALYST_SYSTEM,
+    user: JSON.stringify(asset, null, 2),
+    maxTokens: 800,
+  });
+
+  try {
+    return normalizeInsight(asset, insightSchema.parse(parseJsonFromModelText(raw)));
+  } catch (err) {
+    logger.warn({ err, assetId: asset.id }, 'Claude insight JSON parse failed');
+    throw new Error('Invalid insight response from Claude');
+  }
+}
+
+async function callGeminiForInsight(asset: AssetWithHistory): Promise<AssetInsight> {
+  const raw = await geminiComplete({
+    system: RWA_ANALYST_SYSTEM,
+    user: JSON.stringify(asset, null, 2),
+    maxTokens: 800,
+  });
+
+  try {
+    return normalizeInsight(asset, insightSchema.parse(JSON.parse(raw)));
+  } catch (err) {
+    logger.warn({ err, assetId: asset.id }, 'Gemini insight JSON parse failed');
+    throw new Error('Invalid insight response from Gemini');
+  }
+}
+
+async function callAiForInsight(asset: AssetWithHistory): Promise<AssetInsight> {
+  const provider = getAiProvider();
+  if (provider === 'anthropic') {
+    return callClaudeForInsight(asset);
+  }
+
+  return callGeminiForInsight(asset);
 }
 
 export async function generateAssetInsight(
   asset: AssetWithHistory,
 ): Promise<AssetInsight> {
-  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${asset.id}`;
+  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${getAiProvider()}:${asset.id}`;
 
   const { data } = await getCached(
     cacheKey,
     async () => {
       try {
-        return await callClaudeForInsight(asset);
+        return await callAiForInsight(asset);
       } catch (err) {
         logger.warn(
-          { assetId: asset.id, error: err instanceof Error ? err.message : String(err) },
-          'Claude insight failed; using local fallback insight',
+          { provider: getAiProvider(), assetId: asset.id, error: err instanceof Error ? err.message : String(err) },
+          'AI insight failed; using local fallback insight',
         );
         return buildFallbackInsight(asset);
       }
@@ -176,18 +214,18 @@ export async function getAssetInsightById(slug: string): Promise<{
   insight: AssetInsight;
   cached: boolean;
 }> {
-  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${slug}`;
+  const cacheKey = `${INSIGHT_CACHE_KEY_PREFIX}:${getAiProvider()}:${slug}`;
 
   const { data, cached } = await getCached(
     cacheKey,
     async () => {
       const asset = await buildAssetWithHistory(slug);
       try {
-        return await callClaudeForInsight(asset);
+        return await callAiForInsight(asset);
       } catch (err) {
         logger.warn(
-          { slug, assetId: asset.id, error: err instanceof Error ? err.message : String(err) },
-          'Claude insight failed; using local fallback insight',
+          { provider: getAiProvider(), slug, assetId: asset.id, error: err instanceof Error ? err.message : String(err) },
+          'AI insight failed; using local fallback insight',
         );
         return buildFallbackInsight(asset);
       }
@@ -259,13 +297,15 @@ export async function streamAskNexus(params: {
       maxTokens: 2048,
       handlers: {
         onDelta: (text) => {
-          void Promise.resolve(params.onDelta(text)).catch(reject);
+          void params.onDelta(text);
         },
         onDone: () => {
-          void Promise.resolve(params.onDone()).then(() => resolve()).catch(reject);
+          void params.onDone();
+          resolve();
         },
         onError: (err) => {
-          void Promise.resolve(params.onError(err)).then(() => reject(err));
+          void params.onError(err);
+          reject(err);
         },
       },
     });

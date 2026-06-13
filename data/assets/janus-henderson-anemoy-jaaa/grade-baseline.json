@@ -1,0 +1,55 @@
+{
+  "slug": "janus-henderson-anemoy-jaaa",
+  "grade": "research",
+  "score": 54,
+  "completenessScore": 52,
+  "sourceScore": 48,
+  "legalScore": 40,
+  "reserveScore": 50,
+  "liquidityScore": 35,
+  "riskScore": 54,
+  "gradingProfile": "asset_backed",
+  "assetClass": "tokenized_fund",
+  "instrumentType": "fund_share_token",
+  "claimType": "fund_share_claim",
+  "publicSegment": "RWA Assets",
+  "gradeContext": "Research — Asset-backed Tokenized Fund Profile",
+  "profileScores": {
+    "completenessScore": 52,
+    "sourceScore": 48,
+    "legalScore": 40,
+    "reserveScore": 50,
+    "liquidityScore": 35,
+    "riskScore": 54
+  },
+  "applicability": {
+    "reserve": "available",
+    "custody": "missing",
+    "redemption": "missing",
+    "proofOfReserves": "missing"
+  },
+  "blockers": [
+    "Missing official token-specific legal document or prospectus for Janus Henderson Anemoy JAAA",
+    "Missing official contract address and explorer verification for Janus Henderson Anemoy JAAA",
+    "Missing official custodian evidence for the tokenized product",
+    "Missing official redemption terms for the tokenized product",
+    "Missing token-specific AUM, TVL, holder count, and liquidity evidence"
+  ],
+  "warnings": [
+    "Do not reuse traditional JAAA ETF AUM as tokenized product TVL without official confirmation",
+    "Backing is based on related JAAA AAA CLO strategy evidence, not a token-specific reserve report",
+    "No public legal opinion URL found",
+    "No on-chain proof-of-reserves confirmed",
+    "Classification may need revision if official Anemoy documentation defines the token as a note, feeder interest, or different legal claim type"
+  ],
+  "baselineDate": "2026-06-13",
+  "status": "research-grade baseline under asset_backed profile",
+  "nextActions": [
+    "Find official Anemoy or Janus Henderson page for Janus Henderson Anemoy JAAA",
+    "Confirm legal issuer, domicile, fund wrapper, prospectus/offering memorandum, and investor eligibility",
+    "Verify chain, contract address, token standard, source-code verification, whitelist/transfer controls, and explorer URL",
+    "Confirm custodian, fund administrator, transfer agent, auditor, NAV/reporting cadence, and portfolio/reserve reporting",
+    "Confirm redemption asset, redemption frequency, settlement timeline, fees, and minimum subscription/redemption",
+    "Refresh token-specific AUM/TVL, price/NAV, holder count, and liquidity data before import/publication"
+  ]
+}

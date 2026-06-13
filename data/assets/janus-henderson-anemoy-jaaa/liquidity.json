@@ -1,0 +1,22 @@
+{
+  "redemptionType": null,
+  "redemptionPeriodDays": null,
+  "lockupPeriodDays": null,
+  "earlyRedemptionFee": null,
+  "minRedemptionAmount": null,
+  "dexPairs": [],
+  "onchainLiquidity": null,
+  "bidAskSpread": null,
+  "liquidityScore": 35,
+  "liquidityNotes": "Traditional JAAA ETF has public-market liquidity, but token-specific mint/redeem mechanics, transfer restrictions, market makers, DEX venues, and secondary liquidity for Janus Henderson Anemoy JAAA were not verified. Liquidity score is conservative until official token documents are available.",
+  "_meta": {
+    "dataOwner": "manual-research",
+    "lastManualReview": "2026-06-13",
+    "reviewFrequencyDays": 14,
+    "sourceTier": "secondary-confirmed; official-token-liquidity-missing",
+    "confidence": "low",
+    "freshnessStatus": "needs-refresh",
+    "status": "research-baseline",
+    "notes": "Token liquidity must be refreshed after official contract and issuer redemption information are confirmed."
+  }
+}
