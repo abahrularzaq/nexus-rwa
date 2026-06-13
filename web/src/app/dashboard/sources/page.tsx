@@ -196,15 +196,15 @@ function uniqueValues(rows: SourceRowWithTier[], key: keyof SourceRow): string[]
 }
 
 function statusClass(status: SourceStatus): string {
-  if (["healthy", "redirected"].includes(status)) return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
-  if (["broken", "error"].includes(status)) return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
-  if (status === "manual_required") return "border-[#B983FF]/30 bg-[#B983FF]/10 text-[#D8B4FE]";
-  return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
+  if (["healthy", "redirected"].includes(status)) return "border-[#00FF88]/40 bg-[#00FF88]/15 text-[#6DFFB2] shadow-[0_0_18px_rgba(0,255,136,0.12)]";
+  if (["broken", "error"].includes(status)) return "border-[#FF4444]/40 bg-[#FF4444]/15 text-[#FFA0A0] shadow-[0_0_18px_rgba(255,68,68,0.12)]";
+  if (status === "manual_required") return "border-[#B983FF]/40 bg-[#B983FF]/15 text-[#E6D0FF] shadow-[0_0_18px_rgba(185,131,255,0.12)]";
+  return "border-[#FFB800]/40 bg-[#FFB800]/15 text-[#FFD36A] shadow-[0_0_18px_rgba(255,184,0,0.1)]";
 }
 
 function tierClass(tier: SourceTier): string {
-  if (tier === "Tier 1") return "border-[#00D1FF]/30 bg-[#00D1FF]/10 text-[#7BE8FF]";
-  if (tier === "Tier 2") return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
+  if (tier === "Tier 1") return "border-[#00D1FF]/40 bg-[#00D1FF]/15 text-[#8DEBFF] shadow-[0_0_18px_rgba(0,209,255,0.12)]";
+  if (tier === "Tier 2") return "border-[#FFB800]/40 bg-[#FFB800]/15 text-[#FFD36A] shadow-[0_0_18px_rgba(255,184,0,0.1)]";
   return "border-white/15 bg-white/[0.04] text-[var(--text-secondary)]";
 }
 
@@ -222,10 +222,10 @@ function reliabilityLabel(score: number, isProAccess: boolean): string {
 }
 
 function qualityClass(quality: SourceQualityRow["quality"]): string {
-  if (quality === "Excellent") return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
-  if (quality === "Strong") return "border-[#00D1FF]/30 bg-[#00D1FF]/10 text-[#7BE8FF]";
-  if (quality === "Developing") return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
-  return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
+  if (quality === "Excellent") return "border-[#00FF88]/45 bg-[#00FF88]/15 text-[#74FFB8] shadow-[0_0_22px_rgba(0,255,136,0.16)] ring-1 ring-[#00FF88]/10";
+  if (quality === "Strong") return "border-[#00D1FF]/45 bg-[#00D1FF]/15 text-[#8DEBFF] shadow-[0_0_22px_rgba(0,209,255,0.16)] ring-1 ring-[#00D1FF]/10";
+  if (quality === "Developing") return "border-[#FFB800]/45 bg-[#FFB800]/15 text-[#FFD36A] shadow-[0_0_22px_rgba(255,184,0,0.14)] ring-1 ring-[#FFB800]/10";
+  return "border-[#FF4444]/45 bg-[#FF4444]/15 text-[#FFA0A0] shadow-[0_0_22px_rgba(255,68,68,0.14)] ring-1 ring-[#FF4444]/10";
 }
 
 function clampScore(score: number): number {
@@ -482,11 +482,16 @@ export default function SourcesPage() {
   const tier1Coverage = rowsWithTier.length > 0 ? Math.round((tier1Count / rowsWithTier.length) * 100) : 0;
 
   return (
-    <div className="space-y-8 pb-10">
-      <header className="flex flex-col gap-3 border-b border-[var(--border-line)] pb-5 md:flex-row md:items-end md:justify-between">
+    <div className="relative isolate space-y-8 overflow-hidden pb-10">
+      <div className="pointer-events-none absolute inset-x-[-18%] top-[-180px] -z-10 h-[520px] bg-[radial-gradient(circle_at_28%_22%,rgba(0,209,255,0.18),transparent_34%),radial-gradient(circle_at_72%_18%,rgba(185,131,255,0.13),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(255,184,0,0.08),transparent_36%)] blur-2xl" />
+      <div className="pointer-events-none absolute inset-x-[-12%] top-[360px] -z-10 h-[420px] bg-[radial-gradient(circle_at_18%_20%,rgba(0,255,136,0.09),transparent_30%),radial-gradient(circle_at_88%_60%,rgba(255,68,68,0.08),transparent_32%)] blur-3xl" />
+
+      <header className="relative flex flex-col gap-3 border-b border-[#00D1FF]/15 pb-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="terminal-label mb-1.5">Source library</p>
-          <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white">Evidence Control Center</h1>
+          <p className="terminal-label mb-1.5 text-[#8DEBFF]">Source library</p>
+          <h1 className="bg-gradient-to-r from-white via-[#DDF9FF] to-[#8DEBFF] bg-clip-text text-2xl font-semibold leading-tight tracking-tight text-transparent">
+            Evidence Control Center
+          </h1>
           <p className="mt-1 max-w-2xl text-sm text-[var(--text-secondary)]">
             Search, filter, and audit the evidence trail behind every asset field, source reliability score, warning, blocker, and grade.
           </p>
@@ -495,23 +500,24 @@ export default function SourcesPage() {
           <button
             type="button"
             onClick={() => void loadSources()}
-            className="inline-flex items-center gap-2 rounded-lg border border-[var(--border-line)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] hover:border-[var(--accent-cyan)] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#00D1FF]/20 bg-[#00D1FF]/[0.04] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--accent-cyan)] hover:bg-[#00D1FF]/10 hover:text-white hover:shadow-[0_0_24px_rgba(0,209,255,0.16)]"
           >
             <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <Link href="/dashboard/layers" className="terminal-label inline-flex items-center gap-1 text-[var(--accent-amber)] hover:underline">
+          <Link href="/dashboard/layers" className="terminal-label inline-flex items-center gap-1 text-[var(--accent-amber)] transition hover:text-[#FFD36A] hover:underline">
             View 12-layer model
             <ArrowUpRight className="size-3.5" />
           </Link>
         </div>
       </header>
 
-      <section className="rounded-xl border border-[var(--border-line)] bg-[#080D19] p-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <section className="relative overflow-hidden rounded-xl border border-[#B983FF]/20 bg-[linear-gradient(135deg,rgba(8,13,25,0.96),rgba(11,20,38,0.88))] p-4 shadow-[0_0_40px_rgba(0,209,255,0.06)]">
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_100%_0%,rgba(185,131,255,0.16),transparent_45%)]" />
+        <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${isProAccess ? "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]" : "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]"}`}>
+              <span className={`rounded-full border px-2.5 py-1 text-xs font-medium shadow-[0_0_18px_rgba(255,184,0,0.1)] ${isProAccess ? "border-[#00FF88]/40 bg-[#00FF88]/15 text-[#74FFB8] shadow-[0_0_18px_rgba(0,255,136,0.14)]" : "border-[#FFB800]/40 bg-[#FFB800]/15 text-[#FFD36A]"}`}>
                 {isProAccess ? `${String(accessTier).toUpperCase()} access active` : "FREE source access"}
               </span>
               {accessExpiresAt ? <span className="text-xs text-[var(--text-muted)]">expires {formatDate(accessExpiresAt)}</span> : null}
@@ -525,7 +531,7 @@ export default function SourcesPage() {
             <button
               type="button"
               onClick={() => void requestProAccess()}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B983FF]/35 bg-[#B983FF]/10 px-4 py-2 text-sm font-medium text-[#D8B4FE] hover:bg-[#B983FF]/20"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B983FF]/40 bg-[#B983FF]/15 px-4 py-2 text-sm font-medium text-[#E6D0FF] shadow-[0_0_24px_rgba(185,131,255,0.12)] transition hover:bg-[#B983FF]/25 hover:shadow-[0_0_34px_rgba(185,131,255,0.2)]"
             >
               <Sparkles className="size-4" />
               Unlock Pro source audit
@@ -535,11 +541,11 @@ export default function SourcesPage() {
       </section>
 
       {error ? (
-        <section className="rounded-xl border border-[#FFB800]/25 bg-[#FFB800]/[0.06] p-4 text-sm text-[var(--text-secondary)]">
+        <section className="rounded-xl border border-[#FFB800]/30 bg-[#FFB800]/[0.08] p-4 text-sm text-[var(--text-secondary)] shadow-[0_0_28px_rgba(255,184,0,0.08)]">
           <div className="flex gap-3">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[#FFB800]" />
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[#FFD36A]" />
             <div>
-              <p className="font-semibold text-[#FFB800]">Source API note</p>
+              <p className="font-semibold text-[#FFD36A]">Source API note</p>
               <p className="mt-1">{error}</p>
               <p className="mt-1 text-xs text-[var(--text-muted)]">Current page is showing {sourceMode === "api" ? "database" : "fallback preview"} data.</p>
             </div>
@@ -548,64 +554,69 @@ export default function SourcesPage() {
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-4">
-        <div className="data-surface p-4">
-          <p className="terminal-label mb-2">Total Sources</p>
+        <div className="data-surface border-[#00D1FF]/20 bg-[linear-gradient(145deg,rgba(0,209,255,0.08),rgba(255,255,255,0.025))] p-4 shadow-[0_0_26px_rgba(0,209,255,0.06)]">
+          <p className="terminal-label mb-2 text-[#8DEBFF]">Total Sources</p>
           <div className="terminal-data text-2xl font-semibold text-white">{rowsWithTier.length}</div>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">{sourceMode === "api" ? "Loaded from database" : "Fallback preview"}</p>
         </div>
-        <div className="data-surface p-4">
-          <p className="terminal-label mb-2">Tier 1 Coverage</p>
+        <div className="data-surface border-[#00FF88]/20 bg-[linear-gradient(145deg,rgba(0,255,136,0.08),rgba(255,255,255,0.025))] p-4 shadow-[0_0_26px_rgba(0,255,136,0.06)]">
+          <p className="terminal-label mb-2 text-[#74FFB8]">Tier 1 Coverage</p>
           <div className="terminal-data text-2xl font-semibold text-white">{tier1Coverage}%</div>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">Primary evidence ratio</p>
         </div>
-        <div className="data-surface p-4">
-          <p className="terminal-label mb-2">Manual Review</p>
+        <div className="data-surface border-[#B983FF]/20 bg-[linear-gradient(145deg,rgba(185,131,255,0.09),rgba(255,184,0,0.035))] p-4 shadow-[0_0_26px_rgba(185,131,255,0.06)]">
+          <p className="terminal-label mb-2 text-[#E6D0FF]">Manual Review</p>
           <div className="terminal-data text-2xl font-semibold text-white">{manualRows.length}</div>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">{isProAccess ? "Open field notes" : "Count only in Free"}</p>
         </div>
-        <div className="data-surface p-4">
-          <p className="terminal-label mb-2">Avg Reliability</p>
+        <div className="data-surface border-[#FFB800]/20 bg-[linear-gradient(145deg,rgba(255,184,0,0.08),rgba(255,255,255,0.025))] p-4 shadow-[0_0_26px_rgba(255,184,0,0.06)]">
+          <p className="terminal-label mb-2 text-[#FFD36A]">Avg Reliability</p>
           <div className="terminal-data text-2xl font-semibold text-white">{isProAccess ? avgReliability : `${Math.round(avgReliability / 10) * 10}s`}</div>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">{isProAccess ? "Exact evidence score" : "Rounded public band"}</p>
         </div>
       </section>
 
-      <section className="terminal-panel p-5">
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <section className="terminal-panel relative overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_38px_rgba(0,209,255,0.06)]">
+        <div className="pointer-events-none absolute right-[-120px] top-[-140px] h-72 w-72 rounded-full bg-[#00D1FF]/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-160px] left-[-120px] h-72 w-72 rounded-full bg-[#00FF88]/8 blur-3xl" />
+        <div className="relative mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="terminal-label">Phase 3</p>
+            <p className="terminal-label text-[#8DEBFF]">Phase 3</p>
             <h2 className="mt-1 text-base font-semibold text-white">Source Quality per Asset</h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Asset-level evidence quality summary built from field-level sources, tier coverage, health status, manual review, and reliability.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+          <div className="flex items-center gap-2 rounded-full border border-[#00D1FF]/20 bg-[#00D1FF]/[0.06] px-3 py-1.5 text-xs text-[var(--text-secondary)]">
             <BarChart3 className="size-4 text-[var(--accent-cyan)]" />
             {sourceQualityRows.length} assets scored
           </div>
         </div>
 
-        <div className="mb-4 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-4">
-            <p className="terminal-label mb-2">Top Source Quality</p>
+        <div className="relative mb-4 grid gap-4 md:grid-cols-3">
+          <div className="relative overflow-hidden rounded-xl border border-[#00D1FF]/25 bg-[linear-gradient(145deg,rgba(0,209,255,0.12),rgba(0,255,136,0.045),rgba(255,255,255,0.025))] p-4 shadow-[0_0_34px_rgba(0,209,255,0.1)]">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#00D1FF]/70 to-transparent" />
+            <p className="terminal-label mb-2 text-[#8DEBFF]">Top Source Quality</p>
             <div className="terminal-data text-xl font-semibold text-white">{topSourceQuality?.assetSlug ?? "—"}</div>
             <p className="mt-2 text-xs text-[var(--text-secondary)]">Score {isProAccess ? topSourceQuality?.sourceScore ?? "—" : topSourceQuality ? `${Math.round(topSourceQuality.sourceScore / 10) * 10}s` : "—"}</p>
           </div>
-          <div className="rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-4">
-            <p className="terminal-label mb-2">Assets with Manual Review</p>
+          <div className="relative overflow-hidden rounded-xl border border-[#B983FF]/25 bg-[linear-gradient(145deg,rgba(185,131,255,0.12),rgba(255,184,0,0.05),rgba(255,255,255,0.025))] p-4 shadow-[0_0_34px_rgba(185,131,255,0.1)]">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#B983FF]/70 to-[#FFB800]/30" />
+            <p className="terminal-label mb-2 text-[#E6D0FF]">Assets with Manual Review</p>
             <div className="terminal-data text-xl font-semibold text-white">{sourceQualityRows.filter((row) => row.manualReview > 0).length}</div>
             <p className="mt-2 text-xs text-[var(--text-secondary)]">Requires human evidence verification</p>
           </div>
-          <div className="rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-4">
-            <p className="terminal-label mb-2">Assets with Broken Sources</p>
+          <div className="relative overflow-hidden rounded-xl border border-[#FF4444]/25 bg-[linear-gradient(145deg,rgba(255,68,68,0.11),rgba(255,184,0,0.045),rgba(255,255,255,0.025))] p-4 shadow-[0_0_34px_rgba(255,68,68,0.08)]">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF8888]/65 to-[#FFB800]/30" />
+            <p className="terminal-label mb-2 text-[#FFA0A0]">Assets with Broken Sources</p>
             <div className="terminal-data text-xl font-semibold text-white">{sourceQualityRows.filter((row) => row.broken > 0).length}</div>
             <p className="mt-2 text-xs text-[var(--text-secondary)]">Broken, timeout, or error status</p>
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-[var(--border-line)]">
+        <div className="relative overflow-x-auto rounded-xl border border-[#00D1FF]/15 bg-[#050A14]/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           <table className="w-full min-w-[1050px] text-left text-sm">
-            <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+            <thead className="border-b border-[#00D1FF]/15 bg-[#00D1FF]/[0.035] text-xs uppercase tracking-wide text-[var(--text-muted)]">
               <tr>
                 <th className="px-4 py-3 font-medium">Asset</th>
                 <th className="px-4 py-3 font-medium">Sources</th>
@@ -620,9 +631,9 @@ export default function SourcesPage() {
             </thead>
             <tbody>
               {sourceQualityRows.map((row) => (
-                <tr key={row.assetSlug} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
+                <tr key={row.assetSlug} className="border-b border-[rgba(30,42,58,0.55)] transition hover:bg-[#00D1FF]/[0.045] hover:shadow-[inset_3px_0_0_rgba(0,209,255,0.45)] last:border-0">
                   <td className="px-4 py-3">
-                    <button type="button" onClick={() => setAssetSlug(row.assetSlug)} className="terminal-data text-left text-white hover:text-[var(--accent-cyan)]">
+                    <button type="button" onClick={() => setAssetSlug(row.assetSlug)} className="terminal-data text-left text-white transition hover:text-[var(--accent-cyan)]">
                       {row.assetSlug}
                     </button>
                   </td>
@@ -633,7 +644,7 @@ export default function SourcesPage() {
                   <td className="px-4 py-3 text-[var(--text-secondary)]">{row.broken}</td>
                   <td className="px-4 py-3 text-white">{isProAccess ? row.avgReliability : reliabilityLabel(row.avgReliability, false)}</td>
                   <td className="px-4 py-3 text-white">{isProAccess ? row.sourceScore : `${Math.round(row.sourceScore / 10) * 10}s`}</td>
-                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${qualityClass(row.quality)}`}>{row.quality}</span></td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${qualityClass(row.quality)}`}>{row.quality}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -641,57 +652,58 @@ export default function SourcesPage() {
         </div>
       </section>
 
-      <section className="terminal-panel p-5">
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <section className="terminal-panel relative overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_38px_rgba(0,209,255,0.05)]">
+        <div className="pointer-events-none absolute right-[-160px] top-[-120px] h-80 w-80 rounded-full bg-[#00D1FF]/8 blur-3xl" />
+        <div className="relative mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="terminal-label">Source Library</p>
+            <p className="terminal-label text-[#8DEBFF]">Source Library</p>
             <h2 className="mt-1 text-base font-semibold text-white">Searchable field-level evidence</h2>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+          <div className="flex items-center gap-2 rounded-full border border-[#00D1FF]/20 bg-[#00D1FF]/[0.06] px-3 py-1.5 text-xs text-[var(--text-secondary)]">
             <Database className="size-4 text-[var(--accent-cyan)]" />
             Showing {filteredRows.length}/{rowsWithTier.length} sources
           </div>
         </div>
 
-        <div className="mb-4 grid gap-3 md:grid-cols-6">
+        <div className="relative mb-4 grid gap-3 md:grid-cols-6">
           <label className="relative md:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={isProAccess ? "Search asset, field, URL, notes..." : "Search asset, field, domain..."}
-              className="w-full rounded-lg border border-[var(--border-line)] bg-[#080D19] py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-[var(--accent-cyan)]"
+              className="w-full rounded-lg border border-[#00D1FF]/15 bg-[#080D19]/90 py-2 pl-9 pr-3 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)] focus:bg-[#0B1426] focus:shadow-[0_0_24px_rgba(0,209,255,0.12)]"
             />
           </label>
-          <select value={assetSlug} onChange={(event) => setAssetSlug(event.target.value)} className="rounded-lg border border-[var(--border-line)] bg-[#080D19] px-3 py-2 text-sm text-white outline-none">
+          <select value={assetSlug} onChange={(event) => setAssetSlug(event.target.value)} className="rounded-lg border border-[#00D1FF]/15 bg-[#080D19]/90 px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]">
             <option value="">All assets</option>
             {uniqueValues(rowsWithTier, "assetSlug").map((value) => <option key={value}>{value}</option>)}
           </select>
-          <select value={layer} onChange={(event) => setLayer(event.target.value)} className="rounded-lg border border-[var(--border-line)] bg-[#080D19] px-3 py-2 text-sm text-white outline-none">
+          <select value={layer} onChange={(event) => setLayer(event.target.value)} className="rounded-lg border border-[#00D1FF]/15 bg-[#080D19]/90 px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]">
             <option value="">All layers</option>
             {uniqueValues(rowsWithTier, "layer").map((value) => <option key={value}>{value}</option>)}
           </select>
-          <select value={tier} onChange={(event) => setTier(event.target.value)} className="rounded-lg border border-[var(--border-line)] bg-[#080D19] px-3 py-2 text-sm text-white outline-none">
+          <select value={tier} onChange={(event) => setTier(event.target.value)} className="rounded-lg border border-[#00D1FF]/15 bg-[#080D19]/90 px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]">
             <option value="">All tiers</option>
             {["Tier 1", "Tier 2", "Tier 3"].map((value) => <option key={value}>{value}</option>)}
           </select>
-          <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-lg border border-[var(--border-line)] bg-[#080D19] px-3 py-2 text-sm text-white outline-none">
+          <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-lg border border-[#00D1FF]/15 bg-[#080D19]/90 px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]">
             <option value="">All status</option>
             {["healthy", "redirected", "restricted", "broken", "manual_required", "unchecked", "timeout", "error"].map((value) => <option key={value}>{value}</option>)}
           </select>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <div className="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)]"><Filter className="size-4 text-[var(--accent-amber)]" /> Source type</div>
-          <select value={sourceType} onChange={(event) => setSourceType(event.target.value)} className="rounded-lg border border-[var(--border-line)] bg-[#080D19] px-3 py-2 text-sm text-white outline-none">
+        <div className="relative mb-4 flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#FFB800]/20 bg-[#FFB800]/[0.06] px-3 py-1.5 text-xs text-[var(--text-secondary)]"><Filter className="size-4 text-[var(--accent-amber)]" /> Source type</div>
+          <select value={sourceType} onChange={(event) => setSourceType(event.target.value)} className="rounded-lg border border-[#FFB800]/20 bg-[#080D19]/90 px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-amber)]">
             <option value="">All source types</option>
             {uniqueValues(rowsWithTier, "sourceType").map((value) => <option key={value}>{value}</option>)}
           </select>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-[var(--border-line)]">
+        <div className="relative overflow-x-auto rounded-xl border border-[#00D1FF]/15 bg-[#050A14]/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           <table className="w-full min-w-[1180px] text-left text-sm">
-            <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+            <thead className="border-b border-[#00D1FF]/15 bg-[#00D1FF]/[0.035] text-xs uppercase tracking-wide text-[var(--text-muted)]">
               <tr>
                 <th className="px-4 py-3 font-medium">Asset</th><th className="px-4 py-3 font-medium">Layer</th><th className="px-4 py-3 font-medium">Field</th><th className="px-4 py-3 font-medium">Type</th><th className="px-4 py-3 font-medium">Tier</th><th className="px-4 py-3 font-medium">Reliability</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Checked</th><th className="px-4 py-3 font-medium">Source</th>
               </tr>
@@ -700,18 +712,18 @@ export default function SourcesPage() {
               {filteredRows.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-8 text-center text-[var(--text-secondary)]">No sources match the current filters.</td></tr>
               ) : filteredRows.map((row) => (
-                <tr key={`${row.id ?? "source"}-${row.assetSlug}-${row.layer}-${row.field}-${row.sourceUrl}`} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
+                <tr key={`${row.id ?? "source"}-${row.assetSlug}-${row.layer}-${row.field}-${row.sourceUrl}`} className="border-b border-[rgba(30,42,58,0.55)] transition hover:bg-[#00D1FF]/[0.045] hover:shadow-[inset_3px_0_0_rgba(0,209,255,0.45)] last:border-0">
                   <td className="px-4 py-3 terminal-data text-white">{row.assetSlug}</td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">{row.layer}</td>
                   <td className="px-4 py-3 text-white">{row.field}</td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">{row.sourceType}</td>
-                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${tierClass(row.tier)}`}>{row.tier}</span></td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${tierClass(row.tier)}`}>{row.tier}</span></td>
                   <td className="px-4 py-3"><span className="terminal-data text-white">{isProAccess ? row.reliability : reliabilityLabel(row.reliability, false)}</span><span className="ml-2 text-xs text-[var(--text-muted)]">{reliabilityLabel(row.reliability, isProAccess)}</span></td>
-                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(row.status)}`}>{row.status}</span></td>
                   <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{isProAccess ? formatDate(row.lastCheckedAt ?? row.checkedAt) : <span className="inline-flex items-center gap-1"><Lock className="size-3" /> Pro</span>}</td>
                   <td className="max-w-[240px] px-4 py-3">
                     {isProAccess ? (
-                      <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex max-w-[240px] items-center gap-1 truncate text-[var(--accent-cyan)] hover:underline"><span className="truncate">{row.sourceUrl}</span><ExternalLink className="size-3 shrink-0" /></a>
+                      <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex max-w-[240px] items-center gap-1 truncate text-[var(--accent-cyan)] transition hover:text-[#8DEBFF] hover:underline"><span className="truncate">{row.sourceUrl}</span><ExternalLink className="size-3 shrink-0" /></a>
                     ) : (
                       <span className="inline-flex max-w-[220px] items-center gap-1 truncate text-[var(--text-secondary)]"><span className="truncate">{hostname(row.sourceUrl)}</span><Lock className="size-3 shrink-0 text-[#FFB800]" /></span>
                     )}
@@ -723,18 +735,21 @@ export default function SourcesPage() {
         </div>
       </section>
 
-      <section className="terminal-panel p-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <section className="terminal-panel relative overflow-hidden border-[#B983FF]/20 p-5 shadow-[0_0_38px_rgba(185,131,255,0.06)]">
+        <div className="pointer-events-none absolute right-[-140px] top-[-120px] h-72 w-72 rounded-full bg-[#B983FF]/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-140px] left-[-120px] h-72 w-72 rounded-full bg-[#FFB800]/8 blur-3xl" />
+        <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="terminal-label">Manual Review Needed</p>
+            <p className="terminal-label text-[#E6D0FF]">Manual Review Needed</p>
             <h2 className="mt-1 text-base font-semibold text-white">Sources excluded from automatic broken status</h2>
           </div>
-          {!isProAccess ? <button type="button" onClick={() => void requestProAccess()} className="inline-flex items-center gap-2 rounded-lg border border-[#B983FF]/30 px-3 py-2 text-xs font-medium text-[#D8B4FE]"><Lock className="size-3.5" /> Unlock notes</button> : null}
+          {!isProAccess ? <button type="button" onClick={() => void requestProAccess()} className="inline-flex items-center gap-2 rounded-lg border border-[#B983FF]/35 bg-[#B983FF]/10 px-3 py-2 text-xs font-medium text-[#E6D0FF] transition hover:bg-[#B983FF]/20 hover:shadow-[0_0_24px_rgba(185,131,255,0.14)]"><Lock className="size-3.5" /> Unlock notes</button> : null}
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="relative mt-4 grid gap-3 md:grid-cols-2">
           {manualRows.length === 0 ? <p className="text-sm text-[var(--text-secondary)]">No manual-required sources in current filters.</p> : manualRows.map((row) => (
-            <div key={`${row.assetSlug}-${row.field}-${row.sourceUrl}`} className="rounded-xl border border-[#B983FF]/20 bg-[#B983FF]/[0.06] p-4">
-              <div className="flex items-start justify-between gap-3"><div><p className="terminal-data text-white">{row.assetSlug}</p><p className="mt-1 text-sm text-[var(--text-secondary)]">{row.layer}.{row.field}</p></div><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></div>
+            <div key={`${row.assetSlug}-${row.field}-${row.sourceUrl}`} className="relative overflow-hidden rounded-xl border border-[#B983FF]/25 bg-[linear-gradient(145deg,rgba(185,131,255,0.11),rgba(255,184,0,0.04),rgba(255,255,255,0.025))] p-4 shadow-[0_0_28px_rgba(185,131,255,0.07)] transition hover:border-[#B983FF]/40 hover:bg-[#B983FF]/[0.1]">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#B983FF]/65 via-[#FFB800]/35 to-transparent" />
+              <div className="flex items-start justify-between gap-3"><div><p className="terminal-data text-white">{row.assetSlug}</p><p className="mt-1 text-sm text-[var(--text-secondary)]">{row.layer}.{row.field}</p></div><span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(row.status)}`}>{row.status}</span></div>
               <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">{isProAccess ? (row.notes ?? row.errorMessage ?? "Manual verification is required before this source can be treated as production-grade.") : "Manual review note is locked for Pro users. Free users can see the count and affected field only."}</p>
               {isProAccess ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--accent-cyan)] hover:underline">{hostname(row.sourceUrl)} <ExternalLink className="size-3" /></a> : <span className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--text-muted)]"><Lock className="size-3" /> {hostname(row.sourceUrl)}</span>}
             </div>
@@ -743,19 +758,19 @@ export default function SourcesPage() {
       </section>
 
       <section>
-        <div className="mb-3"><p className="terminal-label">Source Methodology</p><h2 className="mt-1 text-base font-semibold text-white">Evidence tiers</h2></div>
+        <div className="mb-3"><p className="terminal-label text-[#FFD36A]">Source Methodology</p><h2 className="mt-1 text-base font-semibold text-white">Evidence tiers</h2></div>
         <div className="grid gap-4 md:grid-cols-3">
           {sourceTiers.map(({ tier: tierName, title, description, icon: Icon }) => (
-            <div key={tierName} className="terminal-panel p-5"><Icon className="size-5 text-[var(--accent-amber)]" /><p className="terminal-label mt-4">{tierName}</p><h3 className="mt-1 font-semibold text-white">{title}</h3><p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p></div>
+            <div key={tierName} className="terminal-panel relative overflow-hidden border-[#FFB800]/15 p-5 transition hover:border-[#FFB800]/30 hover:shadow-[0_0_28px_rgba(255,184,0,0.08)]"><div className="absolute right-[-80px] top-[-80px] h-40 w-40 rounded-full bg-[#FFB800]/8 blur-3xl" /><Icon className="relative size-5 text-[var(--accent-amber)]" /><p className="terminal-label relative mt-4 text-[#FFD36A]">{tierName}</p><h3 className="relative mt-1 font-semibold text-white">{title}</h3><p className="relative mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p></div>
           ))}
         </div>
       </section>
 
-      <section className="terminal-panel p-5">
-        <p className="terminal-label">Source policy</p>
+      <section className="terminal-panel border-[#FFB800]/15 p-5 shadow-[0_0_28px_rgba(255,184,0,0.04)]">
+        <p className="terminal-label text-[#FFD36A]">Source policy</p>
         <h2 className="mt-1 text-base font-semibold text-white">Rules for production-grade asset data</h2>
         <ul className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
-          {checks.map((check) => <li key={check} className="flex gap-2 leading-relaxed"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-amber)]" />{check}</li>)}
+          {checks.map((check) => <li key={check} className="flex gap-2 leading-relaxed"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--accent-amber)] shadow-[0_0_10px_rgba(255,184,0,0.7)]" />{check}</li>)}
         </ul>
       </section>
 
