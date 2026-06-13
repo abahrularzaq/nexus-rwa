@@ -122,19 +122,19 @@ export default function LayersPage() {
     <div className="space-y-8 pb-10">
       <header className="flex flex-col gap-5 border-b border-[var(--border-line)] pb-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="terminal-label mb-1.5">Research methodology</p>
+          <p className="terminal-label mb-1.5">Dataset architecture</p>
           <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white">
-            12-layer asset intelligence model
+            12-layer asset dataset model
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-[var(--text-secondary)]">
-            Nexus RWA evaluates each asset using a structured 12-layer dataset so
-            every score can be traced back to verifiable evidence.
+            This dashboard view documents the operational data structure behind each
+            Nexus RWA asset profile: files, layer status, scoring usage, and evidence rules.
           </p>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2 xl:min-w-[520px] xl:grid-cols-4">
           {[
-            ["12", "research layers"],
+            ["12", "data layers"],
             ["10", "active data files"],
             ["100%", "evidence-based"],
             ["0", "manual guessing"],
@@ -188,12 +188,12 @@ export default function LayersPage() {
       </section>
 
       <section className="terminal-panel p-5">
-        <p className="terminal-label">Methodology flow</p>
+        <p className="terminal-label">Dataset workflow</p>
         <h2 className="mt-1 text-lg font-semibold text-white">
-          From raw layer data to public asset grade
+          From structured data files to public asset grade
         </h2>
         <div className="mt-4 grid gap-3 md:grid-cols-5">
-          {["Layer Data", "Source Validation", "Risk Scoring", "Grade Baseline", "Asset Profile"].map(
+          {["Data Layers", "Source Validation", "Risk Scoring", "Grade Baseline", "Asset Profile"].map(
             (step, index, items) => (
               <div key={step} className="flex items-center gap-3">
                 <div className="min-h-16 flex-1 rounded-xl border border-[var(--border-line)] bg-white/[0.03] p-3">
@@ -227,7 +227,7 @@ export default function LayersPage() {
             <p className="terminal-label">Next workflow</p>
             <h2 className="mt-1 text-lg font-semibold text-white">Review the scoring output</h2>
             <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-              After the layer dataset is complete, Nexus RWA converts evidence quality,
+              After the asset dataset is complete, Nexus RWA converts evidence quality,
               reserve strength, liquidity, legal structure, and risk signals into a
               transparent asset grade.
             </p>
