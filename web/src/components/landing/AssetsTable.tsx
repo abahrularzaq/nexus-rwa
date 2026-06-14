@@ -6,7 +6,7 @@ import { FadeUp } from "@/components/landing/primitives";
 import { FieldInfo } from "@/components/common/FieldInfo";
 import type { FieldKey } from "@/lib/field-definitions";
 
-type Cat = "Treasury" | "Credit" | "Real Estate" | "Commodities";
+type Cat = "Treasury" | "Credit";
 type Risk = "LOW" | "MEDIUM" | "HIGH";
 
 type HeaderCell = {
@@ -25,23 +25,196 @@ const rows: {
   yld: string;
   risk: Risk;
   chg: string;
-  up: boolean;
+  up: boolean | null;
+  status?: "verified" | "syncing";
 }[] = [
-  { n: 1, color: "#00D4FF", name: "Ondo USDY", sym: "USDY", protocol: "Ondo Finance", cat: "Treasury", tvl: "$892.4M", yld: "5.42%", risk: "LOW", chg: "+3.2%", up: true },
-  { n: 2, color: "#3B82F6", name: "Maple USDC", sym: "mUSDC", protocol: "Maple Finance", cat: "Credit", tvl: "$324.1M", yld: "8.91%", risk: "MEDIUM", chg: "-1.8%", up: false },
-  { n: 3, color: "#F97316", name: "Centrifuge DROP", sym: "DROP", protocol: "Centrifuge", cat: "Credit", tvl: "$198.7M", yld: "9.34%", risk: "MEDIUM", chg: "+5.1%", up: true },
-  { n: 4, color: "#22C55E", name: "Backed BUIDL", sym: "bBUIDL", protocol: "Backed Finance", cat: "Treasury", tvl: "$456.2M", yld: "4.88%", risk: "LOW", chg: "+0.9%", up: true },
-  { n: 5, color: "#7C3AED", name: "OpenEden OUSG", sym: "OUSG", protocol: "OpenEden", cat: "Treasury", tvl: "$234.5M", yld: "5.15%", risk: "LOW", chg: "-0.4%", up: false },
-  { n: 6, color: "#06B6D4", name: "Ondo OUSG", sym: "OUSG2", protocol: "Ondo Finance", cat: "Treasury", tvl: "$567.8M", yld: "5.28%", risk: "LOW", chg: "+1.2%", up: true },
-  { n: 7, color: "#EF4444", name: "RealT Token", sym: "REALT", protocol: "RealT", cat: "Real Estate", tvl: "$45.3M", yld: "11.20%", risk: "HIGH", chg: "+8.4%", up: true },
-  { n: 8, color: "#FACC15", name: "Goldfinch GFI", sym: "GFI", protocol: "Goldfinch", cat: "Credit", tvl: "$89.1M", yld: "12.40%", risk: "HIGH", chg: "-3.1%", up: false },
+  {
+    n: 1,
+    color: "#00D4FF",
+    name: "Ondo Short-Term US Government Treasuries",
+    sym: "OUSG",
+    protocol: "Ondo Finance",
+    cat: "Treasury",
+    tvl: "$3.69B",
+    yld: "5.20%",
+    risk: "MEDIUM",
+    chg: "-1.31%",
+    up: false,
+    status: "verified",
+  },
+  {
+    n: 2,
+    color: "#22C55E",
+    name: "Franklin OnChain U.S. Government Money Fund",
+    sym: "BENJI",
+    protocol: "Franklin Templeton",
+    cat: "Treasury",
+    tvl: "$401.0M",
+    yld: "4.85%",
+    risk: "LOW",
+    chg: "+0.42%",
+    up: true,
+    status: "verified",
+  },
+  {
+    n: 3,
+    color: "#3B82F6",
+    name: "Maple USDC Pool",
+    sym: "mUSDC",
+    protocol: "Maple Finance",
+    cat: "Credit",
+    tvl: "$324.1M",
+    yld: "8.91%",
+    risk: "MEDIUM",
+    chg: "-1.80%",
+    up: false,
+    status: "verified",
+  },
+  {
+    n: 4,
+    color: "#06B6D4",
+    name: "Ondo USDY",
+    sym: "USDY",
+    protocol: "Ondo Finance",
+    cat: "Treasury",
+    tvl: "Sync pending",
+    yld: "5.10%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 5,
+    color: "#8B5CF6",
+    name: "Superstate",
+    sym: "USTB",
+    protocol: "Superstate",
+    cat: "Treasury",
+    tvl: "Sync pending",
+    yld: "4.92%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 6,
+    color: "#10B981",
+    name: "Backed Finance",
+    sym: "bC3M",
+    protocol: "Backed Finance",
+    cat: "Treasury",
+    tvl: "Sync pending",
+    yld: "5.00%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 7,
+    color: "#14B8A6",
+    name: "OpenEden",
+    sym: "OUSG",
+    protocol: "OpenEden",
+    cat: "Treasury",
+    tvl: "Sync pending",
+    yld: "5.25%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 8,
+    color: "#F97316",
+    name: "Centrifuge CFG",
+    sym: "CFG",
+    protocol: "Centrifuge",
+    cat: "Credit",
+    tvl: "Sync pending",
+    yld: "8.50%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 9,
+    color: "#FACC15",
+    name: "Goldfinch",
+    sym: "GFI",
+    protocol: "Goldfinch",
+    cat: "Credit",
+    tvl: "Sync pending",
+    yld: "10.20%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 10,
+    color: "#38BDF8",
+    name: "Clearpool",
+    sym: "CPOOL",
+    protocol: "Clearpool",
+    cat: "Credit",
+    tvl: "Sync pending",
+    yld: "7.20%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 11,
+    color: "#EF4444",
+    name: "TrueFi",
+    sym: "TRU",
+    protocol: "TrueFi",
+    cat: "Credit",
+    tvl: "Sync pending",
+    yld: "9.10%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 12,
+    color: "#A855F7",
+    name: "Credix",
+    sym: "CREDIX",
+    protocol: "Credix",
+    cat: "Credit",
+    tvl: "Sync pending",
+    yld: "11.50%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
+  {
+    n: 13,
+    color: "#EC4899",
+    name: "Ribbon Finance",
+    sym: "RBN",
+    protocol: "Ribbon Finance",
+    cat: "Credit",
+    tvl: "Sync pending",
+    yld: "8.00%",
+    risk: "MEDIUM",
+    chg: "—",
+    up: null,
+    status: "syncing",
+  },
 ];
 
 const catStyle: Record<Cat, { bg: string; color: string }> = {
   Treasury: { bg: "rgba(0,212,255,0.1)", color: "#00D4FF" },
   Credit: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" },
-  "Real Estate": { bg: "rgba(255,68,68,0.1)", color: "#FF8888" },
-  Commodities: { bg: "rgba(255,184,0,0.1)", color: "#FFB800" },
 };
 
 const riskStyle: Record<Risk, { bg: string; color: string }> = {
@@ -50,7 +223,7 @@ const riskStyle: Record<Risk, { bg: string; color: string }> = {
   HIGH: { bg: "rgba(255,68,68,0.1)", color: "#FF6666" },
 };
 
-const filters = ["All", "Treasury", "Credit", "Real Estate", "Commodities"] as const;
+const filters = ["All", "Treasury", "Credit"] as const;
 
 const headers: HeaderCell[] = [
   { label: "#" },
@@ -58,10 +231,10 @@ const headers: HeaderCell[] = [
   { label: "Protocol" },
   { label: "Category", fieldKey: "category" },
   { label: "TVL", fieldKey: "tvl" },
-  { label: "Yield (APY)", fieldKey: "currentYield" },
+  { label: "Yield", fieldKey: "currentYield" },
   { label: "Risk", fieldKey: "riskScore" },
   { label: "7D Change", fieldKey: "change7d" },
-  { label: "Action" },
+  { label: "Status" },
 ];
 
 export function AssetsTable() {
@@ -89,10 +262,11 @@ export function AssetsTable() {
             Asset Intelligence
           </span>
           <h2 className="mt-5 text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            Structured RWA Asset Coverage
+            Current Nexus RWA Asset Coverage
           </h2>
-          <p className="mt-3 text-base" style={{ color: "var(--text-secondary)" }}>
-            Sample asset profiles showing how Nexus RWA compares tokenized assets across market, yield, risk, and category signals.
+          <p className="mt-3 text-base max-w-3xl mx-auto" style={{ color: "var(--text-secondary)" }}>
+            Landing preview aligned with the current dashboard seed dataset. Verified rows show available market values;
+            syncing rows are active assets waiting for refreshed market data.
           </p>
         </FadeUp>
 
@@ -163,7 +337,7 @@ export function AssetsTable() {
                     <td className="px-5 py-4 tabular text-text-secondary" style={{ color: "#8892A4" }}>
                       {r.n}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 min-w-[300px]">
                       <div className="flex items-center gap-3">
                         <div
                           className="w-8 h-8 rounded-full shrink-0"
@@ -189,7 +363,12 @@ export function AssetsTable() {
                         {r.cat}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-white font-bold tabular">{r.tvl}</td>
+                    <td
+                      className="px-5 py-4 font-bold tabular"
+                      style={{ color: r.tvl === "Sync pending" ? "var(--text-muted)" : "#fff" }}
+                    >
+                      {r.tvl}
+                    </td>
                     <td className="px-5 py-4 text-white font-bold tabular">{r.yld}</td>
                     <td className="px-5 py-4">
                       <span
@@ -201,20 +380,22 @@ export function AssetsTable() {
                     </td>
                     <td
                       className="px-5 py-4 tabular font-semibold"
-                      style={{ color: r.up ? "var(--accent-green)" : "var(--accent-red)" }}
+                      style={{
+                        color: r.up === null ? "var(--text-muted)" : r.up ? "var(--accent-green)" : "var(--accent-red)",
+                      }}
                     >
-                      {r.chg} {r.up ? "↑" : "↓"}
+                      {r.chg} {r.up === null ? "" : r.up ? "↑" : "↓"}
                     </td>
                     <td className="px-5 py-4">
-                      <button
-                        className="px-3 py-1 text-xs font-semibold rounded-md transition-colors"
+                      <span
+                        className="px-2.5 py-1 text-xs font-semibold rounded-full"
                         style={{
-                          border: "1px solid rgba(0,212,255,0.4)",
-                          color: "var(--accent-cyan)",
+                          background: r.status === "verified" ? "rgba(0,255,136,0.1)" : "rgba(255,184,0,0.1)",
+                          color: r.status === "verified" ? "var(--accent-green)" : "#FFB800",
                         }}
                       >
-                        View →
-                      </button>
+                        {r.status === "verified" ? "Verified" : "Syncing"}
+                      </span>
                     </td>
                   </tr>
                 ))}

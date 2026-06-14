@@ -48,27 +48,27 @@ export function DashboardPreview() {
               color: "var(--accent-cyan)",
             }}
           >
-            Dashboard
+            Dashboard MVP
           </span>
           <h2 className="mt-5 text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.05]">
-            <span className="text-gradient-cyan block">Every Metric.</span>
-            <span className="text-gradient-cp block">One Platform.</span>
+            <span className="text-gradient-cyan block">Structured RWA Data.</span>
+            <span className="text-gradient-cp block">One Research View.</span>
           </h2>
           <p
             className="mt-5 text-base leading-[1.8] max-w-lg"
             style={{ color: "var(--text-secondary)" }}
           >
-            Track TVL, yield rates, risk scores, and holder distribution for all major RWA
-            protocols. On-chain data refreshed every 60 seconds.
+            Explore tokenized asset profiles across market, yield, risk, source, reserve,
+            compliance, and liquidity layers. Coverage grows asset by asset as verified sources are added.
           </p>
           <ul className="mt-6 space-y-3">
             {[
-              "Real-time TVL aggregation across protocols",
-              "Historical yield analytics (up to 365 days)",
-              "Proprietary risk scoring engine",
-              "Holder concentration analysis",
-              "Multi-protocol comparison tools",
-              "Export to CSV / JSON via API",
+              "Public catalog with market and yield summaries",
+              "12-layer asset profiles for Pro research",
+              "Evidence-based risk and grade context",
+              "Source trail for verified fields",
+              "Asset comparison and category discovery",
+              "JSON export and API preview for builders",
             ].map((f) => (
               <li key={f} className="flex items-start gap-3 text-sm" style={{ color: "#CBD5E1" }}>
                 <Check size={16} className="mt-0.5 shrink-0" style={{ color: "var(--accent-cyan)" }} />
@@ -125,7 +125,7 @@ export function DashboardPreview() {
                   { l: "Assets" },
                   { l: "Yield" },
                   { l: "Risk" },
-                  { l: "Holders" },
+                  { l: "Sources" },
                   { l: "API" },
                 ].map((it) => (
                   <div
@@ -147,11 +147,11 @@ export function DashboardPreview() {
                   <div className="text-[11px] text-white font-semibold">Welcome, Analyst</div>
                   <div className="flex items-center gap-1.5 text-[10px]" style={{ color: "var(--accent-green)" }}>
                     <span className="w-1.5 h-1.5 rounded-full pulse-dot" style={{ background: "var(--accent-green)" }} />
-                    Connected
+                    Preview
                   </div>
                 </div>
                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[340px]">
-                  <MiniChart title="TVL Over Time">
+                  <MiniChart title="TVL Snapshot">
                     <ResponsiveContainer width="100%" height={100}>
                       <AreaChart data={tvlData}>
                         <defs>
@@ -164,7 +164,7 @@ export function DashboardPreview() {
                       </AreaChart>
                     </ResponsiveContainer>
                   </MiniChart>
-                  <MiniChart title="Yield by Protocol">
+                  <MiniChart title="Yield Snapshot">
                     <ResponsiveContainer width="100%" height={100}>
                       <BarChart data={yieldByProto}>
                         <Bar dataKey="v" radius={[3, 3, 0, 0]}>
@@ -182,7 +182,7 @@ export function DashboardPreview() {
                       </PieChart>
                     </ResponsiveContainer>
                   </MiniChart>
-                  <MiniChart title="Risk Trend">
+                  <MiniChart title="Risk Overview">
                     <ResponsiveContainer width="100%" height={100}>
                       <AreaChart data={riskTrend}>
                         <defs>
