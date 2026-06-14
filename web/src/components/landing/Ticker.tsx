@@ -1,12 +1,12 @@
-const items = [
-  { sym: "ONDO-USDY", yield: "5.42%", chg: "+0.03%", up: true },
-  { sym: "MAPLE-USDC", yield: "8.91%", chg: "-0.12%", up: false },
-  { sym: "BACKED-BUIDL", yield: "4.88%", chg: "+0.01%", up: true },
-  { sym: "CENTRIFUGE", yield: "9.34%", chg: "+0.21%", up: true },
-  { sym: "OPENEDON", yield: "5.15%", chg: "-0.05%", up: false },
-  { sym: "ONDO-OUSG", yield: "5.28%", chg: "+0.08%", up: true },
-  { sym: "REALT", yield: "11.20%", chg: "+0.84%", up: true },
-  { sym: "GOLDFINCH", yield: "12.40%", chg: "-0.31%", up: false },
+const items: { sym: string; yield: string; chg: string; up: boolean | null }[] = [
+  { sym: "ONDO-OUSG", yield: "5.20%", chg: "-1.31%", up: false },
+  { sym: "BENJI", yield: "4.85%", chg: "+0.42%", up: true },
+  { sym: "MAPLE-MUSDC", yield: "8.91%", chg: "-1.80%", up: false },
+  { sym: "ONDO-USDY", yield: "5.10%", chg: "syncing", up: null },
+  { sym: "SUPERSTATE-USTB", yield: "4.92%", chg: "syncing", up: null },
+  { sym: "BACKED-BC3M", yield: "5.00%", chg: "syncing", up: null },
+  { sym: "CENTRIFUGE-CFG", yield: "8.50%", chg: "syncing", up: null },
+  { sym: "GOLDFINCH-GFI", yield: "10.20%", chg: "syncing", up: null },
 ];
 
 export function Ticker() {
@@ -18,9 +18,16 @@ export function Ticker() {
           <span className="mx-2 text-white tabular">{it.yield}</span>
           <span
             className="tabular"
-            style={{ color: it.up ? "var(--accent-green)" : "var(--accent-red)" }}
+            style={{
+              color:
+                it.up === null
+                  ? "var(--text-secondary)"
+                  : it.up
+                    ? "var(--accent-green)"
+                    : "var(--accent-red)",
+            }}
           >
-            {it.chg} {it.up ? "↑" : "↓"}
+            {it.chg} {it.up === null ? "" : it.up ? "↑" : "↓"}
           </span>
           <span className="ml-8" style={{ color: "var(--text-muted)" }}>·</span>
         </div>
@@ -45,11 +52,11 @@ export function Ticker() {
         }}
       >
         <span
-          className="w-2 h-2 rounded-full pulse-dot"
-          style={{ background: "var(--accent-red)", boxShadow: "0 0 8px #FF4444" }}
+          className="w-2 h-2 rounded-full"
+          style={{ background: "var(--accent-cyan)", boxShadow: "0 0 8px #00D4FF" }}
         />
-        <span className="text-[13px] font-bold" style={{ color: "var(--accent-red)" }}>
-          LIVE
+        <span className="text-[13px] font-bold" style={{ color: "var(--accent-cyan)" }}>
+          SEED PREVIEW
         </span>
       </div>
       <div className="ticker-track flex">
