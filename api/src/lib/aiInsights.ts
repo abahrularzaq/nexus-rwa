@@ -15,13 +15,25 @@ import {
 import { ERROR_CODES } from '../shared/index.js';
 
 const INSIGHT_CACHE_TTL_SECONDS = 12 * 60 * 60;
-const INSIGHT_CACHE_KEY_PREFIX = 'insight:v3';
+const INSIGHT_CACHE_KEY_PREFIX = 'insight:v4';
 
 type AiProvider = 'gemini' | 'anthropic';
 
+function hasEnv(name: string): boolean {
+  return Boolean(process.env[name]?.trim());
+}
+
 function getAiProvider(): AiProvider {
   const provider = process.env.AI_PROVIDER?.trim().toLowerCase();
+
   if (provider === 'anthropic' || provider === 'claude') return 'anthropic';
+  if (provider === 'gemini' || provider === 'google') return 'gemini';
+
+  // Auto-detect the configured provider. This prevents local/prod deployments
+  // with only ANTHROPIC_API_KEY from silently trying Gemini and falling back.
+  if (hasEnv('ANTHROPIC_API_KEY')) return 'anthropic';
+  if (hasEnv('GEMINI_API_KEY') || hasEnv('GOOGLE_API_KEY')) return 'gemini';
+
   return 'gemini';
 }
 
@@ -170,7 +182,7 @@ async function callGeminiForInsight(asset: AssetWithHistory): Promise<AssetInsig
   });
 
   try {
-    return normalizeInsight(asset, insightSchema.parse(JSON.parse(raw)));
+    return normalizeInsight(asset, insightSchema.parse(parseJsonFromModelText(raw)));
   } catch (err) {
     logger.warn({ err, assetId: asset.id }, 'Gemini insight JSON parse failed');
     throw new Error('Invalid insight response from Gemini');
