@@ -19,6 +19,8 @@ import { analyticsRouter, exportRouter } from './routes/enterprise.js';
 import { askRouter } from './routes/ask.js';
 import { adminRouter } from './routes/admin.js';
 import { adminMonitoringRouter } from './routes/admin-monitoring.js';
+import { accessRouter } from './routes/access.js';
+import { x402Router } from './routes/x402.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
@@ -85,6 +87,10 @@ app.use('*', cors({
   exposeHeaders: [
     'X-Payment-Status',
     'X-Payment-Verified',
+    'X-Payment-Tier',
+    'X-Payment-TxHash',
+    'X-Wallet-Address',
+    'X-Api-Key-Prefix',
     'X-Request-Id',
     'X-RateLimit-Limit',
     'X-RateLimit-Remaining',
@@ -112,6 +118,8 @@ app.route('/v1/assets', assetsRouter);
 app.route('/v1/search', searchRouter);
 app.route('/v1/gated', gatedRouter);
 app.route('/v1/session', sessionRouter);
+app.route('/v1/me', accessRouter);
+app.route('/v1/x402', x402Router);
 app.route('/v1/analytics', analyticsRouter);
 app.route('/v1/export', exportRouter);
 app.route('/v1/ask', askRouter);
