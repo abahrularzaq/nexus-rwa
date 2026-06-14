@@ -7,7 +7,7 @@
   "subcategory": "Tokenized Gold",
   "logoUrl": null,
   "websiteUrl": "https://www.paxos.com/pax-gold",
-  "docsUrl": "https://docs.paxos.com/guides/dashboard/paxg",
+  "docsUrl": "https://help.paxos.com/hc/en-us/sections/360008612071-PAX-Gold-PAXG-",
   "twitterUrl": "https://x.com/Paxos",
   "tags": [
     "institutional",
@@ -19,12 +19,12 @@
   "isin": null,
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-05",
+    "lastManualReview": "2026-06-14",
     "reviewFrequencyDays": 90,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Updated docsUrl after source-health monitoring found the previous docs.paxos.com PAXG guide returning Internal Error. Replaced with official Paxos Help Center PAXG support section."
   }
 }

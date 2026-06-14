@@ -12,6 +12,7 @@ adminMonitoringRouter.use('*', adminAuthMiddleware());
 const ROOT = process.cwd();
 const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
 const MANUAL_REQUIRED_CHECKED_BY = new Set(['manual_required', 'manual-review-required']);
+const SOURCE_STATUS_OPTIONS = new Set(['healthy', 'redirected', 'restricted', 'timeout', 'error', 'broken', 'deprecated']);
 
 type QueryOptions = {
   limit: number;
@@ -170,6 +171,19 @@ function internalError(c: any, err: unknown, fallback: string) {
       },
     },
     500,
+  );
+}
+
+function notFound(c: any, message: string) {
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: ERROR_CODES.NOT_FOUND,
+        message,
+      },
+    },
+    404,
   );
 }
 
@@ -361,5 +375,81 @@ adminMonitoringRouter.get('/sync-logs', async (c) => {
     return c.json({ success: true, data: rows });
   } catch (err) {
     return internalError(c, err, 'Sync log query failed');
+  }
+});
+
+adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const existing = await db.reviewTask.findUnique({ where: { id } });
+    if (!existing) return notFound(c, `Review task not found: ${id}`);
+
+    const task = await db.reviewTask.update({
+      where: { id },
+      data: { status: 'closed', resolvedAt: new Date() },
+    });
+
+    return c.json({ success: true, data: task });
+  } catch (err) {
+    return internalError(c, err, 'Review task close failed');
+  }
+});
+
+adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const existing = await db.dataHealthCheck.findUnique({ where: { id } });
+    if (!existing) return notFound(c, `Health check not found: ${id}`);
+
+    const check = await db.dataHealthCheck.update({
+      where: { id },
+      data: {
+        status: 'current',
+        severity: 'low',
+        reason: 'Resolved from admin monitoring workbench',
+        lastCheckedAt: new Date(),
+      },
+    });
+
+    return c.json({ success: true, data: check });
+  } catch (err) {
+    return internalError(c, err, 'Health check close failed');
+  }
+});
+
+adminMonitoringRouter.patch('/source-health/:id/status', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const body = (await c.req.json().catch(() => ({}))) as { status?: unknown };
+    const status = typeof body.status === 'string' ? body.status.trim() : '';
+
+    if (!SOURCE_STATUS_OPTIONS.has(status)) {
+      return c.json(
+        {
+          success: false,
+          error: {
+            code: ERROR_CODES.VALIDATION_ERROR,
+            message: `Invalid source status. Use one of: ${[...SOURCE_STATUS_OPTIONS].join(', ')}`,
+          },
+        },
+        400,
+      );
+    }
+
+    const existing = await db.sourceHealth.findUnique({ where: { id } });
+    if (!existing) return notFound(c, `Source health row not found: ${id}`);
+
+    const row = await db.sourceHealth.update({
+      where: { id },
+      data: {
+        status,
+        lastCheckedAt: new Date(),
+        ...(status === 'healthy' || status === 'redirected' || status === 'deprecated' ? { errorMessage: null } : {}),
+      },
+    });
+
+    return c.json({ success: true, data: row });
+  } catch (err) {
+    return internalError(c, err, 'Source status update failed');
   }
 });
