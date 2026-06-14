@@ -5,77 +5,80 @@ import { Bot, Lock, Wallet, ShieldCheck, Database, Zap, Coins } from "lucide-rea
 import { FadeUp } from "@/components/landing/primitives";
 
 const steps = [
-  { Icon: Bot, title: "Request Data", text: "User or agent calls Nexus RWA API", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
-  { Icon: Lock, title: "402 Response", text: "Server returns payment instructions if locked", bg: "rgba(0,212,255,0.05)", border: "rgba(0,212,255,0.4)", color: "#00D4FF", titleColor: "#00D4FF" },
-  { Icon: Wallet, title: "USDC Pass", text: "Wallet unlocks Pro 24h access", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.4)", color: "#A78BFA", titleColor: "#A78BFA" },
-  { Icon: ShieldCheck, title: "Session Active", text: "Wallet session is persisted in Postgres", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
-  { Icon: Database, title: "Layers Unlocked", text: "Risk, sources, history, and insight delivered", bg: "rgba(0,255,136,0.05)", border: "rgba(0,255,136,0.4)", color: "#00FF88", titleColor: "#00FF88" },
+  { Icon: Bot, title: "Request Data", text: "User or app calls a Nexus RWA endpoint", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
+  { Icon: Lock, title: "402 Response", text: "Locked routes return payment metadata", bg: "rgba(0,212,255,0.05)", border: "rgba(0,212,255,0.4)", color: "#00D4FF", titleColor: "#00D4FF" },
+  { Icon: Wallet, title: "USDC Pass", text: "Wallet or API key unlocks gated access", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.4)", color: "#A78BFA", titleColor: "#A78BFA" },
+  { Icon: ShieldCheck, title: "Access Checked", text: "Backend validates session or entitlement", bg: "rgba(15,22,41,0.8)", border: "var(--border-line)", color: "#00D4FF", titleColor: "#FFFFFF" },
+  { Icon: Database, title: "Data Returned", text: "Unlocked layers or API preview data delivered", bg: "rgba(0,255,136,0.05)", border: "rgba(0,255,136,0.4)", color: "#00FF88", titleColor: "#00FF88" },
 ];
 
 const tabs = ["curl", "Python", "JavaScript", "AI Agent"] as const;
 
 const codeSamples: Record<(typeof tabs)[number], string> = {
-  curl: `# 1. Check wallet session
-$ curl "https://api.nexusrwa.xyz/v1/session?wallet=0x..." \\
+  curl: `# 1. Request a gated Pro endpoint
+$ curl "https://api.nexusrwa.xyz/v1/assets/franklin-benji/full" \\
   -H "X-Wallet-Address: 0x..."
 
-# If no active session, gated endpoints return:
+# If access is not active, the API returns:
 HTTP/1.1 402 Payment Required
 {
   "x402Version": 1,
+  "pricing": {
+    "tier": "pro",
+    "displayPrice": "$3 / 24h",
+    "settlementCurrency": "USDC"
+  },
   "accepts": [{
     "network": "base-sepolia",
-    "asset": "USDC",
-    "tier": "pro",
-    "displayPrice": "$3 / 24h"
+    "asset": "0x...",
+    "extra": { "tier": "pro" }
   }]
 }
 
-# 2. After checkout, retry with wallet session
-$ curl https://api.nexusrwa.xyz/v1/assets/franklin-benji/full \\
+# 2. After a verified pass or valid API key, retry
+$ curl "https://api.nexusrwa.xyz/v1/assets/franklin-benji/full" \\
   -H "X-Wallet-Address: 0x..."
 
-# ✓ Full Pro layers returned
-{"success":true,"data":{"slug":"franklin-benji","sources":[],"risk":{}}}`,
+# ✓ Full gated asset profile returned`,
   Python: `import requests
 
 wallet = "0x..."
 base = "https://api.nexusrwa.xyz/v1"
 
-session = requests.get(
-    f"{base}/session?wallet={wallet}",
+res = requests.get(
+    f"{base}/assets/franklin-benji/full",
     headers={"X-Wallet-Address": wallet},
-).json()
+)
 
-if session["data"]["active"]:
-    res = requests.get(
-        f"{base}/assets/franklin-benji/full",
-        headers={"X-Wallet-Address": wallet},
-    )
+if res.status_code == 402:
+    print("Payment or API-key entitlement required")
+    print(res.json()["pricing"])
+else:
     print(res.json()["data"]["slug"])`,
   JavaScript: `const wallet = "0x...";
 const base = "https://api.nexusrwa.xyz/v1";
 
-const session = await fetch(base + "/session?wallet=" + wallet, {
+const res = await fetch(base + "/assets/franklin-benji/full", {
   headers: { "X-Wallet-Address": wallet },
-}).then(r => r.json());
+});
 
-if (session.data.active) {
-  const asset = await fetch(base + "/assets/franklin-benji/full", {
-    headers: { "X-Wallet-Address": wallet },
-  }).then(r => r.json());
-
+if (res.status === 402) {
+  const payment = await res.json();
+  console.log(payment.pricing);
+} else {
+  const asset = await res.json();
   console.log(asset.data.slug);
 }`,
-  "AI Agent": `Goal: retrieve complete RWA risk intelligence.
+  "AI Agent": `Current MVP workflow:
 
-1. Request /v1/assets/{slug}/full
-2. If HTTP 402, parse x402 payment requirement
-3. Pay with wallet-native USDC pass
-4. Retry with wallet session header
-5. Use sources + risk + events for reasoning
+1. Request a public or gated Nexus RWA endpoint
+2. If HTTP 402, read pricing + x402 requirement
+3. Use a verified wallet pass or API-key entitlement
+4. Retry the same endpoint
+5. Use returned layers, sources, risk, and market fields for reasoning
 
-Best for: agents, research bots, portfolio monitors`,
+Available now: structured API data + Ask Nexus beta
+In development: agent SDKs, manifests, usage analytics, and higher-rate plans`,
 };
 
 export function X402Section() {
@@ -100,16 +103,17 @@ export function X402Section() {
               color: "#A78BFA",
             }}
           >
-            Monetization Engine
+            Access Flow MVP
           </span>
           <h2 className="mt-5 text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            Powered by X402 Protocol
+            x402-Based Access Flow
           </h2>
           <p
             className="mt-3 text-base max-w-xl mx-auto"
             style={{ color: "var(--text-secondary)" }}
           >
-            Wallet-native USDC access passes for deeper RWA intelligence — no traditional subscription required.
+            Nexus RWA is testing wallet-native USDC passes and API-key entitlements for gated RWA data.
+            The core access flow exists; full self-serve checkout and enterprise onboarding are still being refined.
           </p>
         </FadeUp>
 
@@ -142,10 +146,12 @@ export function X402Section() {
             <div className="glass-card p-6 h-full">
               <div className="flex items-center gap-3 mb-4">
                 <Coins size={22} style={{ color: "var(--accent-green)" }} />
-                <h3 className="text-xl font-bold text-white">Pay-per-request ready</h3>
+                <h3 className="text-xl font-bold text-white">Gated access, still in MVP</h3>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Nexus RWA is designed for API-native data access where users and agents can unlock deeper asset intelligence only when they need it.
+                Nexus RWA already separates public, Pro, and Enterprise routes. The current focus is making
+                the payment response, wallet session, and API-key entitlement flow reliable before positioning
+                this as a fully self-serve pay-per-request product.
               </p>
             </div>
           </FadeUp>
