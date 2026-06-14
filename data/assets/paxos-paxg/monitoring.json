@@ -11,8 +11,8 @@
     "baselineFile": "grade-baseline.json"
   },
   "reviewSchedule": {
-    "lastManualReview": "2026-06-04",
-    "nextManualReview": "2026-07-04",
+    "lastManualReview": "2026-06-14",
+    "nextManualReview": "2026-07-14",
     "manualReviewFrequencyDays": 30,
     "marketRefreshFrequencyHours": 24,
     "liquidityRefreshFrequencyHours": 24,
@@ -111,6 +111,12 @@
       "severity": "review_required",
       "condition": "official external smart-contract audit or security review is found",
       "action": "Update blockchain, sources, and smartContractRisk score."
+    },
+    {
+      "id": "source-health-fetch-failed",
+      "severity": "review_required",
+      "condition": "source health checker returns fetch failed for a Tier 1 or Tier 2 source",
+      "action": "First classify the failure as broken_url, redirect_changed, rate_limited, bot_protected, or temporary_network_error before downgrading the source."
     }
   ],
   "sourceHealthChecks": [
@@ -118,97 +124,150 @@
       "name": "Official website",
       "url": "https://www.paxos.com/pax-gold",
       "tier": "Tier 1",
-      "frequencyDays": 7
+      "frequencyDays": 7,
+      "expectedStatus": [200],
+      "failurePolicy": "critical_if_unreachable"
     },
     {
-      "name": "Official docs",
-      "url": "https://docs.paxos.com/guides/dashboard/paxg",
+      "name": "Official PAXG support docs",
+      "url": "https://help.paxos.com/hc/en-us/sections/360008612071-PAX-Gold-PAXG-",
       "tier": "Tier 1",
-      "frequencyDays": 7
+      "frequencyDays": 7,
+      "expectedStatus": [200],
+      "replacesUrl": "https://docs.paxos.com/guides/dashboard/paxg",
+      "failurePolicy": "critical_if_unreachable",
+      "notes": "Replaced docs.paxos.com guide URL because it returned Internal Error during manual source-health review. Paxos product page links to this support section as the PAXG user guide."
     },
     {
       "name": "Official social",
       "url": "https://x.com/Paxos",
       "tier": "Tier 3",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200, 403, 429],
+      "failurePolicy": "non_critical_if_bot_protected",
+      "notes": "X may block automated fetches; verify manually before marking source broken."
     },
     {
       "name": "CoinGecko market source",
       "url": "https://www.coingecko.com/en/coins/pax-gold",
       "tier": "Tier 2",
-      "frequencyDays": 1
+      "frequencyDays": 1,
+      "expectedStatus": [200, 403, 429],
+      "failurePolicy": "non_critical_if_rate_limited",
+      "notes": "Market aggregator pages can rate-limit or bot-protect health-check requests; use API fallback for automated refresh where possible."
     },
     {
       "name": "Etherscan token source",
       "url": "https://etherscan.io/token/0x45804880de22913dafe09f4980848ece6ecbaf78",
       "tier": "Tier 1",
-      "frequencyDays": 7
+      "frequencyDays": 7,
+      "expectedStatus": [200, 403, 429],
+      "failurePolicy": "non_critical_if_rate_limited",
+      "notes": "Explorer pages may rate-limit automated fetches; cross-check manually or through explorer/API if needed."
     },
     {
       "name": "identity.twitterUrl",
       "url": "https://www.paxos.com/company",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "warning_if_unreachable"
     },
     {
       "name": "identity.launchDate",
       "url": "https://www.dfs.ny.gov/reports_and_publications/press_releases/pr1909051",
       "tier": "Tier 2",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "warning_if_unreachable"
     },
     {
       "name": "blockchain.contractAddress",
       "url": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200, 403, 429],
+      "failurePolicy": "non_critical_if_rate_limited"
     },
     {
       "name": "blockchain.tokenStandard",
       "url": "https://www.paxos.com/newsroom/paxos-launches-pax-gold-physical-gold-on-the-blockchain",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "warning_if_unreachable"
     },
     {
       "name": "blockchain.isTransferable",
       "url": "https://www.paxos.com/terms-and-conditions/pax-gold-terms-conditions",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "critical_if_unreachable"
     },
     {
       "name": "blockchain.isVerified",
       "url": "https://etherscan.io/address/0x45804880de22913dafe09f4980848ece6ecbaf78#code",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200, 403, 429],
+      "failurePolicy": "non_critical_if_rate_limited"
     },
     {
       "name": "reserve.hasProofOfReserves",
       "url": "https://www.paxos.com/paxg-transparency",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "critical_if_unreachable"
     },
     {
       "name": "institutional.issuerType",
       "url": "https://www.paxos.com/terms-and-conditions/general-terms-and-conditions",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "critical_if_unreachable"
     },
     {
       "name": "institutional.metadata.regulatoryContext.occStatus",
       "url": "https://www.occ.gov/news-issuances/news-releases/2025/nr-occ-2025-125.html",
       "tier": "Tier 2",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "warning_if_unreachable"
     },
     {
       "name": "compliance.regulatoryFramework",
       "url": "https://www.paxos.com/terms-and-conditions/aml-kyc",
       "tier": "Tier 1",
-      "frequencyDays": 30
+      "frequencyDays": 30,
+      "expectedStatus": [200],
+      "failurePolicy": "critical_if_unreachable"
     }
   ],
+  "sourceHealthSummary": {
+    "lastManualSourceHealthReview": "2026-06-14",
+    "status": "patched",
+    "resolvedIssues": [
+      {
+        "issue": "fetch_failed",
+        "url": "https://docs.paxos.com/guides/dashboard/paxg",
+        "resolution": "replaced_with_official_support_section",
+        "replacementUrl": "https://help.paxos.com/hc/en-us/sections/360008612071-PAX-Gold-PAXG-"
+      }
+    ],
+    "manualVerificationNotes": [
+      "Official Pax Gold page, PAXG transparency page, PAXG terms, AML/KYC disclosure, NYDFS launch authorization, OCC announcement, Etherscan token page, and Etherscan contract page were reachable during manual review.",
+      "Fetch failures from X, CoinGecko, or Etherscan should be classified as bot protection/rate limiting before downgrading source reliability.",
+      "The source-health checker should not treat a crawler-level fetch failure as evidence that a Tier 1 source is invalid unless manual review confirms a broken URL."
+    ]
+  },
   "monitoringNotes": [
     "Generated from paxos-paxg asset layer files.",
     "Review manually before treating this as a production monitoring profile.",
-    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json."
+    "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json.",
+    "Source health was patched on 2026-06-14 after monitoring reported fetch failed issues."
   ],
-  "templateVersion": 1
+  "templateVersion": 2
 }
