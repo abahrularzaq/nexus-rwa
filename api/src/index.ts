@@ -7,7 +7,7 @@ import { createRateLimiter } from './middleware/rate-limit.js';
 import { assetsRouter } from './routes/assets.js';
 import { marketRouter } from './routes/market.js';
 import { searchRouter } from './routes/search.js';
-import { connectDatabase } from './lib/database.js';
+import { connectDatabase, db } from './lib/database.js';
 import { logger } from './lib/logger.js';
 import { setupErrorHandlers } from './middleware/error-handler.js';
 import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
@@ -23,6 +23,13 @@ import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 3001;
+const API_VERSION = process.env.API_VERSION ?? '1.0.0';
+const ENVIRONMENT_MODE = process.env.NODE_ENV ?? 'development';
+const schedulerStatus: Record<string, 'starting' | 'active'> = {
+  dataSync: 'starting',
+  riskScore: 'starting',
+  yieldHistory: 'starting',
+};
 const rateLimiter = createRateLimiter();
 
 function normalizeOrigin(input: string): string | null {
@@ -98,13 +105,42 @@ app.use('*', cors({
 app.use('*', requestLogger);
 app.use('*', rateLimiter);
 
+async function getDatabaseStatus(): Promise<'ok' | 'unavailable'> {
+  try {
+    await db.$queryRaw`SELECT 1`;
+    return 'ok';
+  } catch {
+    logger.warn('Health check database probe failed');
+    return 'unavailable';
+  }
+}
+
 // Health check — selalu gratis, tidak perlu X402
-app.get('/health', (c) => c.json({ 
-  status: 'ok', 
-  version: process.env.API_VERSION,
-  timestamp: new Date().toISOString(),
-  dataSync: 'active',
-}));
+app.get('/health', async (c) => {
+  const databaseStatus = await getDatabaseStatus();
+  const status = databaseStatus === 'ok' ? 'ok' : 'degraded';
+
+  return c.json({
+    status,
+    timestamp: new Date().toISOString(),
+    api: {
+      status: 'ok',
+    },
+    database: {
+      status: databaseStatus,
+    },
+    scheduler: {
+      status: Object.values(schedulerStatus).every((value) => value === 'active')
+        ? 'active'
+        : 'starting',
+      jobs: schedulerStatus,
+    },
+    environment: {
+      mode: ENVIRONMENT_MODE,
+    },
+    version: API_VERSION,
+  });
+});
 
 // Routes
 app.route('/v1/market', marketRouter);
@@ -131,10 +167,13 @@ async function main(): Promise<void> {
   assertX402Env();
   await connectDatabase();
   startSyncCron();
+  schedulerStatus.dataSync = 'active';
   logger.info('Data sync cron started (6h full, 1h top-5 market, 24h blockchain)');
   startRiskScoreScheduler();
+  schedulerStatus.riskScore = 'active';
   logger.info('Risk score scheduler started (every 6h)');
   startYieldHistoryScheduler();
+  schedulerStatus.yieldHistory = 'active';
   logger.info('Yield history scheduler started (every 6h)');
   serve({ fetch: app.fetch, port: PORT }, () => {
     logger.info(`🚀 Nexus RWA API running on port ${PORT}`);
