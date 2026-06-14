@@ -55,21 +55,22 @@ const passes: Tier[] = [
     helper: "Open BENJI, the strongest current flagship asset.",
   },
   {
-    name: "Enterprise 7d Pass",
+    name: "Enterprise API Preview",
     price: "$29",
     per: "/7d",
-    sub: "x402 settlement target: 29.00 USDC",
+    sub: "MVP access target: 29.00 USDC",
+    badge: "MVP / IN DEVELOPMENT",
     features: [
       { t: "Everything in Pro", ok: true },
-      { t: "Bulk analytics endpoint", ok: true },
-      { t: "Full dataset export", ok: true },
-      { t: "Ask Nexus API", ok: true },
-      { t: "Machine-readable workflows", ok: true },
-      { t: "Commercial integration path", ok: true },
+      { t: "Bulk asset snapshot endpoint", ok: true },
+      { t: "JSON dataset export", ok: true },
+      { t: "Ask Nexus API beta", ok: true },
+      { t: "AI-agent-ready data blocks", ok: true },
+      { t: "Self-serve enterprise onboarding", ok: false },
     ],
-    cta: "Start API Access",
+    cta: "Explore API Docs",
     href: "/dashboard/api-docs",
-    helper: "Review API endpoints for agent and data workflows.",
+    helper: "Enterprise is in MVP: core API routes exist, full onboarding is still being built.",
   },
 ];
 
@@ -85,8 +86,8 @@ export function Pricing() {
           </h2>
           <p className="mt-3 text-base max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
             Unlock institutional RWA data with USDC-based x402 access passes. Free for discovery,
-            Pro 24h for analyst-grade profiles, and Enterprise 7d for API, export,
-            and AI-agent workflows.
+            Pro 24h for analyst-grade profiles, and Enterprise Preview for early API, export,
+            and AI-agent-ready workflows.
           </p>
         </FadeUp>
 
@@ -188,10 +189,10 @@ export function Pricing() {
           >
             <Bot size={22} style={{ color: "var(--accent-cyan)" }} className="shrink-0" />
             <p className="text-sm" style={{ color: "#CBD5E1" }}>
-              <strong className="text-white">Building an AI Agent?</strong> Enterprise unlocks bulk export,
-              Ask Nexus, and machine-readable institutional RWA data. Current x402 responses expose
-              <span className="font-mono"> pricing.displayPrice</span>, <span className="font-mono">priceUsd</span>, and <span className="font-mono">priceUsdcAtomic</span>
-              for clean frontend and agent display.
+              <strong className="text-white">Building an AI Agent?</strong> Enterprise is currently an API preview,
+              not a fully automated agent platform. The available building blocks are bulk JSON data,
+              dataset export, and Ask Nexus beta. Agent manifests, SDKs, usage analytics, higher rate limits,
+              and self-serve commercial onboarding are still in development.
             </p>
           </div>
         </FadeUp>
