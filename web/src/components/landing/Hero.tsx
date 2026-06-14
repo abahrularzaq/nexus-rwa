@@ -49,7 +49,7 @@ export function Hero() {
             className="w-2 h-2 rounded-full pulse-dot"
             style={{ background: "var(--accent-green)" }}
           />
-          RWA Intelligence · Evidence-based · API-ready
+          RWA Intelligence · Evidence-based · API preview
         </motion.div>
 
         <motion.h1
@@ -120,7 +120,7 @@ export function Hero() {
           className="mt-5 text-[13px]"
           style={{ color: "var(--text-muted)", letterSpacing: "0.02em" }}
         >
-          No registration · Pay per request · AI agent native · Built on Base
+          Public preview · x402/API-key MVP · Ask Nexus beta
         </p>
 
         <motion.div
@@ -132,7 +132,7 @@ export function Hero() {
           {[
             { v: "12", l: "Data Layers" },
             { v: "Evidence", l: "Based Scoring" },
-            { v: "API", l: "Ready Dataset" },
+            { v: "API", l: "Preview Access" },
           ].map((s, i) => (
             <div key={s.l} className="flex items-center gap-8 md:gap-14">
               <div>
