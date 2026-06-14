@@ -4,12 +4,54 @@ import { BarChart2, Shield, Users, TrendingUp, Globe, Search } from "lucide-reac
 import { FadeUp } from "@/components/landing/primitives";
 
 const cards = [
-  { Icon: BarChart2, title: "Yield Analytics", body: "Historical and real-time yield data. Daily, weekly, monthly aggregations for all tracked assets.", badge: "REST API", badgeStyle: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" }, endpoint: "GET /v1/assets/:id/yield" },
-  { Icon: Shield, title: "Risk Scoring Engine", body: "4-factor model: TVL stability, yield sustainability, holder concentration, protocol maturity. Free on every asset.", badge: "Free", badgeStyle: { bg: "rgba(0,255,136,0.12)", color: "#00FF88" }, endpoint: "GET /v1/assets/:id/risk" },
-  { Icon: Users, title: "Holder Intelligence", body: "Total holders, whale concentration, retail distribution, and top-10 concentration metrics.", badge: "On-chain", badgeStyle: { bg: "rgba(0,212,255,0.1)", color: "#00D4FF" }, endpoint: "GET /v1/assets/:id/holders" },
-  { Icon: TrendingUp, title: "TVL Tracking", body: "Real-time and 90-day historical TVL. Protocol breakdown, chain distribution, and growth metrics.", badge: "Real-time", badgeStyle: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" }, endpoint: "GET /v1/assets" },
-  { Icon: Globe, title: "Market Overview", body: "Aggregated market stats, top movers, gainers and losers across the entire RWA landscape.", badge: "FREE", badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" }, endpoint: "GET /v1/market/overview" },
-  { Icon: Search, title: "Asset Search", body: "Full-text search across all assets by name, symbol, or protocol. Instant results.", badge: "REST API", badgeStyle: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" }, endpoint: "GET /v1/search?q={query}" },
+  {
+    Icon: BarChart2,
+    title: "Yield Snapshot",
+    body: "Current yield fields for tracked assets, with deeper historical coverage added as each asset dataset matures.",
+    badge: "FREE",
+    badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" },
+    endpoint: "GET /v1/assets/:id/yield",
+  },
+  {
+    Icon: Shield,
+    title: "Risk & Grade Context",
+    body: "Public risk level and grade label for discovery, with full risk breakdown available in Pro access.",
+    badge: "PRO",
+    badgeStyle: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" },
+    endpoint: "GET /v1/assets/:id/risk",
+  },
+  {
+    Icon: Users,
+    title: "Holder Signals",
+    body: "Holder count and concentration signals where verified on-chain data is available. Coverage may vary by asset.",
+    badge: "PRO",
+    badgeStyle: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" },
+    endpoint: "GET /v1/assets/:id/holders",
+  },
+  {
+    Icon: TrendingUp,
+    title: "Asset Catalog API",
+    body: "Structured asset list with identity, market summary, yield summary, risk level, and grade label for public discovery.",
+    badge: "FREE",
+    badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" },
+    endpoint: "GET /v1/assets",
+  },
+  {
+    Icon: Globe,
+    title: "Market Overview",
+    body: "Public RWA market overview built from the current Nexus dataset, useful for discovery and quick comparison.",
+    badge: "FREE",
+    badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" },
+    endpoint: "GET /v1/market/overview",
+  },
+  {
+    Icon: Search,
+    title: "Asset Search",
+    body: "Search the public RWA catalog by name, symbol, protocol, or category as the asset universe expands.",
+    badge: "FREE",
+    badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" },
+    endpoint: "GET /v1/search?q={query}",
+  },
 ];
 
 export function ApiFeatures() {
@@ -18,10 +60,11 @@ export function ApiFeatures() {
       <div className="max-w-[1400px] mx-auto">
         <FadeUp className="text-center mb-12">
           <h2 className="text-4xl md:text-[40px] font-extrabold tracking-tight text-gradient">
-            Everything You Need to Build
+            API Building Blocks Available Today
           </h2>
-          <p className="mt-3 text-base" style={{ color: "var(--text-secondary)" }}>
-            Production-grade RWA data infrastructure
+          <p className="mt-3 text-base max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
+            Practical RWA data endpoints for discovery, research, and MVP integrations — with deeper analytics,
+            broader history, and enterprise workflows still expanding.
           </p>
         </FadeUp>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
