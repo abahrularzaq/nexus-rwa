@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Context, MiddlewareHandler } from 'hono';
 import { logger } from '../lib/logger.js';
+import { recordHttpRequestMetric } from '../lib/monitoring.js';
 
 const REQUEST_ID_HEADER = 'X-Request-Id';
 const REQUEST_ID_MAX_LENGTH = 128;
@@ -82,6 +83,15 @@ export const requestLogger: MiddlewareHandler = async (c, next) => {
     const tier = c.res.headers.get('X-RateLimit-Tier') ?? c.res.headers.get('X-Payment-Tier') ?? 'unknown';
 
     await attachRequestIdToErrorResponse(c, requestId);
+
+    recordHttpRequestMetric({
+      method: c.req.method,
+      endpoint: c.req.path,
+      status: c.res.status,
+      durationMs,
+      tier,
+      requestId,
+    });
 
     logger.info({
       method: c.req.method,

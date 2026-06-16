@@ -25,6 +25,7 @@ import { usageRouter } from './routes/usage.js';
 import { agentRouter } from './routes/agent.js';
 import { usageTrackingMiddleware } from './middleware/usage-tracking.js';
 import { assertX402Env } from './middleware/x402/index.js';
+import { recordDbHealthMetric } from './lib/monitoring.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 const API_VERSION = process.env.API_VERSION ?? '1.0.0';
@@ -164,6 +165,7 @@ export function createApp(options: CreateAppOptions = {}): Hono {
   // Health check — selalu gratis, tidak perlu X402
   app.get('/health', async (c) => {
     const databaseStatus = await healthDatabaseStatus();
+    recordDbHealthMetric(databaseStatus);
     const status = databaseStatus === 'ok' ? 'ok' : 'degraded';
 
     return c.json({
