@@ -41,6 +41,17 @@ type MonitoringOverview = {
   healthSeveritySummary: Record<string, number>;
   sourceStatusSummary: Record<string, number>;
   reviewPrioritySummary: Record<string, number>;
+  assetStatusSummary: Record<string, number>;
+  assetSummaries: Array<{
+    assetSlug: string;
+    status: string;
+    score: number;
+    staleData: number;
+    missingSource: number;
+    lowConfidenceSource: number;
+    incompleteLayer: number;
+    totalIssues: number;
+  }>;
   recentHealthIssues: Array<Record<string, unknown>>;
   recentSourceIssues: Array<Record<string, unknown>>;
   recentReviewTasks: Array<Record<string, unknown>>;
@@ -126,10 +137,10 @@ function rowStatus(row: Record<string, unknown>): string {
 }
 
 function statusClass(status: string): string {
-  if (["healthy", "current", "success", "redirected", "closed", "resolved"].includes(status)) {
+  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh"].includes(status)) {
     return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   }
-  if (["broken", "failed", "critical", "error", "high"].includes(status)) {
+  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete"].includes(status)) {
     return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
   }
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
@@ -257,6 +268,56 @@ function SummaryPills({ title, data }: { title: string; data: Record<string, num
         )}
       </div>
     </div>
+  );
+}
+
+function AssetSummaryTable({ rows }: { rows: MonitoringOverview["assetSummaries"] }) {
+  const sorted = [...(rows ?? [])].sort((a, b) => a.score - b.score || a.assetSlug.localeCompare(b.assetSlug)).slice(0, 25);
+
+  return (
+    <section className="data-surface overflow-hidden">
+      <div className="flex items-center justify-between border-b border-[var(--border-line)] px-4 py-3">
+        <div>
+          <p className="terminal-label">Asset monitoring summary</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">Scoring includes stale data, missing source, low-confidence source, and incomplete layer penalties.</p>
+        </div>
+        <span className="text-xs text-[var(--text-secondary)]">Top {sorted.length} risk assets</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[920px] text-left text-sm">
+          <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+            <tr>
+              <th className="px-4 py-3 font-medium">Asset</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Score</th>
+              <th className="px-4 py-3 font-medium">Stale data</th>
+              <th className="px-4 py-3 font-medium">Missing source</th>
+              <th className="px-4 py-3 font-medium">Low confidence</th>
+              <th className="px-4 py-3 font-medium">Incomplete layer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.length === 0 ? (
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-[var(--text-secondary)]">No asset summaries yet.</td></tr>
+            ) : (
+              sorted.map((row) => (
+                <tr key={row.assetSlug} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
+                  <td className="px-4 py-3 terminal-data text-white">
+                    <a href={`/dashboard/assets/${encodeURIComponent(row.assetSlug)}`} className="hover:text-[var(--accent-cyan)] hover:underline">{row.assetSlug}</a>
+                  </td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></td>
+                  <td className="px-4 py-3 terminal-data text-white">{row.score}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.staleData}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.missingSource}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.lowConfidenceSource}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.incompleteLayer}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -1061,7 +1122,10 @@ export default function MonitoringPage() {
             <SummaryPills title="Source status" data={data.sourceStatusSummary} />
             <SummaryPills title="Health severity" data={data.healthSeveritySummary} />
             <SummaryPills title="Review priority" data={data.reviewPrioritySummary} />
+            <SummaryPills title="Asset status" data={data.assetStatusSummary} />
           </section>
+
+          <AssetSummaryTable rows={data.assetSummaries} />
 
           <section className="data-surface p-4">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
