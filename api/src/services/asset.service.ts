@@ -202,7 +202,7 @@ export class NotFoundError extends AppError {
   }
 }
 
-const repo = new AssetRepository(db);
+let repo: AssetRepository = new AssetRepository(db);
 
 function listCacheKey(category: string | undefined, tier: AssetAccessTier): string {
   return `assets:list:${category ?? 'all'}:${tier}`;
@@ -645,6 +645,20 @@ export function invalidateAssetCache(slug: string): void {
 
 export function getAssetRepository(): AssetRepository {
   return repo;
+}
+
+export function setAssetRepositoryForTests(repository: AssetRepository): void {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('setAssetRepositoryForTests is only available while NODE_ENV=test');
+  }
+  repo = repository;
+}
+
+export function resetAssetRepositoryForTests(): void {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('resetAssetRepositoryForTests is only available while NODE_ENV=test');
+  }
+  repo = new AssetRepository(db);
 }
 
 /** @deprecated Use `getAssetList` */
