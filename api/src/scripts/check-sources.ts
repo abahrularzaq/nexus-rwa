@@ -16,6 +16,7 @@ type Options = {
 };
 
 type SourceStatus = 'healthy' | 'redirected' | 'restricted' | 'broken' | 'timeout' | 'error';
+type AssetMonitoringStatus = 'fresh' | 'watch' | 'stale' | 'incomplete';
 
 type SourceItem = {
   layer: string;
@@ -34,6 +35,16 @@ type SourceCheckResult = SourceJob & {
   status: SourceStatus;
   httpStatus?: number | null;
   errorMessage?: string | null;
+};
+
+type AssetSourceSummary = {
+  assetSlug: string;
+  status: AssetMonitoringStatus;
+  score: number;
+  checkedSources: number;
+  missingSource: number;
+  lowConfidenceSource: number;
+  sourceIssues: number;
 };
 
 function parseArgs(argv: string[]): Options {
@@ -83,6 +94,10 @@ function shouldAutoCheckSource(item: SourceItem): boolean {
 }
 
 function readSources(assetSlug: string): SourceItem[] {
+  return readAllSources(assetSlug).filter(shouldAutoCheckSource);
+}
+
+function readAllSources(assetSlug: string): SourceItem[] {
   const filePath = path.join(ASSETS_DIR, assetSlug, 'sources.json');
   if (!fs.existsSync(filePath)) return [];
 
@@ -91,17 +106,14 @@ function readSources(assetSlug: string): SourceItem[] {
 
   if (!Array.isArray(parsed)) return [];
 
-  return parsed
-    .filter(isRecord)
-    .map((item) => ({
-      layer: typeof item.layer === 'string' ? item.layer : 'unknown',
-      field: typeof item.field === 'string' ? item.field : null,
-      sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : '',
-      sourceType: typeof item.sourceType === 'string' ? item.sourceType : null,
-      reliability: typeof item.reliability === 'number' ? item.reliability : null,
-      checkedBy: normalizeCheckedBy(item.checkedBy),
-    }))
-    .filter(shouldAutoCheckSource);
+  return parsed.filter(isRecord).map((item) => ({
+    layer: typeof item.layer === 'string' ? item.layer : 'unknown',
+    field: typeof item.field === 'string' ? item.field : null,
+    sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : '',
+    sourceType: typeof item.sourceType === 'string' ? item.sourceType : null,
+    reliability: typeof item.reliability === 'number' ? item.reliability : null,
+    checkedBy: normalizeCheckedBy(item.checkedBy),
+  }));
 }
 
 function buildJobs(assetSlugs: string[]): SourceJob[] {
@@ -218,6 +230,26 @@ async function saveSourceResult(result: SourceCheckResult): Promise<void> {
   }
 }
 
+function summarizeSources(assetSlugs: string[], results: SourceCheckResult[]): AssetSourceSummary[] {
+  const resultMap = new Map<string, SourceCheckResult[]>();
+  for (const result of results) {
+    resultMap.set(result.assetSlug, [...(resultMap.get(result.assetSlug) ?? []), result]);
+  }
+
+  return assetSlugs.map((assetSlug) => {
+    const sources = readAllSources(assetSlug);
+    const checked = resultMap.get(assetSlug) ?? [];
+    const missingSource = sources.filter((source) => !source.sourceUrl).length + (sources.length === 0 ? 1 : 0);
+    const lowConfidenceSource = sources.filter((source) => typeof source.reliability === 'number' && source.reliability < 3).length;
+    const sourceIssues = checked.filter((source) => !['healthy', 'redirected'].includes(source.status)).length;
+    const penalty = missingSource * 25 + lowConfidenceSource * 10 + sourceIssues * 15;
+    const score = Math.max(0, 100 - penalty);
+    const status: AssetMonitoringStatus = missingSource > 0 ? 'incomplete' : sourceIssues > 0 ? 'stale' : lowConfidenceSource > 0 || score < 90 ? 'watch' : 'fresh';
+
+    return { assetSlug, status, score, checkedSources: checked.length, missingSource, lowConfidenceSource, sourceIssues };
+  });
+}
+
 async function runPool<T>(items: T[], concurrency: number, worker: (item: T, index: number) => Promise<void>): Promise<void> {
   let nextIndex = 0;
 
@@ -278,7 +310,9 @@ async function main(): Promise<void> {
     };
   });
 
-  console.log(JSON.stringify({ checkedSources: results.length, summary, problematic }, null, 2));
+  const assetSummaries = summarizeSources(assetSlugs, results);
+
+  console.log(JSON.stringify({ checkedSources: results.length, summary, assetSummaries, problematic }, null, 2));
 }
 
 main()

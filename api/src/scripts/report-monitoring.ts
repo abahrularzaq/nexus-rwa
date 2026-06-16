@@ -1,4 +1,5 @@
 import { db } from '../lib/database.js';
+import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
 
 type Options = {
   limit: number;
@@ -53,6 +54,7 @@ async function main(): Promise<void> {
     sourceHealth,
     openReviewTasks,
     failedSyncLogs,
+    assetSources,
     recentHealthIssues,
     recentSourceIssues,
     recentReviewTasks,
@@ -79,6 +81,11 @@ async function main(): Promise<void> {
       take: 5000,
       select: { status: true, assetSlug: true, layer: true, provider: true, errorMessage: true, startedAt: true },
     }),
+    db.assetSource.findMany({
+      orderBy: { checkedAt: 'desc' },
+      take: 10000,
+      include: { asset: { select: { slug: true } } },
+    }),
     db.dataHealthCheck.findMany({
       where: { status: { not: 'current' } },
       orderBy: { lastCheckedAt: 'desc' },
@@ -99,6 +106,14 @@ async function main(): Promise<void> {
     }),
   ]);
 
+  const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null }>>>((acc, source) => {
+    const rows = acc.get(source.asset.slug) ?? [];
+    rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability });
+    acc.set(source.asset.slug, rows);
+    return acc;
+  }, new Map());
+  const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset });
+
   const report = {
     generatedAt: new Date().toISOString(),
     overview: {
@@ -111,6 +126,8 @@ async function main(): Promise<void> {
     healthSeveritySummary: groupCount(healthChecks, 'severity'),
     sourceStatusSummary: groupCount(sourceHealth, 'status'),
     reviewPrioritySummary: groupCount(openReviewTasks, 'priority'),
+    assetStatusSummary: groupCount(assetSummaries, 'status'),
+    assetSummaries,
     recentHealthIssues,
     recentSourceIssues,
     recentReviewTasks,
@@ -137,6 +154,9 @@ async function main(): Promise<void> {
 
   printSection('Review Priority Summary');
   console.table(report.reviewPrioritySummary);
+
+  printSection('Asset Monitoring Summary');
+  console.table(report.assetSummaries);
 
   printSection(`Recent Health Issues (limit ${options.limit})`);
   printRows(report.recentHealthIssues);

@@ -17,6 +17,7 @@ const OBJECT_LAYER_FILES = [
 ] as const;
 
 type LayerStatus = 'current' | 'stale' | 'needs-review' | 'needs-sync' | 'missing-meta' | 'invalid-json';
+type AssetMonitoringStatus = 'fresh' | 'watch' | 'stale' | 'incomplete';
 
 type HealthResult = {
   assetSlug: string;
@@ -25,6 +26,16 @@ type HealthResult = {
   severity: 'low' | 'medium' | 'high' | 'critical';
   reason: string;
   nextCheckAt?: Date | null;
+};
+
+type AssetFreshnessSummary = {
+  assetSlug: string;
+  status: AssetMonitoringStatus;
+  score: number;
+  staleData: number;
+  incompleteLayer: number;
+  checkedLayers: number;
+  missingLayers: string[];
 };
 
 function listAssetSlugs(): string[] {
@@ -187,6 +198,25 @@ function evaluateLayer(assetSlug: string, layer: string, filePath: string): Heal
   }
 }
 
+function summarizeAsset(assetSlug: string, results: HealthResult[], missingLayers: string[]): AssetFreshnessSummary {
+  const staleData = results.filter((result) => result.status === 'stale').length;
+  const reviewNeeded = results.filter((result) => ['needs-review', 'needs-sync', 'missing-meta', 'invalid-json'].includes(result.status)).length;
+  const incompleteLayer = missingLayers.length + results.filter((result) => result.status === 'invalid-json').length;
+  const penalty = staleData * 25 + reviewNeeded * 15 + incompleteLayer * 30;
+  const score = Math.max(0, 100 - penalty);
+  const status: AssetMonitoringStatus = incompleteLayer > 0 ? 'incomplete' : staleData > 0 ? 'stale' : reviewNeeded > 0 || score < 90 ? 'watch' : 'fresh';
+
+  return {
+    assetSlug,
+    status,
+    score,
+    staleData,
+    incompleteLayer,
+    checkedLayers: results.length,
+    missingLayers,
+  };
+}
+
 async function saveHealthResult(result: HealthResult): Promise<void> {
   await db.dataHealthCheck.create({
     data: {
@@ -216,18 +246,27 @@ async function saveHealthResult(result: HealthResult): Promise<void> {
 async function main(): Promise<void> {
   const assetSlugs = listAssetSlugs();
   const results: HealthResult[] = [];
+  const assetSummaries: AssetFreshnessSummary[] = [];
 
   for (const assetSlug of assetSlugs) {
     const assetDir = path.join(ASSETS_DIR, assetSlug);
+    const assetResults: HealthResult[] = [];
+    const missingLayers: string[] = [];
 
     for (const file of OBJECT_LAYER_FILES) {
       const filePath = path.join(assetDir, file);
-      if (!fs.existsSync(filePath)) continue;
+      if (!fs.existsSync(filePath)) {
+        missingLayers.push(layerName(file));
+        continue;
+      }
 
       const result = evaluateLayer(assetSlug, layerName(file), filePath);
       results.push(result);
+      assetResults.push(result);
       await saveHealthResult(result);
     }
+
+    assetSummaries.push(summarizeAsset(assetSlug, assetResults, missingLayers));
   }
 
   const summary = results.reduce<Record<string, number>>((acc, result) => {
@@ -235,7 +274,7 @@ async function main(): Promise<void> {
     return acc;
   }, {});
 
-  console.log(JSON.stringify({ checkedLayers: results.length, summary }, null, 2));
+  console.log(JSON.stringify({ checkedLayers: results.length, summary, assetSummaries }, null, 2));
 }
 
 main()
