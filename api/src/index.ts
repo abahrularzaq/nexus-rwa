@@ -35,6 +35,14 @@ const schedulerStatus: Record<string, 'starting' | 'active'> = {
 };
 const rateLimiter = createRateLimiter();
 
+const API_SECURITY_HEADERS = {
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), clipboard-write=()',
+  'X-Content-Type-Options': 'nosniff',
+} as const;
+
 function normalizeOrigin(input: string): string | null {
   const raw = input.trim();
   if (raw === '') return null;
@@ -92,6 +100,12 @@ function resolveCorsOrigin(origin: string | undefined): string {
 }
 
 // Global middleware
+app.use('*', async (c, next) => {
+  for (const [key, value] of Object.entries(API_SECURITY_HEADERS)) {
+    c.header(key, value);
+  }
+  await next();
+});
 app.use('*', cors({
   origin: resolveCorsOrigin,
   allowMethods: ['GET', 'POST', 'OPTIONS'],
