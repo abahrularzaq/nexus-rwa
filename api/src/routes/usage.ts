@@ -7,6 +7,26 @@ const MAX_DAYS = 90;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 
+type CountRow = { count: bigint | number };
+type UsageLogRow = {
+  id: string;
+  endpoint: string;
+  method: string;
+  responseCode: number;
+  durationMs: number;
+  apiKeyId: string | null;
+  tier: string;
+  timestamp: Date;
+};
+type EndpointSummaryRow = {
+  endpoint: string;
+  method: string;
+  count: bigint | number;
+  averageResponseTimeMs: number | null;
+};
+type TierSummaryRow = { tier: string; count: bigint | number };
+type StatusSummaryRow = { statusCode: number; count: bigint | number };
+
 function parsePositiveInt(value: string | undefined, fallback: number, max: number): number {
   const parsed = Number.parseInt(value ?? '', 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
@@ -24,6 +44,15 @@ function average(values: number[]): number {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+function toNumber(value: bigint | number | null | undefined): number {
+  if (typeof value === 'bigint') return Number(value);
+  return value ?? 0;
+}
+
+function firstCount(rows: CountRow[]): number {
+  return toNumber(rows[0]?.count);
+}
+
 export const usageRouter = new Hono();
 
 usageRouter.use('*', adminAuthMiddleware());
@@ -33,49 +62,60 @@ usageRouter.get('/summary', async (c) => {
   const limit = parsePositiveInt(c.req.query('limit'), DEFAULT_LIMIT, MAX_LIMIT);
   const since = startDateForDays(days);
 
-  const where = { timestamp: { gte: since } };
-
-  const [totalRequests, successfulRequests, failedRequests, logs, byEndpoint, byTier, byStatus] = await Promise.all([
-    db.usageLog.count({ where }),
-    db.usageLog.count({ where: { ...where, responseCode: { gte: 200, lt: 400 } } }),
-    db.usageLog.count({ where: { ...where, responseCode: { gte: 400 } } }),
-    db.usageLog.findMany({
-      where,
-      orderBy: { timestamp: 'desc' },
-      take: 5000,
-      select: {
-        id: true,
-        endpoint: true,
-        method: true,
-        responseCode: true,
-        durationMs: true,
-        apiKeyId: true,
-        tier: true,
-        timestamp: true,
-      },
-    }),
-    db.usageLog.groupBy({
-      by: ['endpoint', 'method'],
-      where,
-      _count: { _all: true },
-      _avg: { durationMs: true },
-      orderBy: { _count: { endpoint: 'desc' } },
-      take: limit,
-    }),
-    db.usageLog.groupBy({
-      by: ['tier'],
-      where,
-      _count: { _all: true },
-      orderBy: { _count: { tier: 'desc' } },
-    }),
-    db.usageLog.groupBy({
-      by: ['responseCode'],
-      where,
-      _count: { _all: true },
-      orderBy: { responseCode: 'asc' },
-    }),
+  const [totalRows, successRows, failureRows, logs, byEndpoint, byTier, byStatus] = await Promise.all([
+    db.$queryRaw<CountRow[]>`
+      SELECT COUNT(*) AS "count"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since}
+    `,
+    db.$queryRaw<CountRow[]>`
+      SELECT COUNT(*) AS "count"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since} AND "responseCode" >= 200 AND "responseCode" < 400
+    `,
+    db.$queryRaw<CountRow[]>`
+      SELECT COUNT(*) AS "count"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since} AND "responseCode" >= 400
+    `,
+    db.$queryRaw<UsageLogRow[]>`
+      SELECT "id", "endpoint", "method", "responseCode", "durationMs", "apiKeyId", "tier", "timestamp"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since}
+      ORDER BY "timestamp" DESC
+      LIMIT 5000
+    `,
+    db.$queryRaw<EndpointSummaryRow[]>`
+      SELECT
+        "endpoint",
+        "method",
+        COUNT(*) AS "count",
+        AVG("durationMs") AS "averageResponseTimeMs"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since}
+      GROUP BY "endpoint", "method"
+      ORDER BY COUNT(*) DESC
+      LIMIT ${limit}
+    `,
+    db.$queryRaw<TierSummaryRow[]>`
+      SELECT "tier", COUNT(*) AS "count"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since}
+      GROUP BY "tier"
+      ORDER BY COUNT(*) DESC
+    `,
+    db.$queryRaw<StatusSummaryRow[]>`
+      SELECT "responseCode" AS "statusCode", COUNT(*) AS "count"
+      FROM "UsageLog"
+      WHERE "timestamp" >= ${since}
+      GROUP BY "responseCode"
+      ORDER BY "responseCode" ASC
+    `,
   ]);
 
+  const totalRequests = firstCount(totalRows);
+  const successfulRequests = firstCount(successRows);
+  const failedRequests = firstCount(failureRows);
   const uniqueApiKeys = new Set(logs.map((log) => log.apiKeyId).filter(Boolean)).size;
   const averageResponseTimeMs = Math.round(average(logs.map((log) => log.durationMs)));
 
@@ -97,11 +137,11 @@ usageRouter.get('/summary', async (c) => {
       byEndpoint: byEndpoint.map((row) => ({
         endpoint: row.endpoint,
         method: row.method,
-        count: row._count._all,
-        averageResponseTimeMs: Math.round(row._avg.durationMs ?? 0),
+        count: toNumber(row.count),
+        averageResponseTimeMs: Math.round(row.averageResponseTimeMs ?? 0),
       })),
-      byTier: byTier.map((row) => ({ tier: row.tier, count: row._count._all })),
-      byStatus: byStatus.map((row) => ({ statusCode: row.responseCode, count: row._count._all })),
+      byTier: byTier.map((row) => ({ tier: row.tier, count: toNumber(row.count) })),
+      byStatus: byStatus.map((row) => ({ statusCode: row.statusCode, count: toNumber(row.count) })),
       recent: logs.slice(0, limit).map((log) => ({
         id: log.id,
         endpoint: log.endpoint,

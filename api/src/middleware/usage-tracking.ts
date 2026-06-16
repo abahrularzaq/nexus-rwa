@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { MiddlewareHandler } from 'hono';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
@@ -38,16 +39,10 @@ export function usageTrackingMiddleware(): MiddlewareHandler {
     void (async () => {
       try {
         const entitlement = await resolveApiKeyEntitlement(c);
-        await db.usageLog.create({
-          data: {
-            endpoint,
-            method,
-            responseCode,
-            durationMs,
-            apiKeyId: entitlement?.id ?? null,
-            tier,
-          },
-        });
+        await db.$executeRaw`
+          INSERT INTO "UsageLog" ("id", "endpoint", "method", "responseCode", "durationMs", "apiKeyId", "tier", "timestamp")
+          VALUES (${randomUUID()}, ${endpoint}, ${method}, ${responseCode}, ${durationMs}, ${entitlement?.id ?? null}, ${tier}, ${new Date()})
+        `;
       } catch (err) {
         logger.warn({ err }, 'Failed to persist usage log');
       }
