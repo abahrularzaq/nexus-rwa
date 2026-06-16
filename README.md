@@ -42,7 +42,12 @@ Make sure `api/.env` exists and contains a valid Neon PostgreSQL connection stri
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
+LOG_RETENTION_DAYS="60"
+USAGE_ANALYTICS_RETENTION_MONTHS="18"
+IP_HASH_SALT="replace-with-strong-random-secret"
 ```
+
+`LOG_RETENTION_DAYS` controls raw `ApiRequest` and `UsageLog` cleanup. `USAGE_ANALYTICS_RETENTION_MONTHS` controls daily aggregate analytics retention, and `IP_HASH_SALT` salts stored IP-address hashes.
 
 For Neon, the connection string should usually include:
 

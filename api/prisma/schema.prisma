@@ -427,6 +427,24 @@ model UsageLog {
   @@index([timestamp])
 }
 
+model UsageDailyAggregate {
+  id                String   @id @default(cuid())
+  date              DateTime @db.Date
+  endpoint          String
+  method            String
+  responseCode      Int
+  tier              String
+  requestCount      Int
+  averageDurationMs Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([date, endpoint, method, responseCode, tier])
+  @@index([date])
+  @@index([endpoint])
+  @@index([tier])
+}
+
 enum PaymentStatus {
   NONE
   PAID

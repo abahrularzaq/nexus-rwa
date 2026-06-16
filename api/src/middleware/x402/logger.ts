@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { PaymentStatus } from '@prisma/client';
 import { db } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
@@ -16,6 +16,14 @@ export interface PaymentLogEntry {
   failureReason: string | null;
   responseCode: number;
   durationMs: number;
+}
+
+function anonymizeIpAddress(ipAddress: string | null): string | undefined {
+  const value = ipAddress?.trim();
+  if (!value) return undefined;
+
+  const salt = process.env.IP_HASH_SALT?.trim() || 'nexus-rwa-default-ip-salt';
+  return `sha256:${createHash('sha256').update(`${salt}:${value}`).digest('hex')}`;
 }
 
 function toPrismaPaymentStatus(status: PaymentLogEntry['paymentStatus']): PaymentStatus {
@@ -41,7 +49,7 @@ export async function logPaymentRequest(entry: PaymentLogEntry): Promise<void> {
         requestId: entry.requestId,
         endpoint: entry.endpoint,
         method: entry.method,
-        ipAddress: entry.ipAddress ?? undefined,
+        ipAddress: anonymizeIpAddress(entry.ipAddress),
         userAgent: entry.userAgent ?? undefined,
         paymentAmount: entry.amountRequired,
         paymentTxHash: entry.paymentTxHash ?? undefined,
