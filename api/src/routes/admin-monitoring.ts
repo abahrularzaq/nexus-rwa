@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Hono } from 'hono';
 import { db } from '../lib/database.js';
+import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
 import { adminAuthMiddleware } from '../middleware/admin-auth.js';
 import { ERROR_CODES } from '../shared/index.js';
 
@@ -189,7 +190,7 @@ function notFound(c: any, message: string) {
 
 adminMonitoringRouter.get('/overview', async (c) => {
   try {
-    const [healthChecks, sourceHealthRows, openReviewTasks, failedSyncLogs] = await Promise.all([
+    const [healthChecks, sourceHealthRows, openReviewTasks, failedSyncLogs, assetSources] = await Promise.all([
       db.dataHealthCheck.findMany({
         orderBy: { lastCheckedAt: 'desc' },
         take: 5000,
@@ -212,9 +213,21 @@ adminMonitoringRouter.get('/overview', async (c) => {
         take: 5000,
         select: { status: true, assetSlug: true, layer: true, provider: true, errorMessage: true, startedAt: true },
       }),
+      db.assetSource.findMany({
+        orderBy: { checkedAt: 'desc' },
+        take: 10000,
+        include: { asset: { select: { slug: true } } },
+      }),
     ]);
 
     const sourceHealth = uniqueLatestSourceRows(filterAutoCheckedSourceRows(sourceHealthRows));
+    const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null }>>>((acc, source) => {
+      const rows = acc.get(source.asset.slug) ?? [];
+      rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability });
+      acc.set(source.asset.slug, rows);
+      return acc;
+    }, new Map());
+    const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset });
     const recentHealthIssues = await db.dataHealthCheck.findMany({
       where: { status: { not: 'current' } },
       orderBy: { lastCheckedAt: 'desc' },
@@ -237,6 +250,8 @@ adminMonitoringRouter.get('/overview', async (c) => {
         healthSeveritySummary: countBy(healthChecks, 'severity'),
         sourceStatusSummary: countBy(sourceHealth, 'status'),
         reviewPrioritySummary: countBy(openReviewTasks, 'priority'),
+        assetStatusSummary: countBy(assetSummaries, 'status'),
+        assetSummaries,
         recentHealthIssues,
         recentSourceIssues,
         recentReviewTasks: openReviewTasks.slice(0, 10),
