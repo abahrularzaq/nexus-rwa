@@ -18,6 +18,7 @@ import {
   Database,
   Library,
   Activity,
+  Gauge,
   LogOut,
 } from "lucide-react";
 
@@ -77,6 +78,12 @@ const navItems = [
     exact: false,
   },
   {
+    label: "Usage",
+    href: "/dashboard/usage",
+    icon: Gauge,
+    exact: false,
+  },
+  {
     label: "API Keys",
     href: "/dashboard/api-keys",
     icon: KeyRound,
@@ -99,6 +106,7 @@ const breadcrumbLabels: Record<string, string> = {
   "risk-grade": "Risk & Grade",
   sources: "Sources",
   monitoring: "Monitoring",
+  usage: "Usage",
   "api-docs": "API Docs",
   "api-keys": "API Keys",
 };

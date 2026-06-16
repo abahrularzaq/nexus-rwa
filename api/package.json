@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --import tsx/esm src/index.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/index.js",
     "seed": "node --import tsx/esm prisma/seed.ts",
     "db:push": "prisma db push",

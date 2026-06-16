@@ -19,6 +19,8 @@ import { analyticsRouter, exportRouter } from './routes/enterprise.js';
 import { askRouter } from './routes/ask.js';
 import { adminRouter } from './routes/admin.js';
 import { adminMonitoringRouter } from './routes/admin-monitoring.js';
+import { usageRouter } from './routes/usage.js';
+import { usageTrackingMiddleware } from './middleware/usage-tracking.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
 const app = new Hono();
@@ -102,6 +104,7 @@ app.use('*', cors({
   credentials: false,
   maxAge: 86400,
 }));
+app.use('*', usageTrackingMiddleware());
 app.use('*', requestLogger);
 app.use('*', rateLimiter);
 
@@ -153,6 +156,7 @@ app.route('/v1/export', exportRouter);
 app.route('/v1/ask', askRouter);
 app.route('/v1/admin', adminRouter);
 app.route('/v1/admin/monitoring', adminMonitoringRouter);
+app.route('/v1/admin/usage', usageRouter);
 
 // 404 handler
 app.notFound((c) => c.json({
