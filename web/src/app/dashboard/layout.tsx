@@ -9,6 +9,7 @@ import {
   BarChart3,
   ShieldCheck,
   Code,
+  KeyRound,
   Menu,
   X,
   ChevronRight,
@@ -76,6 +77,12 @@ const navItems = [
     exact: false,
   },
   {
+    label: "API Keys",
+    href: "/dashboard/api-keys",
+    icon: KeyRound,
+    exact: false,
+  },
+  {
     label: "API Docs",
     href: "/dashboard/api-docs",
     icon: Code,
@@ -93,6 +100,7 @@ const breadcrumbLabels: Record<string, string> = {
   sources: "Sources",
   monitoring: "Monitoring",
   "api-docs": "API Docs",
+  "api-keys": "API Keys",
 };
 
 function normalizePath(path: string) {
