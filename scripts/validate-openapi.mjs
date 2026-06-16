@@ -32,9 +32,12 @@ const requiredPaths = [
   '/v1/assets/{slug}/risk:',
   '/v1/assets/{slug}/sources:',
   '/v1/assets/{slug}/insight:',
+  '/v1/gated/data:',
   '/v1/analytics/bulk:',
   '/v1/export:',
   '/v1/ask:',
+  '/v1/admin/sync/status:',
+  '/v1/admin/assets/{slug}/sync:',
 ];
 
 for (const path of requiredPaths) {
@@ -43,13 +46,17 @@ for (const path of requiredPaths) {
 
 const requiredSecuritySchemes = [
   'ApiKeyAuth:',
+  'BearerAuth:',
   'WalletAddressAuth:',
   'PaymentAuth:',
   'PaymentTxAuth:',
+  'AdminKeyAuth:',
   'name: X-API-Key',
+  'scheme: bearer',
   'name: X-Wallet-Address',
   'name: X-Payment',
   'name: X-Payment-Tx',
+  'name: X-Admin-Key',
 ];
 
 for (const scheme of requiredSecuritySchemes) {
@@ -85,7 +92,10 @@ const requiredExamples = [
   'SourcesOk:',
   'InsightOk:',
   'BulkOk:',
+  'GatedDataOk:',
   'ExportOk:',
+  'AdminSyncStatusOk:',
+  'AdminAssetSyncOk:',
   'UnauthorizedError:',
   'PaymentRequiredError:',
   'NotFoundError:',

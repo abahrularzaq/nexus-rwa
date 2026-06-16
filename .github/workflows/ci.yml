@@ -59,16 +59,5 @@ jobs:
       - name: Build shared, web, and api
         run: npm run build
 
-      - name: Validate OpenAPI spec if available
-        run: |
-          if [ -f docs/openapi.yaml ]; then
-            npm run validate:openapi -- docs/openapi.yaml
-          elif [ -f docs/openapi.yml ]; then
-            npm run validate:openapi -- docs/openapi.yml
-          elif [ -f openapi.yaml ]; then
-            npm run validate:openapi -- openapi.yaml
-          elif [ -f openapi.yml ]; then
-            npm run validate:openapi -- openapi.yml
-          else
-            echo "No OpenAPI spec found; skipping validation."
-          fi
+      - name: Validate OpenAPI spec
+        run: npm run validate:openapi
