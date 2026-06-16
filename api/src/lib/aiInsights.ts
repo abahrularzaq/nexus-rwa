@@ -248,27 +248,74 @@ export async function getAssetInsightById(slug: string): Promise<{
   return { insight: data, cached };
 }
 
-const NEXUS_ASSISTANT_SYSTEM = `You are Nexus RWA assistant. Answer questions about RWA assets using 
-the provided data. Be concise, factual, cite specific numbers.`;
+const ASK_NEXUS_DISCLAIMER = 'This response is for informational purposes only and is not investment advice.';
 
-export async function buildAskContext(assetIds: string[] | undefined): Promise<string> {
+const NEXUS_ASSISTANT_SYSTEM = `You are Nexus RWA assistant. Answer questions about RWA assets using 
+the provided data. Be concise, factual, cite specific numbers.
+Always include this disclaimer in the answer: ${ASK_NEXUS_DISCLAIMER}`;
+
+export type AskResponseConfidence = 'high' | 'medium' | 'low';
+
+export type AskResponseMetadata = {
+  assetsUsed: string[];
+  sourceCount: number;
+  generatedAt: string;
+  confidence: AskResponseConfidence;
+  disclaimer: string;
+  fallback: boolean;
+};
+
+type AskContextPayload = {
+  dataContext: string;
+  assetsUsed: string[];
+  sourceCount: number;
+  confidence: AskResponseConfidence;
+};
+
+function normalizeConfidence(value: unknown): AskResponseConfidence {
+  const normalized = typeof value === 'string' ? value.toLowerCase() : '';
+  if (normalized === 'high' || normalized === 'low') return normalized;
+  return 'medium';
+}
+
+function lowestConfidence(values: AskResponseConfidence[]): AskResponseConfidence {
+  if (values.includes('low')) return 'low';
+  if (values.includes('medium')) return 'medium';
+  return 'high';
+}
+
+function buildAskMetadata(payload: AskContextPayload, fallback: boolean): AskResponseMetadata {
+  return {
+    assetsUsed: payload.assetsUsed,
+    sourceCount: payload.sourceCount,
+    generatedAt: new Date().toISOString(),
+    confidence: fallback ? 'low' : payload.confidence,
+    disclaimer: ASK_NEXUS_DISCLAIMER,
+    fallback,
+  };
+}
+
+export async function buildAskContext(assetIds: string[] | undefined): Promise<AskContextPayload> {
   if (!assetIds || assetIds.length === 0) {
     const market = await getAssetList({ tier: 'free', limit: 25 });
-    return JSON.stringify(
-      {
-        scope: 'market_overview',
-        assets: market.data.map((a) => ({
-          id: a.id,
-          slug: a.slug,
-          name: a.identity?.name,
-          category: a.identity?.category,
-          tvl: a.market?.tvl,
-          riskLevel: a.risk?.overallLevel,
-        })),
-      },
-      null,
-      2,
-    );
+    const assets = market.data.map((a) => ({
+      id: a.id,
+      slug: a.slug,
+      name: a.identity?.name,
+      category: a.identity?.category,
+      tvl: a.market?.tvl,
+      riskLevel: a.risk?.overallLevel,
+      sources: a.market && 'sources' in a.market ? a.market.sources : [],
+      confidence: a.market && 'confidence' in a.market ? a.market.confidence : 'MEDIUM',
+    }));
+    const sourceCount = new Set(assets.flatMap((a) => a.sources)).size;
+
+    return {
+      dataContext: JSON.stringify({ scope: 'market_overview', assets }, null, 2),
+      assetsUsed: assets.map((a) => a.slug),
+      sourceCount,
+      confidence: lowestConfidence(assets.map((a) => normalizeConfidence(a.confidence))),
+    };
   }
 
   const unique = [...new Set(assetIds)].slice(0, 8);
@@ -289,37 +336,57 @@ export async function buildAskContext(assetIds: string[] | undefined): Promise<s
     throw new AppError(ERROR_CODES.ASSET_NOT_FOUND, 'No valid assets in context');
   }
 
-  return JSON.stringify({ scope: 'selected_assets', assets: blocks }, null, 2);
+  return {
+    dataContext: JSON.stringify({ scope: 'selected_assets', assets: blocks }, null, 2),
+    assetsUsed: blocks.map((asset) => asset.id),
+    sourceCount: new Set(blocks.flatMap((asset) => asset.meta.sources ?? [])).size,
+    confidence: lowestConfidence(blocks.map((asset) => normalizeConfidence(asset.meta.confidence))),
+  };
 }
 
 export async function streamAskNexus(params: {
   question: string;
   context?: string[];
   onDelta: (text: string) => void | Promise<void>;
-  onDone: () => void | Promise<void>;
+  onDone: (metadata: AskResponseMetadata) => void | Promise<void>;
   onError: (err: Error) => void | Promise<void>;
 }): Promise<void> {
-  const dataContext = await buildAskContext(params.context);
-  const userMessage = `Asset data:\n${dataContext}\n\nQuestion: ${params.question}`;
+  const contextPayload = await buildAskContext(params.context);
+  const userMessage = `Asset data:\n${contextPayload.dataContext}\n\nQuestion: ${params.question}`;
 
-  await new Promise<void>((resolve, reject) => {
-    void claudeStream({
-      system: NEXUS_ASSISTANT_SYSTEM,
-      user: userMessage,
-      maxTokens: 2048,
-      handlers: {
-        onDelta: (text) => {
-          void params.onDelta(text);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      void claudeStream({
+        system: NEXUS_ASSISTANT_SYSTEM,
+        user: userMessage,
+        maxTokens: 2048,
+        handlers: {
+          onDelta: (text) => {
+            void params.onDelta(text);
+          },
+          onDone: () => {
+            void params.onDone(buildAskMetadata(contextPayload, false));
+            resolve();
+          },
+          onError: (err) => {
+            void params.onError(err);
+            reject(err);
+          },
         },
-        onDone: () => {
-          void params.onDone();
-          resolve();
-        },
-        onError: (err) => {
-          void params.onError(err);
-          reject(err);
-        },
-      },
+      });
     });
-  });
+  } catch (err) {
+    logger.warn(
+      { provider: 'anthropic', error: err instanceof Error ? err.message : String(err) },
+      'Ask Nexus AI provider failed; streaming fallback response',
+    );
+    const fallbackText = [
+      'Ask Nexus is temporarily unable to reach the AI provider, so this fallback is based on the available Nexus dataset context.',
+      `Assets considered: ${contextPayload.assetsUsed.length > 0 ? contextPayload.assetsUsed.join(', ') : 'market overview'}.`,
+      `Sources available in context: ${contextPayload.sourceCount}.`,
+      ASK_NEXUS_DISCLAIMER,
+    ].join(' ');
+    await params.onDelta(fallbackText);
+    await params.onDone(buildAskMetadata(contextPayload, true));
+  }
 }

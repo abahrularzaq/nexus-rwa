@@ -238,7 +238,7 @@ Example response:
 
 ## 7. Ask Nexus
 
-Ask Nexus streams an answer over Server-Sent Events (SSE). Include a wallet header for Ask Nexus rate limiting and the access header required by your deployment.
+Ask Nexus streams an answer over Server-Sent Events (SSE). Include a wallet header for Ask Nexus rate limiting and the access header required by your deployment. The `question` field is required, trimmed, and limited to 3-500 characters; `context` can include up to 8 asset slugs. Answers include an informational-only disclaimer and are not investment advice.
 
 ```bash
 curl -N "$API_BASE_URL/v1/ask" \
@@ -261,7 +261,7 @@ event: delta
 data: {"text":" The main differences are reserve reporting cadence and liquidity mechanics."}
 
 event: done
-data: {"ok":true}
+data: {"ok":true,"metadata":{"assetsUsed":["ondo-usdy","openeden-ousg"],"sourceCount":4,"generatedAt":"2026-06-16T00:00:00.000Z","confidence":"medium","disclaimer":"This response is for informational purposes only and is not investment advice.","fallback":false}}
 ```
 
 If the body is invalid, Ask Nexus returns JSON instead of a stream:
@@ -271,7 +271,11 @@ If the body is invalid, Ask Nexus returns JSON instead of a stream:
   "success": false,
   "error": {
     "code": "INVALID_PARAMS",
-    "message": "Body must include { question: string, context?: string[] }"
+    "message": "Body must include { question: string (3-500 chars), context?: string[] }",
+    "details": ["question must be 500 characters or fewer"]
   }
 }
 ```
+
+
+If the upstream AI provider is temporarily unavailable after the stream starts, Ask Nexus gracefully emits a dataset-based fallback `delta` and completes with `metadata.fallback: true` and `metadata.confidence: "low"` instead of failing the whole SSE response.
