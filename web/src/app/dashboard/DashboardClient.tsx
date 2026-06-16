@@ -1,0 +1,978 @@
+"use client";
+
+import {
+  Component,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ErrorInfo,
+  type ReactNode,
+} from "react";
+import Link from "next/link";
+import {
+  Area,
+  AreaChart,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  ArrowUpRight,
+  BarChart3,
+  Database,
+  Layers,
+  Percent,
+  RefreshCw,
+  ShieldCheck,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react";
+import { useAccount } from "wagmi";
+import { RiskHeatmap } from "@/components/charts/RiskHeatmap";
+import { YieldLadder } from "@/components/charts/YieldLadder";
+import { MarketBriefCard } from "@/components/dashboard/MarketBriefCard";
+import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { fetchAssetList, formatTvl } from "@/lib/api/assets";
+import { toAssetSummaries } from "@/lib/asset-mapper";
+import type {
+  ApiResponse,
+  AssetCategory,
+  AssetSummary,
+  MarketOverview,
+} from "@/lib/shared";
+import { formatYield } from "@/lib/shared";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+export type AssetRow = AssetSummary & {
+  protocol?: string;
+  category?: string | AssetCategory;
+};
+
+type DashboardClientProps = {
+  initialOverview: MarketOverview | null;
+  initialAssetsRows: AssetRow[];
+  initialOverviewError?: string | null;
+  initialAssetsError?: string | null;
+};
+
+function apiBase(): string {
+  return API_URL.trim().replace(/\/$/, "");
+}
+
+function fmtChange7d(change7d: number): string {
+  const pct = change7d * 100;
+  const sign = pct >= 0 ? "+" : "";
+  return `${sign}${pct.toFixed(2)}%`;
+}
+
+function parseOverviewPayload(data: MarketOverview): MarketOverview {
+  return {
+    ...data,
+    updatedAt: new Date(data.updatedAt as unknown as string),
+    topGainers: data.topGainers ?? [],
+    topLosers: data.topLosers ?? [],
+  };
+}
+
+async function fetchMarketOverview(
+  signal?: AbortSignal,
+): Promise<MarketOverview> {
+  const res = await fetch(`${apiBase()}/v1/market/overview`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+    signal,
+  });
+  const body = (await res.json()) as ApiResponse<MarketOverview>;
+  if (!res.ok || !body.success) {
+    const msg =
+      body.success === false
+        ? body.error.message
+        : res.statusText || "Request failed";
+    throw new Error(msg);
+  }
+  return parseOverviewPayload(body.data);
+}
+
+async function fetchAssetsList(): Promise<AssetRow[]> {
+  const { assets } = await fetchAssetList({ limit: 20, page: 1 });
+  return toAssetSummaries(assets) as AssetRow[];
+}
+
+function formatLastUpdated(d: Date): string {
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function categoryLabel(c: string | AssetCategory | undefined): string {
+  if (!c || c === "—") return "—";
+  return String(c)
+    .split("_")
+    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
+const chartTooltipStyle = {
+  backgroundColor: "rgba(15,22,41,0.95)",
+  border: "1px solid rgba(0,209,255,0.18)",
+  borderRadius: 10,
+  color: "#fff",
+};
+
+export function DashboardClient({
+  initialOverview,
+  initialAssetsRows,
+  initialOverviewError = null,
+  initialAssetsError = null,
+}: DashboardClientProps) {
+  const [overview, setOverview] = useState<MarketOverview | null>(
+    initialOverview,
+  );
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewError, setOverviewError] = useState<string | null>(
+    initialOverviewError,
+  );
+  const [assetsRows, setAssetsRows] = useState<AssetRow[]>(initialAssetsRows);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const [assetsError, setAssetsError] = useState<string | null>(
+    initialAssetsError,
+  );
+  const [lastDisplay, setLastDisplay] = useState<string>(() =>
+    initialOverview ? formatLastUpdated(initialOverview.updatedAt) : "—",
+  );
+  const overviewAbortRef = useRef<AbortController | null>(null);
+  const assetsAbortRef = useRef<AbortController | null>(null);
+  const overviewInFlightRef = useRef(false);
+  const assetsInFlightRef = useRef(false);
+  const { address, isConnected } = useAccount();
+
+  const loadOverview = useCallback(async () => {
+    if (overviewInFlightRef.current) return;
+    overviewInFlightRef.current = true;
+    overviewAbortRef.current?.abort();
+    const controller = new AbortController();
+    overviewAbortRef.current = controller;
+    setOverviewLoading(true);
+    setOverviewError(null);
+    performance.mark("dashboard-overview-refresh-start");
+    try {
+      const data = await fetchMarketOverview(controller.signal);
+      setOverview(data);
+      setLastDisplay(formatLastUpdated(data.updatedAt));
+      performance.mark("dashboard-overview-refresh-end");
+      performance.measure(
+        "dashboard-overview-refresh",
+        "dashboard-overview-refresh-start",
+        "dashboard-overview-refresh-end",
+      );
+    } catch (e) {
+      if (!controller.signal.aborted) {
+        setOverview(null);
+        setOverviewError(e instanceof Error ? e.message : "Unknown error");
+      }
+    } finally {
+      if (overviewAbortRef.current === controller)
+        overviewAbortRef.current = null;
+      overviewInFlightRef.current = false;
+      setOverviewLoading(false);
+    }
+  }, []);
+
+  const loadAssets = useCallback(async () => {
+    if (assetsInFlightRef.current) return;
+    assetsInFlightRef.current = true;
+    assetsAbortRef.current?.abort();
+    assetsAbortRef.current = new AbortController();
+    setAssetsLoading(true);
+    setAssetsError(null);
+    try {
+      const rows = await fetchAssetsList();
+      setAssetsRows(rows);
+    } catch (e) {
+      setAssetsRows([]);
+      setAssetsError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      assetsAbortRef.current = null;
+      assetsInFlightRef.current = false;
+      setAssetsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    performance.mark("dashboard-client-hydrated");
+    const navigation = performance.getEntriesByType("navigation")[0];
+    if (navigation) {
+      performance.measure("dashboard-initial-shell-to-hydration", {
+        start: navigation.startTime,
+        end: "dashboard-client-hydrated",
+      });
+    }
+    return () => {
+      overviewAbortRef.current?.abort();
+      assetsAbortRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") void loadOverview();
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, [loadOverview]);
+
+  const walletStatus =
+    isConnected && address
+      ? `Wallet connected: ${address.slice(0, 6)}…${address.slice(-4)}`
+      : "Wallet optional for public overview";
+
+  const gainersChartData = (overview?.topGainers ?? [])
+    .slice(0, 5)
+    .map((a, i) => ({
+      rank: i + 1,
+      symbol: a.symbol,
+      yieldPct: a.yieldRate * 100,
+    }));
+  const losersChartData = (overview?.topLosers ?? [])
+    .slice(0, 5)
+    .map((a, i) => ({
+      rank: i + 1,
+      symbol: a.symbol,
+      yieldPct: a.yieldRate * 100,
+    }));
+
+  const activeAssets = overview?.totalAssets ?? assetsRows.length;
+  const curlExample = `curl -s "${apiBase()}/v1/market/overview"`;
+
+  return (
+    <div className="relative isolate space-y-8 overflow-hidden pb-10">
+      <div className="pointer-events-none absolute inset-x-[-18%] top-[-180px] -z-10 h-[520px] bg-[radial-gradient(circle_at_28%_22%,rgba(0,209,255,0.18),transparent_34%),radial-gradient(circle_at_72%_18%,rgba(185,131,255,0.13),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(255,184,0,0.08),transparent_36%)] blur-2xl" />
+      <div className="pointer-events-none absolute inset-x-[-12%] top-[720px] -z-10 h-[420px] bg-[radial-gradient(circle_at_18%_20%,rgba(0,255,136,0.09),transparent_30%),radial-gradient(circle_at_88%_60%,rgba(255,68,68,0.08),transparent_32%)] blur-3xl" />
+
+      <header className="relative flex flex-col gap-3 border-b border-[#00D1FF]/15 pb-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="terminal-label mb-1.5 text-[#8DEBFF]">
+            Intelligence overview
+          </p>
+          <h1 className="bg-gradient-to-r from-white via-[#DDF9FF] to-[#8DEBFF] bg-clip-text text-2xl font-semibold leading-tight tracking-tight text-transparent">
+            Nexus RWA Command Center
+          </h1>
+          <p className="mt-1 max-w-3xl text-sm text-[var(--text-secondary)]">
+            Primary intelligence layer for market depth, yield, risk, holder
+            coverage, and data freshness before users drill into Market,
+            Sources, or Data Layers.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-[var(--text-secondary)] tabular-nums">
+          <span>
+            Last updated:{" "}
+            <span className="font-medium text-white">{lastDisplay}</span>
+          </span>
+          <span className="rounded border border-[#00D1FF]/20 bg-[#00D1FF]/[0.06] px-2 py-0.5 terminal-label text-[#8DEBFF]">
+            Auto-refresh 60s
+          </span>
+        </div>
+      </header>
+
+      <section className="relative overflow-hidden rounded-xl border border-[#B983FF]/20 bg-[linear-gradient(135deg,rgba(8,13,25,0.96),rgba(11,20,38,0.88))] p-4 shadow-[0_0_40px_rgba(0,209,255,0.06)]">
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_100%_0%,rgba(185,131,255,0.16),transparent_45%)]" />
+        <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-[#00D1FF]/40 bg-[#00D1FF]/15 px-2.5 py-1 text-xs font-medium text-[#8DEBFF] shadow-[0_0_18px_rgba(0,209,255,0.12)]">
+                Overview layer
+              </span>
+              <span className="rounded-full border border-[#00FF88]/40 bg-[#00FF88]/15 px-2.5 py-1 text-xs font-medium text-[#74FFB8] shadow-[0_0_18px_rgba(0,255,136,0.14)]">
+                {overviewLoading
+                  ? "Loading live metrics"
+                  : `${activeAssets} active assets`}
+              </span>
+            </div>
+            <p className="mt-2 max-w-3xl text-sm text-[var(--text-secondary)]">
+              The Overview acts as the entry point: it gives users a quick read
+              on dataset health, then routes them to deeper workspaces for
+              detailed analysis.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/market"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#00D1FF]/30 bg-[#00D1FF]/10 px-4 py-2 text-sm font-medium text-[#8DEBFF] shadow-[0_0_24px_rgba(0,209,255,0.12)] transition hover:bg-[#00D1FF]/20 hover:shadow-[0_0_34px_rgba(0,209,255,0.2)]"
+            >
+              Open Market
+              <ArrowUpRight className="size-4" />
+            </Link>
+            <Link
+              href="/dashboard/sources"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#B983FF]/40 bg-[#B983FF]/15 px-4 py-2 text-sm font-medium text-[#E6D0FF] shadow-[0_0_24px_rgba(185,131,255,0.12)] transition hover:bg-[#B983FF]/25 hover:shadow-[0_0_34px_rgba(185,131,255,0.2)]"
+            >
+              Review Sources
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {overviewError ? (
+        <section className="flex flex-col gap-4 rounded-xl border border-[rgba(255,68,68,0.35)] bg-[rgba(255,68,68,0.08)] p-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#FF4444]">
+              Could not load market overview
+            </p>
+            <p className="mt-1 text-sm text-[#8892A4]">{overviewError}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadOverview()}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#FFB800]/35 bg-[#FFB800]/10 px-4 py-2 text-sm font-medium text-[#FFD36A] transition-colors hover:bg-[#FFB800]/20"
+          >
+            <RefreshCw className="size-4" />
+            Retry
+          </button>
+        </section>
+      ) : (
+        <SectionErrorBoundary title="Overview metrics">
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <OverviewMetricCard
+              icon={<Layers className="size-5 text-[#8DEBFF]" />}
+              label="Total TVL"
+              value={
+                overviewLoading
+                  ? "—"
+                  : overview
+                    ? formatTvl(overview.totalTvl)
+                    : "—"
+              }
+              helper="Across active listings"
+            />
+            <OverviewMetricCard
+              icon={<BarChart3 className="size-5 text-[#FFD36A]" />}
+              label="Tracked assets"
+              value={
+                overviewLoading ? "—" : activeAssets.toLocaleString("en-US")
+              }
+              helper="Active dataset coverage"
+              variant="amber"
+            />
+            <OverviewMetricCard
+              icon={<Percent className="size-5 text-[#74FFB8]" />}
+              label="Avg yield rate"
+              value={
+                overviewLoading
+                  ? "—"
+                  : overview
+                    ? formatYield(overview.avgYieldRate * 100)
+                    : "—"
+              }
+              helper="Volume-weighted snapshot"
+              variant="green"
+            />
+            <OverviewMetricCard
+              icon={<Users className="size-5 text-[#E6D0FF]" />}
+              label="Total holders"
+              value={
+                overviewLoading
+                  ? "—"
+                  : overview
+                    ? overview.totalHolders.toLocaleString("en-US")
+                    : "—"
+              }
+              helper="Holder coverage signal"
+              variant="purple"
+            />
+          </section>
+        </SectionErrorBoundary>
+      )}
+
+      <div className="grid gap-6 xl:grid-cols-[0.92fr_1.55fr]">
+        <SectionErrorBoundary title="Market brief">
+          <aside className="min-h-[420px]">
+            <MarketBriefCard />
+          </aside>
+        </SectionErrorBoundary>
+        <div className="space-y-6">
+          {!overviewError ? (
+            <section className="terminal-panel relative overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_38px_rgba(0,209,255,0.06)]">
+              <div className="pointer-events-none absolute right-[-120px] top-[-140px] h-72 w-72 rounded-full bg-[#00D1FF]/10 blur-3xl" />
+              <div className="relative flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="terminal-label text-[#8DEBFF]">
+                    Liquidity snapshot
+                  </p>
+                  <h2 className="mt-1 text-base font-semibold text-white">
+                    TVL Overview
+                  </h2>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    A compact snapshot of market size before users open the
+                    detailed market table.
+                  </p>
+                </div>
+                <span className="terminal-label rounded border border-[#00D1FF]/20 bg-[#00D1FF]/[0.06] px-2 py-1 text-[#8DEBFF]">
+                  Free endpoint
+                </span>
+              </div>
+              <div className="relative mt-5 grid gap-3 sm:grid-cols-3">
+                <MiniDataSurface
+                  label="Total TVL"
+                  value={
+                    overviewLoading
+                      ? "—"
+                      : overview
+                        ? formatTvl(overview.totalTvl)
+                        : "—"
+                  }
+                />
+                <MiniDataSurface
+                  label="Active assets"
+                  value={
+                    overviewLoading ? "—" : activeAssets.toLocaleString("en-US")
+                  }
+                />
+                <MiniDataSurface
+                  label="Last updated"
+                  value={lastDisplay}
+                  small
+                />
+              </div>
+            </section>
+          ) : null}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SectionErrorBoundary title="Yield ladder">
+              <YieldLadder
+                compact
+                limit={8}
+                showFooterLink
+                benchmarkYield={overview?.avgYieldRate}
+              />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary title="Risk heatmap">
+              <RiskHeatmap compact showFooterLink />
+            </SectionErrorBoundary>
+          </div>
+        </div>
+      </div>
+
+      {overviewLoading && !overviewError ? (
+        <section className="grid gap-6 lg:grid-cols-2">
+          <MoverSkeleton />
+          <MoverSkeleton />
+        </section>
+      ) : null}
+
+      {overview && !overviewLoading && !overviewError ? (
+        <section className="grid gap-6 lg:grid-cols-2">
+          <SectionErrorBoundary title="Top gainers">
+            <MoverPanel
+              title="Top Gainers 7D"
+              label="Positive momentum"
+              icon={
+                <TrendingUp className="size-5 text-[#00FF88]" aria-hidden />
+              }
+              items={overview.topGainers ?? []}
+              chart={
+                gainersChartData.length > 0 ? (
+                  <GainersChart data={gainersChartData} />
+                ) : null
+              }
+            />
+          </SectionErrorBoundary>
+          <SectionErrorBoundary title="Top losers">
+            <MoverPanel
+              title="Top Losers 7D"
+              label="Watchlist momentum"
+              icon={
+                <TrendingDown className="size-5 text-[#FF4444]" aria-hidden />
+              }
+              items={overview.topLosers ?? []}
+              negative
+              chart={
+                losersChartData.length > 0 ? (
+                  <LosersChart data={losersChartData} />
+                ) : null
+              }
+            />
+          </SectionErrorBoundary>
+        </section>
+      ) : null}
+
+      <SectionErrorBoundary title="Recently tracked assets">
+        <section className="terminal-panel relative overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_38px_rgba(0,209,255,0.06)]">
+          <div className="pointer-events-none absolute bottom-[-160px] left-[-120px] h-72 w-72 rounded-full bg-[#00FF88]/8 blur-3xl" />
+          <div className="relative mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#00D1FF]/15 pb-4">
+            <div>
+              <p className="terminal-label text-[#8DEBFF]">Recent coverage</p>
+              <h2 className="mt-1 text-base font-semibold text-white">
+                Recently tracked assets
+              </h2>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                Latest tracked assets are shown as a preview before users open
+                the full Assets table.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/assets"
+              className="inline-flex items-center gap-1 rounded-lg border border-[#00D1FF]/20 bg-[#00D1FF]/[0.04] px-3 py-2 text-sm font-medium text-[#8DEBFF] transition hover:border-[var(--accent-cyan)] hover:bg-[#00D1FF]/10 hover:text-white"
+            >
+              View all
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </div>
+          {assetsError ? (
+            <div className="relative flex flex-col gap-3 rounded-xl border border-[rgba(255,68,68,0.35)] bg-[rgba(255,68,68,0.06)] p-5 md:flex-row md:items-center md:justify-between">
+              <p className="text-sm text-[#8892A4]">{assetsError}</p>
+              <button
+                type="button"
+                onClick={() => void loadAssets()}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#FFB800]/35 bg-[#FFB800]/10 px-4 py-2 text-sm font-medium text-[#FFD36A] hover:bg-[#FFB800]/20"
+              >
+                <RefreshCw className="size-4" /> Retry
+              </button>
+            </div>
+          ) : (
+            <AssetsPreviewTable
+              assetsRows={assetsRows}
+              assetsLoading={assetsLoading}
+            />
+          )}
+        </section>
+      </SectionErrorBoundary>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <InfoPanel
+          icon={<Database className="size-5 text-[#8DEBFF]" />}
+          label="Data source"
+          title="API-first overview"
+        >
+          The Overview uses{" "}
+          <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[#8DEBFF]">
+            GET /v1/market/overview
+          </code>{" "}
+          as a lightweight public snapshot.
+        </InfoPanel>
+        <InfoPanel
+          icon={<ShieldCheck className="size-5 text-[#74FFB8]" />}
+          label="Trust path"
+          title="Not a detail page"
+        >
+          Evidence-heavy details stay inside Sources, Data Layers, and Risk &
+          Grade so the Overview remains easy to scan.
+        </InfoPanel>
+        <InfoPanel
+          icon={<Wallet className="size-5 text-[#E6D0FF]" />}
+          label="Wallet"
+          title="Interaction context"
+        >
+          {walletStatus}. Public dashboard data stays available while
+          wallet-gated drilldowns can use the connected session.
+        </InfoPanel>
+      </section>
+
+      <section className="data-surface rounded-lg border border-[#00D1FF]/15 bg-[linear-gradient(145deg,rgba(0,209,255,0.08),rgba(255,255,255,0.025))] p-5 shadow-[0_0_28px_rgba(0,209,255,0.06)]">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="terminal-label text-[#8DEBFF]">Developer access</p>
+            <h3 className="mt-1 text-base font-semibold text-white">
+              Access this overview via API
+            </h3>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Endpoint:{" "}
+              <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[#8DEBFF]">
+                GET /v1/market/overview
+              </code>{" "}
+              — <span className="text-[#00FF88]">FREE</span>
+            </p>
+          </div>
+          <Link
+            href="/dashboard/api-docs"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#B983FF]/40 bg-[#B983FF]/15 px-4 py-2 text-sm font-medium text-[#E6D0FF] shadow-[0_0_24px_rgba(185,131,255,0.12)] transition hover:bg-[#B983FF]/25 hover:shadow-[0_0_34px_rgba(185,131,255,0.2)]"
+          >
+            View API Docs
+            <ArrowUpRight className="size-4" />
+          </Link>
+        </div>
+        <pre className="mt-4 overflow-x-auto rounded-lg border border-[#00D1FF]/15 bg-[#050A14]/70 p-4 text-xs text-[#8892A4]">
+          {curlExample}
+        </pre>
+      </section>
+    </div>
+  );
+}
+
+type SectionErrorBoundaryProps = {
+  title: string;
+  children: ReactNode;
+};
+
+type SectionErrorBoundaryState = {
+  error: Error | null;
+};
+
+class SectionErrorBoundary extends Component<
+  SectionErrorBoundaryProps,
+  SectionErrorBoundaryState
+> {
+  state: SectionErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): SectionErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error(
+      `Dashboard section failed: ${this.props.title}`,
+      error,
+      errorInfo,
+    );
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <section className="rounded-xl border border-[rgba(255,68,68,0.35)] bg-[rgba(255,68,68,0.06)] p-5">
+          <p className="text-sm font-semibold text-[#FF4444]">
+            {this.props.title} is temporarily unavailable
+          </p>
+          <p className="mt-1 text-sm text-[#8892A4]">
+            The rest of the dashboard remains available while this panel
+            recovers.
+          </p>
+          <button
+            type="button"
+            onClick={() => this.setState({ error: null })}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#FFB800]/35 bg-[#FFB800]/10 px-4 py-2 text-sm font-medium text-[#FFD36A] hover:bg-[#FFB800]/20"
+          >
+            <RefreshCw className="size-4" /> Retry panel
+          </button>
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+function MiniDataSurface({
+  label,
+  value,
+  small = false,
+}: {
+  label: string;
+  value: string;
+  small?: boolean;
+}) {
+  return (
+    <div className="data-surface border-[#00D1FF]/15 bg-[#050A14]/55 p-4">
+      <p className="terminal-label text-[#8DEBFF]">{label}</p>
+      <p
+        className={`mt-2 font-semibold text-white ${small ? "text-sm" : "text-2xl"}`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function OverviewMetricCard({
+  icon,
+  label,
+  value,
+  helper,
+  variant = "cyan",
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  helper: string;
+  variant?: "cyan" | "green" | "amber" | "purple";
+}) {
+  const styles = {
+    cyan: "border-[#00D1FF]/20 bg-[linear-gradient(145deg,rgba(0,209,255,0.08),rgba(255,255,255,0.025))] shadow-[0_0_28px_rgba(0,209,255,0.06)]",
+    green:
+      "border-[#00FF88]/20 bg-[linear-gradient(145deg,rgba(0,255,136,0.08),rgba(255,255,255,0.025))] shadow-[0_0_28px_rgba(0,255,136,0.06)]",
+    amber:
+      "border-[#FFB800]/20 bg-[linear-gradient(145deg,rgba(255,184,0,0.08),rgba(255,255,255,0.025))] shadow-[0_0_28px_rgba(255,184,0,0.06)]",
+    purple:
+      "border-[#B983FF]/20 bg-[linear-gradient(145deg,rgba(185,131,255,0.09),rgba(255,184,0,0.035))] shadow-[0_0_28px_rgba(185,131,255,0.06)]",
+  } as const;
+  return (
+    <div className={`data-surface p-5 ${styles[variant]}`}>
+      {icon}
+      <p className="terminal-label mt-4 text-[#8DEBFF]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-1 text-xs text-[var(--text-secondary)]">{helper}</p>
+    </div>
+  );
+}
+
+function MoverSkeleton() {
+  return (
+    <div className="terminal-panel border-[#00D1FF]/15 p-5 shadow-[0_0_28px_rgba(0,209,255,0.06)]">
+      <div className="mb-4 h-5 w-40 animate-pulse rounded bg-[rgba(30,42,58,0.9)]" />
+      <ul className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <li
+            key={i}
+            className="flex justify-between gap-2 border-b border-[rgba(30,42,58,0.5)] pb-3 last:border-0 last:pb-0"
+          >
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="h-4 w-48 max-w-full animate-pulse rounded bg-[rgba(30,42,58,0.85)]" />
+              <div className="h-3 w-14 animate-pulse rounded bg-[rgba(30,42,58,0.75)]" />
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <div className="h-4 w-16 animate-pulse rounded bg-[rgba(30,42,58,0.85)]" />
+              <div className="h-6 w-20 animate-pulse rounded-md bg-[rgba(30,42,58,0.8)]" />
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 h-[180px] w-full animate-pulse rounded-lg bg-[rgba(30,42,58,0.45)]" />
+    </div>
+  );
+}
+
+function MoverPanel({
+  title,
+  label,
+  icon,
+  items,
+  chart,
+  negative = false,
+}: {
+  title: string;
+  label: string;
+  icon: ReactNode;
+  items: AssetSummary[];
+  chart: ReactNode;
+  negative?: boolean;
+}) {
+  return (
+    <div className="terminal-panel relative overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_28px_rgba(0,209,255,0.06)]">
+      <div className="mb-4 flex items-center gap-2">
+        {icon}
+        <div>
+          <p className="terminal-label text-[#8DEBFF]">{label}</p>
+          <h2 className="text-base font-semibold text-white">{title}</h2>
+        </div>
+      </div>
+      <ul className="space-y-3">
+        {items.slice(0, 5).map((a) => (
+          <li
+            key={a.id}
+            className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(30,42,58,0.5)] pb-3 last:border-0 last:pb-0"
+          >
+            <div className="min-w-0">
+              <p className="truncate font-medium text-white">{a.name}</p>
+              <p className="text-xs text-[#8892A4]">{a.symbol}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-right text-sm">
+              <span className="tabular-nums text-[#8892A4]">
+                {formatYield(a.yieldRate * 100)}
+              </span>
+              <span
+                className={`font-medium tabular-nums ${negative ? "text-[#FF4444]" : "text-[#00FF88]"}`}
+              >
+                {fmtChange7d(a.change7d)}
+              </span>
+              <RiskBadge level={a.riskScore} showDot />
+            </div>
+          </li>
+        ))}
+      </ul>
+      {chart ? <div className="mt-4 h-[180px] w-full">{chart}</div> : null}
+    </div>
+  );
+}
+
+function GainersChart({
+  data,
+}: {
+  data: Array<{ rank: number; symbol: string; yieldPct: number }>;
+}) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="gainersFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00D4FF" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="#00D4FF" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <XAxis
+          dataKey="rank"
+          tick={{ fill: "#8892A4", fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fill: "#8892A4", fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+          tickFormatter={(v) => `${v}%`}
+          width={44}
+        />
+        <Tooltip
+          contentStyle={chartTooltipStyle}
+          formatter={(v) => {
+            const n = typeof v === "number" ? v : Number(v);
+            return [`${Number.isFinite(n) ? n.toFixed(2) : "—"}%`, "Yield"];
+          }}
+          labelFormatter={(l) => `Rank ${l}`}
+        />
+        <Area
+          type="monotone"
+          dataKey="yieldPct"
+          stroke="#00D4FF"
+          fill="url(#gainersFill)"
+          strokeWidth={2}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function LosersChart({
+  data,
+}: {
+  data: Array<{ rank: number; symbol: string; yieldPct: number }>;
+}) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <XAxis
+          dataKey="rank"
+          tick={{ fill: "#8892A4", fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fill: "#8892A4", fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+          tickFormatter={(v) => `${v}%`}
+          width={44}
+        />
+        <Tooltip
+          contentStyle={chartTooltipStyle}
+          formatter={(v) => {
+            const n = typeof v === "number" ? v : Number(v);
+            return [`${Number.isFinite(n) ? n.toFixed(2) : "—"}%`, "Yield"];
+          }}
+          labelFormatter={(l) => `Rank ${l}`}
+        />
+        <Line
+          type="monotone"
+          dataKey="yieldPct"
+          stroke="#FF4444"
+          strokeWidth={2}
+          dot={{ r: 3, fill: "#FF4444" }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+function AssetsPreviewTable({
+  assetsRows,
+  assetsLoading,
+}: {
+  assetsRows: AssetRow[];
+  assetsLoading: boolean;
+}) {
+  return (
+    <div className="relative overflow-x-auto rounded-xl border border-[#00D1FF]/15 bg-[#050A14]/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+      <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+        <thead className="border-b border-[#00D1FF]/15 bg-[#00D1FF]/[0.035] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+          <tr>
+            <th className="px-4 py-3 font-medium">Asset</th>
+            <th className="px-4 py-3 font-medium">Protocol</th>
+            <th className="px-4 py-3 font-medium">Category</th>
+            <th className="px-4 py-3 text-right font-medium">TVL</th>
+            <th className="px-4 py-3 text-right font-medium">Yield</th>
+            <th className="px-4 py-3 font-medium">Risk</th>
+            <th className="px-4 py-3 text-right font-medium">7D</th>
+          </tr>
+        </thead>
+        <tbody>
+          {assetsLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-[rgba(30,42,58,0.55)] last:border-0"
+                >
+                  <td className="px-4 py-3" colSpan={7}>
+                    <div className="h-4 w-full max-w-md animate-pulse rounded bg-[rgba(30,42,58,0.7)]" />
+                  </td>
+                </tr>
+              ))
+            : assetsRows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-[rgba(30,42,58,0.55)] transition hover:bg-[#00D1FF]/[0.045] hover:shadow-[inset_3px_0_0_rgba(0,209,255,0.45)] last:border-0"
+                >
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-white">{row.name}</p>
+                    <p className="text-xs text-[#8892A4]">{row.symbol}</p>
+                  </td>
+                  <td className="px-4 py-3 text-[#8892A4]">
+                    {row.protocol ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-[#8892A4]">
+                    {categoryLabel(row.category)}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-white">
+                    {formatTvl(row.tvl)}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-white">
+                    {formatYield(row.yieldRate * 100)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <RiskBadge level={row.riskScore} showDot />
+                  </td>
+                  <td
+                    className={`px-4 py-3 text-right font-medium tabular-nums ${row.change7d >= 0 ? "text-[#00FF88]" : "text-[#FF4444]"}`}
+                  >
+                    {fmtChange7d(row.change7d)}
+                  </td>
+                </tr>
+              ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function InfoPanel({
+  icon,
+  label,
+  title,
+  children,
+}: {
+  icon: ReactNode;
+  label: string;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="terminal-panel relative overflow-hidden border-[#00D1FF]/15 p-5 shadow-[0_0_28px_rgba(0,209,255,0.06)]">
+      <div className="flex items-center gap-2">
+        {icon}
+        <div>
+          <p className="terminal-label text-[#8DEBFF]">{label}</p>
+          <h2 className="text-base font-semibold text-white">{title}</h2>
+        </div>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+        {children}
+      </p>
+    </div>
+  );
+}
