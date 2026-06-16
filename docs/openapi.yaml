@@ -1,0 +1,819 @@
+openapi: 3.1.0
+info:
+  title: Nexus RWA API
+  version: 0.2.0
+  description: |
+    Public, Pro, and Enterprise API for Nexus RWA asset intelligence.
+    Public endpoints support discovery and lightweight market context. Pro and
+    Enterprise endpoints require payment or entitlement headers.
+servers:
+  - url: https://api.nexus-rwa.com
+    description: Production
+  - url: http://localhost:3001
+    description: Local development
+tags:
+  - name: Public
+    description: Free discovery endpoints.
+  - name: Pro
+    description: Paid asset intelligence endpoints.
+  - name: Enterprise
+    description: Bulk, export, and AI-agent workflows.
+security:
+  - ApiKeyAuth: []
+  - WalletAddressAuth: []
+  - PaymentAuth: []
+  - PaymentTxAuth: []
+paths:
+  /health:
+    get:
+      tags: [Public]
+      summary: API health check
+      description: Returns basic API status and data sync state.
+      security: []
+      responses:
+        '200':
+          description: API is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                ok:
+                  $ref: '#/components/examples/HealthOk'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/market/overview:
+    get:
+      tags: [Public]
+      summary: Market overview
+      description: Lightweight market-wide snapshot for public dashboards.
+      security: []
+      responses:
+        '200':
+          description: Market overview returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/MarketOverviewOk'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/market/brief:
+    get:
+      tags: [Public]
+      summary: Market brief
+      description: Short public market narrative and highlights.
+      security: []
+      responses:
+        '200':
+          description: Market brief returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/MarketBriefOk'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets:
+    get:
+      tags: [Public]
+      summary: List assets
+      description: Paginated public catalog of tokenized real-world assets.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Category'
+        - $ref: '#/components/parameters/Chain'
+        - $ref: '#/components/parameters/Search'
+      responses:
+        '200':
+          description: Asset list returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetsResponse'
+              examples:
+                ok:
+                  $ref: '#/components/examples/AssetsListOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets/{slug}:
+    get:
+      tags: [Public]
+      summary: Get public asset profile
+      description: Public asset profile with free-tier field coverage.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Asset profile returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResponse'
+              examples:
+                ok:
+                  $ref: '#/components/examples/AssetOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/search:
+    get:
+      tags: [Public]
+      summary: Search assets
+      description: Search asset catalog by name, slug, symbol, or issuer text.
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          example: ondo
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+      responses:
+        '200':
+          description: Search results returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/SearchOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets/{slug}/full:
+    get:
+      tags: [Pro]
+      summary: Get full institutional asset profile
+      description: Full 12-layer asset profile for Pro or Enterprise users.
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Full profile returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResponse'
+              examples:
+                ok:
+                  $ref: '#/components/examples/AssetFullOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets/{slug}/history:
+    get:
+      tags: [Pro]
+      summary: Get asset time-series history
+      description: Historical metrics for a tracked asset.
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, 1y, all]
+            default: 30d
+      responses:
+        '200':
+          description: History returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/HistoryOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets/{slug}/risk:
+    get:
+      tags: [Pro]
+      summary: Get asset risk breakdown
+      description: Full risk factors and grade context for a tracked asset.
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Risk breakdown returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/RiskOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets/{slug}/sources:
+    get:
+      tags: [Pro]
+      summary: Get asset source trail
+      description: Field-level evidence and source provenance for a tracked asset.
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Source trail returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/SourcesOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/assets/{slug}/insight:
+    get:
+      tags: [Pro]
+      summary: Get AI-generated asset insight
+      description: Cached AI-generated summary of key asset strengths, risks, and evidence gaps.
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Insight returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/InsightOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/analytics/bulk:
+    get:
+      tags: [Enterprise]
+      summary: Get bulk analytics snapshot
+      description: Enterprise snapshot across tracked assets.
+      responses:
+        '200':
+          description: Bulk analytics returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/BulkOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/export:
+    get:
+      tags: [Enterprise]
+      summary: Export full dataset
+      description: Enterprise machine-readable dataset export.
+      responses:
+        '200':
+          description: Export returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/ExportOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/ask:
+    post:
+      tags: [Enterprise]
+      summary: Ask Nexus
+      description: Enterprise natural-language API. Successful responses stream server-sent events.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question:
+                  type: string
+                  minLength: 3
+                  maxLength: 2000
+                context:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: string
+            examples:
+              ask:
+                value:
+                  question: Compare OUSG and BUIDL risk signals.
+                  context: [ondo-ousg, blackrock-buidl]
+      responses:
+        '200':
+          description: SSE stream with delta and done events.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              examples:
+                ok:
+                  value: |
+                    event: delta
+                    data: {"text":"OUSG and BUIDL differ most in issuer and liquidity profile."}
+
+                    event: done
+                    data: {"ok":true}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for entitled Pro or Enterprise access.
+    WalletAddressAuth:
+      type: apiKey
+      in: header
+      name: X-Wallet-Address
+      description: Wallet address used for payment session and Ask Nexus rate limiting.
+    PaymentAuth:
+      type: apiKey
+      in: header
+      name: X-Payment
+      description: x402 payment payload or payment authorization header.
+    PaymentTxAuth:
+      type: apiKey
+      in: header
+      name: X-Payment-Tx
+      description: Payment transaction identifier used after payment settlement.
+  parameters:
+    Slug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      example: ondo-ousg
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Category:
+      name: category
+      in: query
+      schema:
+        type: string
+      example: tokenized_treasury
+    Chain:
+      name: chain
+      in: query
+      schema:
+        type: string
+      example: ethereum
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+      example: treasury
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication headers.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            unauthorized:
+              $ref: '#/components/examples/UnauthorizedError'
+    PaymentRequired:
+      description: Payment or entitlement is required for this endpoint.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            paymentRequired:
+              $ref: '#/components/examples/PaymentRequiredError'
+    NotFound:
+      description: Requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            notFound:
+              $ref: '#/components/examples/NotFoundError'
+    RateLimited:
+      description: Rate limit exceeded.
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            rateLimited:
+              $ref: '#/components/examples/RateLimitedError'
+  schemas:
+    Meta:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        cached:
+          type: boolean
+        requestId:
+          type: string
+    SuccessEnvelope:
+      type: object
+      required: [success, data, meta]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data: {}
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorEnvelope:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+        meta:
+          $ref: '#/components/schemas/Meta'
+    HealthResponse:
+      type: object
+      required: [status, timestamp, dataSync]
+      properties:
+        status:
+          type: string
+          example: ok
+        version:
+          type: string
+          nullable: true
+          example: 0.2.0
+        timestamp:
+          type: string
+          format: date-time
+        dataSync:
+          type: string
+          example: active
+    AssetSummary:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        symbol:
+          type: string
+        issuer:
+          type: string
+        category:
+          type: string
+        chain:
+          type: string
+        grade:
+          type: object
+          additionalProperties: true
+        market:
+          type: object
+          additionalProperties: true
+        risk:
+          type: object
+          additionalProperties: true
+    AssetResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AssetSummary'
+    PaginatedAssetsResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AssetSummary'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer
+                totalPages:
+                  type: integer
+  examples:
+    HealthOk:
+      value:
+        status: ok
+        version: 0.2.0
+        timestamp: '2026-06-14T00:00:00.000Z'
+        dataSync: active
+    MarketOverviewOk:
+      value:
+        success: true
+        data:
+          totalAssets: 24
+          totalTvlUsd: 3200000000
+          categories:
+            tokenized_treasury: 12
+            private_credit: 4
+          updatedAt: '2026-06-14T00:00:00.000Z'
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: true
+    MarketBriefOk:
+      value:
+        success: true
+        data:
+          title: Tokenized treasury products lead tracked RWA TVL.
+          highlights:
+            - Treasury funds remain the largest tracked category.
+            - Source freshness and reserve evidence vary by issuer.
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: true
+    AssetsListOk:
+      value:
+        success: true
+        data:
+          items:
+            - slug: ondo-ousg
+              name: Ondo Short-Term US Government Bond Fund
+              symbol: OUSG
+              issuer: Ondo Finance
+              category: tokenized_treasury
+              chain: ethereum
+          total: 1
+          page: 1
+          limit: 20
+          totalPages: 1
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    AssetOk:
+      value:
+        success: true
+        data:
+          slug: ondo-ousg
+          name: Ondo Short-Term US Government Bond Fund
+          symbol: OUSG
+          issuer: Ondo Finance
+          category: tokenized_treasury
+          market:
+            tvlUsd: 250000000
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    SearchOk:
+      value:
+        success: true
+        data:
+          - slug: ondo-ousg
+            name: Ondo Short-Term US Government Bond Fund
+            symbol: OUSG
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    AssetFullOk:
+      value:
+        success: true
+        data:
+          slug: ondo-ousg
+          name: Ondo Short-Term US Government Bond Fund
+          layers:
+            identity: {}
+            reserve: {}
+            compliance: {}
+            blockchain: {}
+            market: {}
+            yield: {}
+            liquidity: {}
+            risk: {}
+            sources: []
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    HistoryOk:
+      value:
+        success: true
+        data:
+          - date: '2026-06-14'
+            tvlUsd: 250000000
+            yieldPct: 4.8
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    RiskOk:
+      value:
+        success: true
+        data:
+          risk:
+            score: 32
+            level: medium
+            factors:
+              reserveRisk: low
+              liquidityRisk: medium
+          grade:
+            grade: B
+            confidence: medium
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    SourcesOk:
+      value:
+        success: true
+        data:
+          - field: reserve.custodian
+            sourceUrl: https://example.com/disclosure.pdf
+            sourceTier: 1
+            lastCheckedAt: '2026-06-14T00:00:00.000Z'
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    InsightOk:
+      value:
+        success: true
+        data:
+          summary: OUSG has strong treasury exposure evidence but requires monitoring of liquidity and investor access constraints.
+          strengths:
+            - Clear treasury-backed product positioning.
+          risks:
+            - Liquidity and redemption terms should be reviewed.
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: true
+    BulkOk:
+      value:
+        success: true
+        data:
+          kind: bulk
+          count: 1
+          items:
+            - slug: ondo-ousg
+              name: Ondo Short-Term US Government Bond Fund
+          note: Enterprise bulk snapshot — all assets in one response.
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    ExportOk:
+      value:
+        success: true
+        data:
+          kind: export
+          exportedAt: '2026-06-14T00:00:00.000Z'
+          assets:
+            - slug: ondo-ousg
+              name: Ondo Short-Term US Government Bond Fund
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    UnauthorizedError:
+      value:
+        success: false
+        error:
+          code: UNAUTHORIZED
+          message: Invalid or missing API key.
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    PaymentRequiredError:
+      value:
+        success: false
+        error:
+          code: PAYMENT_REQUIRED
+          message: Payment required for this endpoint.
+          details:
+            accepts:
+              - X-Payment
+              - X-Payment-Tx
+              - X-API-Key
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    NotFoundError:
+      value:
+        success: false
+        error:
+          code: ASSET_NOT_FOUND
+          message: Asset tidak ditemukan
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    RateLimitedError:
+      value:
+        success: false
+        error:
+          code: RATE_LIMITED
+          message: Too many requests. Please retry later.
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
