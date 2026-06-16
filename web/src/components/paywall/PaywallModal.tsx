@@ -157,10 +157,10 @@ export function PaywallModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    successNotified.current = false;
-    setActiveTab("pay");
-    setPayTier(requiredTier === "enterprise" ? "enterprise" : "pro");
     const t = window.setTimeout(() => {
+      successNotified.current = false;
+      setActiveTab("pay");
+      setPayTier(requiredTier === "enterprise" ? "enterprise" : "pro");
       setBillingInvalid(false);
       resetPayment();
     }, 0);

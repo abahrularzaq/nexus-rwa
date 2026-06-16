@@ -94,7 +94,7 @@ export function PaywallGuard({
   const openPaywall = useCallback(() => setModalOpen(true), []);
 
   const fetchResource = useCallback(
-    async (paymentTxHeader?: string | null, retriedAfterSessionCheck = false) => {
+    async function fetchResourceCallback(paymentTxHeader?: string | null, retriedAfterSessionCheck = false) {
       setStatus("loading");
       setErrorMsg(null);
 
@@ -121,7 +121,7 @@ export function PaywallGuard({
           if (address && !paymentTxHeader && !retriedAfterSessionCheck) {
             const active = await hasActiveWalletSession(address);
             if (active) {
-              void fetchResource(null, true);
+              void fetchResourceCallback(null, true);
               return;
             }
           }

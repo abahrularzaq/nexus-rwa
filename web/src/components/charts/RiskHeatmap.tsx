@@ -197,7 +197,7 @@ export function RiskHeatmap({
   onRetry,
 }: RiskHeatmapProps) {
   const query = useAssetSummaries();
-  const assets = assetsProp ?? query.data ?? [];
+  const assets = useMemo(() => assetsProp ?? query.data ?? [], [assetsProp, query.data]);
   const isLoading = isLoadingProp ?? (assetsProp == null && query.isLoading);
   const error =
     errorProp ??

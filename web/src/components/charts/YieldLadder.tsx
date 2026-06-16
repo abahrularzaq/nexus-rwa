@@ -256,7 +256,7 @@ export function YieldLadder({
   const query = useAssetSummaries();
   const overviewQuery = useMarketOverview();
 
-  const assets = assetsProp ?? query.data ?? [];
+  const assets = useMemo(() => assetsProp ?? query.data ?? [], [assetsProp, query.data]);
   const isLoading = isLoadingProp ?? (assetsProp == null && query.isLoading);
   const error =
     errorProp ??

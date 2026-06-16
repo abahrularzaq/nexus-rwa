@@ -701,8 +701,12 @@ function DetailPanel({
 }
 
 export default function MonitoringPage() {
-  const [adminKey, setAdminKey] = useState("");
-  const [savedKey, setSavedKey] = useState(false);
+  const [adminKey, setAdminKey] = useState(() =>
+    typeof window === "undefined" ? "" : window.localStorage.getItem(ADMIN_KEY_STORAGE) ?? "",
+  );
+  const [savedKey, setSavedKey] = useState(() =>
+    typeof window === "undefined" ? false : Boolean(window.localStorage.getItem(ADMIN_KEY_STORAGE)),
+  );
   const [data, setData] = useState<MonitoringOverview | null>(null);
   const [detailRows, setDetailRows] = useState<Array<Record<string, unknown>>>([]);
   const [resource, setResource] = useState<DetailResource>("review-tasks");
@@ -716,11 +720,6 @@ export default function MonitoringPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem(ADMIN_KEY_STORAGE) ?? "";
-    setAdminKey(stored);
-    setSavedKey(Boolean(stored));
-  }, []);
 
   const healthScore = useMemo(() => {
     if (!data) return "—";
@@ -1012,7 +1011,10 @@ export default function MonitoringPage() {
 
   useEffect(() => {
     if (!adminKey) return;
-    void loadOverview();
+    const timer = window.setTimeout(() => {
+      void loadOverview();
+    }, 0);
+    return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedKey]);
 

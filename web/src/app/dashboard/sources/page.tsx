@@ -382,11 +382,17 @@ export default function SourcesPage() {
   }, [address]);
 
   useEffect(() => {
-    void loadSources();
+    const timer = window.setTimeout(() => {
+      void loadSources();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [loadSources]);
 
   useEffect(() => {
-    void checkAccess();
+    const timer = window.setTimeout(() => {
+      void checkAccess();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [checkAccess]);
 
   const rowsWithTier = useMemo<SourceRowWithTier[]>(() => rows.map((row) => ({ ...row, tier: getTier(row) })), [rows]);

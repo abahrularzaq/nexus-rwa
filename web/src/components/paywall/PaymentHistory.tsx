@@ -30,14 +30,15 @@ function shortPaymentHeader(header: string): string {
 }
 
 export function PaymentHistory() {
-  const [rows, setRows] = useState<StoredX402Payment[]>([]);
+  const [rows, setRows] = useState<StoredX402Payment[]>(() =>
+    typeof window === "undefined" ? [] : listStoredX402Payments(),
+  );
 
   const refresh = useCallback(() => {
     setRows(listStoredX402Payments());
   }, []);
 
   useEffect(() => {
-    refresh();
     const onStorage = (e: StorageEvent) => {
       if (e.key?.startsWith("x402-payment:") || e.key === null) refresh();
     };

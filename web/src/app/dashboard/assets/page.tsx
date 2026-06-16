@@ -9,7 +9,6 @@ import {
   ChevronUp,
   Database,
   Filter,
-  Layers,
   Search,
   SearchX,
   ShieldCheck,
