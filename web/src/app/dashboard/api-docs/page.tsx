@@ -487,6 +487,32 @@ function buildEndpoints(
   }
 }`,
     },
+
+    {
+      id: "agent-manifest",
+      method: "GET",
+      path: "/v1/agent/manifest",
+      access: "free",
+      description:
+        "Public manifest that helps AI agents discover Nexus RWA dataset, analytics, and Ask Nexus workflows.",
+      curl: `curl ${base}/agent/manifest`,
+      response: `{
+  "success": true,
+  "data": {
+    "name": "Nexus RWA Agent Manifest",
+    "endpoints": [
+      { "method": "GET", "path": "/v1/export", "access": "enterprise" },
+      { "method": "GET", "path": "/v1/analytics/bulk", "access": "enterprise" },
+      { "method": "POST", "path": "/v1/ask", "access": "enterprise" }
+    ],
+    "workflow": [
+      "Fetch the dataset",
+      "Compare risk, yield, and source quality",
+      "Ask a natural-language question"
+    ]
+  }
+}`,
+    },
     {
       id: "analytics-bulk",
       method: "GET",
@@ -794,6 +820,36 @@ export default function ApiDocsPage() {
               Bulk analytics, export, and Ask Nexus API workflows.
             </p>
           </div>
+        </section>
+
+        <section
+          id="agent-workflows"
+          className="rounded-xl border border-[rgba(255,184,0,0.24)] bg-[rgba(255,184,0,0.06)] p-4"
+        >
+          <h2 className="text-sm font-bold text-white">AI agent workflows</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#8892A4]">
+            Agents can fetch the full dataset, compare risk/yield/source quality,
+            and ask natural-language questions over shortlisted assets. See the
+            source guide at{" "}
+            <a
+              href="/docs/agent-integration"
+              className="font-mono text-[#00D4FF] underline decoration-[rgba(0,212,255,0.45)] underline-offset-4 hover:text-white"
+            >
+              docs/agent-integration.md
+            </a>{" "}
+            and discover endpoint metadata with{" "}
+            <button
+              type="button"
+              onClick={() => {
+                scrollTo("agent-manifest");
+                setOpen((prev) => ({ ...prev, ["agent-manifest"]: true }));
+              }}
+              className="font-mono text-[#00D4FF] underline decoration-[rgba(0,212,255,0.45)] underline-offset-4 hover:text-white"
+            >
+              GET /v1/agent/manifest
+            </button>
+            .
+          </p>
         </section>
 
         <section className="rounded-xl border border-[rgba(0,212,255,0.24)] bg-[rgba(0,212,255,0.06)] p-4">
