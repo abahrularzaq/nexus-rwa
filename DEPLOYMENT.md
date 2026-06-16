@@ -74,3 +74,81 @@ Privacy review checklist:
 2. Keep `USAGE_ANALYTICS_RETENTION_MONTHS` between 12 and 24 unless business reporting requirements change.
 3. Do not export raw `ApiRequest` or `UsageLog` rows to third-party systems without applying the same retention window.
 4. Rotate `IP_HASH_SALT` if it is exposed; after rotation, old and new IP hashes will no longer correlate.
+
+## Database roles and deployment secrets
+
+Use separate PostgreSQL users for each runtime instead of sharing one superuser connection string. Store every connection string in Railway variables or the target platform secret manager; do **not** commit `.env` files, database URLs, passwords, or rendered secret manifests to this repo.
+
+### Runtime connection strings
+
+Set these environment variables per service/process:
+
+| Variable | Used by | Required privilege profile |
+| --- | --- | --- |
+| `DATABASE_URL_API` | Public API web process (`DB_RUNTIME_CONTEXT=api`) | Read/write API role |
+| `DATABASE_URL_JOBS` | Scheduled/background jobs (`DB_RUNTIME_CONTEXT=jobs`) | Jobs role |
+| `DATABASE_URL_ADMIN` | Prisma migrations, data maintenance scripts (`DB_RUNTIME_CONTEXT=admin`) | Admin/maintenance role |
+| `DATABASE_URL_ANALYTICS` | BI exports or read-only reporting processes (`DB_RUNTIME_CONTEXT=analytics`) | Read-only analytics role |
+| `DATABASE_URL` | Local fallback only | Prefer one of the role-specific variables above |
+
+Recommended Railway split:
+
+```bash
+# API service
+DB_RUNTIME_CONTEXT="api"
+DATABASE_URL_API="${{Postgres.DATABASE_URL_API}}"
+
+# Worker/cron service
+DB_RUNTIME_CONTEXT="jobs"
+DATABASE_URL_JOBS="${{Postgres.DATABASE_URL_JOBS}}"
+
+# Migration/admin job; run only during deploy or manual maintenance
+DB_RUNTIME_CONTEXT="admin"
+DATABASE_URL_ADMIN="${{Postgres.DATABASE_URL_ADMIN}}"
+```
+
+For Prisma CLI commands, `api/prisma.config.ts` prefers `DATABASE_URL_ADMIN` and falls back to `DATABASE_URL` for local development. Application runtime code selects the datasource from `DB_RUNTIME_CONTEXT`; if the selected role-specific variable is missing it falls back to `DATABASE_URL` so existing local setups keep working.
+
+### Minimal privileges per role
+
+Assuming the application schema is `public`, create login roles and grants along these lines. Replace role names and passwords in your secret manager/platform console, not in tracked files.
+
+```sql
+-- Read/write API role: request handling and usage logging only.
+GRANT CONNECT ON DATABASE nexus_rwa TO nexus_api_rw;
+GRANT USAGE ON SCHEMA public TO nexus_api_rw;
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO nexus_api_rw;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nexus_api_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE ON TABLES TO nexus_api_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO nexus_api_rw;
+
+-- Jobs role: background imports, freshness updates, retention cleanup.
+GRANT CONNECT ON DATABASE nexus_rwa TO nexus_jobs_rw;
+GRANT USAGE ON SCHEMA public TO nexus_jobs_rw;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nexus_jobs_rw;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nexus_jobs_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO nexus_jobs_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO nexus_jobs_rw;
+
+-- Admin/maintenance role: migrations and manual repair. Do not use for the web API.
+GRANT CONNECT ON DATABASE nexus_rwa TO nexus_admin_maint;
+GRANT ALL PRIVILEGES ON SCHEMA public TO nexus_admin_maint;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO nexus_admin_maint;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO nexus_admin_maint;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO nexus_admin_maint;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO nexus_admin_maint;
+
+-- Optional read-only analytics role: dashboards and exports.
+GRANT CONNECT ON DATABASE nexus_rwa TO nexus_analytics_ro;
+GRANT USAGE ON SCHEMA public TO nexus_analytics_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO nexus_analytics_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO nexus_analytics_ro;
+```
+
+Operational notes:
+
+1. The API role intentionally omits `DELETE`, DDL, schema ownership, and role-management grants.
+2. The jobs role may need `DELETE` for retention cleanup; if a deployment disables retention deletion, remove `DELETE` and run cleanup with the admin role.
+3. The admin role is for Prisma migrations (`npm run db:migrate:deploy`) and controlled maintenance scripts only.
+4. The analytics role is optional and should not be used by API routes or write-capable jobs.
+5. Rotate each role independently after employee/vendor access changes or suspected exposure.
