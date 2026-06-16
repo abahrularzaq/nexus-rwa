@@ -48,40 +48,52 @@ function normalizeOrigin(input: string): string | null {
   }
 }
 
-function allowedOrigins(): Set<string> {
-  const env = (process.env.FRONTEND_URL ?? '').trim();
-  if (env === '') return new Set();
-
-  // Support comma-separated list: "https://a.com,https://b.com"
-  const parts = env.split(',').map((s) => s.trim()).filter(Boolean);
+function parseAllowedOrigins(...values: Array<string | undefined>): Set<string> {
   const set = new Set<string>();
-  for (const p of parts) {
-    const o = normalizeOrigin(p);
-    if (o) set.add(o);
+
+  for (const value of values) {
+    const parts = (value ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    for (const part of parts) {
+      const origin = normalizeOrigin(part);
+      if (origin) set.add(origin);
+    }
   }
+
   return set;
 }
 
-const CUSTOM_ALLOWED_ORIGINS = allowedOrigins();
+const CUSTOM_ALLOWED_ORIGINS = parseAllowedOrigins(
+  process.env.FRONTEND_URL,
+  process.env.ALLOWED_ORIGINS,
+);
+const IS_PRODUCTION = ENVIRONMENT_MODE === 'production';
+
+function isDevelopmentOrigin(origin: string): boolean {
+  const reqOrigin = normalizeOrigin(origin);
+  if (!reqOrigin) return false;
+
+  const { hostname } = new URL(reqOrigin);
+  return hostname === 'localhost'
+    || hostname === '127.0.0.1'
+    || hostname.endsWith('.localhost')
+    || hostname.endsWith('.vercel.app');
+}
+
+function resolveCorsOrigin(origin: string | undefined): string {
+  // Izinkan tanpa origin (curl, server-to-server)
+  if (!origin) return '*';
+
+  const reqOrigin = normalizeOrigin(origin);
+  if (reqOrigin && CUSTOM_ALLOWED_ORIGINS.has(reqOrigin)) return reqOrigin;
+
+  if (!IS_PRODUCTION && isDevelopmentOrigin(origin)) return reqOrigin ?? origin;
+
+  return '';
+}
 
 // Global middleware
 app.use('*', cors({
-  origin: (origin) => {
-    // Izinkan tanpa origin (curl, server-to-server)
-    if (!origin) return '*';
-
-    // Izinkan localhost development
-    if (origin.includes('localhost')) return origin;
-
-    // Izinkan Vercel deployments
-    if (origin.includes('vercel.app')) return origin;
-
-    // Izinkan domain custom jika ada
-    const reqOrigin = normalizeOrigin(origin);
-    if (reqOrigin && CUSTOM_ALLOWED_ORIGINS.has(reqOrigin)) return reqOrigin;
-
-    return '';
-  },
+  origin: resolveCorsOrigin,
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: [
     'Content-Type',
