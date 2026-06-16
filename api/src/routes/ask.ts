@@ -8,10 +8,19 @@ import { ERROR_CODES } from '../shared/index.js';
 import { AppError } from '../services/asset.service.js';
 import { logger } from '../lib/logger.js';
 
+const ASK_QUESTION_MAX_LENGTH = 500;
+
 const askBodySchema = z.object({
-  question: z.string().min(3).max(2000),
-  context: z.array(z.string().min(1).max(128)).max(8).optional(),
-});
+  question: z
+    .string({ required_error: 'question is required', invalid_type_error: 'question must be a string' })
+    .trim()
+    .min(3, 'question must be at least 3 characters')
+    .max(ASK_QUESTION_MAX_LENGTH, `question must be ${ASK_QUESTION_MAX_LENGTH} characters or fewer`),
+  context: z
+    .array(z.string().trim().min(1).max(128), { invalid_type_error: 'context must be an array of asset slugs' })
+    .max(8, 'context can include at most 8 assets')
+    .optional(),
+}).strict();
 
 const x402 = createNexusX402Middleware();
 
@@ -40,13 +49,15 @@ askRouter.post('/', (c, next) => x402(c, next), async (c) => {
   try {
     const json: unknown = await c.req.json();
     body = askBodySchema.parse(json);
-  } catch {
+  } catch (err) {
+    const details = err instanceof z.ZodError ? err.issues.map((issue) => issue.message) : undefined;
     return c.json(
       {
         success: false,
         error: {
           code: ERROR_CODES.INVALID_PARAMS,
-          message: 'Body must include { question: string, context?: string[] }',
+          message: `Body must include { question: string (3-${ASK_QUESTION_MAX_LENGTH} chars), context?: string[] }`,
+          ...(details ? { details } : {}),
         },
       },
       400,
@@ -72,12 +83,11 @@ askRouter.post('/', (c, next) => x402(c, next), async (c) => {
         onDelta: async (text) => {
           await writeEvent('delta', JSON.stringify({ text }));
         },
-        onDone: async () => {
-          await writeEvent('done', JSON.stringify({ ok: true }));
+        onDone: async (metadata) => {
+          await writeEvent('done', JSON.stringify({ ok: true, metadata }));
         },
         onError: async (err) => {
-          logger.warn({ err: err.message }, 'Ask Nexus stream error');
-          await writeEvent('error', JSON.stringify({ message: err.message }));
+          logger.warn({ err: err.message }, 'Ask Nexus provider stream error; fallback will be attempted');
         },
       });
       await sseStream.close();

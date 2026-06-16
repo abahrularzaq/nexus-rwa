@@ -346,7 +346,7 @@ paths:
     post:
       tags: [Enterprise]
       summary: Ask Nexus
-      description: Enterprise natural-language API. Successful responses stream server-sent events.
+      description: Enterprise natural-language API. Successful responses stream server-sent events. Answers include an informational-only disclaimer and are not investment advice.
       requestBody:
         required: true
         content:
@@ -358,7 +358,7 @@ paths:
                 question:
                   type: string
                   minLength: 3
-                  maxLength: 2000
+                  maxLength: 500
                 context:
                   type: array
                   maxItems: 8
@@ -383,7 +383,7 @@ paths:
                     data: {"text":"OUSG and BUIDL differ most in issuer and liquidity profile."}
 
                     event: done
-                    data: {"ok":true}
+                    data: {"ok":true,"metadata":{"assetsUsed":["ondo-ousg","blackrock-buidl"],"sourceCount":4,"generatedAt":"2026-06-16T00:00:00.000Z","confidence":"medium","disclaimer":"This response is for informational purposes only and is not investment advice.","fallback":false}}
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
