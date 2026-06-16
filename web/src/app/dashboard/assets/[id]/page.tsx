@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   CircleDashed,
   ExternalLink,
+  GitCompareArrows,
   Layers,
   Lock,
   Percent,
@@ -550,6 +551,15 @@ export default function AssetDetailPage() {
                     </a>
                   </>
                 ) : null}
+              </div>
+              <div className="mt-5">
+                <Link
+                  href={`/dashboard/compare?assets=${asset.slug}`}
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#00D1FF]/25 bg-[#00D1FF]/[0.06] px-4 py-2 text-sm font-semibold text-[#8DEBFF] transition hover:border-[#00D4FF] hover:text-white"
+                >
+                  <GitCompareArrows className="size-4" />
+                  Compare with another asset
+                </Link>
               </div>
               <p className="mt-4 text-xs text-[#8892A4]">
                 Last updated: <span className="text-white">{formatMinutesAgo(dataMeta.lastUpdated)}</span>
