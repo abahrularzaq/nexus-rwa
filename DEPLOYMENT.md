@@ -50,3 +50,27 @@ Set `NEXT_PUBLIC_API_URL`:
 - `GET https://api.nexus-rwa.com/health`
 - Dari browser landing page, panggil `GET https://api.nexus-rwa.com/v1/market/overview` dan pastikan response sukses tanpa CORS error.
 
+
+## Log retention and privacy policy
+
+Production deployments must keep request-level logs only for operational troubleshooting and abuse prevention, then roll them into lower-risk analytics aggregates.
+
+- **Raw request/payment logs** (`ApiRequest`) and request-level usage logs (`UsageLog`) are retained for `LOG_RETENTION_DAYS` days. The default is **60 days**, which fits the intended 30–90 day raw-log window.
+- **Aggregated usage analytics** (`UsageDailyAggregate`) are retained for `USAGE_ANALYTICS_RETENTION_MONTHS` months. The default is **18 months**, which fits the intended 12–24 month analytics window.
+- The API starts a daily cleanup scheduler at **02:25 UTC**. Before deleting old `UsageLog` rows, the scheduler upserts endpoint/method/status/tier daily aggregates so long-term analytics do not depend on raw request rows.
+- Stored IP metadata in `ApiRequest.ipAddress` is anonymized as a SHA-256 digest before persistence. Set `IP_HASH_SALT` to a strong deployment-specific secret so hashed IP values cannot be compared across environments.
+
+Recommended Railway/API environment values:
+
+```bash
+LOG_RETENTION_DAYS="60"
+USAGE_ANALYTICS_RETENTION_MONTHS="18"
+IP_HASH_SALT="replace-with-strong-random-secret"
+```
+
+Privacy review checklist:
+
+1. Keep `LOG_RETENTION_DAYS` between 30 and 90 unless there is a documented legal/security exception.
+2. Keep `USAGE_ANALYTICS_RETENTION_MONTHS` between 12 and 24 unless business reporting requirements change.
+3. Do not export raw `ApiRequest` or `UsageLog` rows to third-party systems without applying the same retention window.
+4. Rotate `IP_HASH_SALT` if it is exposed; after rotation, old and new IP hashes will no longer correlate.

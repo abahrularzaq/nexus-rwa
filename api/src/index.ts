@@ -13,6 +13,7 @@ import { setupErrorHandlers } from './middleware/error-handler.js';
 import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
 import { startRiskScoreScheduler } from './jobs/updateRiskScores.js';
 import { startSyncCron } from './jobs/cron.js';
+import { startLogRetentionScheduler } from './jobs/logRetention.js';
 import { gatedRouter } from './routes/gated.js';
 import { sessionRouter } from './routes/session.js';
 import { analyticsRouter, exportRouter } from './routes/enterprise.js';
@@ -31,6 +32,7 @@ const schedulerStatus: Record<string, 'starting' | 'active'> = {
   dataSync: 'starting',
   riskScore: 'starting',
   yieldHistory: 'starting',
+  logRetention: 'starting',
 };
 
 const API_SECURITY_HEADERS = {
@@ -252,6 +254,9 @@ async function main(): Promise<void> {
   startYieldHistoryScheduler();
   schedulerStatus.yieldHistory = 'active';
   logger.info('Yield history scheduler started (every 6h)');
+  startLogRetentionScheduler();
+  schedulerStatus.logRetention = 'active';
+  logger.info('Log retention scheduler started (daily)');
   serve({ fetch: app.fetch, port: PORT }, () => {
     logger.info(`🚀 Nexus RWA API running on port ${PORT}`);
   });
