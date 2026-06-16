@@ -28,7 +28,7 @@ Avoid implying that Nexus RWA already has a complete enterprise sales workflow, 
 | x402 402 pricing response | Available | Enterprise responses expose USDC pricing metadata. |
 | API-key bypass | Available | Premium API keys map to Enterprise access. |
 | `GET /v1/analytics/bulk` | MVP | Returns a bulk asset snapshot. Not yet a deep analytics engine. |
-| `GET /v1/export` | MVP | Returns a JSON dataset export. No CSV/NDJSON/download format yet. |
+| `GET /v1/export` | MVP | Returns dataset exports with `format=json`, `format=csv`, or `format=ndjson`. |
 | `POST /v1/ask` | Beta | Streams Ask Nexus responses over dataset context. Requires wallet header/rate-limit handling. |
 | AI-agent-ready JSON data | MVP | Data is machine-readable, but no agent manifest or SDK yet. |
 | Commercial integration path | Manual | Should be handled manually until onboarding and billing are built. |
@@ -50,7 +50,7 @@ SDK or client package
 agent manifest / MCP server
 custom data licensing workflow
 SLA / uptime commitment
-CSV, NDJSON, or scheduled export delivery
+scheduled export delivery
 ```
 
 ---
@@ -123,7 +123,7 @@ Not yet ready: full autonomous agent platform, SDK, manifest, or MCP integration
 3. Add clear `Available now` vs `In development` labels on API docs.
 4. Add rate limits by tier.
 5. Add usage analytics and API audit logs.
-6. Add export formats: JSON first, then CSV/NDJSON later.
+6. Add scheduled export delivery after JSON/CSV/NDJSON formats stabilize.
 7. Add a manual enterprise contact/apply flow before building full self-serve onboarding.
 
 ---

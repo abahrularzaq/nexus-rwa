@@ -325,7 +325,26 @@ paths:
     get:
       tags: [Enterprise]
       summary: Export full dataset
-      description: Enterprise machine-readable dataset export.
+      description: Enterprise machine-readable dataset export. Use `format=json`, `format=csv`, or `format=ndjson` to choose the response serialization.
+      parameters:
+        - name: format
+          in: query
+          required: false
+          description: Export serialization format. Defaults to `json`.
+          schema:
+            type: string
+            enum: [json, csv, ndjson]
+            default: json
+          examples:
+            json:
+              summary: JSON envelope
+              value: json
+            csv:
+              summary: CSV rows
+              value: csv
+            ndjson:
+              summary: Newline-delimited JSON rows
+              value: ndjson
       responses:
         '200':
           description: Export returned.
@@ -336,6 +355,21 @@ paths:
               examples:
                 ok:
                   $ref: '#/components/examples/ExportOk'
+            text/csv:
+              schema:
+                type: string
+              examples:
+                ok:
+                  value: |-
+                    slug,name,symbol,category,chain,issuer,grade,market,risk,yield
+                    ondo-ousg,Ondo Short-Term US Government Bond Fund,OUSG,treasury,ethereum,Ondo Finance,{"grade":"analytics","score":78},,,
+            application/x-ndjson:
+              schema:
+                type: string
+              examples:
+                ok:
+                  value: |-
+                    {"slug":"ondo-ousg","name":"Ondo Short-Term US Government Bond Fund","symbol":"OUSG"}
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':

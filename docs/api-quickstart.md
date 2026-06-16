@@ -208,14 +208,24 @@ Example response:
 
 ## 6. Enterprise export
 
-Export the enterprise bulk dataset snapshot.
+Export the enterprise bulk dataset snapshot. The endpoint defaults to `format=json` and also supports `format=csv` and `format=ndjson`.
 
 ```bash
-curl "$API_BASE_URL/v1/export" \
+curl "$API_BASE_URL/v1/export?format=json" \
   -H "X-API-Key: <ENTERPRISE_API_KEY>"
 ```
 
-Example response:
+```bash
+curl "$API_BASE_URL/v1/export?format=csv" \
+  -H "X-API-Key: <ENTERPRISE_API_KEY>"
+```
+
+```bash
+curl "$API_BASE_URL/v1/export?format=ndjson" \
+  -H "X-API-Key: <ENTERPRISE_API_KEY>"
+```
+
+Example JSON response:
 
 ```json
 {
