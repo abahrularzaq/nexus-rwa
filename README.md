@@ -49,6 +49,11 @@ npx prisma generate
 npm run dev
 ```
 
+
+## API Quickstart
+
+For common API calls, base URL setup, curl examples, and compact response examples, see [`docs/api-quickstart.md`](docs/api-quickstart.md).
+
 ## Troubleshooting
 
 ### Prisma `P1001`: Can't reach database server

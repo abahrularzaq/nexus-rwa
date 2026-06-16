@@ -1,13 +1,36 @@
-# API Quickstart
+# Nexus RWA API Quickstart
 
-This guide covers the core operational endpoint for quickly validating that the Nexus RWA API is running and connected to its required background services.
+This quickstart shows the core Nexus RWA API calls for local development and production-style integrations.
 
-## Health check
+## Base URL
 
-Use `GET /health` to check whether the API process is alive, whether the database is reachable, whether schedulers have been registered, which environment mode is active, and which API version is deployed.
+Use an environment variable so the same commands work locally and in production.
 
 ```bash
-curl http://localhost:3001/health
+# Local development
+export API_BASE_URL="http://localhost:3001"
+
+# Production placeholder
+export API_BASE_URL="<API_BASE_URL>"
+```
+
+> Replace `<API_BASE_URL>` with the deployed API origin, for example an API gateway or custom domain.
+
+## Authentication notes
+
+Some endpoints are public/free-pass, while Pro and Enterprise endpoints may require the configured Nexus x402/API access flow. When using an API key or wallet session, include the headers your deployment expects, for example:
+
+```bash
+-H "X-API-Key: <API_KEY>"
+-H "X-Wallet-Address: <WALLET_ADDRESS>"
+```
+
+## 1. Health check
+
+Use the health check to confirm that the API process is reachable, whether the database is reachable, whether schedulers have been registered, which environment mode is active, and which API version is deployed.
+
+```bash
+curl "$API_BASE_URL/health"
 ```
 
 Example response:
@@ -51,3 +74,204 @@ Example response:
 | `version` | Runtime API version from `API_VERSION`, defaulting to `1.0.0` when unset. |
 
 The health endpoint is public and does not require X402 payment headers or an API key. Because it is suitable for load balancers and uptime checks, it avoids returning sensitive database details even when the database is unavailable.
+
+## 2. Market overview
+
+Fetch the high-level RWA market overview.
+
+```bash
+curl "$API_BASE_URL/v1/market/overview"
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "totalAssets": 42,
+    "totalTvl": 1250000000,
+    "averageYield": 4.8,
+    "categories": [
+      { "name": "Treasury", "count": 18, "tvl": 900000000 }
+    ]
+  },
+  "meta": {
+    "cached": false,
+    "timestamp": "2026-06-14T00:00:00.000Z"
+  }
+}
+```
+
+## 3. Asset list
+
+List RWA assets with optional pagination and filters.
+
+```bash
+curl "$API_BASE_URL/v1/assets?page=1&limit=10"
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "slug": "ondo-usdy",
+        "name": "Ondo US Dollar Yield",
+        "symbol": "USDY",
+        "category": "Treasury",
+        "grade": { "grade": "analytics", "score": 78 }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 42,
+      "totalPages": 5
+    }
+  },
+  "meta": { "cached": false }
+}
+```
+
+## 4. Asset detail
+
+Fetch the free-tier detail profile for one asset by slug.
+
+```bash
+curl "$API_BASE_URL/v1/assets/ondo-usdy"
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "slug": "ondo-usdy",
+    "name": "Ondo US Dollar Yield",
+    "symbol": "USDY",
+    "identity": {
+      "issuer": "Ondo Finance",
+      "assetClass": "tokenized_treasury"
+    },
+    "market": {
+      "tvl": 350000000,
+      "apy": 5.1
+    },
+    "grade": {
+      "grade": "analytics",
+      "score": 78,
+      "gradingProfile": "asset_backed"
+    }
+  },
+  "meta": { "cached": false }
+}
+```
+
+## 5. Pro full asset profile
+
+Fetch the Pro full profile for one asset. Enterprise access may receive the enterprise-scoped profile from the same endpoint.
+
+```bash
+curl "$API_BASE_URL/v1/assets/ondo-usdy/full" \
+  -H "X-API-Key: <API_KEY>"
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "slug": "ondo-usdy",
+    "name": "Ondo US Dollar Yield",
+    "layers": {
+      "identity": { "issuer": "Ondo Finance" },
+      "reserve": { "collateralType": "short-duration treasuries" },
+      "compliance": { "kycRequired": true },
+      "risk": { "riskLevel": "MEDIUM" },
+      "sources": [{ "label": "Issuer documentation", "url": "https://example.com" }]
+    },
+    "grade": {
+      "grade": "analytics",
+      "score": 78,
+      "profileScores": { "reserve": 74, "compliance": 82 }
+    }
+  },
+  "meta": { "cached": false }
+}
+```
+
+## 6. Enterprise export
+
+Export the enterprise bulk dataset snapshot.
+
+```bash
+curl "$API_BASE_URL/v1/export" \
+  -H "X-API-Key: <ENTERPRISE_API_KEY>"
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "kind": "export",
+    "exportedAt": "2026-06-14T00:00:00.000Z",
+    "assets": [
+      {
+        "slug": "ondo-usdy",
+        "name": "Ondo US Dollar Yield",
+        "symbol": "USDY",
+        "grade": { "grade": "analytics", "score": 78 }
+      }
+    ]
+  },
+  "meta": { "cached": false }
+}
+```
+
+## 7. Ask Nexus
+
+Ask Nexus streams an answer over Server-Sent Events (SSE). Include a wallet header for Ask Nexus rate limiting and the access header required by your deployment.
+
+```bash
+curl -N "$API_BASE_URL/v1/ask" \
+  -H "Content-Type: application/json" \
+  -H "X-Wallet-Address: <WALLET_ADDRESS>" \
+  -H "X-API-Key: <API_KEY>" \
+  -d '{
+    "question": "Compare USDY and OUSG on reserve transparency and liquidity.",
+    "context": ["ondo-usdy", "openeden-ousg"]
+  }'
+```
+
+Example SSE response:
+
+```txt
+event: delta
+data: {"text":"USDY and OUSG both provide tokenized Treasury exposure..."}
+
+event: delta
+data: {"text":" The main differences are reserve reporting cadence and liquidity mechanics."}
+
+event: done
+data: {"ok":true}
+```
+
+If the body is invalid, Ask Nexus returns JSON instead of a stream:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_PARAMS",
+    "message": "Body must include { question: string, context?: string[] }"
+  }
+}
+```
