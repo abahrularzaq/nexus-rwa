@@ -8,14 +8,10 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor: tambah API key kalau ada
-apiClient.interceptors.request.use((config) => {
-  const apiKey = typeof window !== 'undefined'
-    ? localStorage.getItem('nexus_api_key')
-    : null;
-  if (apiKey) config.headers['X-API-Key'] = apiKey;
-  return config;
-});
+// Request interceptor intentionally does not attach browser-stored API keys.
+// Developer keys are only used by explicit dashboard/dev flows; production user
+// access should rely on short-lived sessions or httpOnly cookies.
+apiClient.interceptors.request.use((config) => config);
 
 // Response interceptor: normalize error
 apiClient.interceptors.response.use(
@@ -23,7 +19,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 402 Payment Required
     if (error.response?.status === 402) {
-      console.warn('X402 Payment Required:', error.response.data);
+      console.warn('X402 Payment Required');
     }
     return Promise.reject(error);
   }

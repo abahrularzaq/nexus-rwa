@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Code2, Sparkles } from "lucide-react";
+import { BrowserApiKeyWarning } from "@/components/security/BrowserApiKeyWarning";
 
 const API_BASE_STORAGE_KEY = "nexus_api_base_url";
 const WALLET_STORAGE_KEY = "nexus_wallet_address";
@@ -703,7 +704,7 @@ export default function ApiDocsPage() {
   const [wallet] = useState(() =>
     readLocalStorageValue(WALLET_STORAGE_KEY, DEFAULT_WALLET),
   );
-  const [apiKey] = useState(() =>
+  const [apiKey, setApiKey] = useState(() =>
     readLocalStorageValue(API_KEY_STORAGE_KEY, DEFAULT_API_KEY),
   );
 
@@ -794,6 +795,28 @@ export default function ApiDocsPage() {
             }}
             className="mt-3 w-full rounded-lg border border-[rgba(30,42,58,0.9)] bg-[#0A0E1A] px-3 py-2 font-mono text-sm text-[#C5CDD8] outline-none transition focus:border-[#00D4FF]"
             placeholder="http://localhost:3001"
+          />
+        </section>
+
+        <BrowserApiKeyWarning />
+
+        <section className="rounded-xl border border-[rgba(30,42,58,0.85)] bg-[rgba(15,22,41,0.45)] p-4">
+          <h2 className="text-sm font-bold text-white">Developer API key examples</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#8892A4]">
+            API keys are for internal dashboard developers and server-to-server integrations.
+            Browser users in production should authenticate with a short-lived session or httpOnly cookie instead.
+          </p>
+          <input
+            type="password"
+            value={apiKey === DEFAULT_API_KEY ? "" : apiKey}
+            onChange={(event) => {
+              const next = event.target.value.trim();
+              setApiKey(next || DEFAULT_API_KEY);
+              if (next) window.localStorage.setItem(API_KEY_STORAGE_KEY, next);
+              else window.localStorage.removeItem(API_KEY_STORAGE_KEY);
+            }}
+            className="mt-3 w-full rounded-lg border border-[rgba(255,184,0,0.45)] bg-[#0A0E1A] px-3 py-2 font-mono text-sm text-[#C5CDD8] outline-none transition focus:border-[#FFB800]"
+            placeholder="Internal/dev API key only"
           />
         </section>
 

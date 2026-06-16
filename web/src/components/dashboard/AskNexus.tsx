@@ -13,11 +13,6 @@ import {
 } from "@/lib/x402-session";
 import { parseX402Response, type X402Details } from "@/types/x402";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").replace(
-  /\/$/,
-  "",
-);
-
 const SUGGESTED = [
   "Compare BENJI vs USTB across reserve, liquidity, and risk evidence",
   "Which treasury RWA has strong evidence quality but weaker liquidity?",
@@ -52,7 +47,7 @@ export function AskNexus() {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const askEndpoint = `${API_BASE}/v1/ask`;
+  const askEndpoint = `/api/proxy/v1/ask`;
 
   const scrollToBottom = useCallback(() => {
     const el = listRef.current;
