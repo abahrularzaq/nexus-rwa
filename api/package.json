@@ -34,7 +34,8 @@
     "lint": "eslint \"src/**/*.ts\"",
     "test": "node --import tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
     "test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
-    "test:coverage": "node --import tsx --experimental-test-coverage --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\""
+    "test:coverage": "node --import tsx --experimental-test-coverage --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
+    "typecheck": "prisma generate && tsc --noEmit"
   },
   "prisma": {
     "seed": "node --import tsx/esm prisma/seed.ts"

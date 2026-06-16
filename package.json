@@ -9,8 +9,10 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=web\" \"npm run dev --workspace=api\"",
     "build": "npm run build --workspace=shared && npm run build --workspace=web && npm run build --workspace=api",
-    "lint": "npm run lint --workspace=web && npm run lint --workspace=api",
-    "validate:openapi": "node scripts/validate-openapi.mjs"
+    "lint": "npm run lint --workspaces --if-present",
+    "validate:openapi": "node scripts/validate-openapi.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test:backend": "npm test --workspace=api"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

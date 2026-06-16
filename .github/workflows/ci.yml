@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: Install, lint, typecheck, test, and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint all workspaces
+        run: npm run lint
+
+      - name: Typecheck all workspaces
+        run: npm run typecheck
+
+      - name: Test backend
+        run: npm run test:backend
+
+      - name: Build shared, web, and api
+        run: npm run build
+
+      - name: Validate OpenAPI spec if available
+        run: |
+          if [ -f docs/openapi.yaml ]; then
+            npm run validate:openapi -- docs/openapi.yaml
+          elif [ -f docs/openapi.yml ]; then
+            npm run validate:openapi -- docs/openapi.yml
+          elif [ -f openapi.yaml ]; then
+            npm run validate:openapi -- openapi.yaml
+          elif [ -f openapi.yml ]; then
+            npm run validate:openapi -- openapi.yml
+          else
+            echo "No OpenAPI spec found; skipping validation."
+          fi
