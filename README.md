@@ -1,6 +1,23 @@
 # Nexus RWA
 
+[![CI](actions/workflows/ci.yml/badge.svg)](actions/workflows/ci.yml)
+
 Nexus RWA is an institutional-grade Real World Asset analytics and grading project.
+
+## Before opening a PR
+
+Run the same checks locally that CI enforces before opening a pull request:
+
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm run test:backend
+npm run build
+npm run validate:openapi -- docs/openapi.yaml
+```
+
+The OpenAPI validation command is required when an OpenAPI spec is present, such as `docs/openapi.yaml`. Each command should exit successfully; CI is configured to fail the pull request if any step fails.
 
 ## API Local Development
 
