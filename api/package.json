@@ -32,9 +32,9 @@
     "create:api-key": "node --import tsx/esm src/scripts/create-api-key.ts",
     "check:api-key": "node --import tsx/esm src/scripts/check-api-key.ts",
     "lint": "eslint \"src/**/*.ts\"",
-    "test": "node --import tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
-    "test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
-    "test:coverage": "node --import tsx --experimental-test-coverage --test \"src/**/*.test.ts\" \"tests/**/*.test.ts\"",
+    "test": "node scripts/run-tests.mjs",
+    "test:watch": "node scripts/run-tests.mjs --watch",
+    "test:coverage": "node scripts/run-tests.mjs --experimental-test-coverage",
     "typecheck": "prisma generate && tsc --noEmit"
   },
   "prisma": {
