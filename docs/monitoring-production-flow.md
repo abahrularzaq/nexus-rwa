@@ -175,11 +175,13 @@ Di service API production, set minimal:
 
 ```bash
 DATABASE_URL="postgresql://..."
-ADMIN_API_KEY="strong-random-secret"
+ADMIN_API_KEYS="current-strong-random-secret,next-strong-random-secret"
+# Backward-compatible fallback for single-key deployments:
+# ADMIN_API_KEY="strong-random-secret"
 FRONTEND_URL="https://nexus-rwa.com,https://www.nexus-rwa.com"
 ```
 
-`ADMIN_API_KEY` hanya dipakai untuk admin. Jangan expose di public repo, screenshot, atau frontend env.
+`ADMIN_API_KEYS` adalah daftar key admin comma-separated untuk rotasi key tanpa downtime. Simpan key aktif dan key baru selama masa rotasi, lalu hapus key lama setelah semua client/admin panel memakai key baru. `ADMIN_API_KEY` masih didukung sebagai fallback single-key/backward-compatible, tetapi production baru sebaiknya memakai `ADMIN_API_KEYS`. Jangan expose secret admin di public repo, screenshot, atau frontend env. Jika admin panel makin besar, pertimbangkan fase berikutnya untuk menambahkan role admin yang lebih granular daripada satu shared admin key.
 
 ### Web
 
@@ -212,7 +214,7 @@ Jalankan web:
 npm run dev --workspace=web
 ```
 
-Isi `ADMIN_API_KEY` di `api/.env`, lalu buka:
+Isi `ADMIN_API_KEYS` atau fallback `ADMIN_API_KEY` di `api/.env`, lalu buka:
 
 ```text
 http://localhost:3000/dashboard/monitoring
