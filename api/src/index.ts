@@ -24,7 +24,6 @@ import { agentRouter } from './routes/agent.js';
 import { usageTrackingMiddleware } from './middleware/usage-tracking.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
-const app = new Hono();
 const PORT = Number(process.env.PORT) || 3001;
 const API_VERSION = process.env.API_VERSION ?? '1.0.0';
 const ENVIRONMENT_MODE = process.env.NODE_ENV ?? 'development';
@@ -33,7 +32,6 @@ const schedulerStatus: Record<string, 'starting' | 'active'> = {
   riskScore: 'starting',
   yieldHistory: 'starting',
 };
-const rateLimiter = createRateLimiter();
 
 const API_SECURITY_HEADERS = {
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
@@ -99,41 +97,50 @@ function resolveCorsOrigin(origin: string | undefined): string {
   return '';
 }
 
-// Global middleware
-app.use('*', async (c, next) => {
-  for (const [key, value] of Object.entries(API_SECURITY_HEADERS)) {
-    c.header(key, value);
+export type CreateAppOptions = {
+  rateLimiter?: ReturnType<typeof createRateLimiter>;
+  getDatabaseStatus?: () => Promise<'ok' | 'unavailable'>;
+  usageTracking?: boolean;
+};
+
+function registerGlobalMiddleware(app: Hono, options: CreateAppOptions = {}): void {
+  app.use('*', async (c, next) => {
+    for (const [key, value] of Object.entries(API_SECURITY_HEADERS)) {
+      c.header(key, value);
+    }
+    await next();
+  });
+  app.use('*', cors({
+    origin: resolveCorsOrigin,
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: [
+      'Content-Type',
+      'X-API-Key',
+      'X-Admin-Key',
+      'X-Payment',
+      'X-Payment-Tx',
+      'X-Wallet-Address',
+      'Authorization',
+    ],
+    exposeHeaders: [
+      'X-Payment-Status',
+      'X-Payment-Verified',
+      'X-Request-Id',
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'X-RateLimit-Tier',
+      'X-RateLimit-Subject',
+    ],
+    credentials: false,
+    maxAge: 86400,
+  }));
+  if (options.usageTracking !== false) {
+    app.use('*', usageTrackingMiddleware());
   }
-  await next();
-});
-app.use('*', cors({
-  origin: resolveCorsOrigin,
-  allowMethods: ['GET', 'POST', 'OPTIONS'],
-  allowHeaders: [
-    'Content-Type',
-    'X-API-Key',
-    'X-Admin-Key',
-    'X-Payment',
-    'X-Payment-Tx',
-    'X-Wallet-Address',
-    'Authorization',
-  ],
-  exposeHeaders: [
-    'X-Payment-Status',
-    'X-Payment-Verified',
-    'X-Request-Id',
-    'X-RateLimit-Limit',
-    'X-RateLimit-Remaining',
-    'X-RateLimit-Reset',
-    'X-RateLimit-Tier',
-    'X-RateLimit-Subject',
-  ],
-  credentials: false,
-  maxAge: 86400,
-}));
-app.use('*', usageTrackingMiddleware());
-app.use('*', requestLogger);
-app.use('*', rateLimiter);
+  app.use('*', requestLogger);
+  app.use('*', options.rateLimiter ?? createRateLimiter());
+}
 
 async function getDatabaseStatus(): Promise<'ok' | 'unavailable'> {
   try {
@@ -145,54 +152,65 @@ async function getDatabaseStatus(): Promise<'ok' | 'unavailable'> {
   }
 }
 
-// Health check — selalu gratis, tidak perlu X402
-app.get('/health', async (c) => {
-  const databaseStatus = await getDatabaseStatus();
-  const status = databaseStatus === 'ok' ? 'ok' : 'degraded';
+export function createApp(options: CreateAppOptions = {}): Hono {
+  const app = new Hono();
+  const healthDatabaseStatus = options.getDatabaseStatus ?? getDatabaseStatus;
 
-  return c.json({
-    status,
-    timestamp: new Date().toISOString(),
-    api: {
-      status: 'ok',
-    },
-    database: {
-      status: databaseStatus,
-    },
-    scheduler: {
-      status: Object.values(schedulerStatus).every((value) => value === 'active')
-        ? 'active'
-        : 'starting',
-      jobs: schedulerStatus,
-    },
-    environment: {
-      mode: ENVIRONMENT_MODE,
-    },
-    version: API_VERSION,
+  registerGlobalMiddleware(app, options);
+
+  // Health check — selalu gratis, tidak perlu X402
+  app.get('/health', async (c) => {
+    const databaseStatus = await healthDatabaseStatus();
+    const status = databaseStatus === 'ok' ? 'ok' : 'degraded';
+
+    return c.json({
+      status,
+      timestamp: new Date().toISOString(),
+      api: {
+        status: 'ok',
+      },
+      database: {
+        status: databaseStatus,
+      },
+      scheduler: {
+        status: Object.values(schedulerStatus).every((value) => value === 'active')
+          ? 'active'
+          : 'starting',
+        jobs: schedulerStatus,
+      },
+      environment: {
+        mode: ENVIRONMENT_MODE,
+      },
+      version: API_VERSION,
+    });
   });
-});
 
-// Routes
-app.route('/v1/market', marketRouter);
-app.route('/v1/assets', assetsRouter);
-app.route('/v1/search', searchRouter);
-app.route('/v1/gated', gatedRouter);
-app.route('/v1/session', sessionRouter);
-app.route('/v1/analytics', analyticsRouter);
-app.route('/v1/export', exportRouter);
-app.route('/v1/ask', askRouter);
-app.route('/v1/agent', agentRouter);
-app.route('/v1/admin', adminRouter);
-app.route('/v1/admin/monitoring', adminMonitoringRouter);
-app.route('/v1/admin/usage', usageRouter);
+  // Routes
+  app.route('/v1/market', marketRouter);
+  app.route('/v1/assets', assetsRouter);
+  app.route('/v1/search', searchRouter);
+  app.route('/v1/gated', gatedRouter);
+  app.route('/v1/session', sessionRouter);
+  app.route('/v1/analytics', analyticsRouter);
+  app.route('/v1/export', exportRouter);
+  app.route('/v1/ask', askRouter);
+  app.route('/v1/agent', agentRouter);
+  app.route('/v1/admin', adminRouter);
+  app.route('/v1/admin/monitoring', adminMonitoringRouter);
+  app.route('/v1/admin/usage', usageRouter);
 
-// 404 handler
-app.notFound((c) => c.json({
-  success: false,
-  error: { code: 'NOT_FOUND', message: 'Endpoint tidak ditemukan' },
-}, 404));
+  // 404 handler
+  app.notFound((c) => c.json({
+    success: false,
+    error: { code: 'NOT_FOUND', message: 'Endpoint tidak ditemukan' },
+  }, 404));
 
-setupErrorHandlers(app);
+  setupErrorHandlers(app);
+
+  return app;
+}
+
+export const app = createApp();
 
 // Start server
 async function main(): Promise<void> {
@@ -212,7 +230,9 @@ async function main(): Promise<void> {
   });
 }
 
-main().catch((err) => {
-  logger.error({ err }, 'Failed to start server');
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== 'test') {
+  main().catch((err) => {
+    logger.error({ err }, 'Failed to start server');
+    process.exit(1);
+  });
+}
