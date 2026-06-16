@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { db } from '../lib/database.js';
 import { logger } from '../lib/logger.js';
+import { runSchedulerJob } from '../lib/scheduler.js';
 
 const DEFAULT_LOG_RETENTION_DAYS = 60;
 const MIN_LOG_RETENTION_DAYS = 1;
@@ -121,8 +122,7 @@ export async function cleanupOldLogs(): Promise<LogRetentionResult> {
 
 export function startLogRetentionScheduler(): void {
   cron.schedule(DAILY_CRON, () => {
-    logger.info({ timestamp: new Date() }, 'Log retention cleanup started');
-    void cleanupOldLogs().catch((err) => {
+    void runSchedulerJob('log-retention', cleanupOldLogs).catch((err) => {
       logger.error({ err }, 'Log retention cleanup failed (non-fatal)');
     });
   });

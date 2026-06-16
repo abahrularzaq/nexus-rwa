@@ -14,6 +14,7 @@ import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
 import { startRiskScoreScheduler } from './jobs/updateRiskScores.js';
 import { startSyncCron } from './jobs/cron.js';
 import { startLogRetentionScheduler } from './jobs/logRetention.js';
+import { isSchedulersEnabled } from './lib/scheduler.js';
 import { gatedRouter } from './routes/gated.js';
 import { sessionRouter } from './routes/session.js';
 import { analyticsRouter, exportRouter } from './routes/enterprise.js';
@@ -28,7 +29,7 @@ import { assertX402Env } from './middleware/x402/index.js';
 const PORT = Number(process.env.PORT) || 3001;
 const API_VERSION = process.env.API_VERSION ?? '1.0.0';
 const ENVIRONMENT_MODE = process.env.NODE_ENV ?? 'development';
-const schedulerStatus: Record<string, 'starting' | 'active'> = {
+const schedulerStatus: Record<string, 'disabled' | 'starting' | 'active'> = {
   dataSync: 'starting',
   riskScore: 'starting',
   yieldHistory: 'starting',
@@ -175,9 +176,12 @@ export function createApp(options: CreateAppOptions = {}): Hono {
         status: databaseStatus,
       },
       scheduler: {
-        status: Object.values(schedulerStatus).every((value) => value === 'active')
-          ? 'active'
-          : 'starting',
+        enabled: isSchedulersEnabled(),
+        status: !isSchedulersEnabled()
+          ? 'disabled'
+          : Object.values(schedulerStatus).every((value) => value === 'active')
+            ? 'active'
+            : 'starting',
         jobs: schedulerStatus,
       },
       environment: {
@@ -245,18 +249,27 @@ async function main(): Promise<void> {
   assertX402Env();
   registerGracefulShutdown();
   await connectDatabase();
-  startSyncCron();
-  schedulerStatus.dataSync = 'active';
-  logger.info('Data sync cron started (6h full, 1h top-5 market, 24h blockchain)');
-  startRiskScoreScheduler();
-  schedulerStatus.riskScore = 'active';
-  logger.info('Risk score scheduler started (every 6h)');
-  startYieldHistoryScheduler();
-  schedulerStatus.yieldHistory = 'active';
-  logger.info('Yield history scheduler started (every 6h)');
-  startLogRetentionScheduler();
-  schedulerStatus.logRetention = 'active';
-  logger.info('Log retention scheduler started (daily)');
+
+  if (isSchedulersEnabled()) {
+    startSyncCron();
+    schedulerStatus.dataSync = 'active';
+    logger.info('Data sync cron started (6h full, 1h top-5 market, 24h blockchain)');
+    startRiskScoreScheduler();
+    schedulerStatus.riskScore = 'active';
+    logger.info('Risk score scheduler started (every 6h)');
+    startYieldHistoryScheduler();
+    schedulerStatus.yieldHistory = 'active';
+    logger.info('Yield history scheduler started (every 6h)');
+    startLogRetentionScheduler();
+    schedulerStatus.logRetention = 'active';
+    logger.info('Log retention scheduler started (daily)');
+  } else {
+    schedulerStatus.dataSync = 'disabled';
+    schedulerStatus.riskScore = 'disabled';
+    schedulerStatus.yieldHistory = 'disabled';
+    schedulerStatus.logRetention = 'disabled';
+    logger.info('Schedulers disabled by ENABLE_SCHEDULERS=false');
+  }
   serve({ fetch: app.fetch, port: PORT }, () => {
     logger.info(`🚀 Nexus RWA API running on port ${PORT}`);
   });
