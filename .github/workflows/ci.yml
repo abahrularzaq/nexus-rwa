@@ -11,6 +11,24 @@ jobs:
     name: Install, lint, typecheck, test, and build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus
+          POSTGRES_DB: nexus_rwa_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://nexus:nexus@localhost:5432/nexus_rwa_ci?schema=public
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,6 +47,11 @@ jobs:
 
       - name: Typecheck all workspaces
         run: npm run typecheck
+
+      - name: Validate Prisma migrations
+        run: |
+          npm run db:migrate:deploy --workspace=api
+          npm run db:migrate:status --workspace=api
 
       - name: Test backend
         run: npm run test:backend

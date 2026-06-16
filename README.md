@@ -12,6 +12,7 @@ Run the same checks locally that CI enforces before opening a pull request:
 npm ci
 npm run lint
 npm run typecheck
+npm run db:migrate:status --workspace=api
 npm run test:backend
 npm run build
 npm run validate:openapi -- docs/openapi.yaml
@@ -51,12 +52,12 @@ sslmode=require
 
 Do not commit real database passwords or secrets to GitHub.
 
-### 3. Sync Prisma with the database
+### 3. Apply Prisma migrations locally
 
-Run this whenever the local Prisma client/schema is not synchronized with the Neon database, or after pulling fresh changes.
+Run this whenever the local database needs the checked-in Prisma migrations, or after pulling fresh changes. For local development, use Prisma Migrate instead of `prisma db push` so schema changes are captured as migration files.
 
 ```bash
-npx prisma db pull
+npm run db:migrate:dev
 npx prisma generate
 ```
 
@@ -91,20 +92,22 @@ Check these items:
 3. The Neon project, branch, database, user, and endpoint are still active.
 4. The connection string includes `sslmode=require`.
 5. Your internet connection, VPN, or firewall is not blocking PostgreSQL port `5432`.
-6. Run Prisma sync again:
+6. Check and apply migrations again:
 
 ```bash
-npx prisma db pull
+npm run db:migrate:status
+npm run db:migrate:dev
 npx prisma generate
 npm run dev
 ```
 
 ### When to run Prisma commands
 
-Use this after pulling repo changes or after database/schema changes:
+Use this after pulling repo changes or after database/schema changes in development:
 
 ```bash
-npx prisma db pull
+npm run db:migrate:status
+npm run db:migrate:dev
 npx prisma generate
 ```
 
@@ -117,9 +120,23 @@ npm run dev
 Use this after changing `schema.prisma` locally:
 
 ```bash
+npm run db:migrate:dev -- --name <migration_name>
 npx prisma generate
 npm run dev
 ```
+
+## Production deployment
+
+Production deploys must run checked-in Prisma migrations with `prisma migrate deploy` before starting the API. Do **not** use `prisma db push` in production because it bypasses migration history and review.
+
+From the API workspace, run:
+
+```bash
+npm run db:migrate:deploy
+npm run start
+```
+
+In hosted environments such as Railway, add `npm run db:migrate:deploy` as a pre-start or release command so each deployment applies pending migrations safely.
 
 ## Notes
 

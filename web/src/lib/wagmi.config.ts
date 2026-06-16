@@ -1,6 +1,7 @@
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import {
   coinbaseWallet,
+  injectedWallet,
   metaMaskWallet,
   rainbowWallet,
   walletConnectWallet,
@@ -10,22 +11,35 @@ import { createConfig, fallback, http } from "wagmi";
 
 const appName = "Nexus RWA";
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "";
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+// RainbowKit requires a non-empty projectId during module evaluation;
+// WalletConnect wallets are only enabled when a real public projectId is configured.
+const connectorsProjectId = walletConnectProjectId ?? "nexus-rwa-build-only";
 
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Recommended",
-      wallets: [
-        rainbowWallet,
-        metaMaskWallet,
-        coinbaseWallet,
-        walletConnectWallet,
+const connectors = walletConnectProjectId
+  ? connectorsForWallets(
+      [
+        {
+          groupName: "Recommended",
+          wallets: [
+            rainbowWallet,
+            metaMaskWallet,
+            coinbaseWallet,
+            walletConnectWallet,
+          ],
+        },
       ],
-    },
-  ],
-  { appName, projectId },
-);
+      { appName, projectId: connectorsProjectId },
+    )
+  : connectorsForWallets(
+      [
+        {
+          groupName: "Recommended",
+          wallets: [injectedWallet, coinbaseWallet],
+        },
+      ],
+      { appName, projectId: connectorsProjectId },
+    );
 
 const baseMainnetRpcUrls = [
   process.env.NEXT_PUBLIC_BASE_MAINNET_RPC_URL,
