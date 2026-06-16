@@ -5,12 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isAddress } from "viem";
 import { base, baseSepolia } from "viem/chains";
-import {
-  useAccount,
-  useBalance,
-  useChainId,
-  useSwitchChain,
-} from "wagmi";
+import { useAccount, useBalance, useChainId, useSwitchChain } from "wagmi";
 
 import { TierComparison } from "@/components/paywall/TierComparison";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useX402Payment } from "@/hooks/useX402Payment";
+import { trackPaymentEvent } from "@/lib/payment-events";
 import { cn } from "@/lib/utils";
 import type { AccessTier, X402Details } from "@/types/x402";
 
@@ -49,11 +45,7 @@ const TIER_PRICES: Record<
 function targetChainId(network: string): number {
   const n = network.toLowerCase();
   if (n === "base" || n === "base-mainnet") return base.id;
-  if (
-    n === "base-sepolia" ||
-    n === "basesepolia" ||
-    n === "base_sepolia"
-  ) {
+  if (n === "base-sepolia" || n === "basesepolia" || n === "base_sepolia") {
     return baseSepolia.id;
   }
   return base.id;
@@ -62,11 +54,7 @@ function targetChainId(network: string): number {
 function networkLabel(network: string): string {
   const n = network.toLowerCase();
   if (n === "base" || n === "base-mainnet") return "Base Mainnet";
-  if (
-    n === "base-sepolia" ||
-    n === "basesepolia" ||
-    n === "base_sepolia"
-  ) {
+  if (n === "base-sepolia" || n === "basesepolia" || n === "base_sepolia") {
     return "Base Sepolia";
   }
   return network;
@@ -134,6 +122,7 @@ export function PaywallModal({
   });
 
   const [billingInvalid, setBillingInvalid] = useState(false);
+  const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const successNotified = useRef(false);
 
   const effectiveX402 = useMemo((): X402Details => {
@@ -162,10 +151,16 @@ export function PaywallModal({
       setActiveTab("pay");
       setPayTier(requiredTier === "enterprise" ? "enterprise" : "pro");
       setBillingInvalid(false);
+      setLastPaymentError(null);
       resetPayment();
+      trackPaymentEvent("payment_modal_open", {
+        endpoint: x402Data.endpoint,
+        tier: requiredTier,
+        wallet: address,
+      });
     }, 0);
     return () => window.clearTimeout(t);
-  }, [isOpen, resetPayment, requiredTier]);
+  }, [address, isOpen, resetPayment, requiredTier, x402Data.endpoint]);
 
   useEffect(() => {
     if (
@@ -174,9 +169,26 @@ export function PaywallModal({
       !successNotified.current
     ) {
       successNotified.current = true;
+      trackPaymentEvent("payment_success", {
+        endpoint: effectiveX402.endpoint,
+        tier: payTier,
+        price: effectiveX402.price,
+        currency: effectiveX402.currency,
+        wallet: address,
+        status: paymentStatus,
+      });
       onPaymentSuccess(paymentHeader);
     }
-  }, [paymentStatus, paymentHeader, onPaymentSuccess]);
+  }, [
+    address,
+    effectiveX402.currency,
+    effectiveX402.endpoint,
+    effectiveX402.price,
+    onPaymentSuccess,
+    payTier,
+    paymentHeader,
+    paymentStatus,
+  ]);
 
   const balanceLabel = useMemo(() => {
     if (!balance) return "—";
@@ -188,16 +200,48 @@ export function PaywallModal({
 
   const onPay = useCallback(async () => {
     if (!isAddress(effectiveX402.recipient)) {
+      const message =
+        "Metadata payment tidak valid: alamat penerima bukan address EVM.";
+      setLastPaymentError(message);
       setBillingInvalid(true);
+      trackPaymentEvent("payment_fail", {
+        endpoint: effectiveX402.endpoint,
+        tier: payTier,
+        wallet: address,
+        error: message,
+      });
       return;
     }
+    if (isPaying) return;
     setBillingInvalid(false);
+    setLastPaymentError(null);
     try {
       await initiatePayment(effectiveX402);
-    } catch {
+    } catch (e) {
+      const message =
+        e instanceof Error
+          ? e.message
+          : "Checkout gagal. Coba lagi atau hubungkan ulang wallet.";
+      setLastPaymentError(message);
       setBillingInvalid(true);
+      trackPaymentEvent("payment_fail", {
+        endpoint: effectiveX402.endpoint,
+        tier: payTier,
+        price: effectiveX402.price,
+        currency: effectiveX402.currency,
+        wallet: address,
+        status: paymentStatus,
+        error: message,
+      });
     }
-  }, [initiatePayment, effectiveX402]);
+  }, [
+    address,
+    effectiveX402,
+    initiatePayment,
+    isPaying,
+    payTier,
+    paymentStatus,
+  ]);
 
   const statusHint = useMemo(() => {
     if (paymentStatus === "confirming" || isConfirming) {
@@ -210,16 +254,23 @@ export function PaywallModal({
       return "Authorization berhasil dibuat — membuka akses…";
     }
     if (paymentStatus === "error") {
-      return error?.message ?? "Checkout gagal.";
+      return (
+        lastPaymentError ??
+        error?.message ??
+        "Checkout gagal. Coba lagi atau hubungkan ulang wallet."
+      );
     }
     return null;
-  }, [paymentStatus, isConfirming, error]);
+  }, [paymentStatus, isConfirming, error, lastPaymentError]);
 
   const payPanel = (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline" className="uppercase text-[10px]">
-          {payTier} session
+          tier saat ini: {requiredTier}
+        </Badge>
+        <Badge variant="outline" className="uppercase text-[10px]">
+          bayar: {payTier}
         </Badge>
         {effectiveX402.duration ? (
           <span className="text-xs text-muted-foreground">
@@ -230,7 +281,7 @@ export function PaywallModal({
 
       <div className="rounded-xl border bg-muted/30 p-4">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Total
+          Biaya akses
         </p>
         <p className="mt-1 font-mono text-3xl font-semibold tabular-nums tracking-tight">
           {effectiveX402.price}{" "}
@@ -266,19 +317,42 @@ export function PaywallModal({
         </Tooltip>
       </div>
 
-      <div className="rounded-lg border px-3 py-2 text-sm">
-        <span className="text-muted-foreground">Saldo wallet: </span>
-        <span className="font-medium tabular-nums">{balanceLabel}</span>
+      <div className="grid gap-2 rounded-lg border px-3 py-2 text-sm">
+        <div>
+          <span className="text-muted-foreground">Saldo wallet: </span>
+          <span className="font-medium tabular-nums">{balanceLabel}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Status payment: </span>
+          <span className="font-medium capitalize">{paymentStatus}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Session aktif: </span>
+          <span className="font-medium">
+            {paymentStatus === "success"
+              ? "ya, menunggu verifikasi API"
+              : "belum aktif"}
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Expiry session: </span>
+          <span className="font-medium">
+            {paymentStatus === "success"
+              ? `sekitar ${effectiveX402.duration ?? "durasi tier"} setelah verifikasi`
+              : "—"}
+          </span>
+        </div>
       </div>
 
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
-        Checkout memakai USDC x402 authorization. Wallet akan meminta tanda tangan,
-        lalu API akan memverifikasi dan settle lewat facilitator.
+        Checkout memakai USDC x402 authorization. Wallet akan meminta tanda
+        tangan, lalu API akan memverifikasi dan settle lewat facilitator.
       </div>
 
       {billingInvalid ? (
         <p className="text-sm text-destructive">
-          Checkout gagal atau metadata payment tidak valid.
+          {lastPaymentError ??
+            "Checkout gagal atau metadata payment tidak valid."}
         </p>
       ) : null}
 
