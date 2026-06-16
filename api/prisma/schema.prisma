@@ -296,16 +296,16 @@ model AssetGrade {
 }
 
 model DataHealthCheck {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   assetSlug     String
   layer         String
   status        String
   severity      String
   reason        String?
-  lastCheckedAt DateTime @default(now())
+  lastCheckedAt DateTime  @default(now())
   nextCheckAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([assetSlug])
   @@index([layer])
@@ -336,7 +336,7 @@ model SourceHealth {
 }
 
 model SyncLog {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   assetSlug     String
   layer         String
   provider      String?
@@ -346,7 +346,7 @@ model SyncLog {
   errorMessage  String?
   startedAt     DateTime
   finishedAt    DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   @@index([assetSlug])
   @@index([layer])
@@ -393,18 +393,38 @@ model ApiRequest {
 }
 
 model ApiKey {
-  id         String    @id @default(cuid())
-  keyHash    String    @unique
+  id         String     @id @default(cuid())
+  keyHash    String     @unique
   prefix     String
   name       String
-  tier       KeyTier   @default(STANDARD)
-  isActive   Boolean   @default(true)
+  tier       KeyTier    @default(STANDARD)
+  isActive   Boolean    @default(true)
   lastUsedAt DateTime?
   expiresAt  DateTime?
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime   @default(now())
+  usageLogs  UsageLog[]
 
   @@index([prefix])
   @@index([isActive])
+}
+
+model UsageLog {
+  id           String   @id @default(cuid())
+  endpoint     String
+  method       String
+  responseCode Int
+  durationMs   Int
+  apiKeyId     String?
+  tier         String
+  timestamp    DateTime @default(now())
+  apiKey       ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([endpoint])
+  @@index([method])
+  @@index([responseCode])
+  @@index([apiKeyId])
+  @@index([tier])
+  @@index([timestamp])
 }
 
 enum PaymentStatus {
