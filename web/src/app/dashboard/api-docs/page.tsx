@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Code2, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, Code2, FileText, ShieldCheck, Sparkles } from "lucide-react";
 import { BrowserApiKeyWarning } from "@/components/security/BrowserApiKeyWarning";
 
 const API_BASE_STORAGE_KEY = "nexus_api_base_url";
@@ -767,13 +767,40 @@ export default function ApiDocsPage() {
           </h1>
           <p className="mt-2 text-sm text-[#8892A4]">
             Public discovery endpoints are free. Pro and Enterprise endpoints
-            use x402 wallet-session access through{" "}
-            <span className="font-mono text-[#00D4FF]">X-Wallet-Address</span>.
+            support <span className="font-mono text-[#00D4FF]">X-API-Key</span>,{" "}
+            <span className="font-mono text-[#00D4FF]">Authorization: Bearer</span>, and x402 wallet-session headers.
           </p>
           <div className="mt-4 inline-flex items-center rounded-lg border border-[rgba(0,212,255,0.3)] bg-[rgba(0,212,255,0.08)] px-3 py-1.5 font-mono text-xs font-medium text-[#00D4FF]">
             {baseV1}
           </div>
         </header>
+
+
+        <section className="grid gap-4 md:grid-cols-2">
+          <a
+            href="/docs/openapi.yaml"
+            className="group rounded-xl border border-[rgba(0,212,255,0.3)] bg-[rgba(0,212,255,0.07)] p-4 transition hover:border-[#00D4FF] hover:bg-[rgba(0,212,255,0.11)]"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="size-5 text-[#00D4FF]" />
+              <h2 className="text-sm font-bold text-white">OpenAPI 3.1 spec</h2>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-[#8892A4]">
+              Download the canonical YAML contract for health, market, assets, gated full asset data, analytics, export, Ask Nexus, and internal admin endpoints.
+            </p>
+            <p className="mt-3 font-mono text-xs text-[#00D4FF] group-hover:text-white">/docs/openapi.yaml</p>
+          </a>
+
+          <div className="rounded-xl border border-[rgba(255,184,0,0.28)] bg-[rgba(255,184,0,0.07)] p-4">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="size-5 text-[#FFB800]" />
+              <h2 className="text-sm font-bold text-white">Auth schemes</h2>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-[#8892A4]">
+              Server integrations may send <span className="font-mono text-[#00D4FF]">X-API-Key</span> or <span className="font-mono text-[#00D4FF]">Authorization: Bearer</span>. x402 flows use <span className="font-mono text-[#00D4FF]">X-Payment</span>, <span className="font-mono text-[#00D4FF]">X-Payment-Tx</span>, and payment challenge/status headers.
+            </p>
+          </div>
+        </section>
 
         <section className="rounded-xl border border-[rgba(30,42,58,0.85)] bg-[rgba(15,22,41,0.45)] p-4">
           <h2 className="text-sm font-bold text-white">Local API base URL</h2>

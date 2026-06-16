@@ -18,8 +18,11 @@ tags:
     description: Paid asset intelligence endpoints.
   - name: Enterprise
     description: Bulk, export, and AI-agent workflows.
+  - name: Admin
+    description: Internal operator endpoints protected by X-Admin-Key.
 security:
   - ApiKeyAuth: []
+  - BearerAuth: []
   - WalletAddressAuth: []
   - PaymentAuth: []
   - PaymentTxAuth: []
@@ -376,6 +379,73 @@ paths:
           $ref: '#/components/responses/PaymentRequired'
         '429':
           $ref: '#/components/responses/RateLimited'
+  /v1/gated/data:
+    get:
+      tags: [Pro]
+      summary: Get gated data sample
+      description: Legacy gated endpoint used by x402 QA flows. Requires a settled x402 payment, valid wallet session, or entitled API key.
+      responses:
+        '200':
+          description: Gated payload returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/GatedDataOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/admin/sync/status:
+    get:
+      tags: [Admin]
+      summary: Get internal sync status
+      description: Internal operations endpoint protected by X-Admin-Key. Returns latest ingestion/sync status for operators.
+      security:
+        - AdminKeyAuth: []
+      responses:
+        '200':
+          description: Sync status returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/AdminSyncStatusOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/admin/assets/{slug}/sync:
+    post:
+      tags: [Admin]
+      summary: Trigger internal asset sync
+      description: Internal operations endpoint protected by X-Admin-Key. Triggers market, yield, and history refresh for one asset.
+      security:
+        - AdminKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Sync job completed or queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/AdminAssetSyncOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /v1/agent/manifest:
     get:
       tags: [Enterprise]
@@ -449,6 +519,11 @@ components:
       in: header
       name: X-API-Key
       description: API key for entitled Pro or Enterprise access.
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key or JWT
+      description: Authorization header using `Bearer <token>`; API-key bearer tokens are accepted by server-to-server integrations.
     WalletAddressAuth:
       type: apiKey
       in: header
@@ -464,6 +539,11 @@ components:
       in: header
       name: X-Payment-Tx
       description: Payment transaction identifier used after payment settlement.
+    AdminKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Key
+      description: Internal admin key for operations routes; never expose in browser clients.
   parameters:
     Slug:
       name: slug
@@ -546,6 +626,14 @@ components:
         X-RateLimit-Reset:
           schema:
             type: integer
+        X-Accept-Payment:
+          description: x402 payment challenge metadata may be present on 402 responses.
+          schema:
+            type: string
+        X-Payment-Status:
+          description: x402 settlement/session status for gated requests.
+          schema:
+            type: string
       content:
         application/json:
           schema:
@@ -825,6 +913,35 @@ components:
           assets:
             - slug: ondo-ousg
               name: Ondo Short-Term US Government Bond Fund
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    GatedDataOk:
+      value:
+        success: true
+        data:
+          message: Gated resource — payment verified via X-Payment-Tx
+          tier: pro
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    AdminSyncStatusOk:
+      value:
+        success: true
+        data:
+          lastSyncAt: '2026-06-14T00:00:00.000Z'
+          status: ok
+          assetsChecked: 24
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    AdminAssetSyncOk:
+      value:
+        success: true
+        data:
+          slug: ondo-ousg
+          status: synced
+          syncedAt: '2026-06-14T00:00:00.000Z'
         meta:
           timestamp: '2026-06-14T00:00:00.000Z'
           cached: false
