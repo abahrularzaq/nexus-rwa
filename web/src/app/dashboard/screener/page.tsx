@@ -172,7 +172,7 @@ export default function ScreenerPage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const assets = data?.assets ?? [];
+  const assets = useMemo(() => data?.assets ?? [], [data?.assets]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeQuickFilters, setActiveQuickFilters] = useState<string[]>([]);
   const [gradeFilter, setGradeFilter] = useState<SelectFilter>("all");

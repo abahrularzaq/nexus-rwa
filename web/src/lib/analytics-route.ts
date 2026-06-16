@@ -13,7 +13,8 @@ const TIER_AMOUNTS: Record<"pro" | "enterprise", string> = {
   enterprise: "0.01",
 };
 
-function tierForAnalytics(_kind: "yield" | "risk"): "pro" | "enterprise" {
+function tierForAnalytics(kind: "yield" | "risk"): "pro" | "enterprise" {
+  void kind;
   return "pro";
 }
 
