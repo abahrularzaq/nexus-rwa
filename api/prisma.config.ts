@@ -3,12 +3,16 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const migrationDatabaseUrl = process.env["DATABASE_URL_ADMIN"] ?? process.env["DATABASE_URL"];
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Prisma CLI tasks (migrate/deploy/status) require DDL privileges, so prefer
+    // the admin/maintenance role. Keep the value in the platform secret manager.
+    url: migrationDatabaseUrl,
   },
 });
