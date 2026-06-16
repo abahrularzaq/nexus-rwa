@@ -59,6 +59,76 @@ const jsonHeader = `-H "Content-Type: application/json"`;
 
 const ENDPOINTS: EndpointDoc[] = [
   {
+    id: "api-keys",
+    method: "POST",
+    path: "/api/api-keys",
+    access: "pro",
+    description: "Create a dashboard API key. The raw key is returned only once; the backend stores only a SHA-256 hash and visible prefix.",
+    curl: `curl -X POST https://app.nexusrwa.xyz/api/api-keys \
+  ${jsonHeader} \
+  -d '{"name":"Production integration","tier":"pro"}'`,
+    params: [
+      { name: "name", in: "body", type: "string", required: "optional", example: "Production integration" },
+      { name: "tier", in: "body", type: "free | pro | enterprise", required: "optional", example: "pro" },
+    ],
+    x402: "Use the API Keys dashboard to generate, list, and revoke keys. Store the returned apiKey immediately because it is never shown again.",
+    response: `{
+  "success": true,
+  "data": {
+    "id": "key-id",
+    "prefix": "nxrwa_abcd12",
+    "tier": "pro",
+    "expiresAt": "2026-07-16T00:00:00.000Z",
+    "active": true,
+    "apiKey": "nxrwa_full_secret_value"
+  }
+}`,
+  },
+  {
+    id: "api-keys-list",
+    method: "GET",
+    path: "/api/api-keys",
+    access: "pro",
+    description: "List dashboard API keys without exposing raw secret values. Responses include prefix, tier, active status, and expiry.",
+    curl: `curl https://app.nexusrwa.xyz/api/api-keys`,
+    x402: "Use the API Keys dashboard or this route to audit key status and expiry.",
+    response: `{
+  "success": true,
+  "data": [
+    {
+      "id": "key-id",
+      "prefix": "nxrwa_abcd12",
+      "tier": "pro",
+      "expiresAt": "2026-07-16T00:00:00.000Z",
+      "active": true
+    }
+  ]
+}`,
+  },
+  {
+    id: "api-keys-revoke",
+    method: "POST",
+    path: "/api/api-keys/:id/revoke",
+    access: "pro",
+    description: "Revoke a dashboard API key immediately. Revoked keys remain listed for audit history but are no longer active.",
+    curl: `curl -X POST https://app.nexusrwa.xyz/api/api-keys/key-id/revoke`,
+    params: [
+      { name: "id", in: "path", type: "string", required: "required", example: "key-id" },
+    ],
+    x402: "Use when a secret is rotated, exposed, or no longer needed.",
+    response: `{
+  "success": true,
+  "data": {
+    "id": "key-id",
+    "prefix": "nxrwa_abcd12",
+    "tier": "pro",
+    "expiresAt": "2026-07-16T00:00:00.000Z",
+    "revokedAt": "2026-06-16T00:00:00.000Z",
+    "active": false
+  }
+}`,
+  },
+  {
     id: "market-overview",
     method: "GET",
     path: "/v1/market/overview",
