@@ -5,6 +5,7 @@ import { redis as getRedisClient } from '../lib/redis.js';
 import type { AccessTier } from './x402/pricer.js';
 import { resolveApiKeyEntitlement } from '../lib/api-key-entitlement.js';
 import { getActiveSession, normalizeWallet } from '../lib/x402-session.js';
+import { recordRateLimitHitMetric } from '../lib/monitoring.js';
 
 const WINDOW_MS = 60_000;
 const REDIS_TTL_SECONDS = 120;
@@ -146,6 +147,12 @@ export function createRateLimiter(): MiddlewareHandler {
     c.header('X-RateLimit-Subject', subject.kind);
 
     if (!outcome.allowed) {
+      recordRateLimitHitMetric({
+        method: c.req.method,
+        endpoint: c.req.path,
+        tier: subject.tier,
+        subject: subject.kind,
+      });
       c.header('X-RateLimit-Remaining', '0');
       c.header('X-RateLimit-Reset', String(outcome.resetAt));
       return c.json(

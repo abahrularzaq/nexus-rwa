@@ -16,6 +16,7 @@ import {
   hasAccessTier,
   resolveApiKeyEntitlement,
 } from '../lib/api-key-entitlement.js';
+import { recordPaymentFailureMetric } from '../lib/monitoring.js';
 
 const USDC_SEPOLIA = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const USDC_MAINNET = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
@@ -473,6 +474,7 @@ async function tryFacilitatorPayment(
     paymentPayload = decodePaymentHeader(paymentHeader);
   } catch (err) {
     logger.warn({ err }, 'Invalid x402 payment header');
+    recordPaymentFailureMetric({ method: c.req.method, endpoint: c.req.path, reason: 'invalid_header', tier: config.tier });
     return 'rejected';
   }
 
@@ -487,6 +489,7 @@ async function tryFacilitatorPayment(
       },
       'x402 facilitator verify rejected payment',
     );
+    recordPaymentFailureMetric({ method: c.req.method, endpoint: c.req.path, reason: 'verify_rejected', tier: config.tier });
     return 'rejected';
   }
 
@@ -501,6 +504,7 @@ async function tryFacilitatorPayment(
       },
       'x402 facilitator settle rejected payment',
     );
+    recordPaymentFailureMetric({ method: c.req.method, endpoint: c.req.path, reason: 'settle_rejected', tier: config.tier });
     return 'rejected';
   }
 
@@ -512,6 +516,7 @@ async function tryFacilitatorPayment(
 
   if (!wallet) {
     logger.warn('x402 facilitator settled payment but payer wallet was not resolved');
+    recordPaymentFailureMetric({ method: c.req.method, endpoint: c.req.path, reason: 'payer_unresolved', tier: config.tier });
     return 'rejected';
   }
 
@@ -565,6 +570,7 @@ export function createNexusX402Middleware(): MiddlewareHandler {
         return c.json(paymentRejectedJson(path, config), 402);
       }
 
+      recordPaymentFailureMetric({ method, endpoint: path, reason: 'payment_required', tier: config.tier });
       return c.json(paymentRequiredJson(path, config), 402);
     } catch (error) {
       logger.error({ error }, 'X402 middleware unexpected error');
@@ -606,6 +612,7 @@ export function createGatedTxPaymentMiddleware(): MiddlewareHandler {
         return c.json(paymentRejectedJson(path, config), 402);
       }
 
+      recordPaymentFailureMetric({ method: c.req.method, endpoint: path, reason: 'payment_required', tier: config.tier });
       return c.json(paymentRequiredJson(path, config), 402);
     } catch (error) {
       logger.error({ error }, 'Gated X402 middleware unexpected error');

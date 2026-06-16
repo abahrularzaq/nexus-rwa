@@ -1,5 +1,6 @@
 import { db } from './database.js';
 import { logger } from './logger.js';
+import { recordSyncJobMetric } from './monitoring.js';
 
 export type SchedulerJobMetric = {
   job: string;
@@ -35,6 +36,8 @@ export async function runSchedulerJob<T>(
   const startedAtDate = new Date();
   const startedAt = startedAtDate.toISOString();
 
+  recordSyncJobMetric({ job: jobName, status: 'started' });
+
   logger.info(
     {
       metric: { job: jobName, status: 'started', startedAt } satisfies SchedulerJobMetric,
@@ -52,6 +55,7 @@ export async function runSchedulerJob<T>(
       if (!acquired) {
         const finishedAt = new Date().toISOString();
         const durationMs = Date.now() - startedAtDate.getTime();
+        recordSyncJobMetric({ job: jobName, status: 'skipped', durationMs, lockAcquired: false });
         logger.info(
           {
             metric: {
@@ -74,6 +78,7 @@ export async function runSchedulerJob<T>(
     if (result !== undefined) {
       const finishedAt = new Date().toISOString();
       const durationMs = Date.now() - startedAtDate.getTime();
+      recordSyncJobMetric({ job: jobName, status: 'success', durationMs, lockAcquired: true });
       logger.info(
         {
           metric: {
@@ -93,6 +98,7 @@ export async function runSchedulerJob<T>(
   } catch (err) {
     const finishedAt = new Date().toISOString();
     const durationMs = Date.now() - startedAtDate.getTime();
+    recordSyncJobMetric({ job: jobName, status: 'failure', durationMs, lockAcquired: true });
     logger.error(
       {
         err,
