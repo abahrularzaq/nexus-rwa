@@ -20,6 +20,7 @@ import { askRouter } from './routes/ask.js';
 import { adminRouter } from './routes/admin.js';
 import { adminMonitoringRouter } from './routes/admin-monitoring.js';
 import { usageRouter } from './routes/usage.js';
+import { agentRouter } from './routes/agent.js';
 import { usageTrackingMiddleware } from './middleware/usage-tracking.js';
 import { assertX402Env } from './middleware/x402/index.js';
 
@@ -154,6 +155,7 @@ app.route('/v1/session', sessionRouter);
 app.route('/v1/analytics', analyticsRouter);
 app.route('/v1/export', exportRouter);
 app.route('/v1/ask', askRouter);
+app.route('/v1/agent', agentRouter);
 app.route('/v1/admin', adminRouter);
 app.route('/v1/admin/monitoring', adminMonitoringRouter);
 app.route('/v1/admin/usage', usageRouter);

@@ -376,6 +376,24 @@ paths:
           $ref: '#/components/responses/PaymentRequired'
         '429':
           $ref: '#/components/responses/RateLimited'
+  /v1/agent/manifest:
+    get:
+      tags: [Enterprise]
+      summary: Get AI agent manifest
+      description: Public machine-readable discovery metadata for agent workflows. The manifest describes Enterprise dataset, bulk analytics, and Ask Nexus endpoints, but it does not grant gated data access.
+      security: []
+      responses:
+        '200':
+          description: Agent manifest returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                ok:
+                  $ref: '#/components/examples/AgentManifestOk'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /v1/ask:
     post:
       tags: [Enterprise]
@@ -807,6 +825,32 @@ components:
           assets:
             - slug: ondo-ousg
               name: Ondo Short-Term US Government Bond Fund
+        meta:
+          timestamp: '2026-06-14T00:00:00.000Z'
+          cached: false
+    AgentManifestOk:
+      value:
+        success: true
+        data:
+          name: Nexus RWA Agent Manifest
+          version: 0.1.0
+          endpoints:
+            - id: dataset-export
+              method: GET
+              path: /v1/export
+              access: enterprise
+            - id: bulk-analytics
+              method: GET
+              path: /v1/analytics/bulk
+              access: enterprise
+            - id: ask-nexus
+              method: POST
+              path: /v1/ask
+              access: enterprise
+          workflow:
+            - Fetch the dataset with /v1/export or /v1/analytics/bulk.
+            - Compare assets by risk, yield, and source quality signals.
+            - Use /v1/ask for a natural-language answer over shortlisted asset context.
         meta:
           timestamp: '2026-06-14T00:00:00.000Z'
           cached: false
