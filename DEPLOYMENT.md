@@ -30,15 +30,14 @@ Railway akan mengeluarkan sertifikat otomatis setelah DNS verified. Pastikan end
 
 ### 4) Update environment API (CORS) di Railway
 
-Set `FRONTEND_URL` ke origin domain landing page:
+Set origin frontend production secara eksplisit. Gunakan `FRONTEND_URL` untuk domain utama dan `ALLOWED_ORIGINS` untuk origin tambahan (keduanya mendukung comma-separated list):
 
 - `FRONTEND_URL="https://nexus-rwa.com"`
-- (Opsional) multiple origin: `FRONTEND_URL="https://nexus-rwa.com,https://www.nexus-rwa.com"`
+- `ALLOWED_ORIGINS="https://www.nexus-rwa.com,https://app.nexus-rwa.com"`
 
-API akan mengizinkan:
-- `localhost` (dev)
-- `*.vercel.app` (preview)
-- origin yang ada di `FRONTEND_URL`
+Policy CORS API:
+- `production`: hanya origin yang ada di `FRONTEND_URL` atau `ALLOWED_ORIGINS`
+- selain `production`: origin di atas, plus `localhost`, `127.0.0.1`, `*.localhost`, dan `*.vercel.app` untuk development/preview
 
 ### 5) Update environment Frontend (base URL)
 
