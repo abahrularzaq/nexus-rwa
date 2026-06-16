@@ -328,6 +328,21 @@ function parseGrade(raw: unknown): AssetWithLayers["grade"] {
   };
 }
 
+function parseDataQuality(raw: unknown): AssetWithLayers["dataQuality"] {
+  const o = parseStringRecord(raw);
+  if (!o) return null;
+  const status = o.status != null ? String(o.status) : "unavailable";
+  return {
+    lastUpdated: o.lastUpdated != null ? String(o.lastUpdated) : null,
+    sourceCount: parseOptionalNumber(o.sourceCount) ?? 0,
+    confidenceLevel: o.confidenceLevel != null ? String(o.confidenceLevel) : "LOW",
+    riskGrade: o.riskGrade != null ? String(o.riskGrade) : null,
+    status: status === "verified" || status === "stale" || status === "estimated" ? status : "unavailable",
+    stale: Boolean(o.stale),
+    staleReason: o.staleReason != null ? String(o.staleReason) : null,
+  };
+}
+
 function toGradeSummary(grade: AssetWithLayers["grade"]): AssetGradeSummary | null {
   return grade ? { ...grade } : null;
 }
@@ -349,6 +364,7 @@ export function parseAssetWithLayers(raw: Record<string, unknown>): AssetWithLay
       reserve: parseReserve(raw.reserve),
       institutional: parseInstitutional(raw.institutional),
       grade: parseGrade(raw.grade),
+      dataQuality: parseDataQuality(raw.dataQuality),
     };
   }
 

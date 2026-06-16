@@ -141,6 +141,20 @@ export type AssetAiNarrative = {
   modelVersion?: string | null;
 };
 
+export type DataVerificationStatus = "verified" | "stale" | "estimated" | "unavailable";
+
+export type AssetDataQuality = {
+  lastUpdated?: string | null;
+  sourceCount: number;
+  confidenceLevel: "HIGH" | "MEDIUM" | "LOW" | string;
+  riskGrade?: string | null;
+  status: DataVerificationStatus;
+  stale: boolean;
+  staleReason?: string | null;
+  sourceHealth?: { healthy: number; stale: number; broken: number; unavailable: number };
+  healthChecks?: { stale: number; warning: number; error: number };
+};
+
 export type AssetGrade = {
   grade: "research" | "analytics" | "institutional" | string;
   score: number;
@@ -181,6 +195,7 @@ export type AssetWithLayers = {
   institutional?: AssetInstitutional | null;
   aiNarrative?: AssetAiNarrative | null;
   grade?: AssetGrade | null;
+  dataQuality?: AssetDataQuality | null;
 };
 
 /** List row from GET /v1/assets (pro tier layers). */
