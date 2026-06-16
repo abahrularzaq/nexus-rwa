@@ -2,6 +2,7 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import type { ApiSuccessResponse, MarketBrief } from '../shared/index.js';
 import { createMeta } from '../shared/index.js';
+import { isAdminApiKeyConfigured, isValidAdminApiKey } from '../middleware/admin-auth.js';
 import { createFreePassMiddleware } from '../middleware/x402/index.js';
 import * as marketService from '../services/market.service.js';
 import { getSyncService } from '../services/sync.service.js';
@@ -41,14 +42,13 @@ function getAdminApiKey(c: Context): string | undefined {
 }
 
 async function postSyncHandler(c: Context) {
-  const expected = process.env.ADMIN_API_KEY?.trim();
-  if (!expected) {
+  if (!isAdminApiKeyConfigured()) {
     return c.json(
       {
         success: false,
         error: {
           code: 'SYNC_DISABLED',
-          message: 'ADMIN_API_KEY is not configured on the server',
+          message: 'ADMIN_API_KEY or ADMIN_API_KEYS is not configured on the server',
         },
       },
       503,
@@ -56,7 +56,7 @@ async function postSyncHandler(c: Context) {
   }
 
   const provided = getAdminApiKey(c);
-  if (!provided || provided !== expected) {
+  if (!isValidAdminApiKey(provided)) {
     return c.json(
       {
         success: false,
