@@ -50,12 +50,6 @@ function apiBase(): string {
   return API_URL.trim().replace(/\/$/, "");
 }
 
-function apiKeyHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const apiKey = localStorage.getItem("nexus_api_key");
-  return apiKey ? { "X-API-Key": apiKey } : {};
-}
-
 function fmtChange7d(change7d: number): string {
   const pct = change7d * 100;
   const sign = pct >= 0 ? "+" : "";
@@ -73,7 +67,7 @@ function parseOverviewPayload(data: MarketOverview): MarketOverview {
 
 async function fetchMarketOverview(): Promise<MarketOverview> {
   const res = await fetch(`${apiBase()}/v1/market/overview`, {
-    headers: { Accept: "application/json", ...apiKeyHeader() },
+    headers: { Accept: "application/json" },
     cache: "no-store",
   });
   const body = (await res.json()) as ApiResponse<MarketOverview>;

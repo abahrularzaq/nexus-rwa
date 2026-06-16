@@ -406,7 +406,7 @@ export default function SourcesPage() {
     setPaymentError(null);
 
     try {
-      const response = await fetch(`${API_URL}/v1/assets/${slug}/sources`, {
+      const response = await fetch(`/api/proxy/v1/assets/${encodeURIComponent(slug)}/sources`, {
         headers: { Accept: "application/json", "X-Wallet-Address": address },
         cache: "no-store",
       });
@@ -432,7 +432,7 @@ export default function SourcesPage() {
     if (!address) return;
 
     try {
-      const response = await fetch(`${API_URL}/v1/assets/${unlockSlug}/sources`, {
+      const response = await fetch(`/api/proxy/v1/assets/${encodeURIComponent(unlockSlug)}/sources`, {
         headers: {
           Accept: "application/json",
           "X-Wallet-Address": address,

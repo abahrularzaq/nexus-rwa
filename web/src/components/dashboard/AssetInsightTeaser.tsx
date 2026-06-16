@@ -7,14 +7,6 @@ import { useAccount } from "wagmi";
 import { useSession } from "@/hooks/useSession";
 import type { ApiResponse, AssetInsight } from "@/lib/shared";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
-
-function apiKeyHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const apiKey = localStorage.getItem("nexus_api_key");
-  return apiKey ? { "X-API-Key": apiKey } : {};
-}
-
 function teaserFromSummary(summary: string): string {
   const trimmed = summary.trim();
   const match = trimmed.match(/^[^.!?]+[.!?]?/);
@@ -39,23 +31,26 @@ export function AssetInsightTeaser({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!enabled || !isPro || !isConnected || !address || !API_URL || !assetId) {
-      setTeaser(null);
-      setLoading(false);
-      return;
+    if (!enabled || !isPro || !isConnected || !address || !assetId) {
+      const reset = window.setTimeout(() => {
+        setTeaser(null);
+        setLoading(false);
+      }, 0);
+      return () => window.clearTimeout(reset);
     }
 
     const wallet = address;
     let cancelled = false;
-    setLoading(true);
+    const loadingTimer = window.setTimeout(() => {
+      if (!cancelled) setLoading(true);
+    }, 0);
 
     async function load() {
       try {
-        const res = await fetch(`${API_URL}/v1/assets/${assetId}/insight`, {
+        const res = await fetch(`/api/proxy/v1/assets/${encodeURIComponent(assetId)}/insight`, {
           headers: {
             Accept: "application/json",
             "X-Wallet-Address": wallet,
-            ...apiKeyHeader(),
           },
         });
         const body = (await res.json()) as ApiResponse<AssetInsight>;
@@ -76,6 +71,7 @@ export function AssetInsightTeaser({
     void load();
     return () => {
       cancelled = true;
+      window.clearTimeout(loadingTimer);
     };
   }, [enabled, isPro, isConnected, address, assetId]);
 

@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api-client";
+import { walletAddressHeader } from "@/lib/security/api-key";
 import { parseAssetList, parseAssetWithLayers } from "@/lib/asset-mapper";
 import type { PaginatedResponse } from "@/lib/shared";
 import type { AssetWithLayers } from "@/types/asset";
@@ -41,17 +42,6 @@ export function riskColorClass(color: RiskColor): string {
   }
 }
 
-function apiKeyHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const apiKey = localStorage.getItem("nexus_api_key");
-  return apiKey ? { "X-API-Key": apiKey } : {};
-}
-
-function walletHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const wallet = localStorage.getItem("nexus_wallet_address");
-  return wallet ? { "X-Wallet-Address": wallet } : {};
-}
 
 export async function fetchAssetList(params?: {
   page?: number;
@@ -85,12 +75,10 @@ export async function fetchAsset(slug: string): Promise<AssetWithLayers> {
 }
 
 export async function fetchAssetFull(slug: string): Promise<AssetWithLayers> {
-  const base = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
-  const res = await fetch(`${base}/v1/assets/${slug}/full`, {
+  const res = await fetch(`/api/proxy/v1/assets/${encodeURIComponent(slug)}/full`, {
     headers: {
       Accept: "application/json",
-      ...apiKeyHeader(),
-      ...walletHeader(),
+      ...walletAddressHeader(),
     },
   });
   const json = (await res.json()) as {
@@ -104,4 +92,4 @@ export async function fetchAssetFull(slug: string): Promise<AssetWithLayers> {
   return parseAssetWithLayers(json.data);
 }
 
-export { apiKeyHeader, walletHeader };
+export { walletAddressHeader };
