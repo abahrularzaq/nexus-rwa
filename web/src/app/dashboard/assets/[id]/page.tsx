@@ -28,6 +28,7 @@ import { GatedRiskAnalysisSection } from "@/components/dashboard/GatedRiskAnalys
 import { AIInsightCard } from "@/components/dashboard/AIInsightCard";
 import { RelatedAssetsSection } from "@/components/dashboard/RelatedAssetsSection";
 import { AssetGradeCard } from "@/components/dashboard/AssetGradeCard";
+import { DataQualityPanel } from "@/components/dashboard/DataQualityPanel";
 import { AssetSourcesTab } from "@/components/dashboard/asset-tabs/AssetSourcesTab";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 import {
@@ -565,6 +566,8 @@ export default function AssetDetailPage() {
                 Last updated: <span className="text-white">{formatMinutesAgo(dataMeta.lastUpdated)}</span>
                 <span className="text-[#4A5568]"> · </span>
                 <span>via {attribution}</span>
+                <span className="text-[#4A5568]"> · </span>
+                <Link href="/methodology" className="text-[#00D4FF] hover:underline">Methodology</Link>
               </p>
             </div>
           </div>
@@ -652,6 +655,8 @@ export default function AssetDetailPage() {
               />
             </div>
           </section>
+
+          <DataQualityPanel asset={asset} />
 
           <AssetGradeCard grade={asset.grade} />
 
@@ -746,6 +751,7 @@ export default function AssetDetailPage() {
 
       {activeTab === "risk" ? (
         <div className="space-y-6">
+          <DataQualityPanel asset={asset} />
           <AssetGradeCard grade={asset.grade} />
           <GatedRiskAnalysisSection
             apiBaseUrl={apiBase}
@@ -758,12 +764,15 @@ export default function AssetDetailPage() {
       ) : null}
 
       {activeTab === "sources" ? (
-        <AssetSourcesTab
-          asset={asset}
+        <div className="space-y-6">
+          <DataQualityPanel asset={asset} />
+          <AssetSourcesTab
+            asset={asset}
           meta={dataMeta}
           protocol={protocol}
-          symbol={asset.identity?.symbol ?? ""}
-        />
+            symbol={asset.identity?.symbol ?? ""}
+          />
+        </div>
       ) : null}
 
       {activeTab === "events" ? (

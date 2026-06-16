@@ -68,6 +68,19 @@ const DETAIL_LAYERS_PRO: LayerName[] = [
 
 export type AssetAccessTier = AccessTier;
 
+export type AssetDataQuality = {
+  lastUpdated: Date | null;
+  sourceCount: number;
+  confidenceLevel: string;
+  riskGrade: string | null;
+  status: 'verified' | 'stale' | 'estimated' | 'unavailable';
+  stale: boolean;
+  staleReason: string | null;
+  sourceHealth: { healthy: number; stale: number; broken: number; unavailable: number };
+  healthChecks: { stale: number; warning: number; error: number };
+};
+
+
 export type ProfileAwareGrade = {
   grade: AssetGrade['grade'];
   score: number;
@@ -101,6 +114,7 @@ export type AssetListItemFree = {
   yield: Pick<AssetYield, 'currentYield' | 'yieldType' | 'yieldFrequency'> | null;
   risk: { overallLevel: string | null } | null;
   grade: ProfileAwareGrade | null;
+  dataQuality?: AssetDataQuality;
 };
 
 export type AssetListItemPro = AssetListItemFree & {
@@ -165,6 +179,7 @@ export type AssetDetailPro = AssetDetailFree & {
   events: AssetEvent[];
   history: AssetHistory[];
   aiNarrative: AssetAiNarrative | null;
+  dataQuality?: AssetDataQuality;
 };
 
 export type AssetDetailEnterprise = AssetWithLayers;
@@ -450,6 +465,71 @@ function mapListItemPro(row: AssetWithLayers): AssetListItemPro {
   };
 }
 
+function daysOld(value: Date | null): number | null {
+  if (!value) return null;
+  return Math.floor((Date.now() - value.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function latestDate(values: Array<Date | null | undefined>): Date | null {
+  return values
+    .filter((value): value is Date => value instanceof Date && !Number.isNaN(value.getTime()))
+    .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+}
+
+async function getAssetDataQuality(row: AssetWithLayers): Promise<AssetDataQuality> {
+  const [sourceCount, sourceRows, healthRows] = await Promise.all([
+    db.assetSource.count({ where: { assetId: row.id } }),
+    db.sourceHealth.findMany({ where: { assetSlug: row.slug }, select: { status: true, lastCheckedAt: true } }),
+    db.dataHealthCheck.findMany({ where: { assetSlug: row.slug }, select: { status: true, severity: true, lastCheckedAt: true, reason: true } }),
+  ]);
+  const lastUpdated = latestDate([
+    row.market?.lastUpdated,
+    row.grade?.updatedAt,
+    row.grade?.reviewedAt,
+    row.risk?.lastAssessed,
+    ...sourceRows.map((source) => source.lastCheckedAt),
+    ...healthRows.map((health) => health.lastCheckedAt),
+  ]);
+  const age = daysOld(lastUpdated);
+  const sourceHealth = {
+    healthy: sourceRows.filter((row) => ['healthy', 'redirected'].includes(row.status.toLowerCase())).length,
+    stale: sourceRows.filter((row) => ['manual_required', 'unchecked', 'timeout'].includes(row.status.toLowerCase())).length,
+    broken: sourceRows.filter((row) => ['broken', 'error'].includes(row.status.toLowerCase())).length,
+    unavailable: sourceRows.length === 0 ? 1 : 0,
+  };
+  const healthChecks = {
+    stale: healthRows.filter((row) => row.status.toLowerCase().includes('stale')).length,
+    warning: healthRows.filter((row) => row.severity.toLowerCase() === 'warning').length,
+    error: healthRows.filter((row) => ['error', 'critical'].includes(row.severity.toLowerCase())).length,
+  };
+  const stale = (age != null && age > 30) || healthChecks.stale > 0;
+  const confidenceLevel = row.market?.confidence ?? (sourceCount > 1 ? 'MEDIUM' : 'LOW');
+  const hasData = Boolean(row.market || row.grade || row.risk || sourceCount > 0);
+  const status = !hasData
+    ? 'unavailable'
+    : stale
+      ? 'stale'
+      : confidenceLevel === 'LOW' || sourceCount <= 1
+        ? 'estimated'
+        : 'verified';
+  return {
+    lastUpdated,
+    sourceCount,
+    confidenceLevel,
+    riskGrade: row.grade?.grade ?? row.risk?.overallLevel ?? null,
+    status,
+    stale,
+    staleReason: stale ? (healthRows.find((row) => row.status.toLowerCase().includes('stale'))?.reason ?? (age != null ? `Last refresh is ${age} days old` : 'Freshness check flagged stale data')) : null,
+    sourceHealth,
+    healthChecks,
+  };
+}
+
+async function attachDataQuality<T extends AssetListItem | AssetDetailResponse>(rows: AssetWithLayers[], mapped: T[]): Promise<T[]> {
+  const qualities = await Promise.all(rows.map(getAssetDataQuality));
+  return mapped.map((item, index) => ({ ...item, dataQuality: qualities[index] }));
+}
+
 function mapListItem(row: AssetWithLayers, tier: AssetAccessTier): AssetListItem {
   if (tier === 'enterprise') {
     return row;
@@ -577,7 +657,7 @@ export async function getAssetList(
   );
 
   return {
-    data: rows.map((row) => mapListItem(row, tier)),
+    data: await attachDataQuality(rows, rows.map((row) => mapListItem(row, tier))),
     cached,
   };
 }
@@ -600,7 +680,8 @@ export async function getAssetDetail(
     DETAIL_CACHE_TTL,
   );
 
-  return { data: mapDetail(row, tier), cached };
+  const [data] = await attachDataQuality([row], [mapDetail(row, tier)]);
+  return { data, cached };
 }
 
 async function deleteRedisKeys(keys: string[]): Promise<void> {

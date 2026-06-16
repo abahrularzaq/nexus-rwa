@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AssetInsightTeaser } from "@/components/dashboard/AssetInsightTeaser";
 import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { buildDataQuality } from "@/components/dashboard/DataQualityPanel";
 import type { RiskBadgeProps } from "@/components/dashboard/RiskBadge";
 import {
   formatTvl,
@@ -77,6 +78,7 @@ export function AssetCard({
   const protocolLabel = getProtocolLabel(asset);
   const meta = marketMeta(asset);
   const kycRequired = asset.compliance?.kycRequired === true;
+  const quality = buildDataQuality(asset);
 
   return (
     <article
@@ -146,6 +148,9 @@ export function AssetCard({
         </span>
         <span className="rounded-full border border-[rgba(30,42,58,0.9)] bg-[rgba(10,14,26,0.5)] px-2 py-0.5 text-[11px] font-medium text-[#8892A4]">
           {categoryPillLabel(category)}
+        </span>
+        <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#C9D4E5]">
+          {quality.status} · {quality.sourceCount} src
         </span>
         <span
           className={`ml-auto font-semibold tabular-nums ${up ? "text-[#00FF88]" : "text-[#FF4444]"}`}

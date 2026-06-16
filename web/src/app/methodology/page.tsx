@@ -110,6 +110,7 @@ export default function MethodologyPage() {
             { value: "4", label: "Method Steps" },
             { value: "3", label: "Grade Levels" },
             { value: "0", label: "Guesswork Policy" },
+            { value: "4", label: "Data Statuses" },
           ].map((item) => (
             <div
               key={item.label}
@@ -160,6 +161,26 @@ export default function MethodologyPage() {
                   {item.description}
                 </p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-14 rounded-2xl p-6" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+          <h2 className="text-2xl font-extrabold text-white">Score and freshness signals</h2>
+          <p className="mt-3 max-w-4xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            Asset detail, sources, risk, and dashboard views expose last updated, source count, confidence level, risk grade, and stale warnings so users can separate verified data from stale, estimated, or unavailable fields. The score view is connected conceptually to AssetSource evidence, DataHealthCheck freshness checks, SourceHealth availability checks, and AssetGrade component scores.
+          </p>
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            {[
+              ["Verified", "Fresh data with enough source coverage and non-low confidence."],
+              ["Stale", "Last refresh is beyond the freshness threshold and should be rechecked."],
+              ["Estimated", "Low confidence or thin source coverage; useful but not final evidence."],
+              ["Unavailable", "No usable data has been published for that signal yet."],
+            ].map(([title, description]) => (
+              <div key={title} className="rounded-xl p-4" style={{ background: "rgba(10,14,26,0.45)", border: "1px solid var(--border-line)" }}>
+                <h3 className="font-bold text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{description}</p>
+              </div>
             ))}
           </div>
         </section>
