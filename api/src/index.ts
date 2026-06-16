@@ -7,7 +7,7 @@ import { createRateLimiter } from './middleware/rate-limit.js';
 import { assetsRouter } from './routes/assets.js';
 import { marketRouter } from './routes/market.js';
 import { searchRouter } from './routes/search.js';
-import { connectDatabase, db } from './lib/database.js';
+import { connectDatabase, db, disconnectDatabase } from './lib/database.js';
 import { logger } from './lib/logger.js';
 import { setupErrorHandlers } from './middleware/error-handler.js';
 import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
@@ -212,9 +212,36 @@ export function createApp(options: CreateAppOptions = {}): Hono {
 
 export const app = createApp();
 
+function registerGracefulShutdown(): void {
+  let isShuttingDown = false;
+
+  const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+
+    logger.info({ signal }, 'Shutting down server');
+    try {
+      await disconnectDatabase();
+      logger.info('Database connection closed');
+      process.exit(0);
+    } catch (err) {
+      logger.error({ err }, 'Failed to close database connection during shutdown');
+      process.exit(1);
+    }
+  };
+
+  process.once('SIGINT', () => {
+    void shutdown('SIGINT');
+  });
+  process.once('SIGTERM', () => {
+    void shutdown('SIGTERM');
+  });
+}
+
 // Start server
 async function main(): Promise<void> {
   assertX402Env();
+  registerGracefulShutdown();
   await connectDatabase();
   startSyncCron();
   schedulerStatus.dataSync = 'active';
