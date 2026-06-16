@@ -1,4 +1,5 @@
 import { logger } from '../lib/logger.js';
+import { runSchedulerJob } from '../lib/scheduler.js';
 import { getAssetRepository } from '../services/asset.service.js';
 import { getSyncService } from '../services/sync.service.js';
 
@@ -52,9 +53,8 @@ export async function updateRiskScores(): Promise<{
 /** Runs risk scoring immediately, then every 6 hours. */
 export function startRiskScoreScheduler(): void {
   const runOnce = async (): Promise<void> => {
-    logger.info({ timestamp: new Date() }, 'Risk score job started');
     try {
-      await updateRiskScores();
+      await runSchedulerJob('risk-score', updateRiskScores);
     } catch (err) {
       logger.error({ err }, 'Risk score job failed (non-fatal)');
     }

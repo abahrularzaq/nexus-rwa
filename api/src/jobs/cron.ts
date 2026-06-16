@@ -1,17 +1,16 @@
 import cron from 'node-cron';
 import { logger } from '../lib/logger.js';
+import { runSchedulerJob } from '../lib/scheduler.js';
 import { getSyncService } from '../services/sync.service.js';
 
 export function startSyncCron(): void {
   const syncService = getSyncService();
 
   cron.schedule('0 */6 * * *', () => {
-    const startedAt = new Date().toISOString();
-    logger.info({ startedAt }, '[cron] syncAll — started');
-
     void (async () => {
       try {
-        const result = await syncService.syncAll();
+        const result = await runSchedulerJob('data-sync-full', () => syncService.syncAll());
+        if (!result) return;
         logger.info(
           {
             finishedAt: new Date().toISOString(),
@@ -28,12 +27,10 @@ export function startSyncCron(): void {
   });
 
   cron.schedule('0 * * * *', () => {
-    const startedAt = new Date().toISOString();
-    logger.info({ startedAt }, '[cron] top-5 market sync — started');
-
     void (async () => {
       try {
-        const result = await syncService.syncTopMarketData(5);
+        const result = await runSchedulerJob('data-sync-top-market', () => syncService.syncTopMarketData(5));
+        if (!result) return;
         logger.info(
           {
             finishedAt: new Date().toISOString(),
@@ -54,12 +51,10 @@ export function startSyncCron(): void {
   });
 
   cron.schedule('0 3 * * *', () => {
-    const startedAt = new Date().toISOString();
-    logger.info({ startedAt }, '[cron] daily blockchain sync — started');
-
     void (async () => {
       try {
-        const result = await syncService.syncAllBlockchainData();
+        const result = await runSchedulerJob('data-sync-blockchain', () => syncService.syncAllBlockchainData());
+        if (!result) return;
         logger.info(
           {
             finishedAt: new Date().toISOString(),
