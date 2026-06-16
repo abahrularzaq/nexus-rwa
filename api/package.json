@@ -31,7 +31,7 @@
     "cleanup:legacy-ribbon": "node --import tsx/esm src/scripts/deactivate-legacy-ribbon-finance.ts",
     "create:api-key": "node --import tsx/esm src/scripts/create-api-key.ts",
     "check:api-key": "node --import tsx/esm src/scripts/check-api-key.ts",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint \"src/**/*.ts\""
   },
   "prisma": {
     "seed": "node --import tsx/esm prisma/seed.ts"
