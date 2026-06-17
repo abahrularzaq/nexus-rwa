@@ -5,6 +5,7 @@ import { createMeta, ERROR_CODES, paginate } from '../shared/index.js';
 import { createNexusX402Middleware } from '../middleware/x402/index.js';
 import { resolveRequestTier } from '../lib/request-tier.js';
 import { getAssetInsightById } from '../lib/aiInsights.js';
+import { getSourceReliabilitySummary, getSourceTrail } from '../services/source-reliability.service.js';
 import { getAssetsSchema, getAssetSlugSchema, getHistorySchema } from '../validators/asset.validator.js';
 import {
   AppError,
@@ -270,13 +271,18 @@ async function getAssetSourcesHandler(c: Context) {
   }
 
   try {
-    const asset = await getAssetRepository().findBySlug(parsed.data.slug, ['sources']);
+    const asset = await getAssetRepository().findBySlug(parsed.data.slug);
     if (!asset) {
       return c.json(err(ERROR_CODES.ASSET_NOT_FOUND, 'Asset tidak ditemukan'), 404);
     }
 
+    const [sources, reliabilityByLayer] = await Promise.all([
+      getSourceTrail({ assetSlug: parsed.data.slug }),
+      getSourceReliabilitySummary(parsed.data.slug),
+    ]);
+
     setDataVersionHeader(c, asset.dataVersion);
-    return c.json(ok(asset.sources ?? [], false));
+    return c.json(ok({ assetSlug: parsed.data.slug, sources, reliabilityByLayer }, false));
   } catch (e: unknown) {
     return c.json(
       err(

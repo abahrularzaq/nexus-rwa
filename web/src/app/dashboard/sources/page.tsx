@@ -23,7 +23,7 @@ import { PaywallModal } from "@/components/paywall/PaywallModal";
 import { parseX402Response, type AccessTier, type X402Details } from "@/types/x402";
 
 type SourceTier = "Tier 1" | "Tier 2" | "Tier 3";
-type SourceStatus = "healthy" | "redirected" | "restricted" | "broken" | "manual_required" | "unchecked" | "timeout" | "error";
+type SourceStatus = "verified" | "stale" | "unavailable" | "conflicting" | "needs_review" | "healthy" | "redirected" | "restricted" | "broken" | "manual_required" | "unchecked" | "timeout" | "error";
 
 type SourceRow = {
   id?: string;
@@ -133,7 +133,7 @@ const checks = [
 
 function normalizeStatus(value: unknown): SourceStatus {
   const status = String(value ?? "unchecked").toLowerCase().replace(/\s+/g, "_");
-  if (["healthy", "redirected", "restricted", "broken", "manual_required", "timeout", "error", "unchecked"].includes(status)) {
+  if (["verified", "stale", "unavailable", "conflicting", "needs_review", "healthy", "redirected", "restricted", "broken", "manual_required", "timeout", "error", "unchecked"].includes(status)) {
     return status as SourceStatus;
   }
   return "unchecked";
@@ -196,9 +196,9 @@ function uniqueValues(rows: SourceRowWithTier[], key: keyof SourceRow): string[]
 }
 
 function statusClass(status: SourceStatus): string {
-  if (["healthy", "redirected"].includes(status)) return "border-[#00FF88]/40 bg-[#00FF88]/15 text-[#6DFFB2] shadow-[0_0_18px_rgba(0,255,136,0.12)]";
-  if (["broken", "error"].includes(status)) return "border-[#FF4444]/40 bg-[#FF4444]/15 text-[#FFA0A0] shadow-[0_0_18px_rgba(255,68,68,0.12)]";
-  if (status === "manual_required") return "border-[#B983FF]/40 bg-[#B983FF]/15 text-[#E6D0FF] shadow-[0_0_18px_rgba(185,131,255,0.12)]";
+  if (["verified", "healthy", "redirected"].includes(status)) return "border-[#00FF88]/40 bg-[#00FF88]/15 text-[#6DFFB2] shadow-[0_0_18px_rgba(0,255,136,0.12)]";
+  if (["unavailable", "broken", "error"].includes(status)) return "border-[#FF4444]/40 bg-[#FF4444]/15 text-[#FFA0A0] shadow-[0_0_18px_rgba(255,68,68,0.12)]";
+  if (["needs_review", "manual_required"].includes(status)) return "border-[#B983FF]/40 bg-[#B983FF]/15 text-[#E6D0FF] shadow-[0_0_18px_rgba(185,131,255,0.12)]";
   return "border-[#FFB800]/40 bg-[#FFB800]/15 text-[#FFD36A] shadow-[0_0_18px_rgba(255,184,0,0.1)]";
 }
 
@@ -273,9 +273,9 @@ function buildSourceQuality(rows: SourceRowWithTier[]): SourceQualityRow[] {
     .map(([assetSlug, assetRows]) => {
       const totalSources = assetRows.length;
       const tier1Count = assetRows.filter((row) => row.tier === "Tier 1").length;
-      const manualReview = assetRows.filter((row) => row.status === "manual_required" || row.checkedBy === "manual_required").length;
-      const broken = assetRows.filter((row) => ["broken", "error", "timeout"].includes(row.status)).length;
-      const healthy = assetRows.filter((row) => ["healthy", "redirected"].includes(row.status)).length;
+      const manualReview = assetRows.filter((row) => ["needs_review", "manual_required"].includes(row.status) || row.checkedBy === "manual_required").length;
+      const broken = assetRows.filter((row) => ["unavailable", "broken", "error", "timeout"].includes(row.status)).length;
+      const healthy = assetRows.filter((row) => ["verified", "healthy", "redirected"].includes(row.status)).length;
       const avgReliability = totalSources > 0 ? Math.round(assetRows.reduce((sum, row) => sum + row.reliability, 0) / totalSources) : 0;
       const tier1Coverage = totalSources > 0 ? Math.round((tier1Count / totalSources) * 100) : 0;
       const healthyCoverage = totalSources > 0 ? Math.round((healthy / totalSources) * 100) : 0;
@@ -482,7 +482,7 @@ export default function SourcesPage() {
     });
   }, [assetSlug, isProAccess, layer, rowsWithTier, search, sourceType, status, tier]);
 
-  const manualRows = rowsWithTier.filter((row) => row.status === "manual_required" || row.checkedBy === "manual_required");
+  const manualRows = rowsWithTier.filter((row) => ["needs_review", "manual_required"].includes(row.status) || row.checkedBy === "manual_required");
   const tier1Count = rowsWithTier.filter((row) => row.tier === "Tier 1").length;
   const avgReliability = rowsWithTier.length > 0 ? Math.round(rowsWithTier.reduce((sum, row) => sum + row.reliability, 0) / rowsWithTier.length) : 0;
   const tier1Coverage = rowsWithTier.length > 0 ? Math.round((tier1Count / rowsWithTier.length) * 100) : 0;
@@ -695,7 +695,7 @@ export default function SourcesPage() {
           </select>
           <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-lg border border-[#00D1FF]/15 bg-[#080D19]/90 px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]">
             <option value="">All status</option>
-            {["healthy", "redirected", "restricted", "broken", "manual_required", "unchecked", "timeout", "error"].map((value) => <option key={value}>{value}</option>)}
+            {["verified", "stale", "unavailable", "conflicting", "needs_review", "unchecked"].map((value) => <option key={value}>{value}</option>)}
           </select>
         </div>
 
