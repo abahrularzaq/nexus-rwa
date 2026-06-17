@@ -81,7 +81,7 @@ export function YieldHistorySection({
             <div className="space-y-4">
               <RedactedPremiumPreview rows={4} />
               <BlurredPreview
-                title="Yield & TVL history"
+                title="Yield, TVL & risk history"
                 priceLabel="$3 / 24h"
                 onUnlock={openPaywall}
               />

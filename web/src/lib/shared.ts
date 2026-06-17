@@ -61,6 +61,8 @@ export interface YieldHistoryPoint {
   timestamp: string;
   yield: number;
   tvl: number;
+  riskScore?: number;
+  methodologyVersion?: string;
 }
 
 export interface YieldHistoryResponse {

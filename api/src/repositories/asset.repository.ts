@@ -81,6 +81,7 @@ function stripNullHistoryFields(row: AssetHistory): AssetHistoryPoint {
   if (row.riskScore != null) point.riskScore = row.riskScore;
   if (row.volume24h != null) point.volume24h = row.volume24h;
   if (row.source != null) point.source = row.source;
+  if (row.methodologyVersion != null) point.methodologyVersion = row.methodologyVersion;
 
   return point;
 }
@@ -213,6 +214,7 @@ export class AssetRepository {
           price: data.price,
           holderCount: data.holderCount,
           riskScore: data.riskScore,
+          methodologyVersion: data.methodologyVersion,
           source: data.source,
         },
       });

@@ -3,6 +3,7 @@ import { logger } from '../lib/logger.js';
 import { resolveAssetMeta, withAssetMeta } from '../lib/dataSources.js';
 import type { YieldHistoryResponse } from '../shared/index.js';
 import { getAssetRepository } from './asset.service.js';
+import { RISK_METHODOLOGY_VERSION } from '../lib/riskEngine.js';
 import {
   fetchAllRwaTvl,
   fetchProtocolDetail,
@@ -112,7 +113,10 @@ export async function captureYieldHistory(): Promise<{
     fetchAllRwaTvl(),
     db.asset.findMany({
       where: { isActive: true },
-      select: { id: true },
+      select: {
+        id: true,
+        risk: { select: { overallScore: true, methodologyVersion: true } },
+      },
     }),
   ]);
 
@@ -149,6 +153,12 @@ export async function captureYieldHistory(): Promise<{
       await repo.appendHistory(asset.id, {
         yield: apy,
         tvl,
+        ...(asset.risk?.overallScore != null ? { riskScore: asset.risk.overallScore } : {}),
+        ...(asset.risk?.methodologyVersion != null
+          ? { methodologyVersion: asset.risk.methodologyVersion }
+          : asset.risk?.overallScore != null
+            ? { methodologyVersion: RISK_METHODOLOGY_VERSION }
+            : {}),
         source,
       });
       inserted += 1;
@@ -226,6 +236,8 @@ export async function getYieldHistory(
           timestamp: r.timestamp.toISOString(),
           yield: r.yield!,
           tvl: r.tvl!,
+          ...(r.riskScore != null ? { riskScore: r.riskScore } : {}),
+          ...(r.methodologyVersion != null ? { methodologyVersion: r.methodologyVersion } : {}),
         })),
     },
     meta,

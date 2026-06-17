@@ -1,5 +1,76 @@
 export type RiskLevelLabel = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export const RISK_METHODOLOGY_VERSION = 'risk-methodology-v1.0.0';
+
+export type RiskComponentKey =
+  | 'smartContractRisk'
+  | 'counterpartyRisk'
+  | 'liquidityRisk'
+  | 'regulatoryRisk'
+  | 'marketRisk'
+  | 'concentrationRisk';
+
+export type RiskComponentDefinition = {
+  key: RiskComponentKey;
+  label: string;
+  weight: number;
+  dataSources: string[];
+  description: string;
+};
+
+export const RISK_COMPONENTS: RiskComponentDefinition[] = [
+  {
+    key: 'smartContractRisk',
+    label: 'Smart contract risk',
+    weight: 0.2,
+    dataSources: ['AssetBlockchain', 'verified contract metadata', 'audit / exploit evidence'],
+    description: 'Contract verification, proxy / upgrade surface, permissions, audits, and incident history.',
+  },
+  {
+    key: 'counterpartyRisk',
+    label: 'Counterparty risk',
+    weight: 0.2,
+    dataSources: ['AssetReserve', 'AssetInstitutional', 'issuer / custodian documents'],
+    description: 'Issuer, custodian, reserve, borrower, administrator, and off-chain obligation quality.',
+  },
+  {
+    key: 'liquidityRisk',
+    label: 'Liquidity risk',
+    weight: 0.2,
+    dataSources: ['AssetLiquidity', 'redemption terms', 'DEX / on-chain liquidity data'],
+    description: 'Redemption mechanics, lockups, liquidity depth, spreads, and exit constraints.',
+  },
+  {
+    key: 'regulatoryRisk',
+    label: 'Regulatory risk',
+    weight: 0.15,
+    dataSources: ['AssetCompliance', 'regulatory filings', 'legal and KYC policy evidence'],
+    description: 'Regulatory status, eligible investors, jurisdiction restrictions, KYC/AML, and legal clarity.',
+  },
+  {
+    key: 'marketRisk',
+    label: 'Market risk',
+    weight: 0.15,
+    dataSources: ['AssetMarket', 'AssetYield', 'AssetHistory', 'DeFi Llama market / yield feeds'],
+    description: 'TVL momentum, yield volatility, market depth, and price / flow instability.',
+  },
+  {
+    key: 'concentrationRisk',
+    label: 'Concentration risk',
+    weight: 0.1,
+    dataSources: ['AssetMarket.holderCount', 'holder distribution snapshots', 'AssetHistory'],
+    description: 'Holder breadth and dependency on a small investor, pool, issuer, or market segment.',
+  },
+];
+
+export const RISK_COMPONENT_WEIGHTS: Record<RiskComponentKey, number> =
+  RISK_COMPONENTS.reduce((acc, component) => {
+    acc[component.key] = component.weight;
+    return acc;
+  }, {} as Record<RiskComponentKey, number>);
+
+export type RiskSubScores = Record<RiskComponentKey, number>;
+
 /** Inputs for a single risk calculation (numeric fields use percent where noted). */
 export interface AssetRiskInput {
   tvl: number;
@@ -23,6 +94,7 @@ export interface RiskResult {
   score: number;
   level: RiskLevelLabel;
   factors: string[];
+  methodologyVersion: string;
 }
 
 const TVL_VOLATILE_THRESHOLD_PCT = 10;
@@ -32,6 +104,21 @@ const MIN_PROTOCOL_AGE_MONTHS = 6;
 
 function clampScore(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+export function calculateWeightedRiskScore(subScores: RiskSubScores): number {
+  const weighted = RISK_COMPONENTS.reduce(
+    (sum, component) => sum + subScores[component.key] * component.weight,
+    0,
+  );
+
+  return clampScore(weighted);
+}
+
+export function scoreToRiskLevel(score: number): RiskLevelLabel {
+  if (score >= 70) return 'LOW';
+  if (score >= 40) return 'MEDIUM';
+  return 'HIGH';
 }
 
 function scoreTvlStability(tvl7dChange: number, factors: string[]): number {
@@ -129,7 +216,7 @@ export function calculateRiskScore(input: AssetRiskInput): RiskResult {
     factors.push('TVL data unavailable or zero');
   }
 
-  return { score, level, factors };
+  return { score, level, factors, methodologyVersion: RISK_METHODOLOGY_VERSION };
 }
 
 /** Batch risk scoring keyed by asset id. */

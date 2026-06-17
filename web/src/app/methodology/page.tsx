@@ -51,6 +51,18 @@ const principles = [
   },
 ];
 
+
+const riskComponents = [
+  { component: "Smart contract risk", weight: "20%", sources: "AssetBlockchain, verified contract metadata, audit and exploit evidence", description: "Reviews contract verification, proxy or upgrade surface, permissions, audits, bug bounty/formal verification evidence, and incident history." },
+  { component: "Counterparty risk", weight: "20%", sources: "AssetReserve, AssetInstitutional, issuer/custodian documents", description: "Evaluates issuer, fund manager, custodian, borrower/originator, reserve, administrator, and other off-chain obligations." },
+  { component: "Liquidity risk", weight: "20%", sources: "AssetLiquidity, redemption terms, DEX/on-chain liquidity", description: "Scores redemption mechanics, lockups, liquidity depth, spreads, on-chain pools, and practical exit constraints." },
+  { component: "Regulatory risk", weight: "15%", sources: "AssetCompliance, legal opinions, filings, KYC/AML policies", description: "Tracks regulatory status, investor eligibility, allowed/blocked jurisdictions, sanctions controls, and legal clarity." },
+  { component: "Market risk", weight: "15%", sources: "AssetMarket, AssetYield, AssetHistory, DeFi Llama feeds", description: "Uses TVL movement, yield volatility, price/flow instability, market depth, and freshness of market data." },
+  { component: "Concentration risk", weight: "10%", sources: "holderCount, holder distribution snapshots, AssetHistory", description: "Measures holder breadth and dependency on a small investor, pool, issuer, or market segment." },
+];
+
+const methodologyVersion = "risk-methodology-v1.0.0";
+
 const grades = [
   {
     grade: "Institutional",
@@ -163,6 +175,42 @@ export default function MethodologyPage() {
               </article>
             ))}
           </div>
+        </section>
+
+
+        <section className="mt-14 rounded-2xl p-6" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-extrabold text-white">Risk scoring methodology</h2>
+              <p className="mt-2 max-w-4xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                Current methodology version: <span className="font-semibold text-white">{methodologyVersion}</span>. The backend stores this version on algorithmic risk scoring results and history snapshots so score changes can be audited against the model that produced them. Scores use a 0–100 scale where higher means safer / lower risk.
+              </p>
+            </div>
+            <div className="rounded-xl px-4 py-3 text-sm font-bold" style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)", color: "var(--accent-cyan)" }}>
+              Versioned risk model
+            </div>
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-2xl" style={{ border: "1px solid var(--border-line)" }}>
+            <div className="grid grid-cols-12 gap-0 px-4 py-3 text-[11px] label-eyebrow" style={{ background: "rgba(10,14,26,0.65)", color: "var(--text-secondary)" }}>
+              <div className="col-span-3">Component</div>
+              <div className="col-span-2">Weight</div>
+              <div className="col-span-3">Source data</div>
+              <div className="col-span-4">What it measures</div>
+            </div>
+            {riskComponents.map((item) => (
+              <div key={item.component} className="grid grid-cols-12 gap-0 border-t px-4 py-4 text-sm" style={{ borderColor: "var(--border-line)", color: "var(--text-secondary)" }}>
+                <div className="col-span-12 font-bold text-white md:col-span-3">{item.component}</div>
+                <div className="col-span-3 mt-2 font-semibold md:col-span-2 md:mt-0" style={{ color: "var(--accent-green)" }}>{item.weight}</div>
+                <div className="col-span-9 mt-2 md:col-span-3 md:mt-0">{item.sources}</div>
+                <div className="col-span-12 mt-2 leading-relaxed md:col-span-4 md:mt-0">{item.description}</div>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-5 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            The displayed risk history line comes from AssetHistory snapshots. Each risk sync appends the latest overall risk score, and yield/TVL history capture carries the current risk score when available, making score movement visible over time beside market and yield data.
+          </p>
         </section>
 
         <section className="mt-14 rounded-2xl p-6" style={{ background: "rgba(15,22,41,0.62)", border: "1px solid var(--border-line)" }}>

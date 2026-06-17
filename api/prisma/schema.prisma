@@ -77,21 +77,22 @@ model AssetMarket {
 }
 
 model AssetRisk {
-  id                String    @id @default(cuid())
-  assetId           String    @unique
-  overallScore      Int?
-  overallLevel      String?
-  smartContractRisk Int?
-  counterpartyRisk  Int?
-  liquidityRisk     Int?
-  regulatoryRisk    Int?
-  marketRisk        Int?
-  concentrationRisk Int?
-  riskFactors       String[]
-  mitigants         String[]
-  lastAssessed      DateTime?
-  assessmentMethod  String?
-  asset             Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  assetId            String    @unique
+  overallScore       Int?
+  overallLevel       String?
+  smartContractRisk  Int?
+  counterpartyRisk   Int?
+  liquidityRisk      Int?
+  regulatoryRisk     Int?
+  marketRisk         Int?
+  concentrationRisk  Int?
+  riskFactors        String[]
+  mitigants          String[]
+  lastAssessed       DateTime?
+  assessmentMethod   String?
+  methodologyVersion String?
+  asset              Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
 }
 
 model AssetReserve {
@@ -172,17 +173,18 @@ model AssetBlockchain {
 }
 
 model AssetHistory {
-  id          String   @id @default(cuid())
-  assetId     String
-  timestamp   DateTime @default(now())
-  tvl         Float?
-  yield       Float?
-  price       Float?
-  holderCount Int?
-  riskScore   Int?
-  volume24h   Float?
-  source      String?
-  asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  assetId            String
+  timestamp          DateTime @default(now())
+  tvl                Float?
+  yield              Float?
+  price              Float?
+  holderCount        Int?
+  riskScore          Int?
+  volume24h          Float?
+  source             String?
+  methodologyVersion String?
+  asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([assetId, timestamp])
 }

@@ -15,6 +15,7 @@ import type { YieldHistoryPoint } from "@/lib/shared";
 
 const YIELD_COLOR = "#6366f1";
 const TVL_COLOR = "#10b981";
+const RISK_COLOR = "#f59e0b";
 
 export type YieldChartProps = {
   data: YieldHistoryPoint[];
@@ -66,6 +67,7 @@ function HistoryTooltip({
 
   const yieldEntry = payload.find((p) => p.dataKey === "yield");
   const tvlEntry = payload.find((p) => p.dataKey === "tvl");
+  const riskEntry = payload.find((p) => p.dataKey === "riskScore");
 
   return (
     <div
@@ -81,6 +83,11 @@ function HistoryTooltip({
       {tvlEntry != null && (
         <p className="mt-1 tabular-nums" style={{ color: TVL_COLOR }}>
           TVL: {formatTvlTooltip(Number(tvlEntry.value))}
+        </p>
+      )}
+      {riskEntry != null && (
+        <p className="mt-1 tabular-nums" style={{ color: RISK_COLOR }}>
+          Risk score: {Number(riskEntry.value).toFixed(0)} / 100
         </p>
       )}
     </div>
@@ -105,6 +112,7 @@ export function buildMockYieldHistory(
       timestamp: new Date(t).toISOString(),
       yield: Math.round((baseYield + wave + i * 0.02) * 100) / 100,
       tvl: baseTvl + i * 8_000_000 + Math.sin(i / 2) * 20_000_000,
+      riskScore: Math.round(68 + Math.sin(i / 4) * 4 + i * 0.15),
     };
   });
 }
@@ -162,6 +170,13 @@ export function YieldChart({
             />
             TVL (USD)
           </span>
+          <span className="inline-flex items-center gap-2 text-[#8892A4]">
+            <span
+              className="inline-block size-2.5 rounded-full"
+              style={{ background: RISK_COLOR }}
+            />
+            Risk score
+          </span>
           <span className="text-[#4A5568]">· {periodLabel}</span>
         </div>
 
@@ -198,6 +213,16 @@ export function YieldChart({
                   width={48}
                 />
                 <YAxis
+                  yAxisId="risk"
+                  orientation="right"
+                  domain={[0, 100]}
+                  tick={{ fill: RISK_COLOR, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `${Number(v).toFixed(0)}`}
+                  width={34}
+                />
+                <YAxis
                   yAxisId="tvl"
                   orientation="right"
                   tick={{ fill: TVL_COLOR, fontSize: 11 }}
@@ -210,6 +235,7 @@ export function YieldChart({
                     return `$${n}`;
                   }}
                   width={56}
+                  hide={chartData.some((row) => row.riskScore != null)}
                 />
                 <Tooltip content={<HistoryTooltip />} />
                 <Area
@@ -221,6 +247,19 @@ export function YieldChart({
                   fillOpacity={0.15}
                   stroke={TVL_COLOR}
                   strokeWidth={2}
+                  isAnimationActive={!isLocked}
+                />
+                <Line
+                  yAxisId="risk"
+                  type="monotone"
+                  dataKey="riskScore"
+                  name="Risk score"
+                  stroke={RISK_COLOR}
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  activeDot={{ r: 4, fill: RISK_COLOR }}
+                  connectNulls
                   isAnimationActive={!isLocked}
                 />
                 <Line
