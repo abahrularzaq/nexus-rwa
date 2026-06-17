@@ -476,8 +476,12 @@ function latestDate(values: Array<Date | null | undefined>): Date | null {
     .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
 }
 
+function isLocalDatasetAsset(row: AssetWithLayers): boolean {
+  return (row as AssetWithLayers & { __localDataset?: boolean }).__localDataset === true;
+}
+
 function buildFallbackAssetDataQuality(row: AssetWithLayers): AssetDataQuality {
-  const sourceCount = row.market?.sources?.length ?? 0;
+  const sourceCount = row.sources?.length ?? row.market?.sources?.length ?? 0;
   const lastUpdated = latestDate([
     row.market?.lastUpdated,
     row.grade?.updatedAt,
@@ -507,11 +511,11 @@ function buildFallbackAssetDataQuality(row: AssetWithLayers): AssetDataQuality {
 }
 
 async function getAssetDataQuality(row: AssetWithLayers): Promise<AssetDataQuality> {
-  let sourceCount: number;
-  let sourceRows: Array<{ status: string; lastCheckedAt: Date | null }>;
-  let healthRows: Array<{ status: string; severity: string; lastCheckedAt: Date | null; reason: string | null }>;
+  let sourceCount = 0;
+  let sourceRows: Array<{ status: string; lastCheckedAt: Date | null }> = [];
+  let healthRows: Array<{ status: string; severity: string; lastCheckedAt: Date | null; reason: string | null }> = [];
 
-  if (!getDatabaseUrl()) {
+  if (!getDatabaseUrl() || isLocalDatasetAsset(row)) {
     return buildFallbackAssetDataQuality(row);
   }
 
