@@ -14,7 +14,7 @@ import type {
   AssetSource,
   AssetYield,
 } from '@prisma/client';
-import { db } from '../lib/database.js';
+import { db, getDatabaseUrl } from '../lib/database.js';
 import { getCached, redis } from '../lib/redis.js';
 import type { AccessTier } from '../middleware/x402/pricer.js';
 import {
@@ -492,26 +492,61 @@ function latestDate(values: Array<Date | null | undefined>): Date | null {
     .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
 }
 
+function isLocalDatasetAsset(row: AssetWithLayers): boolean {
+  return (row as AssetWithLayers & { __localDataset?: boolean }).__localDataset === true;
+}
+
+function buildFallbackAssetDataQuality(row: AssetWithLayers): AssetDataQuality {
+  const sourceCount = row.sources?.length ?? row.market?.sources?.length ?? 0;
+  const lastUpdated = latestDate([
+    row.market?.lastUpdated,
+    row.grade?.updatedAt,
+    row.grade?.reviewedAt,
+    row.risk?.lastAssessed,
+  ]);
+  const age = daysOld(lastUpdated);
+  const confidenceLevel = row.market?.confidence ?? (sourceCount > 1 ? 'MEDIUM' : 'LOW');
+  const stale = age != null && age > 30;
+
+  return {
+    lastUpdated,
+    sourceCount,
+    confidenceLevel,
+    riskGrade: row.grade?.grade ?? row.risk?.overallLevel ?? null,
+    status: stale ? 'stale' : confidenceLevel === 'LOW' || sourceCount <= 1 ? 'estimated' : 'verified',
+    stale,
+    staleReason: stale && age != null ? `Last refresh is ${age} days old` : null,
+    sourceHealth: {
+      healthy: sourceCount,
+      stale: 0,
+      broken: 0,
+      unavailable: sourceCount === 0 ? 1 : 0,
+    },
+    healthChecks: { stale: stale ? 1 : 0, warning: 0, error: 0 },
+  };
+}
+
 async function getAssetDataQuality(row: AssetWithLayers): Promise<AssetDataQuality> {
   let sourceCount = 0;
   let sourceRows: Array<{ status: string; lastCheckedAt: Date | null }> = [];
   let healthRows: Array<{ status: string; severity: string; lastCheckedAt: Date | null; reason: string | null }> = [];
-  const isLocalDataset = (row as AssetWithLayers & { __localDataset?: boolean }).__localDataset === true;
+
+  if (!getDatabaseUrl() || isLocalDatasetAsset(row)) {
+    return buildFallbackAssetDataQuality(row);
+  }
 
   try {
-    if (isLocalDataset) {
-      throw new Error('Local dataset fallback');
-    }
     [sourceCount, sourceRows, healthRows] = await Promise.all([
       db.assetSource.count({ where: { assetId: row.id } }),
       db.sourceHealth.findMany({ where: { assetSlug: row.slug }, select: { status: true, lastCheckedAt: true } }),
       db.dataHealthCheck.findMany({ where: { assetSlug: row.slug }, select: { status: true, severity: true, lastCheckedAt: true, reason: true } }),
     ]);
   } catch {
-    sourceCount = row.sources?.length ?? row.market?.sources?.length ?? 0;
-    sourceRows = (row.sources ?? []).map(() => ({ status: 'unchecked', lastCheckedAt: null }));
-    healthRows = [];
+    // Data quality enrichment should not make public asset endpoints fail when
+    // source-health tables or DATABASE_URL are unavailable in local/dev builds.
+    return buildFallbackAssetDataQuality(row);
   }
+
   const lastUpdated = latestDate([
     row.market?.lastUpdated,
     row.grade?.updatedAt,
