@@ -12,6 +12,12 @@ import {
 import type { UpsertMarketData, UpsertRiskData, UpsertYieldData } from '../types/asset.types.js';
 import { readErc20TotalSupply } from './onchain.service.js';
 import { PROTOCOL_SLUGS, type YieldPool } from './defillama.service.js';
+import {
+  RISK_METHODOLOGY_VERSION,
+  calculateWeightedRiskScore,
+  scoreToRiskLevel,
+  type RiskSubScores,
+} from '../lib/riskEngine.js';
 
 const DEFILLAMA_API = 'https://api.llama.fi';
 const DEFILLAMA_YIELDS_API = 'https://yields.llama.fi';
@@ -59,15 +65,6 @@ export type SyncSingleResult = BatchSyncResult & {
 };
 
 const PROTECTED_RISK_ASSESSMENT_METHODS = ['ai-assisted', 'manual', 'hybrid'] as const;
-
-export type RiskSubScores = {
-  smartContractRisk: number;
-  counterpartyRisk: number;
-  liquidityRisk: number;
-  regulatoryRisk: number;
-  marketRisk: number;
-  concentrationRisk: number;
-};
 
 export type SyncStatusRecord = {
   lastSync: string;
@@ -421,10 +418,18 @@ export class SyncService {
         concentrationRisk: subScores.concentrationRisk,
         lastAssessed: new Date(),
         assessmentMethod: 'algorithmic',
+        methodologyVersion: RISK_METHODOLOGY_VERSION,
       };
 
       await this.repo.upsertRisk(asset.id, riskData);
-      layersUpdated.push('risk');
+      await this.repo.appendHistory(asset.id, {
+        ...(asset.market?.tvl != null ? { tvl: asset.market.tvl } : {}),
+        ...(asset.market?.holderCount != null ? { holderCount: asset.market.holderCount } : {}),
+        riskScore: overallScore,
+        methodologyVersion: RISK_METHODOLOGY_VERSION,
+        source: 'risk-sync',
+      });
+      layersUpdated.push('risk', 'history');
 
       logger.info({ slug, assetId: asset.id, overallScore, overallLevel }, 'syncRiskScore completed');
 
@@ -454,6 +459,7 @@ export class SyncService {
         ...(asset.market?.tvl != null ? { tvl: asset.market.tvl } : {}),
         ...(asset.yield?.currentYield != null ? { yield: asset.yield.currentYield } : {}),
         ...(asset.risk?.overallScore != null ? { riskScore: asset.risk.overallScore } : {}),
+        ...(asset.risk?.methodologyVersion != null ? { methodologyVersion: asset.risk.methodologyVersion } : {}),
         source: 'sync',
       });
       layersUpdated.push('history');
@@ -806,15 +812,7 @@ export class SyncService {
   }
 
   private calculateWeightedRiskScore(subScores: RiskSubScores): number {
-    const weighted =
-      subScores.smartContractRisk * 0.2 +
-      subScores.counterpartyRisk * 0.2 +
-      subScores.liquidityRisk * 0.2 +
-      subScores.regulatoryRisk * 0.15 +
-      subScores.marketRisk * 0.15 +
-      subScores.concentrationRisk * 0.1;
-
-    return Math.round(Math.min(100, Math.max(0, weighted)));
+    return calculateWeightedRiskScore(subScores);
   }
 
   private calculateMarketRisk(tvl30dChange: number | null, yieldValues: number[]): number {
@@ -869,9 +867,7 @@ export class SyncService {
   }
 
   private scoreToLevel(score: number): string {
-    if (score >= 70) return 'LOW';
-    if (score >= 40) return 'MEDIUM';
-    return 'HIGH';
+    return scoreToRiskLevel(score);
   }
 
   private async fetchProtocolDetail(slug: string): Promise<DefiLlamaProtocolRaw> {

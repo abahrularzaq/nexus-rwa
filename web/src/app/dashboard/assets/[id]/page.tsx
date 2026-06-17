@@ -725,7 +725,7 @@ export default function AssetDetailPage() {
             </div>
           </SectionShell>
 
-          <SectionShell title="Yield" subtitle="Current yield, benchmark, frequency, and Pro time-series history">
+          <SectionShell title="Yield" subtitle="Current yield, benchmark, frequency, and Pro yield / TVL / risk score history">
             <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <FieldRow label="Current yield" value={formatYield(asset.yield?.currentYield)} />
               <FieldRow label="Yield type" value={asset.yield?.yieldType} />

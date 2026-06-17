@@ -96,6 +96,7 @@ export type AssetHistoryPoint = Pick<AssetHistory, 'id' | 'assetId' | 'timestamp
   riskScore?: number;
   volume24h?: number;
   source?: string;
+  methodologyVersion?: string;
 };
 
 export type UpsertMarketData = Partial<Omit<AssetMarket, 'id' | 'assetId' | 'asset'>>;
@@ -111,6 +112,7 @@ export type AppendHistoryData = {
   holderCount?: number;
   riskScore?: number;
   volume24h?: number;
+  methodologyVersion?: string;
   source: string;
 };
 export type AddEventData = Omit<AssetEvent, 'id' | 'assetId' | 'asset'>;
