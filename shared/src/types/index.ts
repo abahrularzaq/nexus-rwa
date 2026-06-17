@@ -2,16 +2,16 @@
 // CORE TYPES — Nexus RWA
 // ============================================
 
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
-export type AssetCategory = 
-  | 'TREASURY' 
-  | 'CREDIT' 
-  | 'REAL_ESTATE' 
-  | 'COMMODITIES' 
-  | 'EQUITY';
+export type AssetCategory =
+  | "TREASURY"
+  | "CREDIT"
+  | "REAL_ESTATE"
+  | "COMMODITIES"
+  | "EQUITY";
 
-export type Chain = 'ethereum' | 'base' | 'polygon' | 'arbitrum';
+export type Chain = "ethereum" | "base" | "polygon" | "arbitrum";
 
 // --- Asset ---
 export interface Asset {
@@ -55,7 +55,7 @@ export interface YieldPoint {
   yield: number;
 }
 
-export type YieldHistoryPeriod = '7d' | '30d' | '90d';
+export type YieldHistoryPeriod = "7d" | "30d" | "90d";
 
 export interface YieldHistoryPoint {
   timestamp: string;
@@ -72,7 +72,7 @@ export interface YieldHistoryResponse {
 }
 
 // --- Risk Data (computed risk engine, stored on Asset) ---
-export type ComputedRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type ComputedRiskLevel = "LOW" | "MEDIUM" | "HIGH";
 
 export interface RiskData {
   assetId: string;
@@ -105,7 +105,7 @@ export interface MarketOverview {
   updatedAt: Date;
 }
 
-export type MarketBriefRiskTone = 'elevated' | 'stable' | 'improving';
+export type MarketBriefRiskTone = "elevated" | "stable" | "improving";
 
 /** AI-generated market-wide narrative for dashboard overview. */
 export interface MarketBrief {
@@ -117,7 +117,7 @@ export interface MarketBrief {
   generatedAt: string;
 }
 
-export type DataConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
+export type DataConfidence = "HIGH" | "MEDIUM" | "LOW";
 
 export interface AssetDataMeta {
   sources: string[];
@@ -186,8 +186,8 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export type InsightOutlook = 'bullish' | 'neutral' | 'bearish';
-export type InsightConfidence = 'high' | 'medium' | 'low';
+export type InsightOutlook = "bullish" | "neutral" | "bearish";
+export type InsightConfidence = "high" | "medium" | "low";
 
 export interface AssetInsight {
   assetId: string;
@@ -201,6 +201,16 @@ export interface AssetInsight {
   /** Items to monitor next (2–3 bullets). */
   watchList?: string[];
   generatedAt: string;
+  /** Required non-advice disclaimer shown with every AI-generated insight. */
+  disclaimer?: string;
+  /** Data sources available to the AI when generating this insight. */
+  sources?: string[];
+  /** Number of unique sources available to the AI. */
+  sourceCount?: number;
+  /** AI model identifier or local fallback identifier used for generation. */
+  modelVersion?: string;
+  /** Internal prompt/version policy used for generation. */
+  promptVersion?: string;
 }
 
 // ============================================
@@ -208,8 +218,8 @@ export interface AssetInsight {
 // ============================================
 
 export interface X402PaymentRequirement {
-  scheme: 'exact';
-  network: 'base' | 'base-sepolia';
+  scheme: "exact";
+  network: "base" | "base-sepolia";
   maxAmountRequired: string;
   resource: string;
   description: string;
