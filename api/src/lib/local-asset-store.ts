@@ -42,12 +42,26 @@ async function readJson<T = unknown>(filePath: string): Promise<T | null> {
 }
 
 async function listAssetSlugs(): Promise<string[]> {
-  const entries = await readdir(DATA_ASSETS_DIR, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .filter((name) => !name.startsWith('_'))
-    .sort();
+  try {
+    const entries = await readdir(DATA_ASSETS_DIR, { withFileTypes: true });
+
+    return entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((name) => !name.startsWith('_'))
+      .sort();
+  } catch (error) {
+    if (
+      error
+      && typeof error === 'object'
+      && 'code' in error
+      && (error as { code?: string }).code === 'ENOENT'
+    ) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 function withLayerIds(value: unknown, assetId: string): unknown {
