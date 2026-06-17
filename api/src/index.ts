@@ -14,6 +14,7 @@ import { startYieldHistoryScheduler } from './jobs/captureYieldHistory.js';
 import { startRiskScoreScheduler } from './jobs/updateRiskScores.js';
 import { startSyncCron } from './jobs/cron.js';
 import { startLogRetentionScheduler } from './jobs/logRetention.js';
+import { startSourceHealthScheduler } from './jobs/checkSourceHealth.js';
 import { isSchedulersEnabled } from './lib/scheduler.js';
 import { gatedRouter } from './routes/gated.js';
 import { sessionRouter } from './routes/session.js';
@@ -35,6 +36,7 @@ const schedulerStatus: Record<string, 'disabled' | 'starting' | 'active'> = {
   riskScore: 'starting',
   yieldHistory: 'starting',
   logRetention: 'starting',
+  sourceHealth: 'starting',
 };
 
 const API_SECURITY_HEADERS = {
@@ -265,11 +267,15 @@ async function main(): Promise<void> {
     startLogRetentionScheduler();
     schedulerStatus.logRetention = 'active';
     logger.info('Log retention scheduler started (daily)');
+    startSourceHealthScheduler();
+    schedulerStatus.sourceHealth = 'active';
+    logger.info('Source health scheduler started (every 6h)');
   } else {
     schedulerStatus.dataSync = 'disabled';
     schedulerStatus.riskScore = 'disabled';
     schedulerStatus.yieldHistory = 'disabled';
     schedulerStatus.logRetention = 'disabled';
+    schedulerStatus.sourceHealth = 'disabled';
     logger.info('Schedulers disabled by ENABLE_SCHEDULERS=false');
   }
   serve({ fetch: app.fetch, port: PORT }, () => {

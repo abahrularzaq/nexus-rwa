@@ -264,6 +264,7 @@ model AssetSource {
   sourceUrl   String
   sourceType  String
   reliability Int
+  status      String   @default("needs_review")
   checkedAt   DateTime @default(now())
   checkedBy   String?
   notes       String?
@@ -273,7 +274,9 @@ model AssetSource {
   @@index([layer])
   @@index([field])
   @@index([sourceType])
+  @@index([status])
 }
+
 
 model AssetGrade {
   id                String    @id @default(cuid())
@@ -314,6 +317,7 @@ model DataHealthCheck {
   @@index([status])
   @@index([severity])
   @@index([lastCheckedAt])
+  @@index([nextCheckAt])
 }
 
 model SourceHealth {
@@ -328,6 +332,7 @@ model SourceHealth {
   httpStatus    Int?
   errorMessage  String?
   lastCheckedAt DateTime @default(now())
+  nextCheckAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -335,6 +340,7 @@ model SourceHealth {
   @@index([layer])
   @@index([status])
   @@index([lastCheckedAt])
+  @@index([nextCheckAt])
 }
 
 model SyncLog {
@@ -371,6 +377,7 @@ model ReviewTask {
   @@index([status])
   @@index([priority])
   @@index([createdAt])
+  @@index([resolvedAt])
 }
 
 model ApiRequest {
