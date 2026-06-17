@@ -3,7 +3,7 @@ import type { ApiResponse } from '@/lib/shared';
 
 // Instance terpusat — semua fetch lewat sini
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api/proxy",
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
 });

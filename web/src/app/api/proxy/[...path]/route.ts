@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { sanitizeApiErrorMessage } from "@/lib/security/api-key";
 
 const SENSITIVE_PATHS = [
+  /^v1\/assets$/,
+  /^v1\/assets\/[^/]+$/,
   /^v1\/assets\/[^/]+\/full$/,
   /^v1\/assets\/[^/]+\/history$/,
   /^v1\/assets\/[^/]+\/risk$/,
@@ -26,7 +28,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const path = pathParts.join("/");
 
   if (!isSensitivePath(path)) {
-    return NextResponse.json({ success: false, error: "Proxy route is restricted to sensitive API endpoints." }, { status: 404 });
+    return NextResponse.json({ success: false, error: "Proxy route is restricted to supported API endpoints." }, { status: 404 });
   }
 
   const upstreamUrl = new URL(`${apiBase()}/${path}`);

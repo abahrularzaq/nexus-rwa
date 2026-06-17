@@ -23,6 +23,11 @@ import {
 } from '../repositories/asset.repository.js';
 import { fullInclude, type LayerName } from '../types/asset.types.js';
 import { ERROR_CODES } from '../shared/index.js';
+import {
+  countLocalAssets,
+  findLocalAssetBySlug,
+  findLocalAssets,
+} from '../lib/local-asset-store.js';
 
 const LIST_CACHE_TTL = 5 * 60;
 const DETAIL_CACHE_TTL = 10 * 60;
@@ -197,6 +202,7 @@ export type GetAssetListOptions = {
 export type GetAssetListResult = {
   data: AssetListItem[];
   cached: boolean;
+  fromLocalDataset: boolean;
 };
 
 /** Application-level error with stable code for HTTP mapping. */
@@ -320,12 +326,22 @@ function pickGradeSummary(
 ): ProfileAwareGrade | null {
   if (!grade) return null;
 
+  const localGrade = grade as AssetGrade & {
+    gradingProfile?: string | null;
+    assetClass?: string | null;
+    instrumentType?: string | null;
+    claimType?: string | null;
+    publicSegment?: string | null;
+    gradeContext?: string | null;
+    profileScores?: Record<string, number | null>;
+    applicability?: Record<string, string>;
+  };
   const classification = classificationFromInstitutional(institutional);
-  const gradingProfile = stringOrNull(classification?.gradingProfile);
-  const assetClass = stringOrNull(classification?.assetClass);
-  const instrumentType = stringOrNull(classification?.instrumentType);
-  const claimType = stringOrNull(classification?.claimType);
-  const publicSegment = stringOrNull(classification?.publicSegment);
+  const gradingProfile = stringOrNull(classification?.gradingProfile) ?? localGrade.gradingProfile ?? null;
+  const assetClass = stringOrNull(classification?.assetClass) ?? localGrade.assetClass ?? null;
+  const instrumentType = stringOrNull(classification?.instrumentType) ?? localGrade.instrumentType ?? null;
+  const claimType = stringOrNull(classification?.claimType) ?? localGrade.claimType ?? null;
+  const publicSegment = stringOrNull(classification?.publicSegment) ?? localGrade.publicSegment ?? null;
   const applicability = buildApplicability(classification);
   const reserveScore = gradingProfile === 'governance_protocol' ? null : grade.reserveScore;
   const profileName = profileLabel(gradingProfile);
@@ -349,8 +365,8 @@ function pickGradeSummary(
     instrumentType,
     claimType,
     publicSegment,
-    gradeContext: profileName ? `${gradeLabel(grade.grade)} — ${profileName}` : null,
-    profileScores: {
+    gradeContext: localGrade.gradeContext ?? (profileName ? `${gradeLabel(grade.grade)} — ${profileName}` : null),
+    profileScores: localGrade.profileScores ?? {
       completenessScore: grade.completenessScore,
       sourceScore: grade.sourceScore,
       legalScore: grade.legalScore,
@@ -358,7 +374,7 @@ function pickGradeSummary(
       liquidityScore: grade.liquidityScore,
       riskScore: grade.riskScore,
     },
-    applicability,
+    applicability: localGrade.applicability ?? applicability,
   };
 }
 
@@ -658,28 +674,36 @@ async function fetchListFromRepo(
 
   if (layers === 'full') {
     const searchTerm = search?.trim();
-    return db.asset.findMany({
-      where: {
-        isActive: true,
-        ...(category !== undefined ? { identity: { category } } : {}),
-        ...(searchTerm
-          ? {
-              OR: [
-                { slug: { contains: searchTerm, mode: 'insensitive' } },
-                { identity: { name: { contains: searchTerm, mode: 'insensitive' } } },
-                { identity: { symbol: { contains: searchTerm, mode: 'insensitive' } } },
-              ],
-            }
-          : {}),
-      },
-      include: fullInclude,
-      orderBy: { market: { tvl: 'desc' } },
-      take: limit,
-      skip: offset,
-    });
+    try {
+      return await db.asset.findMany({
+        where: {
+          isActive: true,
+          ...(category !== undefined ? { identity: { category } } : {}),
+          ...(searchTerm
+            ? {
+                OR: [
+                  { slug: { contains: searchTerm, mode: 'insensitive' } },
+                  { identity: { name: { contains: searchTerm, mode: 'insensitive' } } },
+                  { identity: { symbol: { contains: searchTerm, mode: 'insensitive' } } },
+                ],
+              }
+            : {}),
+        },
+        include: fullInclude,
+        orderBy: { market: { tvl: 'desc' } },
+        take: limit,
+        skip: offset,
+      });
+    } catch {
+      return findLocalAssets({ category, search, limit, offset });
+    }
   }
 
-  return repo.findAll({ category, search, limit, offset, layers });
+  try {
+    return await repo.findAll({ category, search, limit, offset, layers });
+  } catch {
+    return findLocalAssets({ category, search, limit, offset });
+  }
 }
 
 async function fetchDetailFromRepo(
@@ -688,9 +712,17 @@ async function fetchDetailFromRepo(
 ): Promise<AssetWithLayers | null> {
   const layers = detailLayersForTier(tier);
   if (layers === 'full') {
-    return repo.findFull(slug);
+    try {
+      return await repo.findFull(slug);
+    } catch {
+      return findLocalAssetBySlug(slug);
+    }
   }
-  return repo.findBySlug(slug, layers);
+  try {
+    return await repo.findBySlug(slug, layers);
+  } catch {
+    return findLocalAssetBySlug(slug);
+  }
 }
 
 export async function getAssetList(
@@ -708,6 +740,9 @@ export async function getAssetList(
   return {
     data: await attachDataQuality(rows, rows.map((row) => mapListItem(row, tier))),
     cached,
+    fromLocalDataset: rows.some(
+      (row) => (row as AssetWithLayers & { __localDataset?: boolean }).__localDataset === true,
+    ),
   };
 }
 
@@ -731,6 +766,18 @@ export async function getAssetDetail(
 
   const [data] = await attachDataQuality([row], [mapDetail(row, tier)]);
   return { data, cached };
+}
+
+export async function countAssets(category?: string, preferLocal = false): Promise<number> {
+  if (preferLocal) {
+    return countLocalAssets(category);
+  }
+
+  try {
+    return await repo.countActive(category);
+  } catch {
+    return countLocalAssets(category);
+  }
 }
 
 async function deleteRedisKeys(keys: string[]): Promise<void> {
