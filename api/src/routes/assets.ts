@@ -9,6 +9,7 @@ import { getSourceReliabilitySummary, getSourceTrail } from '../services/source-
 import { getAssetsSchema, getAssetSlugSchema, getHistorySchema } from '../validators/asset.validator.js';
 import {
   AppError,
+  countAssets,
   getAssetDetail,
   getAssetList,
   getAssetRepository,
@@ -83,14 +84,14 @@ async function getAssetListHandler(c: Context) {
   try {
     const tier = await resolveRequestTier(c);
     const offset = (parsed.data.page - 1) * parsed.data.limit;
-    const { data, cached } = await getAssetList({
+    const { data, cached, fromLocalDataset } = await getAssetList({
       category: parsed.data.category,
       search: parsed.data.search,
       limit: parsed.data.limit,
       offset,
       tier,
     });
-    const total = await getAssetRepository().countActive(parsed.data.category);
+    const total = await countAssets(parsed.data.category, fromLocalDataset);
     const maxVersion = data.reduce(
       (max, row) => Math.max(max, 'dataVersion' in row ? row.dataVersion : 0),
       0,
