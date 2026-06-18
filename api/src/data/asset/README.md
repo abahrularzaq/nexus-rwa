@@ -1,10 +1,10 @@
-# Legacy Raw Asset Research
+# Asset Layer Source of Truth
 
-This folder is intentionally kept as the legacy/raw asset research area.
+This folder contains the canonical curated asset layer files imported into Prisma by `npm run import:asset-files`.
 
 ## Purpose
 
-`api/src/data/asset` contains historical asset research files such as Markdown notes, YAML source trails, scoring snapshots, and older JSON metadata.
+`api/src/data/asset/{asset-slug}` contains the source-of-truth Markdown, YAML, and JSON layer files for asset content that is imported into the database after Prisma migrations run.
 
 Typical legacy files include:
 
@@ -19,33 +19,19 @@ Typical legacy files include:
 
 ## Status
 
-This folder is **not** the normalized production dataset.
+This folder **is the source of truth for imported asset content** used by the asset file import pipeline. Do not replace it with Prisma seed catalog data, and do not edit seed helpers as the primary way to change production asset content.
 
-Do not delete, rename, or bulk-move these files until every asset has been migrated, validated, imported, and reviewed in the new normalized structure.
+## Import workflow
 
-## Migration target
+Run Prisma migrations before importing these files into the database:
 
-The normalized production dataset lives at:
-
-```text
-data/assets/{asset-slug}/
+```bash
+npm run db:migrate:deploy
+npm run import:asset-files -- --slug=<asset-slug> --force
 ```
 
-Each migrated asset should eventually use this structure:
+For local development, `npm run seed` may be run between migration and import to create missing bootstrap asset rows. The seed catalog is a fallback only and skips existing assets so it does not overwrite content imported from this folder.
 
-```text
-identity.json
-market.json
-risk.json
-reserve.json
-yield.json
-institutional.json
-blockchain.json
-compliance.json
-liquidity.json
-sources.json
-```
+## Production rule
 
-## Migration rule
-
-Treat files in this folder as raw source material only. Convert and normalize them into `data/assets/{asset-slug}/` before importing into the database or calculating institutional grades.
+Treat files in this folder as canonical. Update `api/src/data/asset/{asset-slug}/` first, then import the files into Prisma. Do not use `api/prisma/seed-helpers.ts` catalog/minimal seeds as the production asset dataset, and do not use `prisma db push` as the production migration workflow.

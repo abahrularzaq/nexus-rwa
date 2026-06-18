@@ -130,6 +130,38 @@ npx prisma generate
 npm run dev
 ```
 
+## Asset source of truth and Prisma workflow
+
+> **Source of truth:** curated asset content lives in `api/src/data/asset/{asset-slug}/` layer files and is loaded into Prisma with the asset file import pipeline. The Prisma seed catalog in `api/prisma/seed.ts` and `api/prisma/seed-helpers.ts` is only a local bootstrap/dev fallback for creating missing rows and API keys.
+
+### Production-safe order
+
+From the API workspace, run database schema changes first, then import asset layer files:
+
+```bash
+npm run db:migrate:deploy
+npm run import:asset-files -- --slug=<asset-slug> --force
+npm run start
+```
+
+For local development, use the same ordering with development migrations:
+
+```bash
+npm run db:migrate:dev
+npm run seed
+npm run import:asset-files -- --slug=<asset-slug> --force
+npm run dev
+```
+
+`npm run seed` is optional in environments where asset rows already exist. When it is used, it creates only missing bootstrap assets and skips existing assets so imported layer data is not overwritten.
+
+### Guardrails
+
+- Do not treat `api/prisma/seed-helpers.ts` catalog/minimal seeds as production asset content.
+- Do not use `prisma db push` for production deployments.
+- Re-run `npm run import:asset-files -- --slug=<asset-slug> --force` after updating files under `api/src/data/asset/{asset-slug}/`.
+- The import pipeline intentionally owns curated identity, reserve, risk, legal/compliance, liquidity, yield, institutional, and blockchain fields while leaving sync-owned market/yield fields to the sync jobs documented by the importer output.
+
 ## Production deployment
 
 Production deploys must run checked-in Prisma migrations with `prisma migrate deploy` before starting the API. Do **not** use `prisma db push` in production because it bypasses migration history and review.
