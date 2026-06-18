@@ -224,6 +224,7 @@ export class NotFoundError extends AppError {
 }
 
 let repo: AssetRepository = new AssetRepository(db);
+let usingTestRepository = false;
 
 function listCacheKey(category: string | undefined, tier: AssetAccessTier): string {
   return `assets:list:${category ?? 'all'}:${tier}`;
@@ -666,11 +667,50 @@ function detailLayersForTier(tier: AssetAccessTier): LayerName[] | 'full' {
   return DETAIL_LAYERS_FREE;
 }
 
+
+function hasSparseDatabaseAsset(row: AssetWithLayers): boolean {
+  return !row.identity
+    || !row.market
+    || !row.risk
+    || !row.yield
+    || !row.reserve
+    || !row.institutional
+    || !row.compliance
+    || !row.liquidity
+    || !row.grade
+    || !row.blockchain
+    || row.blockchain.length === 0;
+}
+
+async function shouldPreferLocalCatalog(category?: string): Promise<boolean> {
+  if (usingTestRepository) return false;
+
+  try {
+    const [dbCount, localCount] = await Promise.all([
+      db.asset.count({
+        where: {
+          isActive: true,
+          ...(category !== undefined ? { identity: { category } } : {}),
+        },
+      }),
+      countLocalAssets(category),
+    ]);
+
+    return localCount > dbCount;
+  } catch {
+    return true;
+  }
+}
+
 async function fetchListFromRepo(
   options: GetAssetListOptions,
 ): Promise<AssetWithLayers[]> {
   const { category, search, limit = 50, offset = 0, tier } = options;
   const layers = listLayersForTier(tier);
+
+  if (await shouldPreferLocalCatalog(category)) {
+    return findLocalAssets({ category, search, limit, offset });
+  }
 
   if (layers === 'full') {
     const searchTerm = search?.trim();
@@ -713,13 +753,21 @@ async function fetchDetailFromRepo(
   const layers = detailLayersForTier(tier);
   if (layers === 'full') {
     try {
-      return await repo.findFull(slug);
+      const asset = await repo.findFull(slug);
+      if (!usingTestRepository && asset && hasSparseDatabaseAsset(asset)) {
+        return (await findLocalAssetBySlug(slug)) ?? asset;
+      }
+      return asset;
     } catch {
       return findLocalAssetBySlug(slug);
     }
   }
   try {
-    return await repo.findBySlug(slug, layers);
+    const asset = await repo.findBySlug(slug, layers);
+    if (!usingTestRepository && asset && hasSparseDatabaseAsset(asset)) {
+      return (await findLocalAssetBySlug(slug)) ?? asset;
+    }
+    return asset;
   } catch {
     return findLocalAssetBySlug(slug);
   }
@@ -829,6 +877,7 @@ export function setAssetRepositoryForTests(repository: AssetRepository): void {
     throw new Error('setAssetRepositoryForTests is only available while NODE_ENV=test');
   }
   repo = repository;
+  usingTestRepository = true;
 }
 
 export function resetAssetRepositoryForTests(): void {
@@ -836,6 +885,7 @@ export function resetAssetRepositoryForTests(): void {
     throw new Error('resetAssetRepositoryForTests is only available while NODE_ENV=test');
   }
   repo = new AssetRepository(db);
+  usingTestRepository = false;
 }
 
 /** @deprecated Use `getAssetList` */
