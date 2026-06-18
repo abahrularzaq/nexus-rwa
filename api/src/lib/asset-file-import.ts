@@ -4,8 +4,6 @@ import {
   ASSET_LAYER_FILES,
   assetDirForSlug,
   loadAssetFileBundle,
-  type MetadataFile,
-  type ScoringFile,
 } from './asset-file-parser.js';
 
 export type ValidationIssue = {
@@ -25,27 +23,20 @@ export type FieldConflict = {
 export type AssetFileImportPayload = {
   slug: string;
   asset: Pick<Prisma.AssetUpdateInput, 'isActive' | 'dataVersion'>;
-  identity: Prisma.AssetIdentityUpdateInput;
-  reserve: Prisma.AssetReserveUpdateInput;
-  risk: Prisma.AssetRiskUpdateInput;
-  yield: Prisma.AssetYieldUpdateInput;
-  institutional: Prisma.AssetInstitutionalUpdateInput;
-  compliance: Prisma.AssetComplianceUpdateInput;
-  liquidity: Prisma.AssetLiquidityUpdateInput;
+  identity: Prisma.AssetIdentityCreateWithoutAssetInput;
+  reserve: Prisma.AssetReserveCreateWithoutAssetInput;
+  risk: Prisma.AssetRiskCreateWithoutAssetInput;
+  yield: Prisma.AssetYieldCreateWithoutAssetInput;
+  institutional: Prisma.AssetInstitutionalCreateWithoutAssetInput;
+  compliance: Prisma.AssetComplianceCreateWithoutAssetInput;
+  liquidity: Prisma.AssetLiquidityCreateWithoutAssetInput;
+  market: Prisma.AssetMarketCreateWithoutAssetInput;
   blockchain: Prisma.AssetBlockchainCreateWithoutAssetInput[];
 };
 
 const IDENTITY_REQUIRED = ['name', 'symbol', 'category'] as const;
-const LEGAL_REQUIRED = ['regulatoryStatus', 'issuerName', 'issuerCountry'] as const;
+const INSTITUTIONAL_REQUIRED = ['issuerName', 'issuerCountry'] as const;
 const RESERVE_REQUIRED = ['backingType'] as const;
-const SCORING_REQUIRED = [
-  'smartContract',
-  'counterparty',
-  'liquidity',
-  'regulatory',
-  'market',
-  'concentration',
-] as const;
 
 function asString(value: unknown): string | undefined {
   if (value == null) return undefined;
@@ -108,17 +99,6 @@ export function validateAssetFileBundle(slug: string): ValidationIssue[] {
     }
   }
 
-  for (const file of ['market.md'] as const) {
-    if (!existsSync(`${dir}/${file}`)) {
-      issues.push({
-        severity: 'warning',
-        layer: 'asset',
-        field: file,
-        message: `Optional file missing: ${file} (market data comes from sync service)`,
-      });
-    }
-  }
-
   if (issues.some((i) => i.severity === 'error')) {
     return issues;
   }
@@ -131,15 +111,6 @@ export function validateAssetFileBundle(slug: string): ValidationIssue[] {
     return [{ severity: 'error', layer: 'parse', message }];
   }
 
-  if (asString(bundle.metadata.slug) !== slug) {
-    issues.push({
-      severity: 'error',
-      layer: 'metadata',
-      field: 'slug',
-      message: `metadata.json slug "${bundle.metadata.slug}" does not match folder slug "${slug}"`,
-    });
-  }
-
   for (const field of IDENTITY_REQUIRED) {
     if (!asString(bundle.identity[field])) {
       issues.push({ severity: 'error', layer: 'identity', field, message: `Required field "${field}" is empty` });
@@ -148,101 +119,42 @@ export function validateAssetFileBundle(slug: string): ValidationIssue[] {
 
   for (const field of RESERVE_REQUIRED) {
     if (!asString(bundle.reserve[field])) {
-      issues.push({ severity: 'error', layer: 'reserve', field, message: `Required field "${field}" is empty` });
+      issues.push({ severity: 'warning', layer: 'reserve', field, message: `Optional/verifiable field "${field}" is empty` });
     }
   }
 
-  for (const field of LEGAL_REQUIRED) {
-    if (!asString(bundle.legal[field])) {
-      issues.push({ severity: 'error', layer: 'legal', field, message: `Required field "${field}" is empty` });
+  for (const field of INSTITUTIONAL_REQUIRED) {
+    if (!asString(bundle.institutional[field])) {
+      issues.push({ severity: 'warning', layer: 'institutional', field, message: `Optional/verifiable field "${field}" is empty` });
     }
   }
 
-  for (const key of SCORING_REQUIRED) {
-    const score = bundle.scoring.subScores?.[key as keyof ScoringFile['subScores']];
-    if (score == null || !Number.isFinite(score)) {
-      issues.push({
-        severity: 'error',
-        layer: 'scoring',
-        field: key,
-        message: `scoring.json subScores.${key} must be a number`,
-      });
+  if (!normalizeLevel(bundle.risk.overallLevel)) {
+    issues.push({ severity: 'warning', layer: 'risk', field: 'overallLevel', message: 'overallLevel is missing or not LOW, MEDIUM, or HIGH' });
+  }
+
+  for (const field of ['custodian', 'auditor', 'lastAuditUrl', 'porOracleAddress', 'porOracleChain'] as const) {
+    if (bundle.reserve[field] == null) {
+      issues.push({ severity: 'warning', layer: 'reserve', field, message: `Optional/verifiable field "${field}" is null` });
     }
   }
 
-  if (bundle.scoring.overallScore == null) {
-    issues.push({ severity: 'error', layer: 'scoring', field: 'overallScore', message: 'overallScore is required' });
-  }
-
-  if (!normalizeLevel(bundle.scoring.overallLevel ?? bundle.risk.overallLevel)) {
-    issues.push({
-      severity: 'error',
-      layer: 'scoring',
-      field: 'overallLevel',
-      message: 'overallLevel must be LOW, MEDIUM, or HIGH',
-    });
-  }
-
-  const sourceLayers = ['identity', 'reserve', 'legal', 'market'] as const;
-  for (const layer of sourceLayers) {
-    const section = bundle.sources[layer];
-    if (!section || typeof section !== 'object') {
-      issues.push({
-        severity: 'warning',
-        layer: 'sources',
-        field: layer,
-        message: `sources.yaml missing "${layer}" section`,
-      });
-      continue;
-    }
-    const primary = (section as Record<string, unknown>).primary;
-    if (!asString(primary)) {
-      issues.push({
-        severity: 'warning',
-        layer: 'sources',
-        field: `${layer}.primary`,
-        message: `sources.yaml ${layer}.primary is empty`,
-      });
+  for (const field of ['legalOpinionUrl', 'amlPolicy'] as const) {
+    if (bundle.compliance[field] == null) {
+      issues.push({ severity: 'warning', layer: 'compliance', field, message: `Optional/verifiable field "${field}" is null` });
     }
   }
 
-  const riskSection = bundle.sources.risk;
-  if (!riskSection || typeof riskSection !== 'object') {
-    issues.push({
-      severity: 'warning',
-      layer: 'sources',
-      field: 'risk',
-      message: 'sources.yaml missing "risk" section',
-    });
-  } else {
-    const rs = riskSection as Record<string, unknown>;
-    if (!asString(rs.primary) && !asString(rs.methodology)) {
-      issues.push({
-        severity: 'warning',
-        layer: 'sources',
-        field: 'risk.primary',
-        message: 'sources.yaml risk needs primary or methodology',
-      });
+  if (bundle.blockchain.length === 0) {
+    issues.push({ severity: 'warning', layer: 'blockchain', message: 'No blockchain entries found' });
+  }
+
+  for (const [index, row] of bundle.blockchain.entries()) {
+    if (!asString(row.chain)) {
+      issues.push({ severity: 'error', layer: 'blockchain', field: `${index}.chain`, message: 'Blockchain entry needs chain' });
     }
-  }
-
-  if (!Array.isArray(bundle.metadata.blockchain) || bundle.metadata.blockchain.length === 0) {
-    issues.push({
-      severity: 'error',
-      layer: 'metadata',
-      field: 'blockchain',
-      message: 'At least one blockchain entry is required in metadata.json',
-    });
-  }
-
-  for (const row of bundle.metadata.blockchain ?? []) {
-    if (!asString(row.chain) || !asString(row.contractAddress)) {
-      issues.push({
-        severity: 'error',
-        layer: 'metadata',
-        field: 'blockchain',
-        message: 'Each blockchain entry needs chain and contractAddress',
-      });
+    if (!asString(row.contractAddress)) {
+      issues.push({ severity: 'warning', layer: 'blockchain', field: `${index}.contractAddress`, message: 'Optional/verifiable contractAddress is null or empty; row will be skipped because Prisma requires a value' });
     }
   }
 
@@ -250,39 +162,32 @@ export function validateAssetFileBundle(slug: string): ValidationIssue[] {
 }
 
 export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPayload {
-  const { identity, reserve, legal, risk, metadata, scoring } = loadAssetFileBundle(slug);
+  const { identity, reserve, risk, yield: yieldLayer, institutional, compliance, liquidity, market, blockchain: chainRows } = loadAssetFileBundle(slug);
 
-  const tags = asStringArray(identity.tags);
   const reserveBreakdown = reserve.reserveBreakdown;
   const breakdown =
     reserveBreakdown && typeof reserveBreakdown === 'object' && !Array.isArray(reserveBreakdown)
       ? (reserveBreakdown as Prisma.InputJsonValue)
       : undefined;
 
-  const yieldMeta = metadata.yield ?? {};
-  const liquidityMeta = metadata.liquidity ?? {};
-
-  const blockchain = (metadata.blockchain ?? []).map((row) => ({
-    chain: asString(row.chain)!,
-    chainId: asInt(row.chainId),
-    contractAddress: asString(row.contractAddress)!,
-    tokenStandard: asString(row.tokenStandard),
-    isTransferable: asBool(row.isTransferable) ?? true,
-    hasWhitelist: asBool(row.hasWhitelist) ?? false,
-    hasTransferRestrictions: asBool(row.hasTransferRestrictions) ?? false,
-    explorerUrl: asString(row.explorerUrl),
-    deployedAt: asDate(row.deployedAt),
-    isVerified: asBool(row.isVerified) ?? false,
-  }));
-
-  const sub = scoring.subScores ?? {};
+  const blockchain = chainRows
+    .filter((row) => asString(row.chain) && asString(row.contractAddress))
+    .map((row) => ({
+      chain: asString(row.chain)!,
+      chainId: asInt(row.chainId),
+      contractAddress: asString(row.contractAddress)!,
+      tokenStandard: asString(row.tokenStandard),
+      isTransferable: asBool(row.isTransferable) ?? true,
+      hasWhitelist: asBool(row.hasWhitelist) ?? false,
+      hasTransferRestrictions: asBool(row.hasTransferRestrictions) ?? false,
+      explorerUrl: asString(row.explorerUrl),
+      deployedAt: asDate(row.deployedAt),
+      isVerified: asBool(row.isVerified) ?? false,
+    }));
 
   return {
     slug,
-    asset: {
-      isActive: metadata.isActive ?? true,
-      dataVersion: metadata.dataVersion ?? 1,
-    },
+    asset: { isActive: true, dataVersion: 1 },
     identity: {
       name: asString(identity.name)!,
       symbol: asString(identity.symbol)!,
@@ -290,10 +195,11 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       description: truncate(asString(identity.description), 500),
       category: asString(identity.category)!,
       subcategory: asString(identity.subcategory),
+      logoUrl: asString(identity.logoUrl),
       websiteUrl: asString(identity.websiteUrl),
       docsUrl: asString(identity.docsUrl),
       twitterUrl: asString(identity.twitterUrl),
-      tags,
+      tags: asStringArray(identity.tags),
       launchDate: asDate(identity.launchDate),
       isin: asString(identity.isin),
     },
@@ -313,60 +219,90 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       redemptionAsset: asString(reserve.redemptionAsset),
     },
     risk: {
-      overallScore: asInt(scoring.overallScore),
-      overallLevel: normalizeLevel(scoring.overallLevel ?? risk.overallLevel),
-      smartContractRisk: asInt(sub.smartContract),
-      counterpartyRisk: asInt(sub.counterparty),
-      liquidityRisk: asInt(sub.liquidity),
-      regulatoryRisk: asInt(sub.regulatory),
-      marketRisk: asInt(sub.market),
-      concentrationRisk: asInt(sub.concentration),
+      overallScore: asInt(risk.overallScore),
+      overallLevel: normalizeLevel(risk.overallLevel),
+      smartContractRisk: asInt(risk.smartContractRisk),
+      counterpartyRisk: asInt(risk.counterpartyRisk),
+      liquidityRisk: asInt(risk.liquidityRisk),
+      regulatoryRisk: asInt(risk.regulatoryRisk),
+      marketRisk: asInt(risk.marketRisk),
+      concentrationRisk: asInt(risk.concentrationRisk),
       riskFactors: asStringArray(risk.riskFactors),
       mitigants: asStringArray(risk.mitigants),
-      lastAssessed: asDate(risk.lastAssessed ?? scoring.assessmentDate),
-      assessmentMethod: asString(risk.assessmentMethod ?? scoring.assessmentMethod),
+      lastAssessed: asDate(risk.lastAssessed),
+      assessmentMethod: asString(risk.assessmentMethod),
     },
     yield: {
-      yieldType: asString(yieldMeta.yieldType as unknown),
-      yieldFrequency: asString(yieldMeta.yieldFrequency as unknown),
-      yieldBenchmark: asString(yieldMeta.yieldBenchmark as unknown),
-      yieldCurrency: asString(yieldMeta.yieldCurrency as unknown) ?? 'USD',
-      nextYieldDate: asDate(yieldMeta.nextYieldDate as unknown),
+      currentYield: asNumber(yieldLayer.currentYield),
+      yieldType: asString(yieldLayer.yieldType),
+      yieldFrequency: asString(yieldLayer.yieldFrequency),
+      yieldBenchmark: asString(yieldLayer.yieldBenchmark),
+      yieldVsBenchmark: asNumber(yieldLayer.yieldVsBenchmark),
+      yieldAvg7d: asNumber(yieldLayer.yieldAvg7d),
+      yieldAvg30d: asNumber(yieldLayer.yieldAvg30d),
+      yieldAvg90d: asNumber(yieldLayer.yieldAvg90d),
+      yieldMin52w: asNumber(yieldLayer.yieldMin52w),
+      yieldMax52w: asNumber(yieldLayer.yieldMax52w),
+      yieldStdDev30d: asNumber(yieldLayer.yieldStdDev30d),
+      nextYieldDate: asDate(yieldLayer.nextYieldDate),
+      yieldCurrency: asString(yieldLayer.yieldCurrency) ?? 'USD',
     },
     institutional: {
-      issuerName: asString(legal.issuerName),
-      issuerType: 'protocol_native',
-      issuerCountry: asString(legal.issuerCountry),
-      fundManager: asString(legal.fundManager),
-      legalStructure: asString(legal.legalStructure),
-      minimumInvestment: asNumber(legal.minimumInvestment),
-      managementFee: asNumber(legal.managementFee),
-      performanceFee: asNumber(legal.performanceFee),
-      targetInvestors: asString(legal.targetInvestors),
-      prospectuUrl: asString(legal.prospectusUrl),
-      metadata: (metadata.externalIds ?? undefined) as Prisma.InputJsonValue | undefined,
+      issuerName: asString(institutional.issuerName),
+      issuerType: asString(institutional.issuerType),
+      issuerCountry: asString(institutional.issuerCountry),
+      fundManager: asString(institutional.fundManager),
+      legalStructure: asString(institutional.legalStructure),
+      minimumInvestment: asNumber(institutional.minimumInvestment),
+      managementFee: asNumber(institutional.managementFee),
+      performanceFee: asNumber(institutional.performanceFee),
+      fundAdmin: asString(institutional.fundAdmin),
+      transferAgent: asString(institutional.transferAgent),
+      targetInvestors: asString(institutional.targetInvestors),
+      prospectuUrl: asString(institutional.prospectuUrl ?? institutional.prospectusUrl),
+      metadata: (institutional.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
     },
     compliance: {
-      regulatoryStatus: asString(legal.regulatoryStatus),
-      primaryRegulator: asString(legal.primaryRegulator),
-      regulatoryFramework: asString(legal.regulatoryFramework),
-      kycRequired: asBool(legal.kycRequired) ?? true,
-      accreditedOnly: asBool(legal.accreditedOnly) ?? false,
-      blockedJurisdictions: asStringArray(legal.blockedJurisdictions),
-      allowedJurisdictions: asStringArray(legal.allowedJurisdictions),
-      sanctionsScreening: asBool(legal.sanctionsScreening) ?? false,
-      amlPolicy: asString(legal.amlPolicy),
-      legalOpinionUrl: asString(legal.legalOpinionUrl),
+      regulatoryStatus: asString(compliance.regulatoryStatus),
+      primaryRegulator: asString(compliance.primaryRegulator),
+      regulatoryFramework: asString(compliance.regulatoryFramework),
+      kycRequired: asBool(compliance.kycRequired) ?? true,
+      accreditedOnly: asBool(compliance.accreditedOnly) ?? false,
+      blockedJurisdictions: asStringArray(compliance.blockedJurisdictions),
+      allowedJurisdictions: asStringArray(compliance.allowedJurisdictions),
+      sanctionsScreening: asBool(compliance.sanctionsScreening) ?? false,
+      amlPolicy: asString(compliance.amlPolicy),
+      lastComplianceCheck: asDate(compliance.lastComplianceCheck),
+      legalOpinionUrl: asString(compliance.legalOpinionUrl),
     },
     liquidity: {
-      redemptionType: asString(liquidityMeta.redemptionType as unknown),
-      redemptionPeriodDays: asInt(liquidityMeta.redemptionPeriodDays as unknown),
-      lockupPeriodDays: asInt(liquidityMeta.lockupPeriodDays as unknown),
-      earlyRedemptionFee: asNumber(liquidityMeta.earlyRedemptionFee as unknown),
-      minRedemptionAmount: asNumber(liquidityMeta.minRedemptionAmount as unknown),
-      dexPairs: (liquidityMeta.dexPairs as Prisma.InputJsonValue | undefined) ?? [],
-      liquidityScore: asInt(liquidityMeta.liquidityScore as unknown),
-      liquidityNotes: asString(liquidityMeta.liquidityNotes as unknown),
+      redemptionType: asString(liquidity.redemptionType),
+      redemptionPeriodDays: asInt(liquidity.redemptionPeriodDays),
+      lockupPeriodDays: asInt(liquidity.lockupPeriodDays),
+      earlyRedemptionFee: asNumber(liquidity.earlyRedemptionFee),
+      minRedemptionAmount: asNumber(liquidity.minRedemptionAmount),
+      dexPairs: (liquidity.dexPairs as Prisma.InputJsonValue | undefined) ?? [],
+      onchainLiquidity: asNumber(liquidity.onchainLiquidity),
+      bidAskSpread: asNumber(liquidity.bidAskSpread),
+      liquidityScore: asInt(liquidity.liquidityScore),
+      liquidityNotes: asString(liquidity.liquidityNotes),
+    },
+    market: {
+      tvl: asNumber(market.tvl),
+      tvl7dChange: asNumber(market.tvl7dChange),
+      tvl30dChange: asNumber(market.tvl30dChange),
+      price: asNumber(market.price),
+      priceChange24h: asNumber(market.priceChange24h),
+      marketCap: asNumber(market.marketCap),
+      volume24h: asNumber(market.volume24h),
+      circulatingSupply: asNumber(market.circulatingSupply),
+      totalSupply: asNumber(market.totalSupply),
+      holderCount: asInt(market.holderCount),
+      holderChange7d: asInt(market.holderChange7d),
+      aumUsd: asNumber(market.aumUsd),
+      lastUpdated: asDate(market.lastUpdated),
+      sources: asStringArray(market.sources),
+      confidence: asString(market.confidence),
     },
     blockchain,
   };
@@ -448,7 +384,7 @@ export function detectConflicts(
   return conflicts;
 }
 
-export const SYNC_OWNED_LAYERS = ['market'] as const;
+export const SYNC_OWNED_LAYERS = [] as const;
 export const SYNC_OWNED_YIELD_FIELDS = [
   'currentYield',
   'yieldAvg7d',
@@ -466,6 +402,6 @@ export function importPayloadSummary(payload: AssetFileImportPayload): string[] 
     `Risk: ${payload.risk.overallScore}/100 ${payload.risk.overallLevel}`,
     `Reserve custodian: ${payload.reserve.custodian}`,
     `Blockchain: ${payload.blockchain.map((b) => `${b.chain}:${b.contractAddress}`).join(', ')}`,
-    `Skipped (sync-owned): market layer, yield.currentYield + aggregates`,
+    `Market: tvl=${payload.market.tvl ?? 'unknown'} price=${payload.market.price ?? 'unknown'}`,
   ];
 }
