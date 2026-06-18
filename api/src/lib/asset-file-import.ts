@@ -37,7 +37,7 @@ export type AssetFileImportPayload = {
 
 const IDENTITY_REQUIRED = ['name', 'symbol', 'category'] as const;
 const LEGAL_REQUIRED = ['regulatoryStatus', 'issuerName', 'issuerCountry'] as const;
-const RESERVE_REQUIRED = ['backingType', 'custodian'] as const;
+const RESERVE_REQUIRED = ['backingType'] as const;
 const SCORING_REQUIRED = [
   'smartContract',
   'counterparty',
