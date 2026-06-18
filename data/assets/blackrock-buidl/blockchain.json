@@ -12,18 +12,6 @@
     "isVerified": true
   },
   {
-    "chain": "Ethereum",
-    "chainId": 1,
-    "contractAddress": "0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": true,
-    "hasTransferRestrictions": true,
-    "explorerUrl": "https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041",
-    "deployedAt": null,
-    "isVerified": true
-  },
-  {
     "chain": "Solana",
     "chainId": 101,
     "contractAddress": "GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr",
