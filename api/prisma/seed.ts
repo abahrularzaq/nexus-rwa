@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { PrismaClient, KeyTier } from "@prisma/client";
 import {
   EXPANDED_CATALOG_SEEDS,
-  TARGET_ASSET_SLUGS,
   type AssetSeed,
   type SeedEntry,
   isFullAssetSeed,
@@ -10,7 +9,7 @@ import {
 
 const prisma = new PrismaClient();
 
-/** Three reference assets with rich static narratives; remaining catalog via seed-helpers. */
+/** Local bootstrap/dev fallback assets. Canonical asset content is imported from api/src/data/asset/{slug}. */
 const RICH_ASSETS: AssetSeed[] = [
   {
     slug: "ondo-ousg",
@@ -536,61 +535,25 @@ function buildAssetCreate(entry: SeedEntry) {
   };
 }
 
-function buildAssetUpdate(entry: SeedEntry) {
-  const base = {
-    dataVersion: 1,
-    isActive: true,
-    identity: { upsert: { create: entry.identity, update: entry.identity } },
-    market: { upsert: { create: entry.market, update: entry.market } },
-    risk: { upsert: { create: entry.risk, update: entry.risk } },
-    compliance: { upsert: { create: entry.compliance, update: entry.compliance } },
-    liquidity: { upsert: { create: entry.liquidity, update: entry.liquidity } },
-  };
-
-  if (!isFullAssetSeed(entry)) {
-    return base;
-  }
-
-  return {
-    ...base,
-    reserve: { upsert: { create: entry.reserve, update: entry.reserve } },
-    yield: { upsert: { create: entry.yield, update: entry.yield } },
-    institutional: { upsert: { create: entry.institutional, update: entry.institutional } },
-    aiNarrative: { upsert: { create: entry.aiNarrative, update: entry.aiNarrative } },
-    blockchain: {
-      deleteMany: {},
-      create: entry.blockchain,
-    },
-    events: {
-      deleteMany: {},
-      create: entry.events,
-    },
-    history: {
-      deleteMany: {},
-      create: entry.history,
-    },
-  };
-}
-
 async function seedAsset(asset: SeedEntry) {
   const kind = isFullAssetSeed(asset) ? "full" : "minimal";
-  console.log(`[seed] Upserting asset (${kind}): ${asset.slug}`);
-
-  await prisma.asset.upsert({
+  const existing = await prisma.asset.findUnique({
     where: { slug: asset.slug },
-    create: buildAssetCreate(asset),
-    update: buildAssetUpdate(asset),
+    select: { id: true },
   });
-}
 
-async function deactivateLegacyAssets() {
-  const result = await prisma.asset.updateMany({
-    where: { slug: { notIn: [...TARGET_ASSET_SLUGS] } },
-    data: { isActive: false },
-  });
-  if (result.count > 0) {
-    console.log(`[seed] Deactivated ${result.count} legacy asset(s)`);
+  if (existing) {
+    console.log(
+      `[seed] Skipping existing asset (${kind}): ${asset.slug} — asset file import data is preserved`,
+    );
+    return false;
   }
+
+  console.log(`[seed] Creating bootstrap asset (${kind}): ${asset.slug}`);
+  await prisma.asset.create({
+    data: buildAssetCreate(asset),
+  });
+  return true;
 }
 
 async function verifySeed() {
@@ -639,22 +602,19 @@ async function verifySeed() {
     `  With history + events: ${withLayers.filter((a) => a._count.history >= 1 && a._count.events >= 1).length}/${withLayers.length}`,
   );
 
-  if (count !== 13) {
-    throw new Error(`Expected 13 active assets, got ${count}`);
-  }
   if (missingCore.length > 0) {
-    throw new Error(
-      `Assets missing core layers: ${missingCore.map((a) => a.slug).join(", ")}`,
+    console.warn(
+      `  Warning: assets missing core layers: ${missingCore.map((a) => a.slug).join(", ")}`,
     );
   }
   if (missingHistory.length > 0) {
-    throw new Error(
-      `Assets missing history: ${missingHistory.map((a) => a.slug).join(", ")}`,
+    console.warn(
+      `  Warning: assets missing history: ${missingHistory.map((a) => a.slug).join(", ")}`,
     );
   }
   if (missingEvents.length > 0) {
-    throw new Error(
-      `Assets missing events: ${missingEvents.map((a) => a.slug).join(", ")}`,
+    console.warn(
+      `  Warning: assets missing events: ${missingEvents.map((a) => a.slug).join(", ")}`,
     );
   }
 
@@ -693,16 +653,19 @@ async function seedApiKeys() {
 
 async function main() {
   try {
+    let assetsCreated = 0;
     for (const asset of ASSETS) {
-      await seedAsset(asset);
+      if (await seedAsset(asset)) {
+        assetsCreated += 1;
+      }
     }
 
-    await deactivateLegacyAssets();
     await seedApiKeys();
     await verifySeed();
 
     console.log("\n[seed] Summary");
-    console.log(`  Assets upserted: ${ASSETS.length}`);
+    console.log(`  Bootstrap assets created: ${assetsCreated}`);
+    console.log(`  Bootstrap assets skipped: ${ASSETS.length - assetsCreated}`);
     console.log(`  ApiKeys upserted: ${API_KEYS.length}`);
     console.log(`  Slugs: ${ASSETS.map((a) => a.slug).join(", ")}`);
   } catch (e) {
