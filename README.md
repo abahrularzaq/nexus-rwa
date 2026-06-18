@@ -134,44 +134,61 @@ npm run dev
 
 > **Source of truth:** curated asset content lives in `api/src/data/asset/{asset-slug}/` layer files and is loaded into Prisma with the asset file import pipeline. The Prisma seed catalog in `api/prisma/seed.ts` and `api/prisma/seed-helpers.ts` is only a local bootstrap/dev fallback for creating missing rows and API keys.
 
+Canonical curated asset data lives in `api/src/data/asset/{asset-slug}`. The Prisma database is hydrated from those files after migrations run; the seed step must not be treated as the primary asset catalog.
+
 ### Production-safe order
 
-From the API workspace, run database schema changes first, then import asset layer files:
+Recommended deployment order:
 
 ```bash
+cd api
 npm run db:migrate:deploy
-npm run import:asset-files -- --slug=<asset-slug> --force
-npm run start
+npm run seed
+npm run import:all-asset-files -- --force
+npm run build
 ```
 
-For local development, use the same ordering with development migrations:
+For local development, use the same ordering with development migrations and run seed only when bootstrap rows are missing:
 
 ```bash
+cd api
 npm run db:migrate:dev
 npm run seed
-npm run import:asset-files -- --slug=<asset-slug> --force
+npm run import:all-asset-files -- --force
 npm run dev
 ```
 
 `npm run seed` is optional in environments where asset rows already exist. When it is used, it creates only missing bootstrap assets and skips existing assets so imported layer data is not overwritten.
 
+### Single asset import
+
+Use the single-asset importer for targeted changes or validation:
+
+```bash
+cd api
+npm run import:asset-files -- --slug=blackrock-buidl --dry-run
+npm run import:asset-files -- --slug=blackrock-buidl --force
+```
+
 ### Guardrails
 
 - Do not treat `api/prisma/seed-helpers.ts` catalog/minimal seeds as production asset content.
 - Do not use `prisma db push` for production deployments.
-- Re-run `npm run import:asset-files -- --slug=<asset-slug> --force` after updating files under `api/src/data/asset/{asset-slug}/`.
+- Re-run `npm run import:all-asset-files -- --force` after updating files under `api/src/data/asset/{asset-slug}/`.
+- Use `npm run import:asset-files -- --slug=<asset-slug> --force` when importing one changed asset.
 - The import pipeline intentionally owns curated identity, reserve, risk, legal/compliance, liquidity, yield, institutional, and blockchain fields while leaving sync-owned market/yield fields to the sync jobs documented by the importer output.
 
 ## Production deployment
 
 Production deploys must run checked-in Prisma migrations with `prisma migrate deploy` before starting the API. Do **not** use `prisma db push` in production because it bypasses migration history and review.
 
-From the API workspace, run:
+From the API workspace, use this migration command in deployment or release steps:
 
 ```bash
 npm run db:migrate:deploy
-npm run start
 ```
+
+Then hydrate asset data from `api/src/data/asset/{asset-slug}` using the import workflow above before building or starting the API.
 
 In hosted environments such as Railway, add `npm run db:migrate:deploy` as a pre-start or release command so each deployment applies pending migrations safely.
 

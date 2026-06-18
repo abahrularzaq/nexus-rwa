@@ -38,7 +38,8 @@
     "test": "node --import tsx --test $(find src tests -name '*.test.ts' -print)",
     "test:watch": "node --import tsx --test --watch $(find src tests -name '*.test.ts' -print)",
     "test:coverage": "node --import tsx --experimental-test-coverage --test $(find src tests -name '*.test.ts' -print)",
-    "typecheck": "prisma generate && tsc --noEmit"
+    "typecheck": "prisma generate && tsc --noEmit",
+    "import:all-asset-files": "node --import tsx/esm src/scripts/import-all-assets-from-files.ts"
   },
   "prisma": {
     "seed": "node --import tsx/esm prisma/seed.ts"
