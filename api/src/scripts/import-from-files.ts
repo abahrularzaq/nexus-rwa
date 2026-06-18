@@ -60,6 +60,18 @@ export async function importAssetFromFiles(options: ImportOptions): Promise<bool
 
   const payload = mapAssetFilesToImportPayload(slug);
 
+  console.log('\nImport plan:');
+  for (const line of importPayloadSummary(payload)) {
+    console.log(`  ${line}`);
+  }
+  console.log(`  Skipped layers: ${SYNC_OWNED_LAYERS.join(', ') || 'none'}`);
+  console.log(`  Skipped yield fields: ${SYNC_OWNED_YIELD_FIELDS.join(', ')}`);
+
+  if (dryRun) {
+    console.log('\nDry-run complete — no database changes.');
+    return true;
+  }
+
   const existing = await db.asset.findUnique({
     where: { slug },
     include: {
@@ -71,6 +83,7 @@ export async function importAssetFromFiles(options: ImportOptions): Promise<bool
       liquidity: true,
       yield: true,
       blockchain: true,
+      market: true,
     },
   });
 
@@ -106,30 +119,19 @@ export async function importAssetFromFiles(options: ImportOptions): Promise<bool
     }
   }
 
-  console.log('\nImport plan:');
-  for (const line of importPayloadSummary(payload)) {
-    console.log(`  ${line}`);
-  }
-  console.log(`  Skipped layers: ${SYNC_OWNED_LAYERS.join(', ')}`);
-  console.log(`  Skipped yield fields: ${SYNC_OWNED_YIELD_FIELDS.join(', ')}`);
-
-  if (dryRun) {
-    console.log('\nDry-run complete — no database changes.');
-    return true;
-  }
-
   await db.asset.update({
     where: { slug },
     data: {
       isActive: payload.asset.isActive as boolean,
       dataVersion: payload.asset.dataVersion as number,
-      identity: { update: payload.identity },
-      reserve: { update: payload.reserve },
-      risk: { update: payload.risk },
-      yield: { update: payload.yield },
-      institutional: { update: payload.institutional },
-      compliance: { update: payload.compliance },
-      liquidity: { update: payload.liquidity },
+      identity: { upsert: { create: payload.identity, update: payload.identity } },
+      reserve: { upsert: { create: payload.reserve, update: payload.reserve } },
+      risk: { upsert: { create: payload.risk, update: payload.risk } },
+      yield: { upsert: { create: payload.yield, update: payload.yield } },
+      institutional: { upsert: { create: payload.institutional, update: payload.institutional } },
+      compliance: { upsert: { create: payload.compliance, update: payload.compliance } },
+      liquidity: { upsert: { create: payload.liquidity, update: payload.liquidity } },
+      market: { upsert: { create: payload.market, update: payload.market } },
       blockchain: {
         deleteMany: {},
         create: payload.blockchain,

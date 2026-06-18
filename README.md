@@ -132,9 +132,9 @@ npm run dev
 
 ## Asset source of truth and Prisma workflow
 
-> **Source of truth:** curated asset content lives in `api/src/data/asset/{asset-slug}/` layer files and is loaded into Prisma with the asset file import pipeline. The Prisma seed catalog in `api/prisma/seed.ts` and `api/prisma/seed-helpers.ts` is only a local bootstrap/dev fallback for creating missing rows and API keys.
+> **Source of truth:** curated asset content lives in `data/assets/{asset-slug}/` layer files and is loaded into Prisma with the asset file import pipeline. The Prisma seed catalog in `api/prisma/seed.ts` and `api/prisma/seed-helpers.ts` is only a local bootstrap/dev fallback for creating missing rows and API keys.
 
-Canonical curated asset data lives in `api/src/data/asset/{asset-slug}`. The Prisma database is hydrated from those files after migrations run; the seed step must not be treated as the primary asset catalog.
+Canonical curated asset data lives in `data/assets/{asset-slug}`. The Prisma database is hydrated from those files after migrations run; the seed step must not be treated as the primary asset catalog.
 
 ### Production-safe order
 
@@ -174,9 +174,9 @@ npm run import:asset-files -- --slug=blackrock-buidl --force
 
 - Do not treat `api/prisma/seed-helpers.ts` catalog/minimal seeds as production asset content.
 - Do not use `prisma db push` for production deployments.
-- Re-run `npm run import:all-asset-files -- --force` after updating files under `api/src/data/asset/{asset-slug}/`.
+- Re-run `npm run import:all-asset-files -- --force` after updating files under `data/assets/{asset-slug}/`.
 - Use `npm run import:asset-files -- --slug=<asset-slug> --force` when importing one changed asset.
-- The import pipeline intentionally owns curated identity, reserve, risk, legal/compliance, liquidity, yield, institutional, and blockchain fields while leaving sync-owned market/yield fields to the sync jobs documented by the importer output.
+- The import pipeline intentionally owns curated identity, reserve, risk, legal/compliance, liquidity, market, yield, institutional, and blockchain fields from the JSON layer files. Prisma seed remains only a bootstrap/dev fallback.
 
 ## Production deployment
 
@@ -188,7 +188,7 @@ From the API workspace, use this migration command in deployment or release step
 npm run db:migrate:deploy
 ```
 
-Then hydrate asset data from `api/src/data/asset/{asset-slug}` using the import workflow above before building or starting the API.
+Then hydrate asset data from `data/assets/{asset-slug}` using the import workflow above before building or starting the API.
 
 In hosted environments such as Railway, add `npm run db:migrate:deploy` as a pre-start or release command so each deployment applies pending migrations safely.
 

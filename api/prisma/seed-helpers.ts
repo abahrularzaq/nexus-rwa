@@ -708,7 +708,7 @@ export const MINIMAL_ASSET_SEEDS: MinimalAssetSeed[] = [
   },
 ];
 
-/** Local bootstrap/dev fallback slugs; production asset content comes from api/src/data/asset/{slug}. */
+/** Local bootstrap/dev fallback slugs; production asset content comes from data/assets/{slug}. */
 export const TARGET_ASSET_SLUGS = [
   "ondo-ousg",
   "franklin-benji",

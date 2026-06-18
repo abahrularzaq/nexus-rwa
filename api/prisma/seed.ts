@@ -9,7 +9,7 @@ import {
 
 const prisma = new PrismaClient();
 
-/** Local bootstrap/dev fallback assets. Canonical asset content is imported from api/src/data/asset/{slug}. */
+/** Local bootstrap/dev fallback assets. Canonical asset content is imported from data/assets/{slug}. */
 const RICH_ASSETS: AssetSeed[] = [
   {
     slug: "ondo-ousg",
