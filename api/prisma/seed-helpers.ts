@@ -57,7 +57,7 @@ export type AssetSeed = {
   history: HistoryInput[];
 };
 
-/** Minimal seed — sync service fills TVL, yield, and risk scores. */
+/** Minimal local bootstrap/dev fallback seed — not a production asset source of truth. */
 export type MinimalAssetSeed = {
   slug: string;
   identity: IdentityInput;
@@ -708,7 +708,7 @@ export const MINIMAL_ASSET_SEEDS: MinimalAssetSeed[] = [
   },
 ];
 
-/** Canonical 13 slugs after seed (3 rich + 10 expanded catalog + maple-usdc in rich set). */
+/** Local bootstrap/dev fallback slugs; production asset content comes from api/src/data/asset/{slug}. */
 export const TARGET_ASSET_SLUGS = [
   "ondo-ousg",
   "franklin-benji",
@@ -1005,7 +1005,7 @@ export function expandMinimalSeedToFull(minimal: MinimalAssetSeed): AssetSeed {
   };
 }
 
-/** Full 12-layer seeds derived from MINIMAL_ASSET_SEEDS (sync fills live market/risk). */
+/** Local bootstrap/dev fallback seeds derived from MINIMAL_ASSET_SEEDS. */
 export const EXPANDED_CATALOG_SEEDS: AssetSeed[] =
   MINIMAL_ASSET_SEEDS.map(expandMinimalSeedToFull);
 

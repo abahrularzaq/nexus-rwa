@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
@@ -13,7 +14,7 @@ import {
   validateAssetFileBundle,
 } from '../lib/asset-file-import.js';
 
-type ImportOptions = {
+export type ImportOptions = {
   slug: string;
   dryRun: boolean;
   force: boolean;
@@ -42,7 +43,7 @@ function parseArgs(argv: string[]): ImportOptions | null {
   return { slug, dryRun, force };
 }
 
-async function importAsset(options: ImportOptions): Promise<boolean> {
+export async function importAssetFromFiles(options: ImportOptions): Promise<boolean> {
   const { slug, dryRun, force } = options;
 
   console.log(`\n=== Import: ${slug}${dryRun ? ' (dry-run)' : ''} ===`);
@@ -148,15 +149,17 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const ok = await importAsset(options);
+  const ok = await importAssetFromFiles(options);
   if (!ok) {
     process.exit(1);
   }
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  })
-  .finally(() => db.$disconnect());
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main()
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    })
+    .finally(() => db.$disconnect());
+}
