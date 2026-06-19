@@ -277,7 +277,6 @@ model AssetSource {
   @@index([status])
 }
 
-
 model AssetGrade {
   id                String    @id @default(cuid())
   assetId           String    @unique
@@ -301,16 +300,19 @@ model AssetGrade {
 }
 
 model DataHealthCheck {
-  id            String    @id @default(cuid())
-  assetSlug     String
-  layer         String
-  status        String
-  severity      String
-  reason        String?
-  lastCheckedAt DateTime  @default(now())
-  nextCheckAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  assetSlug      String
+  layer          String
+  status         String
+  severity       String
+  reason         String?
+  resolutionType String?
+  resolutionNote String?
+  evidenceUrl    String?
+  lastCheckedAt  DateTime  @default(now())
+  nextCheckAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([assetSlug])
   @@index([layer])
@@ -321,7 +323,7 @@ model DataHealthCheck {
 }
 
 model SourceHealth {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   assetSlug     String
   layer         String
   field         String?
@@ -331,10 +333,10 @@ model SourceHealth {
   status        String
   httpStatus    Int?
   errorMessage  String?
-  lastCheckedAt DateTime @default(now())
+  lastCheckedAt DateTime  @default(now())
   nextCheckAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([assetSlug])
   @@index([layer])
@@ -363,14 +365,17 @@ model SyncLog {
 }
 
 model ReviewTask {
-  id         String    @id @default(cuid())
-  assetSlug  String
-  layer      String
-  priority   String
-  reason     String
-  status     String    @default("open")
-  createdAt  DateTime  @default(now())
-  resolvedAt DateTime?
+  id             String    @id @default(cuid())
+  assetSlug      String
+  layer          String
+  priority       String
+  reason         String
+  status         String    @default("open")
+  resolutionType String?
+  resolutionNote String?
+  evidenceUrl    String?
+  createdAt      DateTime  @default(now())
+  resolvedAt     DateTime?
 
   @@index([assetSlug])
   @@index([layer])
