@@ -162,6 +162,62 @@ function firstText(...values: unknown[]): string {
   return "—";
 }
 
+function getSuggestedAction(row: Record<string, unknown>, resource: DetailResource): string {
+  const status = rowStatus(row).toLowerCase();
+  const priority = asText(row.priority).toLowerCase();
+  const healthStatus = asText(row.healthStatus).toLowerCase();
+  const reliability = firstText(
+    row.reliability,
+    row.sourceReliability,
+    row.confidence,
+    row.sourceConfidence,
+  ).toLowerCase();
+
+  if (resource === "source-health" && (status === "broken" || status === "error")) {
+    return "Replace source URL or mark deprecated";
+  }
+
+  if (resource === "source-health" && status === "timeout") {
+    return "Retry source check or mark restricted";
+  }
+
+  if (resource === "health-checks" && (status === "stale" || healthStatus === "stale")) {
+    return "Review layer freshness and update metadata";
+  }
+
+  if (
+    resource === "review-tasks" &&
+    (priority === "high" || priority === "critical" || status === "high" || status === "critical")
+  ) {
+    return "Manual review required";
+  }
+
+  if (resource === "sync-logs" && status !== "success") {
+    return "Retry sync job or inspect provider error";
+  }
+
+  if (
+    (resource === "source-health" || resource === "sources") &&
+    (status === "low-confidence" || reliability === "low" || reliability === "low-confidence")
+  ) {
+    return "Replace with primary or higher-confidence source";
+  }
+
+  if (resource === "review-tasks") {
+    return "Review evidence, repair missing/low-confidence source notes, then close after validation.";
+  }
+
+  if (resource === "source-health" || resource === "sources") {
+    return "Open source URL, replace broken/restricted evidence, or mark the source healthy/deprecated.";
+  }
+
+  if (resource === "health-checks") {
+    return "Run import/sync for the stale layer, verify current data, then close the health check.";
+  }
+
+  return "Inspect failed sync log, fix import/source issue, and rerun the sync job.";
+}
+
 function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, row: Record<string, unknown>, index: number): MonitoringWorkItem {
   const id = firstText(row.id, `${resource}-${index}`);
   const assetSlug = firstText(row.assetSlug, row.asset, row.slug);
@@ -182,7 +238,7 @@ function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, ro
       severity,
       status,
       problem: firstText(row.problem, row.reason, row.notes, row.message, row.field),
-      suggestedAction: "Review evidence, repair missing/low-confidence source notes, then close after validation.",
+      suggestedAction: getSuggestedAction(row, resource),
       sourceUrl,
       createdAt,
       lastCheckedAt,
@@ -200,7 +256,7 @@ function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, ro
       severity,
       status,
       problem: firstText(row.problem, row.reason, row.errorMessage, row.message, sourceUrl),
-      suggestedAction: "Open source URL, replace broken/restricted evidence, or mark the source healthy/deprecated.",
+      suggestedAction: getSuggestedAction(row, resource),
       sourceUrl,
       createdAt,
       lastCheckedAt,
@@ -218,7 +274,7 @@ function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, ro
       severity,
       status,
       problem: firstText(row.problem, row.reason, row.message, row.field, row.value),
-      suggestedAction: "Run import/sync for the stale layer, verify current data, then close the health check.",
+      suggestedAction: getSuggestedAction(row, resource),
       sourceUrl,
       createdAt,
       lastCheckedAt,
@@ -235,7 +291,7 @@ function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, ro
     severity,
     status,
     problem: firstText(row.problem, row.errorMessage, row.reason, row.message, row.jobName),
-    suggestedAction: "Inspect failed sync log, fix import/source issue, and rerun the sync job.",
+    suggestedAction: getSuggestedAction(row, resource),
     sourceUrl,
     createdAt,
     lastCheckedAt,
@@ -518,7 +574,7 @@ function IssueTable({
         <span className="text-xs text-[var(--text-secondary)]">{rows.length} rows</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1180px] text-left text-sm">
+        <table className="w-full min-w-[1320px] text-left text-sm">
           <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
             <tr>
               <th className="px-4 py-3 font-medium">Priority</th>
@@ -526,6 +582,7 @@ function IssueTable({
               <th className="px-4 py-3 font-medium">Layer</th>
               <th className="px-4 py-3 font-medium">Issue</th>
               <th className="px-4 py-3 font-medium">Source / Status</th>
+              <th className="px-4 py-3 font-medium">Suggested action</th>
               <th className="px-4 py-3 font-medium">Checked</th>
               <th className="px-4 py-3 font-medium">Action</th>
             </tr>
@@ -533,7 +590,7 @@ function IssueTable({
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-[var(--text-secondary)]">
+                <td colSpan={8} className="px-4 py-6 text-center text-[var(--text-secondary)]">
                   No records match the current filters.
                 </td>
               </tr>
@@ -589,6 +646,9 @@ function IssueTable({
                           </a>
                         ) : null}
                       </div>
+                    </td>
+                    <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]">
+                      <span className="line-clamp-2">{getSuggestedAction(row, resource)}</span>
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
                       {formatDate(row.lastCheckedAt ?? row.checkedAt ?? row.createdAt ?? row.startedAt)}
@@ -741,6 +801,9 @@ function DetailPanel({
   const assetHref = buildAssetHref(row.assetSlug);
   const layerHref = buildLayerHref(row.assetSlug, row.layer);
   const loading = Boolean(id && actionLoadingId === id);
+  const suggestedAction = typeof row.suggestedAction === "string" && row.suggestedAction.trim()
+    ? row.suggestedAction
+    : getSuggestedAction(row, resource);
   const closeNote = JSON.stringify(
     {
       resolvedBy: "admin",
@@ -777,6 +840,10 @@ function DetailPanel({
           <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
             <p className="terminal-label mb-2">Issue detail</p>
             <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{rowIssue(row)}</p>
+          </div>
+          <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
+            <p className="terminal-label mb-2">Suggested action</p>
+            <p className="text-sm leading-relaxed text-white">{suggestedAction}</p>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
