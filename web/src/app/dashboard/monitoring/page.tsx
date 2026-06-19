@@ -62,6 +62,24 @@ type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
 
+type MonitoringWorkType = "review-task" | "source-health" | "health-check" | "sync-log";
+
+type MonitoringWorkItem = {
+  id: string;
+  type: MonitoringWorkType;
+  resource: Exclude<DetailResource, "sources">;
+  assetSlug: string;
+  layer: string;
+  severity: string;
+  status: string;
+  problem: string;
+  suggestedAction: string;
+  sourceUrl: string | null;
+  createdAt?: string;
+  lastCheckedAt?: string;
+  raw: Record<string, unknown>;
+};
+
 type QueueShortcut = {
   label: string;
   count: number;
@@ -129,11 +147,100 @@ function getRowUrl(row: Record<string, unknown>): string | null {
 }
 
 function rowIssue(row: Record<string, unknown>): string {
-  return asText(row.reason ?? row.errorMessage ?? row.message ?? row.notes ?? row.value);
+  return asText(row.problem ?? row.reason ?? row.errorMessage ?? row.message ?? row.notes ?? row.value);
 }
 
 function rowStatus(row: Record<string, unknown>): string {
   return asText(row.status ?? row.priority ?? row.severity);
+}
+
+function firstText(...values: unknown[]): string {
+  for (const value of values) {
+    const text = asText(value);
+    if (text !== "—") return text;
+  }
+  return "—";
+}
+
+function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, row: Record<string, unknown>, index: number): MonitoringWorkItem {
+  const id = firstText(row.id, `${resource}-${index}`);
+  const assetSlug = firstText(row.assetSlug, row.asset, row.slug);
+  const layer = firstText(row.layer, row.layerName, row.provider, row.jobName);
+  const status = rowStatus(row);
+  const severity = firstText(row.severity, row.priority, status);
+  const sourceUrl = getRowUrl(row);
+  const createdAt = typeof row.createdAt === "string" ? row.createdAt : undefined;
+  const lastCheckedAt = typeof (row.lastCheckedAt ?? row.checkedAt ?? row.startedAt) === "string" ? String(row.lastCheckedAt ?? row.checkedAt ?? row.startedAt) : undefined;
+
+  if (resource === "review-tasks") {
+    return {
+      id,
+      type: "review-task",
+      resource,
+      assetSlug,
+      layer,
+      severity,
+      status,
+      problem: firstText(row.problem, row.reason, row.notes, row.message, row.field),
+      suggestedAction: "Review evidence, repair missing/low-confidence source notes, then close after validation.",
+      sourceUrl,
+      createdAt,
+      lastCheckedAt,
+      raw: row,
+    };
+  }
+
+  if (resource === "source-health") {
+    return {
+      id,
+      type: "source-health",
+      resource,
+      assetSlug,
+      layer,
+      severity,
+      status,
+      problem: firstText(row.problem, row.reason, row.errorMessage, row.message, sourceUrl),
+      suggestedAction: "Open source URL, replace broken/restricted evidence, or mark the source healthy/deprecated.",
+      sourceUrl,
+      createdAt,
+      lastCheckedAt,
+      raw: row,
+    };
+  }
+
+  if (resource === "health-checks") {
+    return {
+      id,
+      type: "health-check",
+      resource,
+      assetSlug,
+      layer,
+      severity,
+      status,
+      problem: firstText(row.problem, row.reason, row.message, row.field, row.value),
+      suggestedAction: "Run import/sync for the stale layer, verify current data, then close the health check.",
+      sourceUrl,
+      createdAt,
+      lastCheckedAt,
+      raw: row,
+    };
+  }
+
+  return {
+    id,
+    type: "sync-log",
+    resource,
+    assetSlug,
+    layer,
+    severity,
+    status,
+    problem: firstText(row.problem, row.errorMessage, row.reason, row.message, row.jobName),
+    suggestedAction: "Inspect failed sync log, fix import/source issue, and rerun the sync job.",
+    sourceUrl,
+    createdAt,
+    lastCheckedAt,
+    raw: row,
+  };
 }
 
 function statusClass(status: string): string {
@@ -156,6 +263,16 @@ function priorityScore(row: Record<string, unknown>): number {
   if (text.includes("timeout") || text.includes("needs-sync") || text.includes("medium")) return 1;
   if (text.includes("restricted") || text.includes("missing") || text.includes("low")) return 2;
   return 3;
+}
+
+function unifiedPriorityScore(row: MonitoringWorkItem): number {
+  const text = `${row.status} ${row.severity} ${row.problem}`.toLowerCase();
+  if (row.type === "review-task" && (text.includes("critical") || text.includes("high"))) return 0;
+  if (row.type === "source-health" && (text.includes("broken") || text.includes("error"))) return 1;
+  if (row.type === "health-check" && (text.includes("stale") || text.includes("needs-sync"))) return 2;
+  if (row.type === "sync-log" && (text.includes("failed") || text.includes("error"))) return 3;
+  if (row.type === "review-task" && (text.includes("low-confidence") || text.includes("low confidence") || text.includes("missing"))) return 4;
+  return 5 + priorityScore(row as unknown as Record<string, unknown>);
 }
 
 function getErrorMessage(body: unknown, fallback: string): string {
@@ -532,6 +649,76 @@ function IssueTable({
   );
 }
 
+
+function UnifiedQueueTable({
+  rows,
+  actionLoadingId,
+  onView,
+  onClose,
+  onSourceStatus,
+}: {
+  rows: MonitoringWorkItem[];
+  actionLoadingId: string | null;
+  onView: (row: MonitoringWorkItem) => void;
+  onClose: (row: MonitoringWorkItem) => void;
+  onSourceStatus: (row: MonitoringWorkItem, status: string) => void;
+}) {
+  return (
+    <div className="data-surface overflow-hidden">
+      <div className="flex items-center justify-between border-b border-[var(--border-line)] px-4 py-3">
+        <div>
+          <p className="terminal-label">Unified monitoring queue</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">
+            Default triage sorted by critical/high review tasks, broken/error sources, stale health checks, failed sync logs, then low-confidence/missing sources.
+          </p>
+        </div>
+        <span className="text-xs text-[var(--text-secondary)]">{rows.length} rows</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1220px] text-left text-sm">
+          <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+            <tr>
+              <th className="px-4 py-3 font-medium">Type</th>
+              <th className="px-4 py-3 font-medium">Severity</th>
+              <th className="px-4 py-3 font-medium">Asset</th>
+              <th className="px-4 py-3 font-medium">Layer</th>
+              <th className="px-4 py-3 font-medium">Problem</th>
+              <th className="px-4 py-3 font-medium">Suggested action</th>
+              <th className="px-4 py-3 font-medium">Checked / Created</th>
+              <th className="px-4 py-3 font-medium">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr><td colSpan={8} className="px-4 py-6 text-center text-[var(--text-secondary)]">No unified work items match the current filters.</td></tr>
+            ) : rows.map((row) => {
+              const loading = actionLoadingId === row.id;
+              const assetHref = buildAssetHref(row.assetSlug);
+              const layerHref = buildLayerHref(row.assetSlug, row.layer);
+              return (
+                <tr key={`${row.resource}-${row.id}`} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
+                  <td className="px-4 py-3"><span className="rounded-full border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white">{resourceLabels[row.resource]}</span></td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.severity)}`}>{row.severity}</span></td>
+                  <td className="px-4 py-3 terminal-data text-white">{assetHref ? <a href={assetHref} className="hover:text-[var(--accent-cyan)] hover:underline">{row.assetSlug}</a> : row.assetSlug}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{layerHref ? <a href={layerHref} className="hover:text-[var(--accent-cyan)] hover:underline">{row.layer}</a> : row.layer}</td>
+                  <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.problem}</span>{row.sourceUrl ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex max-w-[260px] items-center gap-1 truncate text-xs text-[var(--accent-cyan)] hover:underline"><span className="truncate">{row.sourceUrl}</span><ExternalLink className="size-3 shrink-0" /></a> : null}</td>
+                  <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.suggestedAction}</span></td>
+                  <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt ?? row.createdAt)}</td>
+                  <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => onView(row)} className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white hover:border-[var(--accent-cyan)]"><Eye className="size-3" />Detail</button>
+                    {row.resource === "source-health" ? <button type="button" onClick={() => onSourceStatus(row, "healthy")} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><CheckCircle2 className="size-3" />Healthy</button> : null}
+                    {(row.resource === "review-tasks" || row.resource === "health-checks") ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Close</button> : null}
+                  </div></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function DetailPanel({
   row,
   resource,
@@ -709,6 +896,8 @@ export default function MonitoringPage() {
   );
   const [data, setData] = useState<MonitoringOverview | null>(null);
   const [detailRows, setDetailRows] = useState<Array<Record<string, unknown>>>([]);
+  const [unifiedRows, setUnifiedRows] = useState<MonitoringWorkItem[]>([]);
+  const [advancedMode, setAdvancedMode] = useState(false);
   const [resource, setResource] = useState<DetailResource>("review-tasks");
   const [assetSlug, setAssetSlug] = useState("");
   const [status, setStatus] = useState("open");
@@ -734,6 +923,17 @@ export default function MonitoringPage() {
     const total = data.overview.totalSourceChecks || 1;
     return `${Math.round((ok / total) * 100)}%`;
   }, [data]);
+
+  const unifiedFilteredRows = useMemo(() => {
+    const layerQuery = layer.trim().toLowerCase();
+    const assetQuery = assetSlug.trim().toLowerCase();
+    const rows = unifiedRows.filter((row) => {
+      const matchesLayer = !layerQuery || row.layer.toLowerCase().includes(layerQuery);
+      const matchesAsset = !assetQuery || row.assetSlug.toLowerCase().includes(assetQuery);
+      return matchesLayer && matchesAsset;
+    });
+    return [...rows].sort((a, b) => unifiedPriorityScore(a) - unifiedPriorityScore(b));
+  }, [assetSlug, layer, unifiedRows]);
 
   const filteredRows = useMemo(() => {
     const layerQuery = layer.trim().toLowerCase();
@@ -785,6 +985,42 @@ export default function MonitoringPage() {
       },
     ];
   }, [data]);
+
+  const loadUnifiedRows = useCallback(async (key: string) => {
+    const requests: Array<[Exclude<DetailResource, "sources">, string]> = [
+      ["review-tasks", "open"],
+      ["source-health", "broken"],
+      ["source-health", "error"],
+      ["source-health", "missing"],
+      ["source-health", "low-confidence"],
+      ["health-checks", "stale"],
+      ["health-checks", "needs-sync"],
+      ["sync-logs", "failed"],
+      ["sync-logs", "error"],
+    ];
+
+    const settled = await Promise.all(
+      requests.map(async ([selectedResource, selectedStatus]) => {
+        const url = buildDetailUrl(selectedResource, "", selectedStatus);
+        const response = await fetch(url, {
+          method: "GET",
+          headers: { Accept: "application/json", "X-Admin-Key": key },
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Array<Record<string, unknown>>>;
+        if (!response.ok || !body.success) {
+          throw new Error(getErrorMessage(body, response.statusText || `Failed to load ${selectedResource}`));
+        }
+        return body.data.map((row, index) => normalizeMonitoringRow(selectedResource, row, index));
+      }),
+    );
+
+    const deduped = new Map<string, MonitoringWorkItem>();
+    for (const row of settled.flat()) {
+      deduped.set(`${row.resource}:${row.id}`, row);
+    }
+    setUnifiedRows(Array.from(deduped.values()));
+  }, []);
 
   const loadDetailRows = useCallback(
     async (
@@ -883,10 +1119,12 @@ export default function MonitoringPage() {
       setData(parsed.data);
       window.localStorage.setItem(ADMIN_KEY_STORAGE, key);
       setSavedKey(true);
-      await loadDetailRows(key);
+      await Promise.all([loadUnifiedRows(key), loadDetailRows(key)]);
+      setAdvancedMode(false);
     } catch (err) {
       setData(null);
       setDetailRows([]);
+      setUnifiedRows([]);
       setSelectedRow(null);
       setError(
         err instanceof TypeError
@@ -898,7 +1136,7 @@ export default function MonitoringPage() {
     } finally {
       setLoading(false);
     }
-  }, [adminKey, loadDetailRows]);
+  }, [adminKey, loadDetailRows, loadUnifiedRows]);
 
   const applyQuickFilter = useCallback(
     async (item: QueueShortcut) => {
@@ -906,6 +1144,7 @@ export default function MonitoringPage() {
       setStatus(item.status);
       setLayer("");
       setSelectedRow(null);
+      setAdvancedMode(true);
       await loadDetailRows(adminKey.trim(), item.resource, assetSlug, item.status);
     },
     [adminKey, assetSlug, loadDetailRows],
@@ -934,7 +1173,8 @@ export default function MonitoringPage() {
         setError("This row has no id, so it cannot be closed from the workbench.");
         return;
       }
-      if (resource !== "review-tasks" && resource !== "health-checks") {
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
         setError("Close action is only available for review tasks and layer health checks.");
         return;
       }
@@ -944,7 +1184,7 @@ export default function MonitoringPage() {
       setNotice(null);
 
       try {
-        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${resource}/${encodeURIComponent(id)}/close`, {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/close`, {
           method: "PATCH",
           headers: {
             Accept: "application/json",
@@ -957,8 +1197,8 @@ export default function MonitoringPage() {
           throw new Error(getErrorMessage(body, response.statusText || "Close action failed"));
         }
 
-        setNotice(resource === "review-tasks" ? "Review task closed." : "Health check marked current.");
-        await loadDetailRows(adminKey.trim());
+        setNotice(targetResource === "review-tasks" ? "Review task closed." : "Health check marked current.");
+        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim())]);
         setSelectedRow(body.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Close action failed");
@@ -966,7 +1206,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, resource],
+    [adminKey, loadDetailRows, loadUnifiedRows, resource],
   );
 
   const handleSourceStatus = useCallback(
@@ -998,7 +1238,7 @@ export default function MonitoringPage() {
         }
 
         setNotice(`Source marked ${nextStatus}.`);
-        await loadDetailRows(adminKey.trim());
+        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim())]);
         setSelectedRow(body.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Source status update failed");
@@ -1006,7 +1246,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows],
+    [adminKey, loadDetailRows, loadUnifiedRows],
   );
 
   useEffect(() => {
@@ -1130,6 +1370,20 @@ export default function MonitoringPage() {
           <AssetSummaryTable rows={data.assetSummaries} />
 
           <section className="data-surface p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="terminal-label">Queue mode</p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">Unified queue is the default flow; dataset filters remain available as advanced mode.</p>
+              </div>
+              <div className="flex rounded-md border border-[var(--border-line)] bg-[#0A0E1A] p-1">
+                <button type="button" onClick={() => setAdvancedMode(false)} className={`rounded px-3 py-1.5 text-xs font-semibold ${!advancedMode ? "bg-[var(--accent-cyan)] text-[#0A0E1A]" : "text-[var(--text-secondary)] hover:text-white"}`}>Unified queue</button>
+                <button type="button" onClick={() => setAdvancedMode(true)} className={`rounded px-3 py-1.5 text-xs font-semibold ${advancedMode ? "bg-[var(--accent-cyan)] text-[#0A0E1A]" : "text-[var(--text-secondary)] hover:text-white"}`}>Advanced filters</button>
+              </div>
+            </div>
+          </section>
+
+          {advancedMode ? (
+          <section className="data-surface p-4">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex items-center gap-2">
                 <Filter className="size-4 text-[var(--accent-cyan)]" />
@@ -1223,10 +1477,11 @@ export default function MonitoringPage() {
               </div>
             </div>
           </section>
+          ) : null}
 
           <DetailPanel
             row={selectedRow}
-            resource={resource}
+            resource={(selectedRow?.resource as DetailResource | undefined) ?? resource}
             onClear={() => setSelectedRow(null)}
             onClose={handleCloseRow}
             onSourceStatus={handleSourceStatus}
@@ -1234,15 +1489,28 @@ export default function MonitoringPage() {
           />
 
           <section className="grid gap-4">
-            <IssueTable
-              title={`${resourceLabels[resource]} work queue`}
-              rows={filteredRows}
-              resource={resource}
-              actionLoadingId={actionLoadingId}
-              onView={setSelectedRow}
-              onClose={handleCloseRow}
-              onSourceStatus={handleSourceStatus}
-            />
+            {advancedMode ? (
+              <IssueTable
+                title={`${resourceLabels[resource]} work queue`}
+                rows={filteredRows}
+                resource={resource}
+                actionLoadingId={actionLoadingId}
+                onView={setSelectedRow}
+                onClose={handleCloseRow}
+                onSourceStatus={handleSourceStatus}
+              />
+            ) : (
+              <UnifiedQueueTable
+                rows={unifiedFilteredRows}
+                actionLoadingId={actionLoadingId}
+                onView={(row) => {
+                  setResource(row.resource);
+                  setSelectedRow(row as unknown as Record<string, unknown>);
+                }}
+                onClose={handleCloseRow}
+                onSourceStatus={handleSourceStatus}
+              />
+            )}
           </section>
 
           <p className="text-xs text-[var(--text-muted)]">Last generated: {formatDate(data.generatedAt)}</p>
