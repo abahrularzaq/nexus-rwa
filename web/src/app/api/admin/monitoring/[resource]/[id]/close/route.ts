@@ -45,12 +45,15 @@ export async function PATCH(
   const upstreamUrl = `${apiBase()}/v1/admin/monitoring/${resource}/${encodeURIComponent(id)}/close`;
 
   try {
+    const requestBody = await request.text();
     const upstream = await fetch(upstreamUrl, {
       method: "PATCH",
       headers: {
         Accept: "application/json",
+        "Content-Type": request.headers.get("content-type") ?? "application/json",
         "X-Admin-Key": adminKey,
       },
+      body: requestBody || undefined,
       cache: "no-store",
     });
 

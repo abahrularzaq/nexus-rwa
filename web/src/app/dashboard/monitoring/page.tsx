@@ -64,6 +64,20 @@ type ApiResponse<T> =
 
 type MonitoringWorkType = "review-task" | "source-health" | "health-check" | "sync-log";
 
+type ResolutionType =
+  | "fixed_source"
+  | "verified_manual"
+  | "false_positive"
+  | "accepted_risk"
+  | "deferred"
+  | "replaced_provider";
+
+type ResolutionMetadata = {
+  resolutionType: ResolutionType;
+  resolutionNote: string;
+  evidenceUrl?: string;
+};
+
 type MonitoringWorkItem = {
   id: string;
   type: MonitoringWorkType;
@@ -95,6 +109,15 @@ const resourceLabels: Record<DetailResource, string> = {
   "sync-logs": "Sync logs",
   sources: "Source library",
 };
+
+const resolutionTypeOptions: Array<{ value: ResolutionType; label: string }> = [
+  { value: "fixed_source", label: "Fixed source" },
+  { value: "verified_manual", label: "Verified manual" },
+  { value: "false_positive", label: "False positive" },
+  { value: "accepted_risk", label: "Accepted risk" },
+  { value: "deferred", label: "Deferred" },
+  { value: "replaced_provider", label: "Replaced provider" },
+];
 
 const csvColumns = [
   "id",
@@ -564,7 +587,7 @@ function IssueTable({
   resource: DetailResource;
   actionLoadingId: string | null;
   onView: (row: Record<string, unknown>) => void;
-  onClose: (row: Record<string, unknown>) => void;
+  onClose: (row: Record<string, unknown>, metadata?: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
 }) {
   return (
@@ -720,7 +743,7 @@ function UnifiedQueueTable({
   rows: MonitoringWorkItem[];
   actionLoadingId: string | null;
   onView: (row: MonitoringWorkItem) => void;
-  onClose: (row: MonitoringWorkItem) => void;
+  onClose: (row: MonitoringWorkItem, metadata?: ResolutionMetadata) => void;
   onSourceStatus: (row: MonitoringWorkItem, status: string) => void;
 }) {
   return (
@@ -779,7 +802,7 @@ function UnifiedQueueTable({
   );
 }
 
-function DetailPanel({
+function DetailPanelContent({
   row,
   resource,
   onClear,
@@ -787,15 +810,13 @@ function DetailPanel({
   onSourceStatus,
   actionLoadingId,
 }: {
-  row: Record<string, unknown> | null;
+  row: Record<string, unknown>;
   resource: DetailResource;
   onClear: () => void;
-  onClose: (row: Record<string, unknown>) => void;
+  onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   actionLoadingId: string | null;
 }) {
-  if (!row) return null;
-
   const id = getRowId(row);
   const url = getRowUrl(row);
   const assetHref = buildAssetHref(row.assetSlug);
@@ -804,6 +825,25 @@ function DetailPanel({
   const suggestedAction = typeof row.suggestedAction === "string" && row.suggestedAction.trim()
     ? row.suggestedAction
     : getSuggestedAction(row, resource);
+  const [resolutionType, setResolutionType] = useState<ResolutionType>(
+    typeof row.resolutionType === "string" && resolutionTypeOptions.some((option) => option.value === row.resolutionType)
+      ? (row.resolutionType as ResolutionType)
+      : "fixed_source",
+  );
+  const [resolutionNote, setResolutionNote] = useState(
+    typeof row.resolutionNote === "string" && row.resolutionNote.trim()
+      ? row.resolutionNote
+      : suggestedAction,
+  );
+  const [evidenceUrl, setEvidenceUrl] = useState(
+    typeof row.evidenceUrl === "string" && row.evidenceUrl.trim() ? row.evidenceUrl : url ?? "",
+  );
+
+  const closeMetadata = {
+    resolutionType,
+    resolutionNote,
+    ...(evidenceUrl.trim() ? { evidenceUrl: evidenceUrl.trim() } : {}),
+  };
   const closeNote = JSON.stringify(
     {
       resolvedBy: "admin",
@@ -813,6 +853,7 @@ function DetailPanel({
       layer: asText(row.layer),
       issue: rowIssue(row),
       sourceUrl: url,
+      ...closeMetadata,
     },
     null,
     2,
@@ -857,6 +898,43 @@ function DetailPanel({
             <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
               <p className="terminal-label mb-2">Field</p>
               <p className="terminal-data text-white">{asText(row.field ?? row.provider ?? "—")}</p>
+            </div>
+          </div>
+          <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
+            <p className="terminal-label mb-3">Resolution metadata</p>
+            <div className="grid gap-3">
+              <label className="grid gap-2 text-xs text-[var(--text-secondary)]">
+                <span className="terminal-label">Resolution type</span>
+                <select
+                  value={resolutionType}
+                  onChange={(event) => setResolutionType(event.target.value as ResolutionType)}
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                >
+                  {resolutionTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-xs text-[var(--text-secondary)]">
+                <span className="terminal-label">Resolution note</span>
+                <textarea
+                  value={resolutionNote}
+                  onChange={(event) => setResolutionNote(event.target.value)}
+                  rows={4}
+                  placeholder="Explain what was verified, changed, or accepted before closing."
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+              </label>
+              <label className="grid gap-2 text-xs text-[var(--text-secondary)]">
+                <span className="terminal-label">Evidence URL (optional)</span>
+                <input
+                  value={evidenceUrl}
+                  onChange={(event) => setEvidenceUrl(event.target.value)}
+                  type="url"
+                  placeholder="https://..."
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+              </label>
             </div>
           </div>
           <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
@@ -937,8 +1015,8 @@ function DetailPanel({
             {(resource === "review-tasks" || resource === "health-checks") && id ? (
               <button
                 type="button"
-                onClick={() => onClose(row)}
-                disabled={loading}
+                onClick={() => onClose(row, closeMetadata)}
+                disabled={loading || !resolutionNote.trim()}
                 className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60"
               >
                 Close after validation
@@ -952,6 +1030,19 @@ function DetailPanel({
       </div>
     </section>
   );
+}
+
+function DetailPanel(props: {
+  row: Record<string, unknown> | null;
+  resource: DetailResource;
+  onClear: () => void;
+  onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onSourceStatus: (row: Record<string, unknown>, status: string) => void;
+  actionLoadingId: string | null;
+}) {
+  if (!props.row) return null;
+
+  return <DetailPanelContent key={`${props.resource}-${getRowId(props.row) ?? "unknown"}`} {...props} row={props.row} />;
 }
 
 export default function MonitoringPage() {
@@ -1234,7 +1325,7 @@ export default function MonitoringPage() {
   }, [assetSlug, filteredRows, layer, resource, status]);
 
   const handleCloseRow = useCallback(
-    async (row: Record<string, unknown>) => {
+    async (row: Record<string, unknown>, metadata?: ResolutionMetadata) => {
       const id = getRowId(row);
       if (!id) {
         setError("This row has no id, so it cannot be closed from the workbench.");
@@ -1255,8 +1346,14 @@ export default function MonitoringPage() {
           method: "PATCH",
           headers: {
             Accept: "application/json",
+            "Content-Type": "application/json",
             "X-Admin-Key": adminKey.trim(),
           },
+          body: JSON.stringify({
+            resolutionType: metadata?.resolutionType ?? "verified_manual",
+            resolutionNote: metadata?.resolutionNote ?? getSuggestedAction(row, targetResource),
+            ...(metadata?.evidenceUrl ? { evidenceUrl: metadata.evidenceUrl } : {}),
+          }),
           cache: "no-store",
         });
         const body = (await response.json()) as ApiResponse<Record<string, unknown>>;

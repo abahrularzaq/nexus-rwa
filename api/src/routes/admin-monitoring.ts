@@ -15,11 +15,18 @@ const ROOT = process.cwd();
 const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
 const MANUAL_REQUIRED_CHECKED_BY = new Set(['manual_required', 'manual-review-required']);
 const SOURCE_STATUS_OPTIONS = new Set([...SOURCE_VERIFICATION_STATUSES, 'healthy', 'redirected', 'restricted', 'timeout', 'error', 'broken', 'deprecated']);
+const RESOLUTION_TYPES = new Set(['fixed_source', 'verified_manual', 'false_positive', 'accepted_risk', 'deferred', 'replaced_provider']);
 
 type QueryOptions = {
   limit: number;
   assetSlug?: string;
   status?: string;
+};
+
+type ResolutionMetadata = {
+  resolutionType: string;
+  resolutionNote: string;
+  evidenceUrl?: string | null;
 };
 
 type SourceHealthRow = {
@@ -113,6 +120,41 @@ function uniqueLatestSourceRows<T extends SourceHealthRow>(rows: T[]): T[] {
   }
 
   return [...unique.values()];
+}
+
+
+async function parseResolutionMetadata(c: any): Promise<ResolutionMetadata | { error: string }> {
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const resolutionType = typeof body.resolutionType === 'string' ? body.resolutionType.trim() : '';
+  const resolutionNote = typeof body.resolutionNote === 'string' ? body.resolutionNote.trim() : '';
+  const evidenceUrl = typeof body.evidenceUrl === 'string' ? body.evidenceUrl.trim() : '';
+
+  if (!RESOLUTION_TYPES.has(resolutionType)) {
+    return { error: `Invalid resolutionType. Use one of: ${[...RESOLUTION_TYPES].join(', ')}` };
+  }
+
+  if (!resolutionNote) {
+    return { error: 'resolutionNote is required to close monitoring work.' };
+  }
+
+  if (evidenceUrl && !/^https?:\/\//i.test(evidenceUrl)) {
+    return { error: 'evidenceUrl must start with http:// or https:// when provided.' };
+  }
+
+  return { resolutionType, resolutionNote, evidenceUrl: evidenceUrl || null };
+}
+
+function validationError(c: any, message: string) {
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: ERROR_CODES.VALIDATION_ERROR,
+        message,
+      },
+    },
+    400,
+  );
 }
 
 function internalError(c: any, err: unknown, fallback: string) {
@@ -313,12 +355,21 @@ adminMonitoringRouter.get('/sync-logs', async (c) => {
 adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
   try {
     const id = c.req.param('id');
+    const metadata = await parseResolutionMetadata(c);
+    if ('error' in metadata) return validationError(c, metadata.error);
+
     const existing = await db.reviewTask.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Review task not found: ${id}`);
 
     const task = await db.reviewTask.update({
       where: { id },
-      data: { status: 'closed', resolvedAt: new Date() },
+      data: {
+        status: 'closed',
+        resolvedAt: new Date(),
+        resolutionType: metadata.resolutionType,
+        resolutionNote: metadata.resolutionNote,
+        evidenceUrl: metadata.evidenceUrl,
+      },
     });
 
     return c.json({ success: true, data: task });
@@ -330,6 +381,9 @@ adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
 adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
   try {
     const id = c.req.param('id');
+    const metadata = await parseResolutionMetadata(c);
+    if ('error' in metadata) return validationError(c, metadata.error);
+
     const existing = await db.dataHealthCheck.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Health check not found: ${id}`);
 
@@ -338,8 +392,11 @@ adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
       data: {
         status: 'current',
         severity: 'low',
-        reason: 'Resolved from admin monitoring workbench',
+        reason: metadata.resolutionNote,
         lastCheckedAt: new Date(),
+        resolutionType: metadata.resolutionType,
+        resolutionNote: metadata.resolutionNote,
+        evidenceUrl: metadata.evidenceUrl,
       },
     });
 
