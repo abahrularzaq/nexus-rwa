@@ -5,11 +5,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://etherscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "gnosis",
@@ -17,11 +17,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://gnosisscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "polygon",
@@ -29,11 +29,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://polygonscan.com/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "arbitrum",
@@ -41,11 +41,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://arbiscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "avalanche",
@@ -53,11 +53,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://snowtrace.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "fantom",
@@ -65,11 +65,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://ftmscan.com/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "bsc",
@@ -77,11 +77,11 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://bscscan.com/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   },
   {
     "chain": "base",
@@ -89,10 +89,10 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": null,
+    "hasWhitelist": false,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://basescan.org/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": null
+    "isVerified": false
   }
 ]
