@@ -72,7 +72,6 @@ type SessionResponse = {
   };
 };
 
-const ADMIN_KEY_STORAGE = "nexus_admin_key";
 const SOURCE_LIBRARY_URL = "/api/admin/monitoring/sources?limit=250";
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").replace(/\/$/, "");
 const DEFAULT_UNLOCK_SLUG = "ondo-ousg";
@@ -325,19 +324,13 @@ export default function SourcesPage() {
   const isProAccess = isPaidTier(accessTier);
 
   const loadSources = useCallback(async () => {
-    const adminKey = window.localStorage.getItem(ADMIN_KEY_STORAGE)?.trim();
-    if (!adminKey) {
-      setError("Admin key belum tersimpan. Buka Monitoring sekali atau simpan admin key agar Sources bisa membaca data database.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch(SOURCE_LIBRARY_URL, {
         method: "GET",
-        headers: { Accept: "application/json", "X-Admin-Key": adminKey },
+        headers: { Accept: "application/json" },
         cache: "no-store",
       });
       const body = (await response.json()) as ApiResponse<Array<Record<string, unknown>>>;

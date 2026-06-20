@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveAdminKey } from "@/lib/admin-session";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ function apiBase(): string {
 }
 
 export async function GET(request: Request) {
-  const adminKey = request.headers.get("x-admin-key")?.trim();
+  const adminKey = resolveAdminKey(request);
   const upstreamUrl = `${apiBase()}/v1/admin/monitoring/overview`;
 
   if (!adminKey) {
@@ -17,8 +18,8 @@ export async function GET(request: Request) {
       {
         success: false,
         error: {
-          code: "MISSING_ADMIN_KEY",
-          message: "Missing X-Admin-Key header",
+          code: "MISSING_ADMIN_SESSION",
+          message: "Start an admin session before using admin endpoints",
         },
       },
       { status: 401 },

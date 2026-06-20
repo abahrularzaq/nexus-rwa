@@ -198,7 +198,7 @@ async function parseSourceRepairBody(c: any): Promise<SourceRepairBody | { error
 }
 
 function adminActor(c: any): string {
-  return c.req.header('x-admin-key') ? 'admin' : 'unknown';
+  return c.get?.('adminActor') ?? 'admin';
 }
 
 async function createMonitoringRepairLog(tx: any, input: MonitoringRepairLogInput) {
@@ -448,7 +448,7 @@ adminMonitoringRouter.patch('/sources/:id', async (c) => {
     const repair = await parseSourceRepairBody(c);
     if ('error' in repair) return validationError(c, repair.error);
 
-    const result = await repairAssetSource(id, repair, c.req.header('x-admin-key') ? 'admin' : undefined);
+    const result = await repairAssetSource(id, repair, adminActor(c));
     if (!result) return notFound(c, `Source evidence row not found: ${id}`);
 
     return c.json({ success: true, data: result });
@@ -477,7 +477,7 @@ adminMonitoringRouter.patch('/source-health/:id/repair', async (c) => {
     });
     if (!source) return notFound(c, `No asset source matches source health row: ${id}`);
 
-    const result = await repairAssetSource(source.id, repair, c.req.header('x-admin-key') ? 'admin' : undefined);
+    const result = await repairAssetSource(source.id, repair, adminActor(c));
     if (!result) return notFound(c, `Source evidence row not found: ${source.id}`);
 
     return c.json({ success: true, data: result });

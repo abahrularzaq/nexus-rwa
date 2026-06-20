@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveAdminKey } from "@/lib/admin-session";
 
 export const dynamic = "force-dynamic";
 
@@ -14,14 +15,14 @@ export async function PATCH(
   { params }: { params: Promise<{ resource: string; id: string }> },
 ) {
   const { resource, id } = await params;
-  const adminKey = request.headers.get("x-admin-key")?.trim();
+  const adminKey = resolveAdminKey(request);
 
   if (!ALLOWED_RESOURCES.has(resource)) {
     return NextResponse.json({ success: false, error: { code: "INVALID_MONITORING_RESOURCE", message: `Unsupported repair action for monitoring resource: ${resource}` } }, { status: 400 });
   }
 
   if (!adminKey) {
-    return NextResponse.json({ success: false, error: { code: "MISSING_ADMIN_KEY", message: "Missing X-Admin-Key header" } }, { status: 401 });
+    return NextResponse.json({ success: false, error: { code: "MISSING_ADMIN_SESSION", message: "Start an admin session before using admin endpoints" } }, { status: 401 });
   }
 
   const body = await request.text();
