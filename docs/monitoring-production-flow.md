@@ -21,6 +21,7 @@ Monitoring production dipakai untuk memastikan dataset Nexus RWA tetap:
 | `monitoring.json` | Konfigurasi monitoring per asset: jadwal refresh, alert rules, source health checks, blocker, warning, dan field yang dipantau |
 | Prisma monitoring tables | Menyimpan health checks, source health, review tasks, sync logs |
 | `npm run validate:normalized-assets --workspace=api -- --slug={asset-slug}` | Mengecek struktur JSON normalized di `data/assets/{asset-slug}` |
+| `npm run validate:asset-production --workspace=api -- --slug={asset-slug}` | Strict production gate: mewajibkan `grade-baseline.json`, `monitoring.json`, field monitoring utama valid, dan evidence sumber untuk layer penting |
 | `npm run check:freshness --workspace=api` | Mengecek apakah layer data sudah basi |
 | `npm run check:sources --workspace=api` | Mengecek URL sumber data |
 | `npm run report:monitoring --workspace=api` | Membaca ringkasan monitoring di terminal |
@@ -139,13 +140,20 @@ Flow operasional:
 
 ```bash
 npm run validate:normalized-assets --workspace=api -- --slug={asset-slug}
+npm run validate:asset-production --workspace=api -- --slug={asset-slug}
 npm run import:asset --workspace=api -- {asset-slug}
 npm run check:freshness --workspace=api
 npm run check:sources --workspace=api
 npm run report:monitoring --workspace=api
 ```
 
-Untuk asset yang baru pertama kali ditambahkan, `monitoring.json` bisa dibuat manual dulu dari template. Setelah format stabil, buat generator script agar file ini bisa dibuat otomatis untuk semua asset.
+Untuk asset yang baru pertama kali ditambahkan, `monitoring.json` bisa dibuat manual dulu dari template. Setelah format stabil, buat generator script agar file ini bisa dibuat otomatis untuk semua asset. Asset **belum boleh dianggap production-ready** sebelum strict validation ini lolos:
+
+```bash
+npm run validate:asset-production --workspace=api -- --slug={asset-slug}
+```
+
+Strict validation sama dengan `validate:normalized-assets -- --strict-monitoring`: `grade-baseline.json` dan `monitoring.json` wajib ada, `monitoringStatus`, `monitoringPriority`, `reviewSchedule`, dan `freshnessPolicy` harus valid, dan `sources.json` harus punya evidence untuk layer penting (`identity`, `blockchain`, `reserve`, `institutional`, `compliance`, `market`, `liquidity`, `risk`).
 
 ## Goldfinch GFI sebagai Template Pertama
 
@@ -254,6 +262,7 @@ Jalankan:
 
 ```bash
 npm run validate:normalized-assets --workspace=api -- --slug={asset-slug}
+npm run validate:asset-production --workspace=api -- --slug={asset-slug}
 npm run check:freshness --workspace=api
 npm run check:sources --workspace=api
 npm run report:monitoring --workspace=api
@@ -308,8 +317,8 @@ Pastikan:
 | Mingguan | `check:sources` | Deteksi URL broken/redirect/error |
 | Bulanan | Review `risk.json` dan `monitoring.json` | Pastikan risk score, blocker, warning, dan next actions tetap relevan |
 | 90 hari | Review legal/reserve/compliance/institutional | Cek legal docs, regulator, custodian, audit, reserve evidence |
-| Setelah import aset | `validate:normalized-assets` + `check:freshness` + `check:sources` + create `grade-baseline.json` + create `monitoring.json` | Validasi kualitas data baru |
-| Sebelum release besar | `report:monitoring` | Snapshot status data sebelum deploy |
+| Setelah import aset | `validate:normalized-assets` + create `grade-baseline.json` + create `monitoring.json` + `validate:asset-production -- --slug={asset-slug}` + `check:freshness` + `check:sources` | Validasi kualitas data baru sebelum production-ready |
+| Sebelum release besar | `validate:asset-production -- --slug={asset-slug}` untuk setiap asset yang akan dipromosikan + `report:monitoring` | Strict gate production-ready dan snapshot status data sebelum deploy |
 
 Untuk tahap MVP, jalankan manual dulu. Setelah stabil, pindahkan ke GitHub Actions atau cron server.
 
@@ -320,6 +329,6 @@ Target production berikutnya:
 1. Buat workflow terjadwal `monitoring.yml`.
 2. Jalankan `check:freshness` harian.
 3. Jalankan `check:sources` mingguan.
-4. Tambahkan validasi keberadaan `monitoring.json` untuk asset yang sudah punya `grade-baseline.json`.
+4. Jalankan `npm run validate:asset-production --workspace=api -- --slug={asset-slug}` sebagai release checklist/CI gate untuk setiap asset yang dipromosikan ke production.
 5. Simpan log workflow sebagai audit trail.
 6. Nanti tambahkan notifikasi jika `critical > 0`, `broken sources > 0`, atau asset high-priority melewati `nextManualReview`.

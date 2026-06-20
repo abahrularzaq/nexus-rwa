@@ -12,7 +12,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "validate:openapi": "node scripts/validate-openapi.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test:backend": "npm test --workspace=api"
+    "test:backend": "npm test --workspace=api",
+    "validate:asset-production": "npm run validate:asset-production --workspace=api --"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
