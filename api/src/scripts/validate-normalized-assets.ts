@@ -289,7 +289,9 @@ function validateReserve(json: unknown, issues: ValidationIssue[], assetSlug: st
     return;
   }
 
-  requireString(json, issues, assetSlug, file, 'backingType');
+  if (json.backingType !== null && json.backingType !== undefined && !isString(json.backingType)) {
+    addIssue(issues, 'error', assetSlug, file, 'backingType must be a non-empty string or null', 'backingType');
+  }
   requireBoolean(json, issues, assetSlug, file, 'hasProofOfReserves');
 
   if (!isNumberOrNull(json.collateralizationRatio)) {
@@ -360,7 +362,7 @@ function validateBlockchain(json: unknown, issues: ValidationIssue[], assetSlug:
   }
 
   if (json.length === 0) {
-    addIssue(issues, 'error', assetSlug, file, 'blockchain.json must contain at least one chain entry');
+    addIssue(issues, 'warning', assetSlug, file, 'blockchain.json has no chain entries');
   }
 
   json.forEach((item, index) => {
@@ -475,10 +477,14 @@ function validateGradeBaseline(json: unknown, issues: ValidationIssue[], assetSl
     requireString(json, issues, assetSlug, file, field);
   }
 
-  for (const field of ['score', 'completenessScore', 'sourceScore', 'legalScore', 'reserveScore', 'liquidityScore', 'riskScore'] as const) {
+  for (const field of ['score', 'completenessScore', 'sourceScore', 'legalScore', 'liquidityScore', 'riskScore'] as const) {
     if (typeof json[field] !== 'number') {
       addIssue(issues, 'error', assetSlug, file, `${field} must be a number`, field);
     }
+  }
+
+  if (!isNumberOrNull(json.reserveScore)) {
+    addIssue(issues, 'error', assetSlug, file, 'reserveScore must be a number or null', 'reserveScore');
   }
 
   for (const field of ['blockers', 'warnings', 'nextActions'] as const) {
