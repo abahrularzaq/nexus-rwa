@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ClipboardCheck,
@@ -60,6 +60,11 @@ type MonitoringOverview = {
 type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
+
+type AdminSessionStatus = {
+  active: boolean;
+  expiresAt?: string;
+};
 
 type ActionableDetailResource = "health-checks" | "source-health" | "review-tasks" | "sync-logs";
 
@@ -421,6 +426,42 @@ function getErrorMessage(body: unknown, fallback: string): string {
     }
   }
   return fallback;
+}
+
+function getErrorCode(body: unknown): string | null {
+  if (
+    body &&
+    typeof body === "object" &&
+    "success" in body &&
+    (body as { success?: unknown }).success === false &&
+    "error" in body
+  ) {
+    const error = (body as { error?: unknown }).error;
+    if (error && typeof error === "object" && "code" in error) {
+      return String((error as { code?: unknown }).code ?? "") || null;
+    }
+  }
+  return null;
+}
+
+class MonitoringRequestError extends Error {
+  status: number;
+  code: string | null;
+
+  constructor(message: string, status: number, code: string | null) {
+    super(message);
+    this.name = "MonitoringRequestError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+function isMissingAdminSessionError(error: unknown): boolean {
+  return (
+    error instanceof MonitoringRequestError &&
+    error.status === 401 &&
+    error.code === "MISSING_ADMIN_SESSION"
+  );
 }
 
 function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string): string {
@@ -1306,7 +1347,11 @@ export default function MonitoringPage() {
     });
     const body = (await response.json()) as ApiResponse<MonitoringRepairLog[]>;
     if (!response.ok || !body.success) {
-      throw new Error(getErrorMessage(body, response.statusText || "Failed to load repair logs"));
+      throw new MonitoringRequestError(
+        getErrorMessage(body, response.statusText || "Failed to load repair logs"),
+        response.status,
+        getErrorCode(body),
+      );
     }
     setRepairLogs(body.data);
   }, []);
@@ -1336,7 +1381,11 @@ export default function MonitoringPage() {
         });
         const body = (await response.json()) as ApiResponse<Array<Record<string, unknown>>>;
         if (!response.ok || !body.success) {
-          throw new Error(getErrorMessage(body, response.statusText || `Failed to load ${selectedResource}`));
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || `Failed to load ${selectedResource}`),
+            response.status,
+            getErrorCode(body),
+          );
         }
         return body.data.map((row, index) => normalizeMonitoringRow(selectedResource, row, index));
       }),
@@ -1370,9 +1419,11 @@ export default function MonitoringPage() {
 
         const body = (await response.json()) as ApiResponse<Array<Record<string, unknown>>>;
         if (!response.ok || !body.success) {
-          throw new Error(
+          throw new MonitoringRequestError(
             `${getErrorMessage(body, response.statusText || "Monitoring detail request failed")} ` +
               `(HTTP ${response.status}, proxy: ${url})`,
+            response.status,
+            getErrorCode(body),
           );
         }
 
@@ -1425,9 +1476,11 @@ export default function MonitoringPage() {
       }
 
       if (!response.ok) {
-        throw new Error(
+        throw new MonitoringRequestError(
           `${getErrorMessage(body, response.statusText || "Monitoring request failed")} ` +
             `(HTTP ${response.status}, proxy: ${MONITORING_OVERVIEW_PROXY_URL}, upstream API: ${apiBase()})`,
+          response.status,
+          getErrorCode(body),
         );
       }
 
@@ -1441,7 +1494,11 @@ export default function MonitoringPage() {
 
       const parsed = body as ApiResponse<MonitoringOverview>;
       if (!parsed.success) {
-        throw new Error(`${parsed.error.message} (proxy: ${MONITORING_OVERVIEW_PROXY_URL})`);
+        throw new MonitoringRequestError(
+          `${parsed.error.message} (proxy: ${MONITORING_OVERVIEW_PROXY_URL})`,
+          response.status,
+          parsed.error.code,
+        );
       }
 
       setData(parsed.data);
@@ -1449,7 +1506,9 @@ export default function MonitoringPage() {
       await Promise.all([loadUnifiedRows(), loadDetailRows(), loadRepairLogs()]);
       setAdvancedMode(false);
     } catch (err) {
-      resetMonitoringState();
+      if (isMissingAdminSessionError(err)) {
+        resetMonitoringState();
+      }
       setError(
         err instanceof TypeError
           ? `Network error while calling monitoring proxy. Check that the Next.js web server is running.`
@@ -1523,6 +1582,41 @@ export default function MonitoringPage() {
     }
   }, [resetMonitoringState]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAdminSession() {
+      try {
+        const response = await fetch("/api/admin/session", {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<AdminSessionStatus>;
+        if (cancelled) return;
+
+        if (!response.ok || !body.success || !body.data.active) {
+          resetMonitoringState();
+          return;
+        }
+
+        setAdminKey("");
+        setSessionActive(true);
+        await loadMonitoringData();
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to check admin session");
+        }
+      }
+    }
+
+    void checkAdminSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const applyQuickFilter = useCallback(
     async (item: QueueShortcut) => {
       setResource(item.resource);
@@ -1530,9 +1624,16 @@ export default function MonitoringPage() {
       setLayer("");
       setSelectedRow(null);
       setAdvancedMode(true);
-      await loadDetailRows(item.resource, assetSlug, item.status);
+      try {
+        await loadDetailRows(item.resource, assetSlug, item.status);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
+        setError(err instanceof Error ? err.message : "Failed to load monitoring rows");
+      }
     },
-    [assetSlug, loadDetailRows],
+    [assetSlug, loadDetailRows, resetMonitoringState],
   );
 
   const handleExportCsv = useCallback(() => {
@@ -1584,7 +1685,11 @@ export default function MonitoringPage() {
         });
         const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
         if (!response.ok || !body.success) {
-          throw new Error(getErrorMessage(body, response.statusText || "Close action failed"));
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Close action failed"),
+            response.status,
+            getErrorCode(body),
+          );
         }
 
         markActionStatus(targetResource, id, "pending verification");
@@ -1592,12 +1697,15 @@ export default function MonitoringPage() {
         setSelectedRow({ ...body.data, resource: targetResource });
         setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} updated. Pending verification.`);
       } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
         setError(err instanceof Error ? err.message : "Close action failed");
       } finally {
         setActionLoadingId(null);
       }
     },
-    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resource],
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
   );
 
   const handleSourceRepair = useCallback(
@@ -1623,19 +1731,28 @@ export default function MonitoringPage() {
           cache: "no-store",
         });
         const body = (await response.json()) as ApiResponse<{ source: Record<string, unknown>; audit: Record<string, unknown> }>;
-        if (!response.ok || !body.success) throw new Error(getErrorMessage(body, response.statusText || "Source repair failed"));
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Source repair failed"),
+            response.status,
+            getErrorCode(body),
+          );
+        }
 
         markActionStatus(resource, id, "pending verification");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data.source, resource, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
         setNotice("Source item updated. Pending verification.");
       } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
         setError(err instanceof Error ? err.message : "Source repair failed");
       } finally {
         setActionLoadingId(null);
       }
     },
-    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resource],
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
   );
 
   const handleSourceStatus = useCallback(
@@ -1662,7 +1779,11 @@ export default function MonitoringPage() {
         });
         const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
         if (!response.ok || !body.success) {
-          throw new Error(getErrorMessage(body, response.statusText || "Source status update failed"));
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Source status update failed"),
+            response.status,
+            getErrorCode(body),
+          );
         }
 
         markActionStatus("source-health", id, "pending verification");
@@ -1670,12 +1791,15 @@ export default function MonitoringPage() {
         setSelectedRow({ ...body.data, resource: "source-health" });
         setNotice(`Source item updated to ${nextStatus}. Pending verification.`);
       } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
         setError(err instanceof Error ? err.message : "Source status update failed");
       } finally {
         setActionLoadingId(null);
       }
     },
-    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus],
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState],
   );
 
 
@@ -1901,7 +2025,14 @@ export default function MonitoringPage() {
               <div className="flex items-end gap-2">
                 <button
                   type="button"
-                  onClick={() => void loadDetailRows()}
+                  onClick={() => {
+                    void loadDetailRows().catch((err) => {
+                      if (isMissingAdminSessionError(err)) {
+                        resetMonitoringState();
+                      }
+                      setError(err instanceof Error ? err.message : "Failed to load monitoring rows");
+                    });
+                  }}
                   disabled={detailLoading || !sessionActive}
                   className="flex-1 rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >

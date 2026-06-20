@@ -1,4 +1,4 @@
-import { createAdminSession, destroyAdminSession } from "@/lib/admin-session";
+import { createAdminSession, destroyAdminSession, getAdminSessionStatus } from "@/lib/admin-session";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +7,10 @@ export async function POST(request: Request) {
   return createAdminSession(typeof body.adminKey === "string" ? body.adminKey : "");
 }
 
-export async function DELETE(request: Request) {
-  return destroyAdminSession(request);
+export async function GET(request: Request) {
+  return getAdminSessionStatus(request);
+}
+
+export async function DELETE() {
+  return destroyAdminSession();
 }
