@@ -1,19 +1,30 @@
-const items: { sym: string; yield: string; chg: string; up: boolean | null }[] = [
-  { sym: "ONDO-OUSG", yield: "5.20%", chg: "-1.31%", up: false },
-  { sym: "BENJI", yield: "4.85%", chg: "+0.42%", up: true },
-  { sym: "MAPLE-MUSDC", yield: "8.91%", chg: "-1.80%", up: false },
-  { sym: "ONDO-USDY", yield: "5.10%", chg: "syncing", up: null },
-  { sym: "SUPERSTATE-USTB", yield: "4.92%", chg: "syncing", up: null },
-  { sym: "BACKED-BC3M", yield: "5.00%", chg: "syncing", up: null },
-  { sym: "CENTRIFUGE-CFG", yield: "8.50%", chg: "syncing", up: null },
-  { sym: "GOLDFINCH-GFI", yield: "10.20%", chg: "syncing", up: null },
-];
+"use client";
+
+import { useAssetSummaries } from "@/hooks/use-asset-summaries";
+import { formatYield } from "@/lib/shared";
+
+function formatChange(value: number): string {
+  if (!Number.isFinite(value)) return "unavailable";
+  return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
+}
 
 export function Ticker() {
+  const { data: assets = [], isLoading, isError } = useAssetSummaries();
+  const items = assets.slice(0, 12).map((asset) => ({
+    sym: asset.symbol || asset.id,
+    yield: Number.isFinite(asset.yieldRate) ? formatYield(asset.yieldRate * 100) : "—",
+    chg: formatChange(asset.change7d),
+    up: Number.isFinite(asset.change7d) ? asset.change7d >= 0 : null,
+  }));
+
   const row = (
     <div className="flex items-center shrink-0">
-      {items.map((it, i) => (
-        <div key={i} className="flex items-center px-8 text-[13px] font-medium shrink-0">
+      {items.length === 0 ? (
+        <div className="flex items-center px-8 text-[13px] font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>
+          {isLoading ? "Loading asset ticker..." : isError ? "Asset ticker unavailable" : "No asset ticker data available"}
+        </div>
+      ) : items.map((it) => (
+        <div key={it.sym} className="flex items-center px-8 text-[13px] font-medium shrink-0">
           <span className="text-white">{it.sym}</span>
           <span className="mx-2 text-white tabular">{it.yield}</span>
           <span
@@ -51,12 +62,9 @@ export function Ticker() {
             "linear-gradient(90deg, var(--bg-secondary) 75%, transparent)",
         }}
       >
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{ background: "var(--accent-cyan)", boxShadow: "0 0 8px #00D4FF" }}
-        />
+        <span className="w-2 h-2 rounded-full" style={{ background: "var(--accent-cyan)", boxShadow: "0 0 8px #00D4FF" }} />
         <span className="text-[13px] font-bold" style={{ color: "var(--accent-cyan)" }}>
-          SEED PREVIEW
+          LIVE API
         </span>
       </div>
       <div className="ticker-track flex">

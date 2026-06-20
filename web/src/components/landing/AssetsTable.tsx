@@ -1,229 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { FadeUp } from "@/components/landing/primitives";
 import { FieldInfo } from "@/components/common/FieldInfo";
+import { useAssetSummaries } from "@/hooks/use-asset-summaries";
+import { formatTvl } from "@/lib/api/assets";
+import { formatYield } from "@/lib/shared";
+import type { AssetCategory, RiskLevel } from "@/lib/shared";
 import type { FieldKey } from "@/lib/field-definitions";
-
-type Cat = "Treasury" | "Credit";
-type Risk = "LOW" | "MEDIUM" | "HIGH";
 
 type HeaderCell = {
   label: string;
   fieldKey?: FieldKey;
 };
 
-const rows: {
-  n: number;
-  color: string;
-  name: string;
-  sym: string;
-  protocol: string;
-  cat: Cat;
-  tvl: string;
-  yld: string;
-  risk: Risk;
-  chg: string;
-  up: boolean | null;
-  status?: "verified" | "syncing";
-}[] = [
-  {
-    n: 1,
-    color: "#00D4FF",
-    name: "Ondo Short-Term US Government Treasuries",
-    sym: "OUSG",
-    protocol: "Ondo Finance",
-    cat: "Treasury",
-    tvl: "$3.69B",
-    yld: "5.20%",
-    risk: "MEDIUM",
-    chg: "-1.31%",
-    up: false,
-    status: "verified",
-  },
-  {
-    n: 2,
-    color: "#22C55E",
-    name: "Franklin OnChain U.S. Government Money Fund",
-    sym: "BENJI",
-    protocol: "Franklin Templeton",
-    cat: "Treasury",
-    tvl: "$401.0M",
-    yld: "4.85%",
-    risk: "LOW",
-    chg: "+0.42%",
-    up: true,
-    status: "verified",
-  },
-  {
-    n: 3,
-    color: "#3B82F6",
-    name: "Maple USDC Pool",
-    sym: "mUSDC",
-    protocol: "Maple Finance",
-    cat: "Credit",
-    tvl: "$324.1M",
-    yld: "8.91%",
-    risk: "MEDIUM",
-    chg: "-1.80%",
-    up: false,
-    status: "verified",
-  },
-  {
-    n: 4,
-    color: "#06B6D4",
-    name: "Ondo USDY",
-    sym: "USDY",
-    protocol: "Ondo Finance",
-    cat: "Treasury",
-    tvl: "Sync pending",
-    yld: "5.10%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 5,
-    color: "#8B5CF6",
-    name: "Superstate",
-    sym: "USTB",
-    protocol: "Superstate",
-    cat: "Treasury",
-    tvl: "Sync pending",
-    yld: "4.92%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 6,
-    color: "#10B981",
-    name: "Backed Finance",
-    sym: "bC3M",
-    protocol: "Backed Finance",
-    cat: "Treasury",
-    tvl: "Sync pending",
-    yld: "5.00%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 7,
-    color: "#14B8A6",
-    name: "OpenEden",
-    sym: "OUSG",
-    protocol: "OpenEden",
-    cat: "Treasury",
-    tvl: "Sync pending",
-    yld: "5.25%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 8,
-    color: "#F97316",
-    name: "Centrifuge CFG",
-    sym: "CFG",
-    protocol: "Centrifuge",
-    cat: "Credit",
-    tvl: "Sync pending",
-    yld: "8.50%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 9,
-    color: "#FACC15",
-    name: "Goldfinch",
-    sym: "GFI",
-    protocol: "Goldfinch",
-    cat: "Credit",
-    tvl: "Sync pending",
-    yld: "10.20%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 10,
-    color: "#38BDF8",
-    name: "Clearpool",
-    sym: "CPOOL",
-    protocol: "Clearpool",
-    cat: "Credit",
-    tvl: "Sync pending",
-    yld: "7.20%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 11,
-    color: "#EF4444",
-    name: "TrueFi",
-    sym: "TRU",
-    protocol: "TrueFi",
-    cat: "Credit",
-    tvl: "Sync pending",
-    yld: "9.10%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 12,
-    color: "#A855F7",
-    name: "Credix",
-    sym: "CREDIX",
-    protocol: "Credix",
-    cat: "Credit",
-    tvl: "Sync pending",
-    yld: "11.50%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-  {
-    n: 13,
-    color: "#EC4899",
-    name: "Ribbon Finance",
-    sym: "RBN",
-    protocol: "Ribbon Finance",
-    cat: "Credit",
-    tvl: "Sync pending",
-    yld: "8.00%",
-    risk: "MEDIUM",
-    chg: "—",
-    up: null,
-    status: "syncing",
-  },
-];
-
-const catStyle: Record<Cat, { bg: string; color: string }> = {
-  Treasury: { bg: "rgba(0,212,255,0.1)", color: "#00D4FF" },
-  Credit: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" },
+const categoryLabels: Record<AssetCategory, string> = {
+  TREASURY: "Treasury",
+  CREDIT: "Credit",
+  REAL_ESTATE: "Real Estate",
+  COMMODITIES: "Commodities",
+  EQUITY: "Equity",
 };
 
-const riskStyle: Record<Risk, { bg: string; color: string }> = {
+const categoryColors: Record<AssetCategory, string> = {
+  TREASURY: "#00D4FF",
+  CREDIT: "#A78BFA",
+  REAL_ESTATE: "#FF6666",
+  COMMODITIES: "#FFB800",
+  EQUITY: "#00FF88",
+};
+
+const riskStyle: Record<RiskLevel, { bg: string; color: string }> = {
   LOW: { bg: "rgba(0,255,136,0.1)", color: "#00FF88" },
   MEDIUM: { bg: "rgba(255,184,0,0.1)", color: "#FFB800" },
   HIGH: { bg: "rgba(255,68,68,0.1)", color: "#FF6666" },
+  CRITICAL: { bg: "rgba(255,68,68,0.18)", color: "#FFA0A0" },
 };
 
-const filters = ["All", "Treasury", "Credit"] as const;
+const filters = ["All", "Treasury", "Credit", "Real Estate", "Commodities", "Equity"] as const;
 
 const headers: HeaderCell[] = [
   { label: "#" },
@@ -237,12 +52,40 @@ const headers: HeaderCell[] = [
   { label: "Status" },
 ];
 
+function formatChange(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
+}
+
 export function AssetsTable() {
+  const { data: assets = [], isLoading, isError } = useAssetSummaries();
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
   const [q, setQ] = useState("");
 
+  const rows = useMemo(
+    () =>
+      assets.map((asset, index) => {
+        const category = asset.category ?? "TREASURY";
+        return {
+          n: index + 1,
+          color: categoryColors[category],
+          name: asset.name,
+          sym: asset.symbol || asset.id,
+          protocol: asset.protocol ?? "—",
+          cat: category,
+          tvl: formatTvl(asset.tvl),
+          yld: Number.isFinite(asset.yieldRate) ? formatYield(asset.yieldRate * 100) : "—",
+          risk: asset.riskScore,
+          chg: formatChange(asset.change7d),
+          up: Number.isFinite(asset.change7d) ? asset.change7d >= 0 : null,
+          status: asset._meta.sources.length > 0 ? "Sourced" : "Source unavailable",
+        };
+      }),
+    [assets],
+  );
+
   const filtered = rows.filter((r) => {
-    if (filter !== "All" && r.cat !== filter) return false;
+    if (filter !== "All" && categoryLabels[r.cat] !== filter) return false;
     if (q && !r.name.toLowerCase().includes(q.toLowerCase()) && !r.sym.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
   });
@@ -265,8 +108,7 @@ export function AssetsTable() {
             Current Nexus RWA Asset Coverage
           </h2>
           <p className="mt-3 text-base max-w-3xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Landing preview aligned with the current dashboard seed dataset. Verified rows show available market values;
-            syncing rows are active assets waiting for refreshed market data.
+            Landing table uses the same asset API as the dashboard. Missing market, yield, source, or change fields are shown as unavailable.
           </p>
         </FadeUp>
 
@@ -326,17 +168,21 @@ export function AssetsTable() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => (
+                {isLoading ? (
+                  <tr><td colSpan={9} className="px-5 py-8 text-center" style={{ color: "var(--text-secondary)" }}>Loading asset coverage...</td></tr>
+                ) : isError ? (
+                  <tr><td colSpan={9} className="px-5 py-8 text-center" style={{ color: "var(--text-secondary)" }}>Asset coverage is unavailable.</td></tr>
+                ) : filtered.length === 0 ? (
+                  <tr><td colSpan={9} className="px-5 py-8 text-center" style={{ color: "var(--text-secondary)" }}>No assets match the current filters.</td></tr>
+                ) : filtered.map((r) => (
                   <tr
-                    key={r.n}
+                    key={r.sym}
                     className="group transition-colors border-t"
                     style={{ borderColor: "var(--border-line)" }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,212,255,0.03)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
-                    <td className="px-5 py-4 tabular text-text-secondary" style={{ color: "#8892A4" }}>
-                      {r.n}
-                    </td>
+                    <td className="px-5 py-4 tabular" style={{ color: "#8892A4" }}>{r.n}</td>
                     <td className="px-5 py-4 min-w-[300px]">
                       <div className="flex items-center gap-3">
                         <div
@@ -348,41 +194,26 @@ export function AssetsTable() {
                         />
                         <div>
                           <div className="text-white font-bold">{r.name}</div>
-                          <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                            {r.sym}
-                          </div>
+                          <div className="text-xs" style={{ color: "var(--text-muted)" }}>{r.sym}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-5 py-4 text-white">{r.protocol}</td>
                     <td className="px-5 py-4">
-                      <span
-                        className="px-2.5 py-1 text-xs font-semibold rounded-full"
-                        style={catStyle[r.cat]}
-                      >
-                        {r.cat}
+                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full" style={{ background: `${r.color}22`, color: r.color }}>
+                        {categoryLabels[r.cat]}
                       </span>
                     </td>
-                    <td
-                      className="px-5 py-4 font-bold tabular"
-                      style={{ color: r.tvl === "Sync pending" ? "var(--text-muted)" : "#fff" }}
-                    >
-                      {r.tvl}
-                    </td>
+                    <td className="px-5 py-4 font-bold tabular text-white">{r.tvl}</td>
                     <td className="px-5 py-4 text-white font-bold tabular">{r.yld}</td>
                     <td className="px-5 py-4">
-                      <span
-                        className="px-2.5 py-1 text-xs font-bold rounded-full"
-                        style={riskStyle[r.risk]}
-                      >
-                        ● {r.risk}
+                      <span className="px-2.5 py-1 text-xs font-bold rounded-full" style={riskStyle[r.risk]}>
+                        • {r.risk}
                       </span>
                     </td>
                     <td
                       className="px-5 py-4 tabular font-semibold"
-                      style={{
-                        color: r.up === null ? "var(--text-muted)" : r.up ? "var(--accent-green)" : "var(--accent-red)",
-                      }}
+                      style={{ color: r.up === null ? "var(--text-muted)" : r.up ? "var(--accent-green)" : "var(--accent-red)" }}
                     >
                       {r.chg} {r.up === null ? "" : r.up ? "↑" : "↓"}
                     </td>
@@ -390,11 +221,11 @@ export function AssetsTable() {
                       <span
                         className="px-2.5 py-1 text-xs font-semibold rounded-full"
                         style={{
-                          background: r.status === "verified" ? "rgba(0,255,136,0.1)" : "rgba(255,184,0,0.1)",
-                          color: r.status === "verified" ? "var(--accent-green)" : "#FFB800",
+                          background: r.status === "Sourced" ? "rgba(0,255,136,0.1)" : "rgba(255,184,0,0.1)",
+                          color: r.status === "Sourced" ? "var(--accent-green)" : "#FFB800",
                         }}
                       >
-                        {r.status === "verified" ? "Verified" : "Syncing"}
+                        {r.status}
                       </span>
                     </td>
                   </tr>
@@ -402,13 +233,7 @@ export function AssetsTable() {
               </tbody>
             </table>
           </div>
-          <div
-            className="text-center py-4 text-sm font-semibold"
-            style={{
-              borderTop: "1px solid var(--border-line)",
-              color: "var(--accent-cyan)",
-            }}
-          >
+          <div className="text-center py-4 text-sm font-semibold" style={{ borderTop: "1px solid var(--border-line)", color: "var(--accent-cyan)" }}>
             Explore asset coverage →
           </div>
         </FadeUp>

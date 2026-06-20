@@ -51,14 +51,14 @@ export function getProtocolLabel(asset: AssetWithLayers): string {
 }
 
 function buildMeta(market?: AssetWithLayers["market"]): AssetDataMeta {
-  const sources = market?.sources?.length ? market.sources : ["defillama"];
+  const sources = market?.sources?.length ? market.sources : [];
   const confidence =
     market?.confidence === "HIGH" || market?.confidence === "LOW"
       ? market.confidence
       : "MEDIUM";
   return {
     sources,
-    lastUpdated: market?.lastUpdated ?? new Date().toISOString(),
+    lastUpdated: market?.lastUpdated ?? "",
     confidence,
     methodology: "12-layer schema",
   };
@@ -156,7 +156,7 @@ function parseMarket(raw: unknown): AssetWithLayers["market"] {
     holderChange7d: parseOptionalNumber(o.holderChange7d),
     price: parseOptionalNumber(o.price),
     priceChange24h: parseOptionalNumber(o.priceChange24h),
-    sources: stringArray(o.sources).length ? stringArray(o.sources) : ["defillama"],
+    sources: stringArray(o.sources),
     confidence: o.confidence != null ? String(o.confidence) : null,
     lastUpdated: o.lastUpdated != null ? String(o.lastUpdated) : null,
   };
@@ -250,7 +250,7 @@ function parseBlockchain(raw: unknown): AssetWithLayers["blockchain"] {
     .map((row) => {
       const o = row as Record<string, unknown>;
       return {
-        chain: String(o.chain ?? "ethereum"),
+        chain: String(o.chain ?? ""),
         chainId: typeof o.chainId === "number" ? o.chainId : null,
         contractAddress: String(o.contractAddress ?? ""),
         tokenStandard: o.tokenStandard != null ? String(o.tokenStandard) : null,
@@ -302,16 +302,17 @@ function parseInstitutional(raw: unknown): AssetWithLayers["institutional"] {
 function parseGrade(raw: unknown): AssetWithLayers["grade"] {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  const score = parseOptionalNumber(o.score) ?? 0;
+  const score = parseOptionalNumber(o.score);
+  if (score == null) return null;
   return {
-    grade: o.grade != null ? String(o.grade) : "research",
+    grade: o.grade != null ? String(o.grade) : "",
     score,
-    completenessScore: parseOptionalNumber(o.completenessScore) ?? 0,
-    sourceScore: parseOptionalNumber(o.sourceScore) ?? 0,
-    legalScore: parseOptionalNumber(o.legalScore) ?? 0,
+    completenessScore: parseOptionalNumber(o.completenessScore) ?? Number.NaN,
+    sourceScore: parseOptionalNumber(o.sourceScore) ?? Number.NaN,
+    legalScore: parseOptionalNumber(o.legalScore) ?? Number.NaN,
     reserveScore: parseOptionalNumber(o.reserveScore),
-    liquidityScore: parseOptionalNumber(o.liquidityScore) ?? 0,
-    riskScore: parseOptionalNumber(o.riskScore) ?? 0,
+    liquidityScore: parseOptionalNumber(o.liquidityScore) ?? Number.NaN,
+    riskScore: parseOptionalNumber(o.riskScore) ?? Number.NaN,
     blockers: stringArray(o.blockers),
     warnings: stringArray(o.warnings),
     reviewedBy: o.reviewedBy != null ? String(o.reviewedBy) : null,
@@ -397,7 +398,7 @@ export function parseAssetWithLayers(raw: Record<string, unknown>): AssetWithLay
       tvl,
       tvl7dChange: change7d != null ? change7d * 100 : null,
       holderCount,
-      sources: ["defillama"],
+      sources: [],
     },
     risk: {
       overallLevel: riskLevel,
@@ -426,11 +427,11 @@ export function toAssetSummary(asset: AssetWithLayers): AssetSummary {
     name: asset.identity?.name ?? asset.slug,
     symbol: asset.identity?.symbol ?? "",
     category: normalizeCategory(asset.identity?.category),
-    tvl: asset.market?.tvl ?? 0,
-    yieldRate: asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : 0,
+    tvl: asset.market?.tvl ?? Number.NaN,
+    yieldRate: asset.yield?.currentYield != null ? asset.yield.currentYield / 100 : Number.NaN,
     riskScore: normalizeRiskLevel(asset.risk?.overallLevel),
     grade: toGradeSummary(asset.grade),
-    change7d: asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : 0,
+    change7d: asset.market?.tvl7dChange != null ? asset.market.tvl7dChange / 100 : Number.NaN,
     holderCount: asset.market?.holderCount ?? undefined,
     _meta: meta,
   };

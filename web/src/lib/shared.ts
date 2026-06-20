@@ -326,5 +326,6 @@ export function formatPercentage(value: number): string {
 }
 
 export function formatYield(value: number): string {
+  if (!Number.isFinite(value)) return "—";
   return `${value.toFixed(2)}%`;
 }

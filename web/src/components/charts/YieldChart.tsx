@@ -94,29 +94,6 @@ function HistoryTooltip({
   );
 }
 
-/** Generates placeholder series for locked / preview state. */
-export function buildMockYieldHistory(
-  period: string,
-  count = 24,
-): YieldHistoryPoint[] {
-  const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
-  const stepMs = (days * 24 * 60 * 60 * 1000) / Math.max(count - 1, 1);
-  const now = Date.now();
-  const baseYield = 5.2;
-  const baseTvl = 420_000_000;
-
-  return Array.from({ length: count }, (_, i) => {
-    const t = now - (count - 1 - i) * stepMs;
-    const wave = Math.sin(i / 3) * 0.4;
-    return {
-      timestamp: new Date(t).toISOString(),
-      yield: Math.round((baseYield + wave + i * 0.02) * 100) / 100,
-      tvl: baseTvl + i * 8_000_000 + Math.sin(i / 2) * 20_000_000,
-      riskScore: Math.round(68 + Math.sin(i / 4) * 4 + i * 0.15),
-    };
-  });
-}
-
 export function YieldChart({
   data,
   period,
@@ -124,13 +101,11 @@ export function YieldChart({
   limitedHistory = false,
 }: YieldChartProps) {
   const chartData: ChartRow[] = useMemo(() => {
-    const source =
-      data.length > 0 ? data : isLocked ? buildMockYieldHistory(period) : [];
-    return source.map((row) => ({
+    return data.map((row) => ({
       ...row,
       label: formatAxisDate(row.timestamp),
     }));
-  }, [data, isLocked, period]);
+  }, [data]);
 
   const periodLabel =
     period === "7d" ? "7 days" : period === "90d" ? "90 days" : "30 days";
