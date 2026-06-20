@@ -76,31 +76,6 @@ const SOURCE_LIBRARY_URL = "/api/admin/monitoring/sources?limit=250";
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").replace(/\/$/, "");
 const DEFAULT_UNLOCK_SLUG = "ondo-ousg";
 
-const fallbackRows: SourceRow[] = [
-  {
-    assetSlug: "ondo-ousg",
-    layer: "reserve",
-    field: "reserveBreakdown",
-    sourceType: "market_aggregator",
-    sourceUrl: "https://app.rwa.xyz/protocols/ondo-finance",
-    reliability: 84,
-    checkedBy: "manual_required",
-    status: "manual_required",
-    notes: "Fallback preview. API data will replace this after admin source evidence endpoint is reachable.",
-  },
-  {
-    assetSlug: "ondo-ousg",
-    layer: "compliance",
-    field: "blockedJurisdictions",
-    sourceType: "terms_of_service",
-    sourceUrl: "https://ondo.finance/terms-of-service",
-    reliability: 81,
-    checkedBy: "manual_required",
-    status: "manual_required",
-    notes: "Fallback preview. API data will replace this after admin source evidence endpoint is reachable.",
-  },
-];
-
 const sourceTiers = [
   {
     tier: "Tier 1",
@@ -304,8 +279,7 @@ function isPaidTier(tier: AccessTier | "free"): boolean {
 
 export default function SourcesPage() {
   const { address } = useAccount();
-  const [rows, setRows] = useState<SourceRow[]>(fallbackRows);
-  const [sourceMode, setSourceMode] = useState<"fallback" | "api">("fallback");
+  const [rows, setRows] = useState<SourceRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accessTier, setAccessTier] = useState<AccessTier | "free">("free");
@@ -339,13 +313,12 @@ export default function SourcesPage() {
       }
 
       const normalized = normalizeRows(body.data);
-      if (normalized.length > 0) {
-        setRows(normalized);
-        setSourceMode("api");
-      } else {
+      setRows(normalized);
+      if (normalized.length === 0) {
         setError("Endpoint Sources sudah hidup, tetapi database belum mengembalikan source rows.");
       }
     } catch (err) {
+      setRows([]);
       setError(err instanceof Error ? err.message : "Gagal memuat source evidence dari API.");
     } finally {
       setLoading(false);
@@ -546,7 +519,7 @@ export default function SourcesPage() {
             <div>
               <p className="font-semibold text-[#FFD36A]">Source API note</p>
               <p className="mt-1">{error}</p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]">Current page is showing {sourceMode === "api" ? "database" : "fallback preview"} data.</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Current page shows database rows only. API errors do not use fallback evidence.</p>
             </div>
           </div>
         </section>
@@ -556,7 +529,7 @@ export default function SourcesPage() {
         <div className="data-surface border-[#00D1FF]/20 bg-[linear-gradient(145deg,rgba(0,209,255,0.08),rgba(255,255,255,0.025))] p-4 shadow-[0_0_26px_rgba(0,209,255,0.06)]">
           <p className="terminal-label mb-2 text-[#8DEBFF]">Total Sources</p>
           <div className="terminal-data text-2xl font-semibold text-white">{rowsWithTier.length}</div>
-          <p className="mt-2 text-xs text-[var(--text-secondary)]">{sourceMode === "api" ? "Loaded from database" : "Fallback preview"}</p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">Loaded from database</p>
         </div>
         <div className="data-surface border-[#00FF88]/20 bg-[linear-gradient(145deg,rgba(0,255,136,0.08),rgba(255,255,255,0.025))] p-4 shadow-[0_0_26px_rgba(0,255,136,0.06)]">
           <p className="terminal-label mb-2 text-[#74FFB8]">Tier 1 Coverage</p>

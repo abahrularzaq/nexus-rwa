@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   PieChart,
@@ -12,30 +10,66 @@ import {
 } from "recharts";
 import { Check } from "lucide-react";
 import { FadeUp, HexLogo } from "@/components/landing/primitives";
+import { useAssetSummaries } from "@/hooks/use-asset-summaries";
+import type { AssetCategory, RiskLevel } from "@/lib/shared";
 
-const tvlData = [
-  { m: "Dec", v: 1.8 }, { m: "Jan", v: 2.0 }, { m: "Feb", v: 2.1 },
-  { m: "Mar", v: 2.4 }, { m: "Apr", v: 2.6 }, { m: "May", v: 2.84 },
-];
-const yieldByProto = [
-  { p: "Ondo", v: 5.4, c: "#00D4FF" },
-  { p: "Maple", v: 8.9, c: "#7C3AED" },
-  { p: "Centri", v: 9.3, c: "#00FF88" },
-  { p: "Backed", v: 4.9, c: "#FFB800" },
-  { p: "RealT", v: 11.2, c: "#FF4444" },
-];
-const catMix = [
-  { name: "Treasury", v: 65, c: "#00D4FF" },
-  { name: "Credit", v: 22, c: "#7C3AED" },
-  { name: "RE", v: 8, c: "#FF4444" },
-  { name: "Comm.", v: 5, c: "#FFB800" },
-];
-const riskTrend = [
-  { d: 1, v: 2 }, { d: 2, v: 2.1 }, { d: 3, v: 2.4 }, { d: 4, v: 2.3 },
-  { d: 5, v: 2.6 }, { d: 6, v: 2.5 }, { d: 7, v: 2.8 },
-];
+const categoryLabels: Record<AssetCategory, string> = {
+  TREASURY: "Treasury",
+  CREDIT: "Credit",
+  REAL_ESTATE: "Real Estate",
+  COMMODITIES: "Commodities",
+  EQUITY: "Equity",
+};
+
+const categoryColors: Record<AssetCategory, string> = {
+  TREASURY: "#00D4FF",
+  CREDIT: "#7C3AED",
+  REAL_ESTATE: "#FF4444",
+  COMMODITIES: "#FFB800",
+  EQUITY: "#00FF88",
+};
+
+const riskColors: Record<RiskLevel, string> = {
+  LOW: "#00FF88",
+  MEDIUM: "#FFB800",
+  HIGH: "#FF4444",
+  CRITICAL: "#FFA0A0",
+};
 
 export function DashboardPreview() {
+  const { data: assets = [], isLoading, isError } = useAssetSummaries();
+  const yieldByAsset = assets
+    .filter((asset) => Number.isFinite(asset.yieldRate))
+    .slice(0, 5)
+    .map((asset) => ({
+      p: asset.symbol || asset.id,
+      v: Math.round(asset.yieldRate * 10_000) / 100,
+      c: categoryColors[asset.category ?? "TREASURY"],
+    }));
+  const catMix = Object.entries(
+    assets.reduce<Partial<Record<AssetCategory, number>>>((acc, asset) => {
+      const category = asset.category ?? "TREASURY";
+      acc[category] = (acc[category] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).map(([category, count]) => ({
+    name: categoryLabels[category as AssetCategory],
+    v: count,
+    c: categoryColors[category as AssetCategory],
+  }));
+  const riskMix = Object.entries(
+    assets.reduce<Partial<Record<RiskLevel, number>>>((acc, asset) => {
+      acc[asset.riskScore] = (acc[asset.riskScore] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).map(([risk, count]) => ({
+    p: risk,
+    v: count,
+    c: riskColors[risk as RiskLevel],
+  }));
+
+  const unavailableLabel = isLoading ? "Loading..." : isError ? "Dashboard data unavailable" : "No data available";
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-16 items-center">
@@ -54,16 +88,13 @@ export function DashboardPreview() {
             <span className="text-gradient-cyan block">Structured RWA Data.</span>
             <span className="text-gradient-cp block">One Research View.</span>
           </h2>
-          <p
-            className="mt-5 text-base leading-[1.8] max-w-lg"
-            style={{ color: "var(--text-secondary)" }}
-          >
+          <p className="mt-5 text-base leading-[1.8] max-w-lg" style={{ color: "var(--text-secondary)" }}>
             Explore tokenized asset profiles across market, yield, risk, source, reserve,
             compliance, and liquidity layers. Coverage grows asset by asset as verified sources are added.
           </p>
           <ul className="mt-6 space-y-3">
             {[
-              "Public catalog with market and yield summaries",
+              "Public catalog with available market and yield summaries",
               "12-layer asset profiles for Pro research",
               "Evidence-based risk and grade context",
               "Source trail for verified fields",
@@ -94,28 +125,17 @@ export function DashboardPreview() {
               background: "var(--bg-tertiary)",
               border: "1px solid rgba(0,212,255,0.2)",
               transform: "perspective(1200px) rotateX(4deg) rotateY(-4deg)",
-              boxShadow:
-                "0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(0,212,255,0.15)",
+              boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(0,212,255,0.15)",
             }}
           >
-            {/* chrome */}
-            <div
-              className="flex items-center gap-1.5 px-4 py-2.5"
-              style={{ background: "#0A0E1A", borderBottom: "1px solid var(--border-line)" }}
-            >
+            <div className="flex items-center gap-1.5 px-4 py-2.5" style={{ background: "#0A0E1A", borderBottom: "1px solid var(--border-line)" }}>
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#FF5F56" }} />
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#FFBD2E" }} />
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#27C93F" }} />
-              <span className="ml-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
-                app.nexusrwa.xyz/dashboard
-              </span>
+              <span className="ml-3 text-[11px]" style={{ color: "var(--text-muted)" }}>app.nexusrwa.xyz/dashboard</span>
             </div>
             <div className="grid grid-cols-[140px_1fr] min-h-[420px]">
-              {/* sidebar */}
-              <div
-                className="p-3 border-r flex flex-col gap-1"
-                style={{ background: "#0A0E1A", borderColor: "var(--border-line)" }}
-              >
+              <div className="p-3 border-r flex flex-col gap-1" style={{ background: "#0A0E1A", borderColor: "var(--border-line)" }}>
                 <div className="flex items-center gap-2 px-2 py-2 mb-2">
                   <HexLogo size={20} />
                   <span className="text-[11px] font-bold text-white">NEXUS</span>
@@ -141,59 +161,50 @@ export function DashboardPreview() {
                   </div>
                 ))}
               </div>
-              {/* main */}
               <div className="p-3">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-[11px] text-white font-semibold">Welcome, Analyst</div>
-                  <div className="flex items-center gap-1.5 text-[10px]" style={{ color: "var(--accent-green)" }}>
-                    <span className="w-1.5 h-1.5 rounded-full pulse-dot" style={{ background: "var(--accent-green)" }} />
-                    Preview
+                  <div className="flex items-center gap-1.5 text-[10px]" style={{ color: isError ? "var(--accent-red)" : "var(--accent-green)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full pulse-dot" style={{ background: isError ? "var(--accent-red)" : "var(--accent-green)" }} />
+                    API
                   </div>
                 </div>
                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[340px]">
-                  <MiniChart title="TVL Snapshot">
-                    <ResponsiveContainer width="100%" height={100}>
-                      <AreaChart data={tvlData}>
-                        <defs>
-                          <linearGradient id="tvlg" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#00D4FF" stopOpacity={0.4} />
-                            <stop offset="100%" stopColor="#00D4FF" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <Area dataKey="v" stroke="#00D4FF" strokeWidth={1.5} fill="url(#tvlg)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  <MiniChart title="TVL History">
+                    <Unavailable label="Historical TVL series unavailable" />
                   </MiniChart>
-                  <MiniChart title="Yield Snapshot">
-                    <ResponsiveContainer width="100%" height={100}>
-                      <BarChart data={yieldByProto}>
-                        <Bar dataKey="v" radius={[3, 3, 0, 0]}>
-                          {yieldByProto.map((d, i) => <Cell key={i} fill={d.c} />)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <MiniChart title="Available Yield">
+                    {yieldByAsset.length ? (
+                      <ResponsiveContainer width="100%" height={100}>
+                        <BarChart data={yieldByAsset}>
+                          <Bar dataKey="v" radius={[3, 3, 0, 0]}>
+                            {yieldByAsset.map((d) => <Cell key={d.p} fill={d.c} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : <Unavailable label={unavailableLabel} />}
                   </MiniChart>
                   <MiniChart title="Category Mix">
-                    <ResponsiveContainer width="100%" height={100}>
-                      <PieChart>
-                        <Pie data={catMix} dataKey="v" innerRadius={22} outerRadius={42} stroke="none">
-                          {catMix.map((d, i) => <Cell key={i} fill={d.c} />)}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
+                    {catMix.length ? (
+                      <ResponsiveContainer width="100%" height={100}>
+                        <PieChart>
+                          <Pie data={catMix} dataKey="v" innerRadius={22} outerRadius={42} stroke="none">
+                            {catMix.map((d) => <Cell key={d.name} fill={d.c} />)}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : <Unavailable label={unavailableLabel} />}
                   </MiniChart>
-                  <MiniChart title="Risk Overview">
-                    <ResponsiveContainer width="100%" height={100}>
-                      <AreaChart data={riskTrend}>
-                        <defs>
-                          <linearGradient id="riskg" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#00FF88" stopOpacity={0.5} />
-                            <stop offset="100%" stopColor="#FFB800" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <Area dataKey="v" stroke="#00FF88" strokeWidth={1.5} fill="url(#riskg)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  <MiniChart title="Risk Mix">
+                    {riskMix.length ? (
+                      <ResponsiveContainer width="100%" height={100}>
+                        <BarChart data={riskMix}>
+                          <Bar dataKey="v" radius={[3, 3, 0, 0]}>
+                            {riskMix.map((d) => <Cell key={d.p} fill={d.c} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : <Unavailable label={unavailableLabel} />}
                   </MiniChart>
                 </div>
               </div>
@@ -209,10 +220,7 @@ function MiniChart({ title, children }: { title: string; children: React.ReactNo
   return (
     <div
       className="rounded-md p-2 flex flex-col"
-      style={{
-        background: "rgba(10,14,26,0.6)",
-        border: "1px solid var(--border-line)",
-      }}
+      style={{ background: "rgba(10,14,26,0.6)", border: "1px solid var(--border-line)" }}
     >
       <div className="text-[9px] label-eyebrow" style={{ color: "var(--text-secondary)" }}>
         {title}
@@ -220,4 +228,8 @@ function MiniChart({ title, children }: { title: string; children: React.ReactNo
       <div className="mt-1 h-[100px] w-full min-w-0 shrink-0">{children}</div>
     </div>
   );
+}
+
+function Unavailable({ label }: { label: string }) {
+  return <div className="flex h-full items-center justify-center px-3 text-center text-[10px]" style={{ color: "var(--text-secondary)" }}>{label}</div>;
 }

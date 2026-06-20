@@ -104,7 +104,7 @@ function changeTypeFromDelta(
 function marketMeta(asset: AssetWithLayers): AssetDataMeta {
   const sources = asset.market?.sources?.length
     ? asset.market.sources
-    : ["defillama"];
+    : [];
   const confidence =
     asset.market?.confidence === "HIGH" ||
     asset.market?.confidence === "LOW"
@@ -112,7 +112,7 @@ function marketMeta(asset: AssetWithLayers): AssetDataMeta {
       : "MEDIUM";
   return {
     sources,
-    lastUpdated: asset.market?.lastUpdated ?? new Date().toISOString(),
+    lastUpdated: asset.market?.lastUpdated ?? "",
     confidence,
     methodology: "12-layer schema",
   };
@@ -146,7 +146,7 @@ function sourceAttribution(meta: AssetDataMeta): string {
       id === "defillama" ? "DeFi Llama" : id === "rwa_xyz" ? "rwa.xyz" : id,
     )
     .join(" + ");
-  return names || "Nexus sync";
+  return names || "Source unavailable";
 }
 
 function displayValue(value: unknown): string {
@@ -310,7 +310,7 @@ export default function AssetDetailPage() {
 
   const [asset, setAsset] = useState<AssetWithLayers | null>(null);
   const [listPeers, setListPeers] = useState<AssetSummary[]>([]);
-  const [change7d, setChange7d] = useState(0);
+  const [change7d, setChange7d] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [peersLoading, setPeersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -338,7 +338,7 @@ export default function AssetDetailPage() {
         setError(null);
         const base = await fetchAsset(slug);
         setAsset(base);
-        setChange7d((base.market?.tvl7dChange ?? 0) / 100);
+        setChange7d(base.market?.tvl7dChange != null ? base.market.tvl7dChange / 100 : null);
 
         try {
           const full = await fetchAssetFull(slug);
@@ -375,7 +375,7 @@ export default function AssetDetailPage() {
         const summaries = toAssetSummaries(assets);
         setListPeers(summaries);
         const self = summaries.find((a) => a.id === slug);
-        if (self) setChange7d(self.change7d ?? 0);
+        if (self && Number.isFinite(self.change7d)) setChange7d(self.change7d);
       } catch {
         setListPeers([]);
       } finally {
@@ -401,9 +401,8 @@ export default function AssetDetailPage() {
     [listPeers, asset, category],
   );
 
-  const tvlChangePct = change7d * 100 * 0.85;
-  const holdersChangePct = change7d * 100 * 0.35;
-  const yieldChangePct = change7d * 100;
+  const tvlChangePct = asset?.market?.tvl7dChange;
+  const holdersChangePct = asset?.market?.holderChange7d;
 
   if (!slug) {
     return (
@@ -457,7 +456,7 @@ export default function AssetDetailPage() {
     );
   }
 
-  const tvlUp = change7d >= 0;
+  const tvlUp = (change7d ?? 0) >= 0;
   const attribution = sourceAttribution(dataMeta);
   const displayName = asset.identity?.name ?? asset.slug;
   const protocol = getProtocolLabel(asset);
@@ -585,7 +584,7 @@ export default function AssetDetailPage() {
               }`}
             >
               {tvlUp ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
-              {formatChange7d(change7d)} <span className="font-normal text-[#8892A4]">7d</span>
+              {change7d != null ? formatChange7d(change7d) : "—"} <span className="font-normal text-[#8892A4]">7d</span>
             </p>
           </div>
         </div>
@@ -620,17 +619,17 @@ export default function AssetDetailPage() {
               <MetricCard
                 title="TVL"
                 value={formatTvl(asset.market?.tvl)}
-                change={`${tvlChangePct >= 0 ? "+" : ""}${tvlChangePct.toFixed(2)}%`}
-                changeType={changeTypeFromDelta(change7d)}
+                change={tvlChangePct != null ? `${tvlChangePct >= 0 ? "+" : ""}${tvlChangePct.toFixed(2)}%` : "—"}
+                changeType={change7d != null ? changeTypeFromDelta(change7d) : "neutral"}
                 subtitle="7d change"
                 icon={<Layers className="text-[#00D4FF]" />}
               />
               <MetricCard
                 title="Yield"
                 value={formatYield(asset.yield?.currentYield)}
-                change={`${yieldChangePct >= 0 ? "+" : ""}${yieldChangePct.toFixed(2)}%`}
-                changeType={changeTypeFromDelta(change7d)}
-                subtitle="7d change"
+                change="—"
+                changeType="neutral"
+                subtitle="7d change unavailable"
                 icon={<Percent className="text-[#00D4FF]" />}
               />
               <MetricCard
@@ -640,9 +639,9 @@ export default function AssetDetailPage() {
                     ? asset.market.holderCount.toLocaleString("en-US")
                     : "—"
                 }
-                change={`${holdersChangePct >= 0 ? "+" : ""}${holdersChangePct.toFixed(2)}%`}
-                changeType={changeTypeFromDelta(change7d * 0.35)}
-                subtitle="7d est."
+                change={holdersChangePct != null ? `${holdersChangePct >= 0 ? "+" : ""}${holdersChangePct.toFixed(2)}%` : "—"}
+                changeType={holdersChangePct != null ? changeTypeFromDelta(holdersChangePct) : "neutral"}
+                subtitle="7d change"
                 icon={<Users className="text-[#00D4FF]" />}
               />
               <MetricCard

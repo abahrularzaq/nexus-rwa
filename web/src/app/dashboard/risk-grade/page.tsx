@@ -22,7 +22,7 @@ import {
   filterAssetsByHeatmapCell,
   type HeatmapFilter,
 } from "@/lib/risk-heatmap";
-import type { AssetSummary, RiskLevel } from "@/lib/shared";
+import type { AssetSummary } from "@/lib/shared";
 
 const METHODOLOGY_DIMENSIONS = [
   "Source Quality",
@@ -48,8 +48,8 @@ const UPGRADE_PATHS = [
   },
 ] as const;
 
-type GradeBand = "Institutional" | "Analytic" | "Research";
-type EvidenceQuality = "Strong" | "Medium" | "Partial";
+type GradeBand = "Institutional" | "Analytic" | "Research" | "Unavailable";
+type EvidenceQuality = "Strong" | "Medium" | "Partial" | "Unavailable";
 type BlockerSummary = { label: string; count: number };
 
 function toBadgeLevel(level: string): "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" {
@@ -58,42 +58,10 @@ function toBadgeLevel(level: string): "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" {
   return "MEDIUM";
 }
 
-function riskToBaseScore(level: RiskLevel): number {
-  if (level === "LOW") return 88;
-  if (level === "MEDIUM") return 76;
-  if (level === "HIGH") return 62;
-  return 48;
-}
-
-function hasUsefulNumber(value: number | undefined): boolean {
-  return typeof value === "number" && Number.isFinite(value) && value > 0;
-}
-
-function isFresh(asset: AssetSummary): boolean {
-  const updatedAt = new Date(asset._meta?.lastUpdated ?? "").getTime();
-  if (!Number.isFinite(updatedAt)) return false;
-  return (Date.now() - updatedAt) / 86_400_000 <= 30;
-}
-
-function fallbackGradeScore(asset: AssetSummary): number {
-  let score = riskToBaseScore(toBadgeLevel(String(asset.riskScore)));
-  if (asset._meta?.sources?.length) score += 3;
-  if (asset._meta?.confidence === "HIGH") score += 3;
-  if (hasUsefulNumber(asset.tvl)) score += 2;
-  if (hasUsefulNumber(asset.holderCount)) score += 2;
-  if (Number.isFinite(asset.yieldRate)) score += 1;
-  if (isFresh(asset)) score += 1;
-  if (!asset._meta?.sources?.length) score -= 5;
-  if (!hasUsefulNumber(asset.tvl)) score -= 4;
-  if (!hasUsefulNumber(asset.holderCount)) score -= 3;
-  if (!isFresh(asset)) score -= 2;
-  return Math.max(35, Math.min(95, Math.round(score)));
-}
-
-function gradeScore(asset: AssetSummary): number {
+function gradeScore(asset: AssetSummary): number | null {
   return asset.grade?.score != null && Number.isFinite(asset.grade.score)
     ? asset.grade.score
-    : fallbackGradeScore(asset);
+    : null;
 }
 
 function gradeLabelFromScore(score: number): GradeBand {
@@ -107,12 +75,14 @@ function gradeLabel(asset: AssetSummary): GradeBand {
   if (raw === "institutional") return "Institutional";
   if (raw === "analytics" || raw === "analytic") return "Analytic";
   if (raw === "research") return "Research";
-  return gradeLabelFromScore(gradeScore(asset));
+  const score = gradeScore(asset);
+  return score == null ? "Unavailable" : gradeLabelFromScore(score);
 }
 
 function gradeTone(grade: GradeBand): string {
   if (grade === "Institutional") return "border-[#00FF88]/45 bg-[#00FF88]/15 text-[#74FFB8] shadow-[0_0_18px_rgba(0,255,136,0.12)]";
   if (grade === "Analytic") return "border-[#FFB800]/45 bg-[#FFB800]/15 text-[#FFD36A] shadow-[0_0_18px_rgba(255,184,0,0.1)]";
+  if (grade === "Unavailable") return "border-white/10 bg-white/[0.04] text-[var(--text-label)]";
   return "border-[#FF4444]/45 bg-[#FF4444]/15 text-[#FFA0A0] shadow-[0_0_18px_rgba(255,68,68,0.12)]";
 }
 
@@ -125,41 +95,20 @@ function evidenceQuality(asset: AssetSummary): EvidenceQuality {
     return "Partial";
   }
 
-  const evidencePoints = [
-    asset._meta?.sources?.length ? 1 : 0,
-    asset._meta?.confidence === "HIGH" ? 1 : 0,
-    hasUsefulNumber(asset.tvl) ? 1 : 0,
-    hasUsefulNumber(asset.holderCount) ? 1 : 0,
-    isFresh(asset) ? 1 : 0,
-  ].reduce((sum, n) => sum + n, 0);
-
-  if (evidencePoints >= 4) return "Strong";
-  if (evidencePoints >= 2) return "Medium";
-  return "Partial";
+  return "Unavailable";
 }
 
 function evidenceTone(quality: EvidenceQuality): string {
   if (quality === "Strong") return "border-[#00FF88]/35 bg-[#00FF88]/15 text-[#74FFB8]";
   if (quality === "Medium") return "border-[#FFB800]/35 bg-[#FFB800]/15 text-[#FFD36A]";
+  if (quality === "Unavailable") return "border-white/10 bg-white/[0.04] text-[var(--text-label)]";
   return "border-white/10 bg-white/[0.04] text-[var(--text-label)]";
-}
-
-function fallbackBlockers(asset: AssetSummary): string[] {
-  const blockers: string[] = [];
-  const risk = toBadgeLevel(String(asset.riskScore));
-  if (risk === "HIGH" || risk === "CRITICAL") blockers.push("High risk exposure");
-  if (!asset._meta?.sources?.length) blockers.push("Source gap");
-  if (!hasUsefulNumber(asset.tvl)) blockers.push("Market depth missing");
-  if (!hasUsefulNumber(asset.holderCount)) blockers.push("Holder data missing");
-  if (!isFresh(asset)) blockers.push("Stale evidence");
-  return blockers;
 }
 
 function assetBlockers(asset: AssetSummary): string[] {
   const explicit = asset.grade?.blockers ?? [];
   if (explicit.length > 0) return explicit;
-  const fallback = fallbackBlockers(asset);
-  return fallback.length ? fallback : ["No major blocker"];
+  return [];
 }
 
 function assetWarnings(asset: AssetSummary): string[] {
@@ -170,7 +119,7 @@ function keyBlocker(asset: AssetSummary): string {
   const blockers = assetBlockers(asset);
   if (blockers[0] && blockers[0] !== "No major blocker") return blockers[0];
   const warning = assetWarnings(asset)[0];
-  return warning ? `Warning: ${warning}` : "No major blocker";
+  return warning ? `Warning: ${warning}` : "—";
 }
 
 function buildBlockerSummary(assets: AssetSummary[]): BlockerSummary[] {
@@ -188,9 +137,7 @@ function buildBlockerSummary(assets: AssetSummary[]): BlockerSummary[] {
 
 function openBlockerCount(assets: AssetSummary[]): number {
   return assets.reduce((sum, asset) => {
-    const blockers = asset.grade?.blockers;
-    if (blockers) return sum + blockers.length;
-    return sum + fallbackBlockers(asset).length;
+    return sum + (asset.grade?.blockers?.length ?? 0);
   }, 0);
 }
 
@@ -206,19 +153,20 @@ export default function RiskGradePage() {
       const label = gradeLabel(asset);
       if (label === "Institutional") counts.institutional += 1;
       else if (label === "Analytic") counts.analytic += 1;
-      else counts.research += 1;
+      else if (label === "Research") counts.research += 1;
     }
     return counts;
   }, [assets]);
 
   const avgGradeScore = useMemo(() => {
-    if (assets.length === 0) return 0;
-    return Math.round(assets.reduce((sum, asset) => sum + gradeScore(asset), 0) / assets.length);
+    const scores = assets.map(gradeScore).filter((score): score is number => score != null);
+    if (scores.length === 0) return null;
+    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
   }, [assets]);
 
   const blockerSummary = useMemo(() => buildBlockerSummary(assets), [assets]);
   const openBlockers = useMemo(() => openBlockerCount(assets), [assets]);
-  const sortedAssets = useMemo(() => [...filteredAssets].sort((a, b) => gradeScore(b) - gradeScore(a)), [filteredAssets]);
+  const sortedAssets = useMemo(() => [...filteredAssets].sort((a, b) => (gradeScore(b) ?? -1) - (gradeScore(a) ?? -1)), [filteredAssets]);
 
   const filterLabel = cellFilter != null ? `${categoryDisplayLabel(cellFilter.category)} · ${cellFilter.riskLevel}` : null;
 
@@ -276,7 +224,7 @@ export default function RiskGradePage() {
         <GradeMetricCard icon={<Award className="size-5 text-[#74FFB8]" />} label="Institutional" value={isLoading ? "—" : String(gradeCounts.institutional)} helper="Score 85+ • production-grade" variant="green" />
         <GradeMetricCard icon={<ShieldCheck className="size-5 text-[#FFD36A]" />} label="Analytic" value={isLoading ? "—" : String(gradeCounts.analytic)} helper="Score 70–84 • usable with caveats" variant="amber" />
         <GradeMetricCard icon={<TriangleAlert className="size-5 text-[#FFA0A0]" />} label="Research" value={isLoading ? "—" : String(gradeCounts.research)} helper="Needs more evidence" variant="red" />
-        <GradeMetricCard icon={<Scale className="size-5 text-[#8DEBFF]" />} label="Avg grade score" value={isLoading ? "—" : `${avgGradeScore}/100`} helper="From AssetGrade baseline" />
+        <GradeMetricCard icon={<Scale className="size-5 text-[#8DEBFF]" />} label="Avg grade score" value={isLoading ? "—" : avgGradeScore == null ? "—" : `${avgGradeScore}/100`} helper="From AssetGrade baseline" />
         <GradeMetricCard icon={<ShieldAlert className="size-5 text-[#E6D0FF]" />} label="Open blockers" value={isLoading ? "—" : String(openBlockers)} helper="From grade blockers" variant="purple" />
       </section>
 
@@ -315,7 +263,7 @@ export default function RiskGradePage() {
               {filterLabel ? (
                 <p className="mt-1 text-sm text-[var(--text-secondary)]">Showing {sortedAssets.length} in <span className="font-medium text-white">{filterLabel}</span></p>
               ) : (
-                <p className="mt-1 text-sm text-[var(--text-secondary)]">{sortedAssets.length} listings sorted by grade score</p>
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">{sortedAssets.length} listings sorted by available grade score</p>
               )}
             </div>
             {cellFilter ? (
@@ -452,7 +400,7 @@ function GradeDecisionRow({ row }: { row: AssetSummary }) {
       <td className="px-4 py-3"><p className="font-medium text-white">{row.name}</p><p className="text-xs text-[var(--text-secondary)]">{row.symbol}</p></td>
       <td className="px-4 py-3 text-[var(--text-secondary)]">{row.category ? categoryDisplayLabel(row.category) : "—"}</td>
       <td className="px-4 py-3"><span className={`rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide ${gradeTone(grade)}`}>{grade}</span></td>
-      <td className="px-4 py-3 text-right font-mono tabular-nums text-white">{score}</td>
+      <td className="px-4 py-3 text-right font-mono tabular-nums text-white">{score ?? "—"}</td>
       <td className="px-4 py-3"><RiskBadge level={toBadgeLevel(String(row.riskScore))} showDot /></td>
       <td className="max-w-[260px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{blocker}</span></td>
       <td className="px-4 py-3"><span className={`rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide ${evidenceTone(evidence)}`}>{evidence}</span></td>
