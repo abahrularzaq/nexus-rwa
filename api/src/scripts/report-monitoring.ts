@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { db } from '../lib/database.js';
 import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
 
@@ -21,6 +23,25 @@ function parseArgs(argv: string[]): Options {
   if (!Number.isFinite(limit) || limit < 1) limit = 20;
 
   return { limit: Math.floor(limit), json };
+}
+
+const ASSETS_DIR = path.join(process.cwd(), '..', 'data', 'assets');
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function monitoringPriorityForAsset(assetSlug: string): string | null {
+  const filePath = path.join(ASSETS_DIR, assetSlug, 'monitoring.json');
+  if (!fs.existsSync(filePath)) return null;
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as unknown;
+    if (!isRecord(parsed) || typeof parsed.monitoringPriority !== 'string') return null;
+    return parsed.monitoringPriority;
+  } catch {
+    return null;
+  }
 }
 
 function groupCount<T extends Record<string, unknown>>(items: T[], key: keyof T): Record<string, number> {
@@ -106,13 +127,14 @@ async function main(): Promise<void> {
     }),
   ]);
 
-  const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null }>>>((acc, source) => {
+  const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null }>>>((acc, source) => {
     const rows = acc.get(source.asset.slug) ?? [];
-    rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability });
+    rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer });
     acc.set(source.asset.slug, rows);
     return acc;
   }, new Map());
-  const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset });
+  const assetPriorityByAsset = new Map([...sourceRowsByAsset.keys(), ...new Set([...healthChecks.map((row) => row.assetSlug), ...sourceHealth.map((row) => row.assetSlug)])].map((assetSlug) => [assetSlug, monitoringPriorityForAsset(assetSlug)]));
+  const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset, assetPriorityByAsset });
 
   const report = {
     generatedAt: new Date().toISOString(),

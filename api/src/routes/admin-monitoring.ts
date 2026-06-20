@@ -91,6 +91,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function monitoringPriorityForAsset(assetSlug: string): string | null {
+  const filePath = path.join(ASSETS_DIR, assetSlug, 'monitoring.json');
+  if (!fs.existsSync(filePath)) return null;
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as unknown;
+    if (!isRecord(parsed) || typeof parsed.monitoringPriority !== 'string') return null;
+    return parsed.monitoringPriority;
+  } catch {
+    return null;
+  }
+}
+
 function manualRequiredSourceKeys(assetSlug: string): Set<string> {
   const filePath = path.join(ASSETS_DIR, assetSlug, 'sources.json');
   if (!fs.existsSync(filePath)) return new Set();
@@ -277,13 +290,14 @@ adminMonitoringRouter.get('/overview', async (c) => {
     ]);
 
     const sourceHealth = uniqueLatestSourceRows(filterAutoCheckedSourceRows(sourceHealthRows));
-    const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null }>>>((acc, source) => {
+    const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null }>>>((acc, source) => {
       const rows = acc.get(source.asset.slug) ?? [];
-      rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability });
+      rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer });
       acc.set(source.asset.slug, rows);
       return acc;
     }, new Map());
-    const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset });
+    const assetPriorityByAsset = new Map([...sourceRowsByAsset.keys(), ...new Set([...healthChecks.map((row) => row.assetSlug), ...sourceHealth.map((row) => row.assetSlug)])].map((assetSlug) => [assetSlug, monitoringPriorityForAsset(assetSlug)]));
+    const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset, assetPriorityByAsset });
     const recentHealthIssues = await db.dataHealthCheck.findMany({
       where: { status: { not: 'current' } },
       orderBy: { lastCheckedAt: 'desc' },

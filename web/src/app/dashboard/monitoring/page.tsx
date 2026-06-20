@@ -570,7 +570,7 @@ function AssetSummaryTable({ rows }: { rows: MonitoringOverview["assetSummaries"
       <div className="flex items-center justify-between border-b border-[var(--border-line)] px-4 py-3">
         <div>
           <p className="terminal-label">Asset monitoring summary</p>
-          <p className="mt-1 text-xs text-[var(--text-secondary)]">Scoring includes stale data, missing source, low-confidence source, and incomplete layer penalties.</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">Scoring weights stale, source, and incomplete-layer penalties by layer criticality (legal/reserve/compliance highest, market/liquidity medium, metadata lighter) and asset monitoring priority (high priority stricter, low priority more tolerant).</p>
         </div>
         <span className="text-xs text-[var(--text-secondary)]">Top {sorted.length} risk assets</span>
       </div>
