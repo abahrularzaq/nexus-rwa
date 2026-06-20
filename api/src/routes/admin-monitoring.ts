@@ -29,6 +29,13 @@ type ResolutionMetadata = {
   evidenceUrl?: string | null;
 };
 
+type SourceRepairBody = {
+  newUrl: string;
+  reason: string;
+  reliability: number;
+  evidenceNote?: string | null;
+};
+
 type SourceHealthRow = {
   assetSlug: string;
   layer: string;
@@ -142,6 +149,26 @@ async function parseResolutionMetadata(c: any): Promise<ResolutionMetadata | { e
   }
 
   return { resolutionType, resolutionNote, evidenceUrl: evidenceUrl || null };
+}
+
+function parseReliability(value: unknown): number | null {
+  const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.min(100, Math.round(parsed)));
+}
+
+async function parseSourceRepairBody(c: any): Promise<SourceRepairBody | { error: string }> {
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const newUrl = typeof body.newUrl === 'string' ? body.newUrl.trim() : '';
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const reliability = parseReliability(body.reliability);
+  const evidenceNote = typeof body.evidenceNote === 'string' ? body.evidenceNote.trim() : '';
+
+  if (!/^https?:\/\//i.test(newUrl)) return { error: 'newUrl must start with http:// or https://.' };
+  if (!reason) return { error: 'reason is required for source repair audit.' };
+  if (reliability === null) return { error: 'reliability must be a number between 0 and 100.' };
+
+  return { newUrl, reason, reliability, evidenceNote: evidenceNote || null };
 }
 
 function validationError(c: any, message: string) {
@@ -265,6 +292,120 @@ adminMonitoringRouter.get('/sources', async (c) => {
     return c.json({ success: true, data: rows });
   } catch (err) {
     return internalError(c, err, 'Source evidence library query failed');
+  }
+});
+
+
+async function repairAssetSource(sourceId: string, repair: SourceRepairBody, repairedBy?: string) {
+  const existing = await db.assetSource.findUnique({
+    where: { id: sourceId },
+    include: { asset: { select: { slug: true } } },
+  });
+  if (!existing) return null;
+
+  return db.$transaction(async (tx) => {
+    const oldUrl = existing.sourceUrl;
+    const newStatus = 'verified';
+    const checkedAt = new Date();
+
+    const source = await tx.assetSource.update({
+      where: { id: sourceId },
+      data: {
+        sourceUrl: repair.newUrl,
+        reliability: repair.reliability,
+        status: newStatus,
+        checkedAt,
+        checkedBy: repairedBy,
+        notes: [
+          existing.notes,
+          repair.evidenceNote ? `Repair note: ${repair.evidenceNote}` : null,
+          `Previous URL: ${oldUrl}`,
+          `Repair reason: ${repair.reason}`,
+        ].filter(Boolean).join('\n'),
+      },
+      include: { asset: { select: { slug: true, dataVersion: true } } },
+    });
+
+    await tx.sourceHealth.updateMany({
+      where: {
+        assetSlug: existing.asset.slug,
+        layer: existing.layer,
+        field: existing.field,
+        url: oldUrl,
+      },
+      data: {
+        url: repair.newUrl,
+        reliability: repair.reliability,
+        status: 'healthy',
+        httpStatus: null,
+        errorMessage: null,
+        lastCheckedAt: checkedAt,
+      },
+    });
+
+    const audit = await tx.sourceRepairAudit.create({
+      data: {
+        assetSourceId: existing.id,
+        assetSlug: existing.asset.slug,
+        layer: existing.layer,
+        field: existing.field,
+        oldUrl,
+        newUrl: repair.newUrl,
+        oldReliability: existing.reliability,
+        newReliability: repair.reliability,
+        oldStatus: existing.status,
+        newStatus,
+        reason: repair.reason,
+        evidenceNote: repair.evidenceNote,
+        repairedBy,
+      },
+    });
+
+    return { source, audit };
+  });
+}
+
+adminMonitoringRouter.patch('/sources/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const repair = await parseSourceRepairBody(c);
+    if ('error' in repair) return validationError(c, repair.error);
+
+    const result = await repairAssetSource(id, repair, c.req.header('x-admin-key') ? 'admin' : undefined);
+    if (!result) return notFound(c, `Source evidence row not found: ${id}`);
+
+    return c.json({ success: true, data: result });
+  } catch (err) {
+    return internalError(c, err, 'Source repair failed');
+  }
+});
+
+adminMonitoringRouter.patch('/source-health/:id/repair', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const repair = await parseSourceRepairBody(c);
+    if ('error' in repair) return validationError(c, repair.error);
+
+    const health = await db.sourceHealth.findUnique({ where: { id } });
+    if (!health) return notFound(c, `Source health row not found: ${id}`);
+
+    const source = await db.assetSource.findFirst({
+      where: {
+        asset: { slug: health.assetSlug },
+        layer: health.layer,
+        field: health.field ?? '',
+        sourceUrl: health.url,
+      },
+      orderBy: { checkedAt: 'desc' },
+    });
+    if (!source) return notFound(c, `No asset source matches source health row: ${id}`);
+
+    const result = await repairAssetSource(source.id, repair, c.req.header('x-admin-key') ? 'admin' : undefined);
+    if (!result) return notFound(c, `Source evidence row not found: ${source.id}`);
+
+    return c.json({ success: true, data: result });
+  } catch (err) {
+    return internalError(c, err, 'Source health repair failed');
   }
 });
 

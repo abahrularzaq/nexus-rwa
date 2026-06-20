@@ -256,7 +256,7 @@ model AssetLiquidity {
 }
 
 model AssetSource {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   assetId     String
   layer       String
   field       String
@@ -268,13 +268,37 @@ model AssetSource {
   checkedAt   DateTime @default(now())
   checkedBy   String?
   notes       String?
-  asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  asset       Asset               @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  repairAudits SourceRepairAudit[]
 
   @@index([assetId])
   @@index([layer])
   @@index([field])
   @@index([sourceType])
   @@index([status])
+}
+
+model SourceRepairAudit {
+  id               String      @id @default(cuid())
+  assetSourceId    String
+  assetSlug        String
+  layer            String
+  field            String
+  oldUrl           String
+  newUrl           String
+  oldReliability   Int?
+  newReliability   Int
+  oldStatus        String?
+  newStatus        String
+  reason           String
+  evidenceNote     String?
+  repairedBy       String?
+  createdAt        DateTime    @default(now())
+  assetSource      AssetSource @relation(fields: [assetSourceId], references: [id], onDelete: Cascade)
+
+  @@index([assetSourceId])
+  @@index([assetSlug])
+  @@index([createdAt])
 }
 
 model AssetGrade {
