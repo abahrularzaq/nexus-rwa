@@ -18,6 +18,42 @@ const REQUIRED_JSON_FILES = [
 
 const OPTIONAL_FILES = ['source-discovery.md', 'grade-baseline.json', 'monitoring.json'] as const;
 
+const STRICT_MONITORING_FILES = ['grade-baseline.json', 'monitoring.json'] as const;
+const VALID_MONITORING_STATUSES = ['active-research', 'active-analytics', 'active-institutional', 'paused', 'deprecated'] as const;
+const VALID_MONITORING_PRIORITIES = ['high', 'medium', 'low'] as const;
+const REQUIRED_REVIEW_SCHEDULE_FIELDS = [
+  'lastManualReview',
+  'nextManualReview',
+  'manualReviewFrequencyDays',
+  'marketRefreshFrequencyHours',
+  'liquidityRefreshFrequencyHours',
+  'sourceHealthCheckFrequencyDays',
+  'legalReviewFrequencyDays',
+  'riskReviewFrequencyDays',
+] as const;
+const REQUIRED_FRESHNESS_POLICY_FIELDS = [
+  'marketDataMaxAgeHours',
+  'liquidityDataMaxAgeHours',
+  'holderDataMaxAgeDays',
+  'sourceDataMaxAgeDays',
+  'legalDataMaxAgeDays',
+  'riskDataMaxAgeDays',
+] as const;
+const STRICT_EVIDENCE_LAYERS = [
+  'identity',
+  'blockchain',
+  'reserve',
+  'institutional',
+  'compliance',
+  'market',
+  'liquidity',
+  'risk',
+] as const;
+
+type ValidationOptions = {
+  strictMonitoring: boolean;
+};
+
 type Severity = 'error' | 'warning';
 
 type ValidationIssue = {
@@ -115,6 +151,7 @@ function requireBoolean(
     addIssue(issues, 'error', assetSlug, file, `${field} must be boolean`, field);
   }
 }
+
 
 function validateMeta(
   json: Record<string, unknown>,
@@ -455,7 +492,7 @@ function validateGradeBaseline(json: unknown, issues: ValidationIssue[], assetSl
   }
 }
 
-function validateMonitoring(json: unknown, issues: ValidationIssue[], assetSlug: string): void {
+function validateMonitoring(json: unknown, issues: ValidationIssue[], assetSlug: string, options: ValidationOptions): void {
   const file = 'monitoring.json';
   if (!isRecord(json)) {
     addIssue(issues, 'error', assetSlug, file, 'monitoring.json must be an object');
@@ -470,16 +507,44 @@ function validateMonitoring(json: unknown, issues: ValidationIssue[], assetSlug:
     requireString(json, issues, assetSlug, file, field);
   }
 
+  if (options.strictMonitoring) {
+    if (isString(json.monitoringStatus) && !VALID_MONITORING_STATUSES.includes(json.monitoringStatus as typeof VALID_MONITORING_STATUSES[number])) {
+      addIssue(issues, 'error', assetSlug, file, `monitoringStatus must be one of: ${VALID_MONITORING_STATUSES.join(', ')}`, 'monitoringStatus');
+    }
+
+    if (isString(json.monitoringPriority) && !VALID_MONITORING_PRIORITIES.includes(json.monitoringPriority as typeof VALID_MONITORING_PRIORITIES[number])) {
+      addIssue(issues, 'error', assetSlug, file, `monitoringPriority must be one of: ${VALID_MONITORING_PRIORITIES.join(', ')}`, 'monitoringPriority');
+    }
+  }
+
   if (!isRecord(json.gradeBaseline)) {
     addIssue(issues, 'error', assetSlug, file, 'gradeBaseline must be an object', 'gradeBaseline');
   }
 
   if (!isRecord(json.reviewSchedule)) {
     addIssue(issues, 'error', assetSlug, file, 'reviewSchedule must be an object', 'reviewSchedule');
+  } else if (options.strictMonitoring) {
+    for (const field of REQUIRED_REVIEW_SCHEDULE_FIELDS) {
+      if (field === 'lastManualReview' || field === 'nextManualReview') {
+        if (!parseDate(json.reviewSchedule[field])) {
+          addIssue(issues, 'error', assetSlug, file, `reviewSchedule.${field} must be a valid date string`, `reviewSchedule.${field}`);
+        }
+      } else {
+        if (typeof json.reviewSchedule[field] !== 'number' || json.reviewSchedule[field] <= 0) {
+          addIssue(issues, 'error', assetSlug, file, `reviewSchedule.${field} must be a positive number`, `reviewSchedule.${field}`);
+        }
+      }
+    }
   }
 
   if (!isRecord(json.freshnessPolicy)) {
     addIssue(issues, 'error', assetSlug, file, 'freshnessPolicy must be an object', 'freshnessPolicy');
+  } else if (options.strictMonitoring) {
+    for (const field of REQUIRED_FRESHNESS_POLICY_FIELDS) {
+      if (typeof json.freshnessPolicy[field] !== 'number' || json.freshnessPolicy[field] <= 0) {
+        addIssue(issues, 'error', assetSlug, file, `freshnessPolicy.${field} must be a positive number`, `freshnessPolicy.${field}`);
+      }
+    }
   }
 
   for (const field of ['autoMonitoredFields', 'manualMonitoredFields', 'knownBlockers', 'knownWarnings', 'alertRules', 'sourceHealthChecks', 'monitoringNotes'] as const) {
@@ -490,6 +555,22 @@ function validateMonitoring(json: unknown, issues: ValidationIssue[], assetSlug:
 
   if (typeof json.templateVersion !== 'number') {
     addIssue(issues, 'warning', assetSlug, file, 'templateVersion should be a number', 'templateVersion');
+  }
+}
+
+function validateStrictSourceEvidence(sourcesJson: unknown, issues: ValidationIssue[], assetSlug: string): void {
+  const file = 'sources.json';
+  if (!Array.isArray(sourcesJson)) return;
+
+  for (const layer of STRICT_EVIDENCE_LAYERS) {
+    const hasLayerEvidence = sourcesJson.some((item) => {
+      if (!isRecord(item)) return false;
+      return item.layer === layer && isString(item.sourceUrl) && isString(item.field);
+    });
+
+    if (!hasLayerEvidence) {
+      addIssue(issues, 'error', assetSlug, file, `Strict monitoring requires source evidence for ${layer} layer`, layer);
+    }
   }
 }
 
@@ -528,9 +609,10 @@ function validateRequiredJson(assetSlug: string, fileName: string, json: unknown
   }
 }
 
-function validateAsset(assetsDir: string, assetSlug: string): ValidationResult {
+function validateAsset(assetsDir: string, assetSlug: string, options: ValidationOptions): ValidationResult {
   const assetDir = path.join(assetsDir, assetSlug);
   const issues: ValidationIssue[] = [];
+  let sourcesJson: unknown;
 
   if (!fs.existsSync(assetDir)) {
     addIssue(issues, 'error', assetSlug, 'asset', `Asset folder not found: ${assetDir}`);
@@ -546,11 +628,21 @@ function validateAsset(assetsDir: string, assetSlug: string): ValidationResult {
 
     try {
       const json = readJson(filePath);
+      if (fileName === 'sources.json') sourcesJson = json;
       validateRequiredJson(assetSlug, fileName, json, issues);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       addIssue(issues, 'error', assetSlug, fileName, `Invalid JSON: ${message}`);
     }
+  }
+
+  if (options.strictMonitoring) {
+    for (const fileName of STRICT_MONITORING_FILES) {
+      if (!fs.existsSync(path.join(assetDir, fileName))) {
+        addIssue(issues, 'error', assetSlug, fileName, `Strict monitoring requires file: ${fileName}`);
+      }
+    }
+    validateStrictSourceEvidence(sourcesJson, issues, assetSlug);
   }
 
   for (const fileName of OPTIONAL_FILES) {
@@ -564,7 +656,7 @@ function validateAsset(assetsDir: string, assetSlug: string): ValidationResult {
       try {
         const json = readJson(filePath);
         if (fileName === 'grade-baseline.json') validateGradeBaseline(json, issues, assetSlug);
-        if (fileName === 'monitoring.json') validateMonitoring(json, issues, assetSlug);
+        if (fileName === 'monitoring.json') validateMonitoring(json, issues, assetSlug, options);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         addIssue(issues, 'error', assetSlug, fileName, `Invalid JSON: ${message}`);
@@ -575,15 +667,16 @@ function validateAsset(assetsDir: string, assetSlug: string): ValidationResult {
   return { assetSlug, issues };
 }
 
-function parseArgs(): { slug?: string; all: boolean } {
+function parseArgs(): { slug?: string; all: boolean; strictMonitoring: boolean } {
   const args = process.argv.slice(2);
   const slugArg = args.find((arg) => arg.startsWith('--slug='));
   const slug = slugArg?.slice('--slug='.length);
   const all = args.includes('--all');
+  const strictMonitoring = args.includes('--strict-monitoring');
 
   if (!slug && !all) {
-    console.error('Usage: npm run validate:normalized-assets --workspace=api -- --slug=<slug>');
-    console.error('       npm run validate:normalized-assets --workspace=api -- --all');
+    console.error('Usage: npm run validate:normalized-assets --workspace=api -- --slug=<slug> [--strict-monitoring]');
+    console.error('       npm run validate:normalized-assets --workspace=api -- --all [--strict-monitoring]');
     process.exit(1);
   }
 
@@ -592,7 +685,7 @@ function parseArgs(): { slug?: string; all: boolean } {
     process.exit(1);
   }
 
-  return { slug, all };
+  return { slug, all, strictMonitoring };
 }
 
 function printResult(result: ValidationResult): void {
@@ -611,10 +704,10 @@ function printResult(result: ValidationResult): void {
 }
 
 function main(): void {
-  const { slug, all } = parseArgs();
+  const { slug, all, strictMonitoring } = parseArgs();
   const assetsDir = getAssetsDir();
   const slugs = all ? listAssetSlugs(assetsDir) : [slug!];
-  const results = slugs.map((assetSlug) => validateAsset(assetsDir, assetSlug));
+  const results = slugs.map((assetSlug) => validateAsset(assetsDir, assetSlug, { strictMonitoring }));
 
   for (const result of results) {
     printResult(result);
@@ -624,7 +717,7 @@ function main(): void {
   const totalWarnings = results.flatMap((result) => result.issues).filter((issue) => issue.severity === 'warning').length;
 
   console.log('\n=== Normalized asset validation summary ===');
-  console.log(JSON.stringify({ checkedAssets: results.length, errors: totalErrors, warnings: totalWarnings }, null, 2));
+  console.log(JSON.stringify({ checkedAssets: results.length, strictMonitoring, errors: totalErrors, warnings: totalWarnings }, null, 2));
 
   if (totalErrors > 0) {
     process.exit(1);
