@@ -22,10 +22,11 @@ import {
 
 const MONITORING_OVERVIEW_PROXY_URL = "/api/admin/monitoring/overview";
 const MONITORING_DETAIL_PROXY_BASE = "/api/admin/monitoring";
+const MONITORING_REPAIR_LOGS_PROXY_URL = `${MONITORING_DETAIL_PROXY_BASE}/repair-logs?limit=10`;
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const ADMIN_KEY_STORAGE = "nexus_admin_key";
 
-type DetailResource = "health-checks" | "source-health" | "review-tasks" | "sync-logs" | "sources";
+type DetailResource = "health-checks" | "source-health" | "review-tasks" | "sync-logs" | "sources" | "repair-logs";
 
 type MonitoringOverview = {
   generatedAt: string;
@@ -60,7 +61,24 @@ type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
 
+type ActionableDetailResource = "health-checks" | "source-health" | "review-tasks" | "sync-logs";
+
 type MonitoringWorkType = "review-task" | "source-health" | "health-check" | "sync-log";
+
+type MonitoringRepairLog = {
+  id: string;
+  actor: string;
+  action: string;
+  resource: string;
+  resourceId: string;
+  assetSlug: string;
+  layer: string;
+  oldValue?: unknown;
+  newValue?: unknown;
+  reason?: string | null;
+  evidenceUrl?: string | null;
+  createdAt: string;
+};
 
 type SourceHealthStatus = "healthy" | "redirected" | "restricted" | "deprecated" | "broken" | "error";
 
@@ -88,7 +106,7 @@ type SourceRepairPayload = {
 type MonitoringWorkItem = {
   id: string;
   type: MonitoringWorkType;
-  resource: Exclude<DetailResource, "sources">;
+  resource: ActionableDetailResource;
   assetSlug: string;
   layer: string;
   severity: string;
@@ -115,6 +133,7 @@ const resourceLabels: Record<DetailResource, string> = {
   "review-tasks": "Review tasks",
   "sync-logs": "Sync logs",
   sources: "Source library",
+  "repair-logs": "Repair logs",
 };
 
 const sourceHealthStatusOptions: Array<{ value: SourceHealthStatus; label: string; helper: string }> = [
@@ -261,7 +280,7 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   return "Inspect failed sync log, fix import/source issue, and rerun the sync job.";
 }
 
-function normalizeMonitoringRow(resource: Exclude<DetailResource, "sources">, row: Record<string, unknown>, index: number): MonitoringWorkItem {
+function normalizeMonitoringRow(resource: ActionableDetailResource, row: Record<string, unknown>, index: number): MonitoringWorkItem {
   const id = firstText(row.id, `${resource}-${index}`);
   const assetSlug = firstText(row.assetSlug, row.asset, row.slug);
   const layer = firstText(row.layer, row.layerName, row.provider, row.jobName);
@@ -484,6 +503,48 @@ function SummaryPills({ title, data }: { title: string; data: Record<string, num
         )}
       </div>
     </div>
+  );
+}
+
+function RecentRepairActions({ rows }: { rows: MonitoringRepairLog[] }) {
+  return (
+    <section className="data-surface p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <p className="terminal-label">Recent repair actions</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">Latest immutable monitoring audit entries from the repair log.</p>
+        </div>
+        <span className="terminal-data text-xs text-[var(--text-muted)]">{rows.length} shown</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-[var(--border-line)] text-sm">
+          <thead className="text-left text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">
+            <tr>
+              <th className="py-2 pr-4">Time</th>
+              <th className="py-2 pr-4">Action</th>
+              <th className="py-2 pr-4">Asset</th>
+              <th className="py-2 pr-4">Layer</th>
+              <th className="py-2 pr-4">Reason</th>
+              <th className="py-2 pr-4">Actor</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[var(--border-line)] text-[var(--text-secondary)]">
+            {rows.length ? rows.map((row) => (
+              <tr key={row.id}>
+                <td className="py-2 pr-4 whitespace-nowrap text-[var(--text-muted)]">{formatDate(row.createdAt)}</td>
+                <td className="py-2 pr-4 terminal-data text-[var(--accent-cyan)]">{row.action}</td>
+                <td className="py-2 pr-4 text-white">{row.assetSlug}</td>
+                <td className="py-2 pr-4">{row.layer}</td>
+                <td className="py-2 pr-4 max-w-xl truncate">{row.reason || "—"}</td>
+                <td className="py-2 pr-4">{row.actor}</td>
+              </tr>
+            )) : (
+              <tr><td colSpan={6} className="py-6 text-center text-[var(--text-muted)]">No repair actions logged yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -1094,6 +1155,7 @@ export default function MonitoringPage() {
   const [data, setData] = useState<MonitoringOverview | null>(null);
   const [detailRows, setDetailRows] = useState<Array<Record<string, unknown>>>([]);
   const [unifiedRows, setUnifiedRows] = useState<MonitoringWorkItem[]>([]);
+  const [repairLogs, setRepairLogs] = useState<MonitoringRepairLog[]>([]);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [resource, setResource] = useState<DetailResource>("review-tasks");
   const [assetSlug, setAssetSlug] = useState("");
@@ -1183,8 +1245,21 @@ export default function MonitoringPage() {
     ];
   }, [data]);
 
+  const loadRepairLogs = useCallback(async (key: string) => {
+    const response = await fetch(MONITORING_REPAIR_LOGS_PROXY_URL, {
+      method: "GET",
+      headers: { Accept: "application/json", "X-Admin-Key": key },
+      cache: "no-store",
+    });
+    const body = (await response.json()) as ApiResponse<MonitoringRepairLog[]>;
+    if (!response.ok || !body.success) {
+      throw new Error(getErrorMessage(body, response.statusText || "Failed to load repair logs"));
+    }
+    setRepairLogs(body.data);
+  }, []);
+
   const loadUnifiedRows = useCallback(async (key: string) => {
-    const requests: Array<[Exclude<DetailResource, "sources">, string]> = [
+    const requests: Array<[ActionableDetailResource, string]> = [
       ["review-tasks", "open"],
       ["source-health", "restricted"],
       ["source-health", "broken"],
@@ -1318,12 +1393,13 @@ export default function MonitoringPage() {
       setData(parsed.data);
       window.localStorage.setItem(ADMIN_KEY_STORAGE, key);
       setSavedKey(true);
-      await Promise.all([loadUnifiedRows(key), loadDetailRows(key)]);
+      await Promise.all([loadUnifiedRows(key), loadDetailRows(key), loadRepairLogs(key)]);
       setAdvancedMode(false);
     } catch (err) {
       setData(null);
       setDetailRows([]);
       setUnifiedRows([]);
+      setRepairLogs([]);
       setSelectedRow(null);
       setError(
         err instanceof TypeError
@@ -1335,7 +1411,7 @@ export default function MonitoringPage() {
     } finally {
       setLoading(false);
     }
-  }, [adminKey, loadDetailRows, loadUnifiedRows]);
+  }, [adminKey, loadDetailRows, loadRepairLogs, loadUnifiedRows]);
 
   const applyQuickFilter = useCallback(
     async (item: QueueShortcut) => {
@@ -1403,7 +1479,7 @@ export default function MonitoringPage() {
         }
 
         setNotice(targetResource === "review-tasks" ? "Review task closed." : "Health check marked current.");
-        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim())]);
+        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
         setSelectedRow(body.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Close action failed");
@@ -1411,7 +1487,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadUnifiedRows, resource],
+    [adminKey, loadDetailRows, loadRepairLogs, loadUnifiedRows, resource],
   );
 
   const handleSourceRepair = useCallback(
@@ -1440,7 +1516,7 @@ export default function MonitoringPage() {
         if (!response.ok || !body.success) throw new Error(getErrorMessage(body, response.statusText || "Source repair failed"));
 
         setNotice("Source URL repaired and audit log saved.");
-        await Promise.all([loadOverview(), loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim())]);
+        await Promise.all([loadOverview(), loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
         setSelectedRow({ ...body.data.source, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Source repair failed");
@@ -1448,7 +1524,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadOverview, loadUnifiedRows, resource],
+    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, loadUnifiedRows, resource],
   );
 
   const handleSourceStatus = useCallback(
@@ -1480,7 +1556,7 @@ export default function MonitoringPage() {
         }
 
         setNotice(`Source marked ${nextStatus}.`);
-        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim())]);
+        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
         setSelectedRow(body.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Source status update failed");
@@ -1488,7 +1564,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadUnifiedRows],
+    [adminKey, loadDetailRows, loadRepairLogs, loadUnifiedRows],
   );
 
   useEffect(() => {
@@ -1600,6 +1676,8 @@ export default function MonitoringPage() {
           <QueueShortcuts items={queueShortcuts} onSelect={(item) => void applyQuickFilter(item)} />
 
           <WorkflowRail />
+
+          <RecentRepairActions rows={repairLogs} />
 
           <section className="grid gap-4 lg:grid-cols-2">
             <SummaryPills title="Health status" data={data.healthStatusSummary} />

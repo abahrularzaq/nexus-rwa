@@ -409,6 +409,27 @@ model ReviewTask {
   @@index([resolvedAt])
 }
 
+model MonitoringRepairLog {
+  id          String   @id @default(cuid())
+  actor       String
+  action      String
+  resource    String
+  resourceId  String
+  assetSlug   String
+  layer       String
+  oldValue    Json?
+  newValue    Json?
+  reason      String?
+  evidenceUrl String?
+  createdAt   DateTime @default(now())
+
+  @@index([assetSlug])
+  @@index([layer])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
 model ApiRequest {
   id            String        @id @default(cuid())
   requestId     String        @unique
