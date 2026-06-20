@@ -320,15 +320,57 @@ Pastikan:
 | Setelah import aset | `validate:normalized-assets` + create `grade-baseline.json` + create `monitoring.json` + `validate:asset-production -- --slug={asset-slug}` + `check:freshness` + `check:sources` | Validasi kualitas data baru sebelum production-ready |
 | Sebelum release besar | `validate:asset-production -- --slug={asset-slug}` untuk setiap asset yang akan dipromosikan + `report:monitoring` | Strict gate production-ready dan snapshot status data sebelum deploy |
 
-Untuk tahap MVP, jalankan manual dulu. Setelah stabil, pindahkan ke GitHub Actions atau cron server.
+Untuk tahap MVP, checks bisa dijalankan manual. Untuk production, workflow GitHub Actions `.github/workflows/monitoring.yml` sudah menjadi audit trail utama.
 
-## GitHub Actions / Cron Target Berikutnya
+## GitHub Actions Production Workflow
 
-Target production berikutnya:
+Workflow `.github/workflows/monitoring.yml` berjalan dengan jadwal UTC berikut:
 
-1. Buat workflow terjadwal `monitoring.yml`.
-2. Jalankan `check:freshness` harian.
-3. Jalankan `check:sources` mingguan.
-4. Jalankan `npm run validate:asset-production --workspace=api -- --slug={asset-slug}` sebagai release checklist/CI gate untuk setiap asset yang dipromosikan ke production.
-5. Simpan log workflow sebagai audit trail.
-6. Nanti tambahkan notifikasi jika `critical > 0`, `broken sources > 0`, atau asset high-priority melewati `nextManualReview`.
+| Jadwal | Command | Tujuan |
+| --- | --- | --- |
+| Setiap hari 02:15 UTC | `npm run check:freshness --workspace=api` | Membuat health check terbaru untuk layer auto-sync/manual-review dan membuka review task jika data stale, missing meta, invalid, atau butuh sync |
+| Setiap Minggu 03:15 UTC | `npm run check:sources --workspace=api` | Mengecek URL sumber, menyimpan source health, dan membuka review task untuk source yang broken, restricted, timeout, atau error |
+| Setiap Minggu 03:45 UTC | `npm run report:monitoring --workspace=api` dan `npm run report:monitoring --workspace=api -- --json` | Membuat snapshot monitoring manusia (`monitoring-report.txt`) dan mesin (`monitoring-report.json`) |
+
+Workflow juga bisa dijalankan manual lewat **Actions → Nexus RWA Monitoring → Run workflow**. Gunakan input `run_sources=false` jika hanya ingin freshness check, atau `run_report=false` jika tidak perlu membuat report pada run manual tersebut.
+
+### Secrets dan Environment yang Wajib Disediakan
+
+Set secrets repository/environment GitHub Actions sebelum mengaktifkan workflow production:
+
+- `DATABASE_URL` (**wajib**) — koneksi database production/staging tempat tabel monitoring ditulis dan report dibaca.
+- `ADMIN_API_KEY` — dipakai oleh flow admin/API terkait monitoring.
+- `REDIS_URL` — jika production memakai Redis/rate limit/cache.
+- RPC/payment secrets yang juga dibutuhkan backend: `X402_NETWORK`, `BASE_MAINNET_RPC_URL`, `BASE_SEPOLIA_RPC_URL`, `PAYMENT_RECIPIENT`, `PAYMENT_AMOUNT_ETH`, `X402_RECEIVING_ADDRESS`, `RPC_URL_ETHEREUM`, `RPC_URL_BASE`, dan `RPC_URL_BASE_SEPOLIA`.
+- Provider/API keys opsional sesuai integrasi aktif: `RWA_XYZ_API_KEY`, `ETHERSCAN_API_KEY`, `BASESCAN_API_KEY`, dan `ANTHROPIC_API_KEY`.
+
+Jika workflow gagal sebelum report dibuat, cek dulu apakah `DATABASE_URL` tersedia dan database bisa menerima koneksi dari GitHub-hosted runner.
+
+### Cara Membaca Artifact Report
+
+Setiap run yang membuat report akan meng-upload artifact bernama `monitoring-report-{run_id}` dengan isi:
+
+- `monitoring-report.txt` — versi terminal yang nyaman dibaca di UI GitHub Actions.
+- `monitoring-report.json` — versi terstruktur untuk audit, diff, atau notifikasi lanjutan.
+
+Baca bagian utama berikut:
+
+1. **Nexus RWA Monitoring Overview** — jumlah health checks, source checks, open review tasks, dan sync log non-success. Angka open review tasks yang naik berarti backlog monitoring bertambah.
+2. **Health Status Summary** — cari status non-`current`, terutama `stale`, `invalid-json`, `missing-meta`, atau `needs-sync`.
+3. **Source Status Summary** — `broken` atau `error` harus diperlakukan sebagai source outage/rot dan ditindaklanjuti. `restricted` bisa berarti sumber memblokir automated checks dan perlu verifikasi manual.
+4. **Review Priority Summary** — priority `high` atau `critical` adalah sinyal untuk triage segera.
+5. **Asset Monitoring Summary** — asset dengan status `stale` atau `incomplete` tidak boleh dianggap production-clean sampai issue terkait ditutup.
+6. **Recent Health Issues**, **Recent Source Issues**, dan **Recent Open Review Tasks** — gunakan baris detail ini untuk menemukan asset, layer, field/source URL, dan alasan perbaikan.
+
+### Gate Fail dan Notifikasi
+
+Workflow akan gagal pada step **Fail on critical monitoring issues** jika report JSON menunjukkan salah satu kondisi berikut:
+
+- Ada health issue severity `critical`.
+- Ada source status `broken` atau `error`.
+- Ada open review task priority `high` atau `critical`.
+- Ada asset `stale` dengan `totalIssues >= 3`, yang diperlakukan sebagai high-priority stale asset.
+
+Kegagalan workflow menjadi notifikasi default GitHub Actions untuk branch/repository watchers. Untuk notifikasi Slack/PagerDuty/email, tambahkan step lanjutan setelah gate dengan `if: failure()` dan kirim ringkasan dari `monitoring-report.json`.
+
+`npm run validate:asset-production --workspace=api -- --slug={asset-slug}` tetap digunakan sebagai release checklist/CI gate untuk setiap asset yang dipromosikan ke production.

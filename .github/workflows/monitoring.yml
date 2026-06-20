@@ -11,11 +11,21 @@ on:
         options:
           - "true"
           - "false"
+      run_report:
+        description: "Generate and gate on the monitoring report"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
   schedule:
     # Daily freshness check at 02:15 UTC.
     - cron: "15 2 * * *"
     # Weekly source check every Sunday at 03:15 UTC.
     - cron: "15 3 * * 0"
+    # Weekly monitoring report every Sunday at 03:45 UTC.
+    - cron: "45 3 * * 0"
 
 jobs:
   monitoring:
@@ -55,10 +65,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=api/prisma/schema.prisma
+
       - name: Validate asset files
-        run: npm run validate:asset-files --workspace=api
+        run: npm run validate:asset-files --workspace=api -- --all
 
       - name: Run freshness checks
+        if: ${{ github.event.schedule == '15 2 * * *' || github.event_name == 'workflow_dispatch' }}
         run: npm run check:freshness --workspace=api
 
       - name: Run source checks
@@ -66,13 +80,39 @@ jobs:
         run: npm run check:sources --workspace=api
 
       - name: Generate monitoring report
-        if: always()
-        run: npm run report:monitoring --workspace=api | tee monitoring-report.txt
+        if: ${{ always() && (github.event.schedule == '45 3 * * 0' || github.event_name == 'workflow_dispatch' && inputs.run_report == 'true') }}
+        run: |
+          npm run report:monitoring --workspace=api | tee monitoring-report.txt
+          npm run report:monitoring --workspace=api -- --json > monitoring-report.json
+
+      - name: Fail on critical monitoring issues
+        if: ${{ always() && hashFiles('monitoring-report.json') != '' }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('monitoring-report.json', 'utf8'));
+          const criticalHealth = Number(report.healthSeveritySummary?.critical ?? 0);
+          const brokenSources = Number(report.sourceStatusSummary?.broken ?? 0) + Number(report.sourceStatusSummary?.error ?? 0);
+          const highPriorityStaleAssets = (report.assetSummaries ?? []).filter((asset) => asset.status === 'stale' && asset.totalIssues >= 3);
+          const highPriorityReviewTasks = Number(report.reviewPrioritySummary?.high ?? 0) + Number(report.reviewPrioritySummary?.critical ?? 0);
+          const failures = [];
+          if (criticalHealth > 0) failures.push(`${criticalHealth} critical health issue(s)`);
+          if (brokenSources > 0) failures.push(`${brokenSources} broken/error source issue(s)`);
+          if (highPriorityReviewTasks > 0) failures.push(`${highPriorityReviewTasks} high/critical open review task(s)`);
+          if (highPriorityStaleAssets.length > 0) failures.push(`${highPriorityStaleAssets.length} high-priority stale asset(s): ${highPriorityStaleAssets.map((asset) => asset.assetSlug).join(', ')}`);
+          if (failures.length > 0) {
+            console.error(`Monitoring gate failed: ${failures.join('; ')}`);
+            process.exit(1);
+          }
+          console.log('Monitoring gate passed.');
+          NODE
 
       - name: Upload monitoring report
-        if: always()
+        if: ${{ always() && hashFiles('monitoring-report.*') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: monitoring-report-${{ github.run_id }}
-          path: monitoring-report.txt
+          path: |
+            monitoring-report.txt
+            monitoring-report.json
           retention-days: 30
