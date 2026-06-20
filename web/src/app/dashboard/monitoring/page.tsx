@@ -78,6 +78,13 @@ type ResolutionMetadata = {
   evidenceUrl?: string;
 };
 
+type SourceRepairPayload = {
+  newUrl: string;
+  reason: string;
+  reliability: number;
+  evidenceNote?: string;
+};
+
 type MonitoringWorkItem = {
   id: string;
   type: MonitoringWorkType;
@@ -808,6 +815,7 @@ function DetailPanelContent({
   onClear,
   onClose,
   onSourceStatus,
+  onSourceRepair,
   actionLoadingId,
 }: {
   row: Record<string, unknown>;
@@ -815,6 +823,7 @@ function DetailPanelContent({
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
+  onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
   actionLoadingId: string | null;
 }) {
   const id = getRowId(row);
@@ -838,6 +847,12 @@ function DetailPanelContent({
   const [evidenceUrl, setEvidenceUrl] = useState(
     typeof row.evidenceUrl === "string" && row.evidenceUrl.trim() ? row.evidenceUrl : url ?? "",
   );
+  const [repairUrl, setRepairUrl] = useState(url ?? "");
+  const [repairReason, setRepairReason] = useState(suggestedAction);
+  const [repairReliability, setRepairReliability] = useState(
+    typeof row.reliability === "number" ? String(row.reliability) : typeof row.baseReliability === "number" ? String(row.baseReliability) : "80",
+  );
+  const [repairEvidenceNote, setRepairEvidenceNote] = useState("");
 
   const closeMetadata = {
     resolutionType,
@@ -984,6 +999,27 @@ function DetailPanelContent({
               <ClipboardCheck className="size-4" />
               Copy close log
             </button>
+            {url && id ? (
+              <form
+                className="grid gap-2 rounded-lg border border-[var(--accent-cyan)]/25 bg-[var(--accent-cyan)]/5 p-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onSourceRepair(row, {
+                    newUrl: repairUrl.trim(),
+                    reason: repairReason.trim(),
+                    reliability: Number(repairReliability),
+                    ...(repairEvidenceNote.trim() ? { evidenceNote: repairEvidenceNote.trim() } : {}),
+                  });
+                }}
+              >
+                <p className="terminal-label">Repair source URL</p>
+                <input value={repairUrl} onChange={(event) => setRepairUrl(event.target.value)} type="url" placeholder="https://new-source.example/..." className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]" />
+                <textarea value={repairReason} onChange={(event) => setRepairReason(event.target.value)} rows={3} placeholder="Why this source URL is being replaced" className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]" />
+                <input value={repairReliability} onChange={(event) => setRepairReliability(event.target.value)} type="number" min="0" max="100" placeholder="Reliability 0-100" className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]" />
+                <textarea value={repairEvidenceNote} onChange={(event) => setRepairEvidenceNote(event.target.value)} rows={2} placeholder="Optional evidence note" className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]" />
+                <button type="submit" disabled={loading || !repairUrl.trim() || !repairReason.trim()} className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60">Save repair + audit log</button>
+              </form>
+            ) : null}
             {resource === "source-health" && id ? (
               <div className="grid gap-2 sm:grid-cols-2">
                 <button
@@ -1038,6 +1074,7 @@ function DetailPanel(props: {
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
+  onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
   actionLoadingId: string | null;
 }) {
   if (!props.row) return null;
@@ -1373,6 +1410,43 @@ export default function MonitoringPage() {
     [adminKey, loadDetailRows, loadUnifiedRows, resource],
   );
 
+  const handleSourceRepair = useCallback(
+    async (row: Record<string, unknown>, payload: SourceRepairPayload) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This source row has no id, so it cannot be repaired from the workbench.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const repairPath = resource === "source-health"
+          ? `${MONITORING_DETAIL_PROXY_BASE}/source-health/${encodeURIComponent(id)}/repair`
+          : `${MONITORING_DETAIL_PROXY_BASE}/sources/${encodeURIComponent(id)}`;
+        const response = await fetch(repairPath, {
+          method: "PATCH",
+          headers: { Accept: "application/json", "Content-Type": "application/json", "X-Admin-Key": adminKey.trim() },
+          body: JSON.stringify(payload),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<{ source: Record<string, unknown>; audit: Record<string, unknown> }>;
+        if (!response.ok || !body.success) throw new Error(getErrorMessage(body, response.statusText || "Source repair failed"));
+
+        setNotice("Source URL repaired and audit log saved.");
+        await Promise.all([loadOverview(), loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim())]);
+        setSelectedRow({ ...body.data.source, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Source repair failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [adminKey, loadDetailRows, loadOverview, loadUnifiedRows, resource],
+  );
+
   const handleSourceStatus = useCallback(
     async (row: Record<string, unknown>, nextStatus: string) => {
       const id = getRowId(row);
@@ -1649,6 +1723,7 @@ export default function MonitoringPage() {
             onClear={() => setSelectedRow(null)}
             onClose={handleCloseRow}
             onSourceStatus={handleSourceStatus}
+            onSourceRepair={handleSourceRepair}
             actionLoadingId={actionLoadingId}
           />
 
