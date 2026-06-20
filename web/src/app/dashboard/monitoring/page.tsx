@@ -82,6 +82,8 @@ type MonitoringRepairLog = {
 
 type SourceHealthStatus = "healthy" | "redirected" | "restricted" | "deprecated" | "broken" | "error";
 
+type ActionVerificationStatus = "pending verification" | "verified" | "failed verification";
+
 type ResolutionType =
   | "fixed_source"
   | "verified_manual"
@@ -362,10 +364,10 @@ function normalizeMonitoringRow(resource: ActionableDetailResource, row: Record<
 }
 
 function statusClass(status: string): string {
-  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh"].includes(status)) {
+  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh", "verified"].includes(status)) {
     return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   }
-  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete"].includes(status)) {
+  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed verification"].includes(status)) {
     return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
   }
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
@@ -391,6 +393,18 @@ function unifiedPriorityScore(row: MonitoringWorkItem): number {
   if (row.type === "sync-log" && (text.includes("failed") || text.includes("error"))) return 3;
   if (row.type === "review-task" && (text.includes("low-confidence") || text.includes("low confidence") || text.includes("missing"))) return 4;
   return 5 + priorityScore(row as unknown as Record<string, unknown>);
+}
+
+
+function actionStateKey(resource: DetailResource, id: string): string {
+  return `${resource}:${id}`;
+}
+
+function manualVerificationInstruction(resource: DetailResource): string {
+  if (resource === "source-health" || resource === "sources") return "Manual verification: run `check:sources` to confirm source issues are resolved.";
+  if (resource === "health-checks") return "Manual verification: run `check:freshness` to confirm freshness issues are resolved.";
+  if (resource === "sync-logs") return "Manual verification: retry provider sync and confirm the next sync log succeeds.";
+  return "Manual verification: review the repaired evidence and confirm the task remains resolved.";
 }
 
 function getErrorMessage(body: unknown, fallback: string): string {
@@ -887,6 +901,8 @@ function DetailPanelContent({
   onSourceStatus,
   onSourceRepair,
   actionLoadingId,
+  actionStatus,
+  granularCheckAvailable = false,
 }: {
   row: Record<string, unknown>;
   resource: DetailResource;
@@ -895,6 +911,8 @@ function DetailPanelContent({
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
   actionLoadingId: string | null;
+  actionStatus?: ActionVerificationStatus;
+  granularCheckAvailable?: boolean;
 }) {
   const id = getRowId(row);
   const url = getRowUrl(row);
@@ -971,6 +989,14 @@ function DetailPanelContent({
             <p className="terminal-label mb-2">Suggested action</p>
             <p className="text-sm leading-relaxed text-white">{suggestedAction}</p>
           </div>
+          {actionStatus ? (
+            <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
+              <p className="terminal-label mb-2">Action status</p>
+              <span className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(actionStatus)}`}>
+                {actionStatus}
+              </span>
+            </div>
+          ) : null}
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
               <p className="terminal-label mb-2">Asset</p>
@@ -1122,6 +1148,22 @@ function DetailPanelContent({
               </button>
             ) : null}
           </div>
+          {actionStatus === "pending verification" ? (
+            granularCheckAvailable ? (
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 px-3 py-2 text-sm font-semibold text-[var(--accent-cyan)] disabled:opacity-60"
+              >
+                <RefreshCw className="size-4" />
+                Re-check
+              </button>
+            ) : (
+              <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+                {manualVerificationInstruction(resource)}
+              </div>
+            )
+          ) : null}
           <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
             Restricted = akses dibatasi tetapi source belum terbukti rusak; broken = URL/konten tidak tersedia atau tidak lagi mendukung evidence. Close hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan audit note sudah aman.
           </div>
@@ -1139,6 +1181,8 @@ function DetailPanel(props: {
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
   actionLoadingId: string | null;
+  actionStatus?: ActionVerificationStatus;
+  granularCheckAvailable?: boolean;
 }) {
   if (!props.row) return null;
 
@@ -1167,6 +1211,7 @@ export default function MonitoringPage() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [actionStatuses, setActionStatuses] = useState<Record<string, ActionVerificationStatus>>({});
 
 
   const healthScore = useMemo(() => {
@@ -1210,6 +1255,17 @@ export default function MonitoringPage() {
     }
     return Array.from(values).sort();
   }, [detailRows]);
+
+  const selectedActionStatus = useMemo(() => {
+    if (!selectedRow) return undefined;
+    const id = getRowId(selectedRow);
+    const selectedResource = (selectedRow.resource as DetailResource | undefined) ?? resource;
+    return id ? actionStatuses[actionStateKey(selectedResource, id)] : undefined;
+  }, [actionStatuses, resource, selectedRow]);
+
+  const markActionStatus = useCallback((targetResource: DetailResource, id: string, nextStatus: ActionVerificationStatus) => {
+    setActionStatuses((current) => ({ ...current, [actionStateKey(targetResource, id)]: nextStatus }));
+  }, []);
 
   const queueShortcuts = useMemo<QueueShortcut[]>(() => {
     if (!data) return [];
@@ -1478,16 +1534,17 @@ export default function MonitoringPage() {
           throw new Error(getErrorMessage(body, response.statusText || "Close action failed"));
         }
 
-        setNotice(targetResource === "review-tasks" ? "Review task closed." : "Health check marked current.");
-        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
-        setSelectedRow(body.data);
+        markActionStatus(targetResource, id, "pending verification");
+        await Promise.all([loadOverview(), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} updated. Pending verification.`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Close action failed");
       } finally {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadRepairLogs, loadUnifiedRows, resource],
+    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
   );
 
   const handleSourceRepair = useCallback(
@@ -1515,16 +1572,17 @@ export default function MonitoringPage() {
         const body = (await response.json()) as ApiResponse<{ source: Record<string, unknown>; audit: Record<string, unknown> }>;
         if (!response.ok || !body.success) throw new Error(getErrorMessage(body, response.statusText || "Source repair failed"));
 
-        setNotice("Source URL repaired and audit log saved.");
-        await Promise.all([loadOverview(), loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
-        setSelectedRow({ ...body.data.source, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
+        markActionStatus(resource, id, "pending verification");
+        await Promise.all([loadOverview(), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
+        setSelectedRow({ ...body.data.source, resource, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
+        setNotice("Source item updated. Pending verification.");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Source repair failed");
       } finally {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, loadUnifiedRows, resource],
+    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
   );
 
   const handleSourceStatus = useCallback(
@@ -1555,16 +1613,17 @@ export default function MonitoringPage() {
           throw new Error(getErrorMessage(body, response.statusText || "Source status update failed"));
         }
 
-        setNotice(`Source marked ${nextStatus}.`);
-        await Promise.all([loadUnifiedRows(adminKey.trim()), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
-        setSelectedRow(body.data);
+        markActionStatus("source-health", id, "pending verification");
+        await Promise.all([loadOverview(), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
+        setSelectedRow({ ...body.data, resource: "source-health" });
+        setNotice(`Source item updated to ${nextStatus}. Pending verification.`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Source status update failed");
       } finally {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadRepairLogs, loadUnifiedRows],
+    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, markActionStatus],
   );
 
   useEffect(() => {
@@ -1807,6 +1866,8 @@ export default function MonitoringPage() {
             onSourceStatus={handleSourceStatus}
             onSourceRepair={handleSourceRepair}
             actionLoadingId={actionLoadingId}
+            actionStatus={selectedActionStatus}
+            granularCheckAvailable={false}
           />
 
           <section className="grid gap-4">
