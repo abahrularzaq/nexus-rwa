@@ -53,11 +53,12 @@ export function buildAssetMonitoringScores(
     const healthWatch = latestHealth.filter((row) => !['current', 'stale'].includes(row.status)).length;
     const missingSource = sourceRows.filter((source) => !source.sourceUrl).length + (sourceRows.length === 0 ? 1 : 0);
     const lowConfidenceSource = sourceRows.filter((source) => typeof source.reliability === 'number' && source.reliability < 3).length;
-    const sourceIssues = assetSources.filter((source) => !['healthy', 'redirected'].includes(source.status)).length;
+    const sourceWatch = assetSources.filter((source) => source.status === 'restricted').length;
+    const sourceIssues = assetSources.filter((source) => ['deprecated', 'broken', 'error'].includes(source.status)).length;
     const incompleteLayer = expectedLayers.filter((layer) => !presentLayers.has(layer)).length;
-    const totalIssues = staleData + healthWatch + missingSource + lowConfidenceSource + sourceIssues + incompleteLayer;
+    const totalIssues = staleData + healthWatch + missingSource + lowConfidenceSource + sourceWatch + sourceIssues + incompleteLayer;
     const score = Math.max(0, 100 - staleData * 20 - healthWatch * 10 - missingSource * 20 - lowConfidenceSource * 8 - sourceIssues * 12 - incompleteLayer * 20);
-    const status: MonitoringStatus = incompleteLayer > 0 || missingSource > 0 ? 'incomplete' : staleData > 0 || sourceIssues > 0 ? 'stale' : healthWatch > 0 || lowConfidenceSource > 0 || score < 90 ? 'watch' : 'fresh';
+    const status: MonitoringStatus = incompleteLayer > 0 || missingSource > 0 ? 'incomplete' : staleData > 0 || sourceIssues > 0 ? 'stale' : healthWatch > 0 || sourceWatch > 0 || lowConfidenceSource > 0 || score < 90 ? 'watch' : 'fresh';
 
     return { assetSlug, status, score, staleData, missingSource, lowConfidenceSource, incompleteLayer, totalIssues };
   });

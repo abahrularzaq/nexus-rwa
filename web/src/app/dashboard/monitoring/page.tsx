@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  CheckCircle2,
   ClipboardCheck,
   DatabaseZap,
   Download,
@@ -19,7 +18,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   Wrench,
-  XCircle,
 } from "lucide-react";
 
 const MONITORING_OVERVIEW_PROXY_URL = "/api/admin/monitoring/overview";
@@ -63,6 +61,8 @@ type ApiResponse<T> =
   | { success: false; error: { code: string; message: string } };
 
 type MonitoringWorkType = "review-task" | "source-health" | "health-check" | "sync-log";
+
+type SourceHealthStatus = "healthy" | "redirected" | "restricted" | "deprecated" | "broken" | "error";
 
 type ResolutionType =
   | "fixed_source"
@@ -116,6 +116,15 @@ const resourceLabels: Record<DetailResource, string> = {
   "sync-logs": "Sync logs",
   sources: "Source library",
 };
+
+const sourceHealthStatusOptions: Array<{ value: SourceHealthStatus; label: string; helper: string }> = [
+  { value: "healthy", label: "Healthy", helper: "Source opens normally and supports the current evidence." },
+  { value: "redirected", label: "Redirected", helper: "URL redirects to a valid replacement or canonical page." },
+  { value: "restricted", label: "Restricted", helper: "Use when access is gated, rate-limited, region-blocked, or login-only but the source is not proven unavailable." },
+  { value: "deprecated", label: "Deprecated", helper: "Source is intentionally retired or superseded and should be replaced." },
+  { value: "broken", label: "Broken", helper: "Use when the URL/content is unavailable, removed, or no longer backs the evidence." },
+  { value: "error", label: "Error", helper: "Checker failed with a technical/runtime error that needs investigation." },
+];
 
 const resolutionTypeOptions: Array<{ value: ResolutionType; label: string }> = [
   { value: "fixed_source", label: "Fixed source" },
@@ -204,7 +213,11 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   ).toLowerCase();
 
   if (resource === "source-health" && (status === "broken" || status === "error")) {
-    return "Replace source URL or mark deprecated";
+    return "Replace source URL or mark deprecated; use restricted only for access-gated sources that may still be valid.";
+  }
+
+  if (resource === "source-health" && status === "restricted") {
+    return "Manual review: access is restricted/gated, but the source is not confirmed broken.";
   }
 
   if (resource === "source-health" && status === "timeout") {
@@ -238,7 +251,7 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   }
 
   if (resource === "source-health" || resource === "sources") {
-    return "Open source URL, replace broken/restricted evidence, or mark the source healthy/deprecated.";
+    return "Open source URL, mark restricted for access-gated valid sources, mark broken when unavailable, or mark deprecated when retired.";
   }
 
   if (resource === "health-checks") {
@@ -558,7 +571,7 @@ function WorkflowRail() {
   const steps = [
     { title: "1. Triage", body: "Mulai dari broken/error source, high review, lalu needs-sync." },
     { title: "2. Verify", body: "Buka source, cek official URL, final redirect, field, dan layer evidence." },
-    { title: "3. Repair", body: "Replace source di data layer, sync ulang, atau tandai restricted/deprecated." },
+    { title: "3. Repair", body: "Replace source di data layer, sync ulang, tandai restricted untuk access-gated source, atau broken/deprecated untuk source yang tidak valid." },
     { title: "4. Close", body: "Close task hanya setelah source valid, layer current, dan audit trail jelas." },
   ];
 
@@ -694,15 +707,22 @@ function IssueTable({
                           Detail
                         </button>
                         {resource === "source-health" && id ? (
-                          <button
-                            type="button"
-                            onClick={() => onSourceStatus(row, "healthy")}
+                          <select
+                            value=""
+                            onChange={(event) => {
+                              const nextStatus = event.target.value;
+                              if (nextStatus) onSourceStatus(row, nextStatus);
+                              event.target.value = "";
+                            }}
                             disabled={loading}
-                            className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"
+                            aria-label="Update source status"
+                            className="rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-2 py-1 text-xs text-white outline-none transition hover:border-[var(--accent-cyan)] disabled:opacity-60"
                           >
-                            <CheckCircle2 className="size-3" />
-                            Healthy
-                          </button>
+                            <option value="">Set status…</option>
+                            {sourceHealthStatusOptions.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </select>
                         ) : null}
                         {(resource === "review-tasks" || resource === "health-checks") && id ? (
                           <button
@@ -713,17 +733,6 @@ function IssueTable({
                           >
                             <ClipboardCheck className="size-3" />
                             Close
-                          </button>
-                        ) : null}
-                        {resource === "source-health" && id ? (
-                          <button
-                            type="button"
-                            onClick={() => onSourceStatus(row, "deprecated")}
-                            disabled={loading}
-                            className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-[var(--text-secondary)] disabled:opacity-60"
-                          >
-                            <XCircle className="size-3" />
-                            Deprecate
                           </button>
                         ) : null}
                       </div>
@@ -796,7 +805,7 @@ function UnifiedQueueTable({
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt ?? row.createdAt)}</td>
                   <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
                     <button type="button" onClick={() => onView(row)} className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white hover:border-[var(--accent-cyan)]"><Eye className="size-3" />Detail</button>
-                    {row.resource === "source-health" ? <button type="button" onClick={() => onSourceStatus(row, "healthy")} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><CheckCircle2 className="size-3" />Healthy</button> : null}
+                    {row.resource === "source-health" ? <select value="" onChange={(event) => { const nextStatus = event.target.value; if (nextStatus) onSourceStatus(row, nextStatus); event.target.value = ""; }} disabled={loading} aria-label="Update source status" className="rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-2 py-1 text-xs text-white outline-none transition hover:border-[var(--accent-cyan)] disabled:opacity-60"><option value="">Set status…</option>{sourceHealthStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : null}
                     {(row.resource === "review-tasks" || row.resource === "health-checks") ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Close</button> : null}
                   </div></td>
                 </tr>
@@ -1021,31 +1030,24 @@ function DetailPanelContent({
               </form>
             ) : null}
             {resource === "source-health" && id ? (
-              <div className="grid gap-2 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => onSourceStatus(row, "healthy")}
-                  disabled={loading}
-                  className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60"
-                >
-                  Mark healthy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSourceStatus(row, "restricted")}
-                  disabled={loading}
-                  className="rounded-md border border-[#FFB800]/30 bg-[#FFB800]/10 px-3 py-2 text-sm font-semibold text-[#FFB800] disabled:opacity-60"
-                >
-                  Mark restricted
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSourceStatus(row, "deprecated")}
-                  disabled={loading}
-                  className="rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white disabled:opacity-60 sm:col-span-2"
-                >
-                  Mark deprecated
-                </button>
+              <div className="grid gap-2">
+                <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+                  Use <span className="font-semibold text-[#FFB800]">restricted</span> when a valid source is access-gated, rate-limited, region-blocked, or requires login. Use <span className="font-semibold text-[#FF8888]">broken</span> when the source/content is unavailable or no longer supports the evidence.
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {sourceHealthStatusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => onSourceStatus(row, option.value)}
+                      disabled={loading}
+                      title={option.helper}
+                      className={`rounded-md border px-3 py-2 text-sm font-semibold disabled:opacity-60 ${option.value === "healthy" || option.value === "redirected" ? "border-[#00FF88]/25 bg-[#00FF88]/10 text-[#00FF88]" : option.value === "restricted" ? "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]" : "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]"}`}
+                    >
+                      Mark {option.label.toLowerCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : null}
             {(resource === "review-tasks" || resource === "health-checks") && id ? (
@@ -1060,7 +1062,7 @@ function DetailPanelContent({
             ) : null}
           </div>
           <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
-            Close hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan audit note sudah aman.
+            Restricted = akses dibatasi tetapi source belum terbukti rusak; broken = URL/konten tidak tersedia atau tidak lagi mendukung evidence. Close hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan audit note sudah aman.
           </div>
         </div>
       </div>
@@ -1184,8 +1186,10 @@ export default function MonitoringPage() {
   const loadUnifiedRows = useCallback(async (key: string) => {
     const requests: Array<[Exclude<DetailResource, "sources">, string]> = [
       ["review-tasks", "open"],
+      ["source-health", "restricted"],
       ["source-health", "broken"],
       ["source-health", "error"],
+      ["source-health", "deprecated"],
       ["source-health", "missing"],
       ["source-health", "low-confidence"],
       ["health-checks", "stale"],
@@ -1576,7 +1580,7 @@ export default function MonitoringPage() {
             <StatCard
               label="Source health"
               value={sourceScore}
-              helper={`${data.sourceStatusSummary.healthy ?? 0} healthy, ${data.sourceStatusSummary.broken ?? 0} broken`}
+              helper={`${data.sourceStatusSummary.healthy ?? 0} healthy, ${data.sourceStatusSummary.restricted ?? 0} restricted watch, ${data.sourceStatusSummary.broken ?? 0} broken`}
               icon={DatabaseZap}
             />
             <StatCard
