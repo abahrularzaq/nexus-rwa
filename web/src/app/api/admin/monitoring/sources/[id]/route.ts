@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveAdminKey } from "@/lib/admin-session";
 
 export const dynamic = "force-dynamic";
 
@@ -13,15 +14,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const adminKey = request.headers.get("x-admin-key")?.trim();
+  const adminKey = resolveAdminKey(request);
 
   if (!adminKey) {
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: "MISSING_ADMIN_KEY",
-          message: "Missing X-Admin-Key header",
+          code: "MISSING_ADMIN_SESSION",
+          message: "Start an admin session before using admin endpoints",
         },
       },
       { status: 401 },

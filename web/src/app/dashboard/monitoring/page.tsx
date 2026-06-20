@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ClipboardCheck,
@@ -24,7 +24,6 @@ const MONITORING_OVERVIEW_PROXY_URL = "/api/admin/monitoring/overview";
 const MONITORING_DETAIL_PROXY_BASE = "/api/admin/monitoring";
 const MONITORING_REPAIR_LOGS_PROXY_URL = `${MONITORING_DETAIL_PROXY_BASE}/repair-logs?limit=10`;
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-const ADMIN_KEY_STORAGE = "nexus_admin_key";
 
 type DetailResource = "health-checks" | "source-health" | "review-tasks" | "sync-logs" | "sources" | "repair-logs";
 
@@ -1190,12 +1189,8 @@ function DetailPanel(props: {
 }
 
 export default function MonitoringPage() {
-  const [adminKey, setAdminKey] = useState(() =>
-    typeof window === "undefined" ? "" : window.localStorage.getItem(ADMIN_KEY_STORAGE) ?? "",
-  );
-  const [savedKey, setSavedKey] = useState(() =>
-    typeof window === "undefined" ? false : Boolean(window.localStorage.getItem(ADMIN_KEY_STORAGE)),
-  );
+  const [adminKey, setAdminKey] = useState("");
+  const [sessionActive, setSessionActive] = useState(false);
   const [data, setData] = useState<MonitoringOverview | null>(null);
   const [detailRows, setDetailRows] = useState<Array<Record<string, unknown>>>([]);
   const [unifiedRows, setUnifiedRows] = useState<MonitoringWorkItem[]>([]);
@@ -1301,10 +1296,10 @@ export default function MonitoringPage() {
     ];
   }, [data]);
 
-  const loadRepairLogs = useCallback(async (key: string) => {
+  const loadRepairLogs = useCallback(async () => {
     const response = await fetch(MONITORING_REPAIR_LOGS_PROXY_URL, {
       method: "GET",
-      headers: { Accept: "application/json", "X-Admin-Key": key },
+      headers: { Accept: "application/json" },
       cache: "no-store",
     });
     const body = (await response.json()) as ApiResponse<MonitoringRepairLog[]>;
@@ -1314,7 +1309,7 @@ export default function MonitoringPage() {
     setRepairLogs(body.data);
   }, []);
 
-  const loadUnifiedRows = useCallback(async (key: string) => {
+  const loadUnifiedRows = useCallback(async () => {
     const requests: Array<[ActionableDetailResource, string]> = [
       ["review-tasks", "open"],
       ["source-health", "restricted"],
@@ -1334,7 +1329,7 @@ export default function MonitoringPage() {
         const url = buildDetailUrl(selectedResource, "", selectedStatus);
         const response = await fetch(url, {
           method: "GET",
-          headers: { Accept: "application/json", "X-Admin-Key": key },
+          headers: { Accept: "application/json" },
           cache: "no-store",
         });
         const body = (await response.json()) as ApiResponse<Array<Record<string, unknown>>>;
@@ -1354,7 +1349,6 @@ export default function MonitoringPage() {
 
   const loadDetailRows = useCallback(
     async (
-      key: string,
       selectedResource = resource,
       selectedAssetSlug = assetSlug,
       selectedStatus = status,
@@ -1368,7 +1362,6 @@ export default function MonitoringPage() {
           method: "GET",
           headers: {
             Accept: "application/json",
-            "X-Admin-Key": key,
           },
           cache: "no-store",
         });
@@ -1393,7 +1386,7 @@ export default function MonitoringPage() {
     const key = adminKey.trim();
 
     if (!key) {
-      setError("Enter X-Admin-Key first.");
+      setError("Enter admin key to start a short-lived server session first.");
       return;
     }
 
@@ -1402,11 +1395,21 @@ export default function MonitoringPage() {
     setNotice(null);
 
     try {
+      const sessionResponse = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ adminKey: key }),
+        cache: "no-store",
+      });
+      const sessionBody = (await sessionResponse.json()) as ApiResponse<{ expiresAt: string; ttlSeconds: number }>;
+      if (!sessionResponse.ok || !sessionBody.success) {
+        throw new Error(getErrorMessage(sessionBody, "Failed to start admin session"));
+      }
+
       const response = await fetch(MONITORING_OVERVIEW_PROXY_URL, {
         method: "GET",
         headers: {
           Accept: "application/json",
-          "X-Admin-Key": key,
         },
         cache: "no-store",
       });
@@ -1447,9 +1450,8 @@ export default function MonitoringPage() {
       }
 
       setData(parsed.data);
-      window.localStorage.setItem(ADMIN_KEY_STORAGE, key);
-      setSavedKey(true);
-      await Promise.all([loadUnifiedRows(key), loadDetailRows(key), loadRepairLogs(key)]);
+      setSessionActive(true);
+      await Promise.all([loadUnifiedRows(), loadDetailRows(), loadRepairLogs()]);
       setAdvancedMode(false);
     } catch (err) {
       setData(null);
@@ -1476,9 +1478,9 @@ export default function MonitoringPage() {
       setLayer("");
       setSelectedRow(null);
       setAdvancedMode(true);
-      await loadDetailRows(adminKey.trim(), item.resource, assetSlug, item.status);
+      await loadDetailRows(item.resource, assetSlug, item.status);
     },
-    [adminKey, assetSlug, loadDetailRows],
+    [assetSlug, loadDetailRows],
   );
 
   const handleExportCsv = useCallback(() => {
@@ -1520,7 +1522,6 @@ export default function MonitoringPage() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            "X-Admin-Key": adminKey.trim(),
           },
           body: JSON.stringify({
             resolutionType: metadata?.resolutionType ?? "verified_manual",
@@ -1535,7 +1536,7 @@ export default function MonitoringPage() {
         }
 
         markActionStatus(targetResource, id, "pending verification");
-        await Promise.all([loadOverview(), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
+        await Promise.all([loadOverview(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: targetResource });
         setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} updated. Pending verification.`);
       } catch (err) {
@@ -1544,7 +1545,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
+    [loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
   );
 
   const handleSourceRepair = useCallback(
@@ -1565,7 +1566,7 @@ export default function MonitoringPage() {
           : `${MONITORING_DETAIL_PROXY_BASE}/sources/${encodeURIComponent(id)}`;
         const response = await fetch(repairPath, {
           method: "PATCH",
-          headers: { Accept: "application/json", "Content-Type": "application/json", "X-Admin-Key": adminKey.trim() },
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
           body: JSON.stringify(payload),
           cache: "no-store",
         });
@@ -1573,7 +1574,7 @@ export default function MonitoringPage() {
         if (!response.ok || !body.success) throw new Error(getErrorMessage(body, response.statusText || "Source repair failed"));
 
         markActionStatus(resource, id, "pending verification");
-        await Promise.all([loadOverview(), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
+        await Promise.all([loadOverview(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data.source, resource, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
         setNotice("Source item updated. Pending verification.");
       } catch (err) {
@@ -1582,7 +1583,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
+    [loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
   );
 
   const handleSourceStatus = useCallback(
@@ -1603,7 +1604,6 @@ export default function MonitoringPage() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            "X-Admin-Key": adminKey.trim(),
           },
           body: JSON.stringify({ status: nextStatus }),
           cache: "no-store",
@@ -1614,7 +1614,7 @@ export default function MonitoringPage() {
         }
 
         markActionStatus("source-health", id, "pending verification");
-        await Promise.all([loadOverview(), loadDetailRows(adminKey.trim()), loadRepairLogs(adminKey.trim())]);
+        await Promise.all([loadOverview(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: "source-health" });
         setNotice(`Source item updated to ${nextStatus}. Pending verification.`);
       } catch (err) {
@@ -1623,17 +1623,9 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [adminKey, loadDetailRows, loadOverview, loadRepairLogs, markActionStatus],
+    [loadDetailRows, loadOverview, loadRepairLogs, markActionStatus],
   );
 
-  useEffect(() => {
-    if (!adminKey) return;
-    const timer = window.setTimeout(() => {
-      void loadOverview();
-    }, 0);
-    return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedKey]);
 
   return (
     <div className="space-y-6">
@@ -1664,7 +1656,7 @@ export default function MonitoringPage() {
       <section className="data-surface p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="flex-1">
-            <label className="terminal-label mb-2 block">X-Admin-Key</label>
+            <label className="terminal-label mb-2 block">Admin session key</label>
             <div className="flex flex-col gap-2 sm:flex-row">
               <div className="relative flex-1">
                 <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
@@ -1672,7 +1664,7 @@ export default function MonitoringPage() {
                   value={adminKey}
                   onChange={(event) => setAdminKey(event.target.value)}
                   type="password"
-                  placeholder="Paste local ADMIN_API_KEY"
+                  placeholder="Paste ADMIN_API_KEY to start a short-lived session"
                   autoComplete="off"
                   className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] py-2 pl-9 pr-3 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
                 />
@@ -1683,12 +1675,12 @@ export default function MonitoringPage() {
                 disabled={loading || detailLoading}
                 className="rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Load monitoring
+                Start admin session
               </button>
             </div>
           </div>
           <p className="max-w-md text-xs text-[var(--text-secondary)]">
-            The key is stored only in this browser localStorage as <span className="terminal-data">nexus_admin_key</span>.
+            The key is exchanged for a short-lived HttpOnly server session and is never persisted in browser localStorage.
           </p>
         </div>
         {error ? (
@@ -1835,8 +1827,8 @@ export default function MonitoringPage() {
               <div className="flex items-end gap-2">
                 <button
                   type="button"
-                  onClick={() => void loadDetailRows(adminKey.trim())}
-                  disabled={detailLoading || !adminKey.trim()}
+                  onClick={() => void loadDetailRows()}
+                  disabled={detailLoading || !sessionActive}
                   className="flex-1 rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Apply
@@ -1899,7 +1891,7 @@ export default function MonitoringPage() {
         </>
       ) : (
         <div className="data-surface p-8 text-center text-sm text-[var(--text-secondary)]">
-          Enter admin key and load monitoring overview.
+          Start an admin session and load monitoring overview.
         </div>
       )}
     </div>

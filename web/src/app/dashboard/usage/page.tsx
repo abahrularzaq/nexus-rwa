@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Activity, AlertTriangle, BarChart3, Clock, KeyRound, RefreshCw, ShieldCheck, type LucideIcon } from "lucide-react";
 
 const USAGE_SUMMARY_PROXY_URL = "/api/admin/usage/summary";
-const ADMIN_KEY_STORAGE = "nexus_admin_key";
 
 type UsageSummary = {
   generatedAt: string;
@@ -69,17 +68,11 @@ export default function UsageDashboardPage() {
   }, [summary]);
 
   async function loadSummary() {
-    const adminKey = window.localStorage.getItem(ADMIN_KEY_STORAGE)?.trim();
-    if (!adminKey) {
-      setError("Add your admin key in the dashboard header before viewing usage analytics.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(`${USAGE_SUMMARY_PROXY_URL}?days=${days}&limit=10`, {
-        headers: { "X-Admin-Key": adminKey },
+        headers: { Accept: "application/json" },
         cache: "no-store",
       });
       const body = (await response.json()) as ApiResponse<UsageSummary>;

@@ -88,6 +88,7 @@ export function adminAuthMiddleware(): MiddlewareHandler {
       );
     }
 
+    c.set('adminActor', 'admin');
     logAdminAudit(c, 'success');
     await next();
   };

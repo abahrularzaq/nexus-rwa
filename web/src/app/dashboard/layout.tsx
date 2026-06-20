@@ -26,8 +26,6 @@ import { DashboardWalletButton } from "@/components/dashboard/DashboardWalletBut
 import { AskNexus } from "@/components/dashboard/AskNexus";
 import { PaymentHistory } from "@/components/paywall/PaymentHistory";
 
-const ADMIN_KEY_STORAGE = "nexus_admin_key";
-
 const navItems = [
   {
     label: "Overview",
@@ -175,8 +173,8 @@ export default function DashboardLayout({
   const crumbs = breadcrumbsFromPathname(pathname);
   const isMonitoringPage = isNavActive(pathname, "/dashboard/monitoring", false);
 
-  function handleAdminLogout() {
-    window.localStorage.removeItem(ADMIN_KEY_STORAGE);
+  async function handleAdminLogout() {
+    await fetch("/api/admin/session", { method: "DELETE", cache: "no-store" }).catch(() => null);
     router.refresh();
   }
 
