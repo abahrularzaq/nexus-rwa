@@ -13,6 +13,7 @@ import {
   KeyRound,
   Link as LinkIcon,
   ListChecks,
+  LogOut,
   PlayCircle,
   RefreshCw,
   ShieldAlert,
@@ -1203,6 +1204,7 @@ export default function MonitoringPage() {
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -1382,30 +1384,23 @@ export default function MonitoringPage() {
     [assetSlug, resource, status],
   );
 
-  const loadOverview = useCallback(async () => {
-    const key = adminKey.trim();
+  const resetMonitoringState = useCallback(() => {
+    setSessionActive(false);
+    setData(null);
+    setDetailRows([]);
+    setUnifiedRows([]);
+    setRepairLogs([]);
+    setSelectedRow(null);
+    setActionStatuses({});
+    setAdvancedMode(false);
+  }, []);
 
-    if (!key) {
-      setError("Enter admin key to start a short-lived server session first.");
-      return;
-    }
-
+  const loadMonitoringData = useCallback(async () => {
     setLoading(true);
     setError(null);
     setNotice(null);
 
     try {
-      const sessionResponse = await fetch("/api/admin/session", {
-        method: "POST",
-        headers: { Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ adminKey: key }),
-        cache: "no-store",
-      });
-      const sessionBody = (await sessionResponse.json()) as ApiResponse<{ expiresAt: string; ttlSeconds: number }>;
-      if (!sessionResponse.ok || !sessionBody.success) {
-        throw new Error(getErrorMessage(sessionBody, "Failed to start admin session"));
-      }
-
       const response = await fetch(MONITORING_OVERVIEW_PROXY_URL, {
         method: "GET",
         headers: {
@@ -1454,11 +1449,7 @@ export default function MonitoringPage() {
       await Promise.all([loadUnifiedRows(), loadDetailRows(), loadRepairLogs()]);
       setAdvancedMode(false);
     } catch (err) {
-      setData(null);
-      setDetailRows([]);
-      setUnifiedRows([]);
-      setRepairLogs([]);
-      setSelectedRow(null);
+      resetMonitoringState();
       setError(
         err instanceof TypeError
           ? `Network error while calling monitoring proxy. Check that the Next.js web server is running.`
@@ -1469,7 +1460,68 @@ export default function MonitoringPage() {
     } finally {
       setLoading(false);
     }
-  }, [adminKey, loadDetailRows, loadRepairLogs, loadUnifiedRows]);
+  }, [loadDetailRows, loadRepairLogs, loadUnifiedRows, resetMonitoringState]);
+
+  const startAdminSession = useCallback(async () => {
+    const key = adminKey.trim();
+
+    if (!key) {
+      setError("Enter admin key to start a short-lived server session first.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const sessionResponse = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ adminKey: key }),
+        cache: "no-store",
+      });
+      const sessionBody = (await sessionResponse.json()) as ApiResponse<{ expiresAt: string; ttlSeconds: number }>;
+      if (!sessionResponse.ok || !sessionBody.success) {
+        throw new Error(getErrorMessage(sessionBody, "Failed to start admin session"));
+      }
+
+      setAdminKey("");
+      await loadMonitoringData();
+    } catch (err) {
+      resetMonitoringState();
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to start admin session",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [adminKey, loadMonitoringData, resetMonitoringState]);
+
+  const handleAdminLogout = useCallback(async () => {
+    setLogoutLoading(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/admin/session", {
+        method: "DELETE",
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error(response.statusText || "Failed to end admin session");
+      }
+
+      setAdminKey("");
+      resetMonitoringState();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to end admin session");
+    } finally {
+      setLogoutLoading(false);
+    }
+  }, [resetMonitoringState]);
 
   const applyQuickFilter = useCallback(
     async (item: QueueShortcut) => {
@@ -1536,7 +1588,7 @@ export default function MonitoringPage() {
         }
 
         markActionStatus(targetResource, id, "pending verification");
-        await Promise.all([loadOverview(), loadDetailRows(), loadRepairLogs()]);
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: targetResource });
         setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} updated. Pending verification.`);
       } catch (err) {
@@ -1545,7 +1597,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resource],
   );
 
   const handleSourceRepair = useCallback(
@@ -1574,7 +1626,7 @@ export default function MonitoringPage() {
         if (!response.ok || !body.success) throw new Error(getErrorMessage(body, response.statusText || "Source repair failed"));
 
         markActionStatus(resource, id, "pending verification");
-        await Promise.all([loadOverview(), loadDetailRows(), loadRepairLogs()]);
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data.source, resource, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
         setNotice("Source item updated. Pending verification.");
       } catch (err) {
@@ -1583,7 +1635,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [loadDetailRows, loadOverview, loadRepairLogs, markActionStatus, resource],
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resource],
   );
 
   const handleSourceStatus = useCallback(
@@ -1614,7 +1666,7 @@ export default function MonitoringPage() {
         }
 
         markActionStatus("source-health", id, "pending verification");
-        await Promise.all([loadOverview(), loadDetailRows(), loadRepairLogs()]);
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: "source-health" });
         setNotice(`Source item updated to ${nextStatus}. Pending verification.`);
       } catch (err) {
@@ -1623,7 +1675,7 @@ export default function MonitoringPage() {
         setActionLoadingId(null);
       }
     },
-    [loadDetailRows, loadOverview, loadRepairLogs, markActionStatus],
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus],
   );
 
 
@@ -1644,8 +1696,8 @@ export default function MonitoringPage() {
         </div>
         <button
           type="button"
-          onClick={() => void loadOverview()}
-          disabled={loading || detailLoading}
+          onClick={() => void loadMonitoringData()}
+          disabled={!sessionActive || loading || detailLoading}
           className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <RefreshCw className={`size-4 ${loading || detailLoading ? "animate-spin" : ""}`} />
@@ -1655,33 +1707,55 @@ export default function MonitoringPage() {
 
       <section className="data-surface p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
-          <div className="flex-1">
-            <label className="terminal-label mb-2 block">Admin session key</label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <div className="relative flex-1">
-                <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
-                <input
-                  value={adminKey}
-                  onChange={(event) => setAdminKey(event.target.value)}
-                  type="password"
-                  placeholder="Paste ADMIN_API_KEY to start a short-lived session"
-                  autoComplete="off"
-                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] py-2 pl-9 pr-3 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
-                />
+          {sessionActive ? (
+            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="terminal-label mb-2">Admin session</p>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  Short-lived admin session is active for this monitoring workbench.
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => void loadOverview()}
-                disabled={loading || detailLoading}
-                className="rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => void handleAdminLogout()}
+                disabled={logoutLoading || loading || detailLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-[#FF4444]/40 bg-[#FF4444]/10 px-3 py-2 text-sm font-semibold text-[#FF8888] transition hover:border-[#FF4444]/70 hover:bg-[#FF4444]/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Start admin session
+                <LogOut className="size-4" />
+                {logoutLoading ? "Ending session..." : "End admin session"}
               </button>
             </div>
-          </div>
-          <p className="max-w-md text-xs text-[var(--text-secondary)]">
-            The key is exchanged for a short-lived HttpOnly server session and is never persisted in browser localStorage.
-          </p>
+          ) : (
+            <>
+              <div className="flex-1">
+                <label className="terminal-label mb-2 block">Admin session key</label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="relative flex-1">
+                    <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
+                    <input
+                      value={adminKey}
+                      onChange={(event) => setAdminKey(event.target.value)}
+                      type="password"
+                      placeholder="Paste ADMIN_API_KEY to start a short-lived session"
+                      autoComplete="off"
+                      className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] py-2 pl-9 pr-3 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void startAdminSession()}
+                    disabled={loading || detailLoading}
+                    className="rounded-md bg-[var(--accent-cyan)] px-4 py-2 text-sm font-semibold text-[#0A0E1A] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Start admin session
+                  </button>
+                </div>
+              </div>
+              <p className="max-w-md text-xs text-[var(--text-secondary)]">
+                The key is exchanged for a short-lived HttpOnly server session and is never persisted in browser localStorage.
+              </p>
+            </>
+          )}
         </div>
         {error ? (
           <div className="mt-3 rounded-md border border-[#FF4444]/30 bg-[#FF4444]/10 px-3 py-2 text-sm text-[#FF8888]">
