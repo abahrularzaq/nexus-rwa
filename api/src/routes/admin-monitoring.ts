@@ -36,6 +36,19 @@ type SourceRepairBody = {
   evidenceNote?: string | null;
 };
 
+type MonitoringRepairLogInput = {
+  actor?: string;
+  action: string;
+  resource: string;
+  resourceId: string;
+  assetSlug?: string | null;
+  layer?: string | null;
+  oldValue?: unknown;
+  newValue?: unknown;
+  reason?: string | null;
+  evidenceUrl?: string | null;
+};
+
 type SourceHealthRow = {
   assetSlug: string;
   layer: string;
@@ -171,6 +184,27 @@ async function parseSourceRepairBody(c: any): Promise<SourceRepairBody | { error
   return { newUrl, reason, reliability, evidenceNote: evidenceNote || null };
 }
 
+function adminActor(c: any): string {
+  return c.req.header('x-admin-key') ? 'admin' : 'unknown';
+}
+
+async function createMonitoringRepairLog(tx: any, input: MonitoringRepairLogInput) {
+  return tx.monitoringRepairLog.create({
+    data: {
+      actor: input.actor || 'unknown',
+      action: input.action,
+      resource: input.resource,
+      resourceId: input.resourceId,
+      assetSlug: input.assetSlug || 'unknown',
+      layer: input.layer || 'unknown',
+      oldValue: input.oldValue === undefined ? undefined : input.oldValue,
+      newValue: input.newValue === undefined ? undefined : input.newValue,
+      reason: input.reason || null,
+      evidenceUrl: input.evidenceUrl || null,
+    },
+  });
+}
+
 function validationError(c: any, message: string) {
   return c.json(
     {
@@ -285,6 +319,22 @@ adminMonitoringRouter.get('/overview', async (c) => {
   }
 });
 
+adminMonitoringRouter.get('/repair-logs', async (c) => {
+  try {
+    const query = parseQuery(c);
+    const rows = await db.monitoringRepairLog.findMany({
+      where: {
+        ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: query.limit,
+    });
+    return c.json({ success: true, data: rows });
+  } catch (err) {
+    return internalError(c, err, 'Monitoring repair log query failed');
+  }
+});
+
 adminMonitoringRouter.get('/sources', async (c) => {
   try {
     const query = parseQuery(c);
@@ -361,7 +411,20 @@ async function repairAssetSource(sourceId: string, repair: SourceRepairBody, rep
       },
     });
 
-    return { source, audit };
+    const repairLog = await createMonitoringRepairLog(tx, {
+      actor: repairedBy,
+      action: 'replace_source_url',
+      resource: 'asset-source',
+      resourceId: existing.id,
+      assetSlug: existing.asset.slug,
+      layer: existing.layer,
+      oldValue: { sourceUrl: oldUrl, reliability: existing.reliability, status: existing.status },
+      newValue: { sourceUrl: repair.newUrl, reliability: repair.reliability, status: newStatus },
+      reason: repair.reason,
+      evidenceUrl: repair.evidenceNote,
+    });
+
+    return { source, audit, repairLog };
   });
 }
 
@@ -502,15 +565,25 @@ adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
     const existing = await db.reviewTask.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Review task not found: ${id}`);
 
-    const task = await db.reviewTask.update({
-      where: { id },
-      data: {
-        status: 'closed',
-        resolvedAt: new Date(),
-        resolutionType: metadata.resolutionType,
-        resolutionNote: metadata.resolutionNote,
-        evidenceUrl: metadata.evidenceUrl,
-      },
+    const task = await db.$transaction(async (tx) => {
+      const updated = await tx.reviewTask.update({
+        where: { id },
+        data: {
+          status: 'closed',
+          resolvedAt: new Date(),
+          resolutionType: metadata.resolutionType,
+          resolutionNote: metadata.resolutionNote,
+          evidenceUrl: metadata.evidenceUrl,
+        },
+      });
+      await createMonitoringRepairLog(tx, {
+        actor: adminActor(c), action: 'close_review_task', resource: 'review-task', resourceId: id,
+        assetSlug: existing.assetSlug, layer: existing.layer,
+        oldValue: { status: existing.status, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl },
+        newValue: { status: updated.status, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl },
+        reason: metadata.resolutionNote, evidenceUrl: metadata.evidenceUrl,
+      });
+      return updated;
     });
 
     return c.json({ success: true, data: task });
@@ -528,17 +601,22 @@ adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
     const existing = await db.dataHealthCheck.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Health check not found: ${id}`);
 
-    const check = await db.dataHealthCheck.update({
-      where: { id },
-      data: {
-        status: 'current',
-        severity: 'low',
-        reason: metadata.resolutionNote,
-        lastCheckedAt: new Date(),
-        resolutionType: metadata.resolutionType,
-        resolutionNote: metadata.resolutionNote,
-        evidenceUrl: metadata.evidenceUrl,
-      },
+    const check = await db.$transaction(async (tx) => {
+      const updated = await tx.dataHealthCheck.update({
+        where: { id },
+        data: {
+          status: 'current', severity: 'low', reason: metadata.resolutionNote, lastCheckedAt: new Date(),
+          resolutionType: metadata.resolutionType, resolutionNote: metadata.resolutionNote, evidenceUrl: metadata.evidenceUrl,
+        },
+      });
+      await createMonitoringRepairLog(tx, {
+        actor: adminActor(c), action: 'close_health_check', resource: 'health-check', resourceId: id,
+        assetSlug: existing.assetSlug, layer: existing.layer,
+        oldValue: { status: existing.status, severity: existing.severity, reason: existing.reason, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl },
+        newValue: { status: updated.status, severity: updated.severity, reason: updated.reason, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl },
+        reason: metadata.resolutionNote, evidenceUrl: metadata.evidenceUrl,
+      });
+      return updated;
     });
 
     return c.json({ success: true, data: check });
@@ -569,13 +647,23 @@ adminMonitoringRouter.patch('/source-health/:id/status', async (c) => {
     const existing = await db.sourceHealth.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Source health row not found: ${id}`);
 
-    const row = await db.sourceHealth.update({
-      where: { id },
-      data: {
-        status,
-        lastCheckedAt: new Date(),
-        ...(status === 'healthy' || status === 'redirected' || status === 'deprecated' ? { errorMessage: null } : {}),
-      },
+    const row = await db.$transaction(async (tx) => {
+      const updated = await tx.sourceHealth.update({
+        where: { id },
+        data: {
+          status,
+          lastCheckedAt: new Date(),
+          ...(status === 'healthy' || status === 'redirected' || status === 'deprecated' ? { errorMessage: null } : {}),
+        },
+      });
+      await createMonitoringRepairLog(tx, {
+        actor: adminActor(c), action: 'update_source_status', resource: 'source-health', resourceId: id,
+        assetSlug: existing.assetSlug, layer: existing.layer,
+        oldValue: { status: existing.status, errorMessage: existing.errorMessage, httpStatus: existing.httpStatus, url: existing.url },
+        newValue: { status: updated.status, errorMessage: updated.errorMessage, httpStatus: updated.httpStatus, url: updated.url },
+        reason: `Source status updated to ${status}`,
+      });
+      return updated;
     });
 
     return c.json({ success: true, data: row });
