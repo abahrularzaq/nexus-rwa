@@ -191,6 +191,7 @@ npm run db:migrate:deploy
 Then hydrate asset data from `data/assets/{asset-slug}` using the import workflow above before building or starting the API.
 
 In hosted environments such as Railway, add `npm run db:migrate:deploy` as a pre-start or release command so each deployment applies pending migrations safely.
+The API Railway config already does this with `deploy.preDeployCommand`; make sure production has `DATABASE_URL_ADMIN` set so Prisma can apply DDL migrations before the API starts.
 
 ## Notes
 
