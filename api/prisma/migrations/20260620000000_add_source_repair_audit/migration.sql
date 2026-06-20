@@ -14,7 +14,7 @@ CREATE TABLE "SourceRepairAudit" (
     "reason" TEXT NOT NULL,
     "evidenceNote" TEXT,
     "repairedBy" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "SourceRepairAudit_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "SourceRepairAudit_assetSourceId_fkey" FOREIGN KEY ("assetSourceId") REFERENCES "AssetSource" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
