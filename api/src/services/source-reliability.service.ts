@@ -14,6 +14,7 @@ export type SourceVerificationStatus = (typeof SOURCE_VERIFICATION_STATUSES)[num
 type SourceTrailOptions = {
   assetSlug?: string;
   layer?: string;
+  field?: string;
   status?: string;
   limit?: number;
 };
@@ -99,6 +100,7 @@ export async function getSourceTrail(options: SourceTrailOptions = {}) {
     where: {
       ...(options.assetSlug ? { asset: { slug: options.assetSlug } } : {}),
       ...(options.layer ? { layer: options.layer } : {}),
+      ...(options.field ? { field: options.field } : {}),
     },
     orderBy: { checkedAt: 'desc' },
     take: 5000,
@@ -109,6 +111,7 @@ export async function getSourceTrail(options: SourceTrailOptions = {}) {
     where: {
       ...(options.assetSlug ? { assetSlug: options.assetSlug } : {}),
       ...(options.layer ? { layer: options.layer } : {}),
+      ...(options.field ? { field: options.field } : {}),
     },
     orderBy: { lastCheckedAt: 'desc' },
     take: 10000,

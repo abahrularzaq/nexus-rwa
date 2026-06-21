@@ -20,6 +20,8 @@ const RESOLUTION_TYPES = new Set(['fixed_source', 'verified_manual', 'false_posi
 type QueryOptions = {
   limit: number;
   assetSlug?: string;
+  layer?: string;
+  field?: string;
   status?: string;
 };
 
@@ -70,6 +72,8 @@ function parseQuery(c: any): QueryOptions {
   return {
     limit: parseLimit(c.req.query('limit')),
     assetSlug: c.req.query('assetSlug') || undefined,
+    layer: c.req.query('layer') || undefined,
+    field: c.req.query('field') || undefined,
     status: c.req.query('status') || undefined,
   };
 }
@@ -352,7 +356,7 @@ adminMonitoringRouter.get('/repair-logs', async (c) => {
 adminMonitoringRouter.get('/sources', async (c) => {
   try {
     const query = parseQuery(c);
-    const rows = await getSourceTrail({ assetSlug: query.assetSlug, status: query.status, limit: query.limit });
+    const rows = await getSourceTrail({ assetSlug: query.assetSlug, layer: query.layer, field: query.field, status: query.status, limit: query.limit });
     return c.json({ success: true, data: rows });
   } catch (err) {
     return internalError(c, err, 'Source evidence library query failed');
@@ -503,6 +507,7 @@ adminMonitoringRouter.get('/review-tasks', async (c) => {
       where: {
         ...(query.status ? { status: query.status } : {}),
         ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
+        ...(query.layer ? { layer: query.layer } : {}),
       },
       orderBy: { createdAt: 'desc' },
       take: query.limit,
@@ -521,6 +526,8 @@ adminMonitoringRouter.get('/source-health', async (c) => {
       where: {
         ...(query.status ? { status: query.status } : {}),
         ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
+        ...(query.layer ? { layer: query.layer } : {}),
+        ...(query.field ? { field: query.field } : {}),
       },
       orderBy: { lastCheckedAt: 'desc' },
       take: 5000,
@@ -541,6 +548,7 @@ adminMonitoringRouter.get('/health-checks', async (c) => {
       where: {
         ...(query.status ? { status: query.status } : {}),
         ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
+        ...(query.layer ? { layer: query.layer } : {}),
       },
       orderBy: { lastCheckedAt: 'desc' },
       take: query.limit,
@@ -559,6 +567,7 @@ adminMonitoringRouter.get('/sync-logs', async (c) => {
       where: {
         ...(query.status ? { status: query.status } : {}),
         ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
+        ...(query.layer ? { layer: query.layer } : {}),
       },
       orderBy: { startedAt: 'desc' },
       take: query.limit,

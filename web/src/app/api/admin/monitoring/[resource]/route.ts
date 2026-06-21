@@ -43,7 +43,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ reso
   const incomingUrl = new URL(request.url);
   const upstreamUrl = new URL(`${apiBase()}/v1/admin/monitoring/${resource}`);
 
-  for (const key of ["limit", "assetSlug", "status"]) {
+  for (const key of ["assetSlug", "layer", "field", "status", "limit"]) {
     const value = incomingUrl.searchParams.get(key);
     if (value) upstreamUrl.searchParams.set(key, value);
   }
