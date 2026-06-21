@@ -13,6 +13,14 @@ import {
   SYNC_OWNED_YIELD_FIELDS,
   validateAssetFileBundle,
 } from '../lib/asset-file-import.js';
+import { syncCanonicalSourceEvidence } from '../services/source-evidence-sync.service.js';
+
+type SourceSync = typeof syncCanonicalSourceEvidence;
+let sourceSync: SourceSync = syncCanonicalSourceEvidence;
+
+export function setSourceEvidenceSyncForTests(sync: SourceSync | null): void {
+  sourceSync = sync ?? syncCanonicalSourceEvidence;
+}
 
 export type ImportOptions = {
   slug: string;
@@ -68,6 +76,11 @@ export async function importAssetFromFiles(options: ImportOptions): Promise<bool
   console.log(`  Skipped yield fields: ${SYNC_OWNED_YIELD_FIELDS.join(', ')}`);
 
   if (dryRun) {
+    const sourceSyncResult = await sourceSync({ assetSlugs: [slug], dryRun: true });
+    for (const warning of sourceSyncResult.warnings) {
+      console.warn(`[sources] ${warning.assetSlug}[${warning.index}]: ${warning.message}`);
+    }
+    console.log(`  Source evidence dry-run: discovered=${sourceSyncResult.discovered}, duplicates=${sourceSyncResult.duplicateRowsPrevented}, skippedInvalid=${sourceSyncResult.skippedInvalid}`);
     console.log('\nDry-run complete — no database changes.');
     return true;
   }
@@ -139,7 +152,13 @@ export async function importAssetFromFiles(options: ImportOptions): Promise<bool
     },
   });
 
+  const sourceSyncResult = await sourceSync({ assetSlugs: [slug] });
+  for (const warning of sourceSyncResult.warnings) {
+    console.warn(`[sources] ${warning.assetSlug}[${warning.index}]: ${warning.message}`);
+  }
+
   console.log('\n✓ Import completed');
+  console.log(`  Source evidence sync: discovered=${sourceSyncResult.discovered}, inserted=${sourceSyncResult.inserted}, updated=${sourceSyncResult.updated}, duplicates=${sourceSyncResult.duplicateRowsPrevented}, skippedInvalid=${sourceSyncResult.skippedInvalid}`);
   console.log('  Next: POST /admin/assets/:slug/sync (or npm run test:sync) for market/yield data');
   return true;
 }

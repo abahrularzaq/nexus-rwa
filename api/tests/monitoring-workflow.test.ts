@@ -18,6 +18,9 @@ type Row = Record<string, any>;
 function matches(row: Row, where: Row = {}): boolean {
   return Object.entries(where).every(([key, expected]) => {
     const actual = row[key];
+    if (key === 'asset' && expected && typeof expected === 'object' && 'slug' in expected) {
+      return row.asset?.slug === expected.slug || row.assetSlug === expected.slug;
+    }
     if (expected && typeof expected === 'object' && !Array.isArray(expected) && !(expected instanceof Date)) {
       if ('in' in expected) return expected.in.includes(actual);
       if ('notIn' in expected) return !expected.notIn.includes(actual);
@@ -39,6 +42,12 @@ function selectRow(row: Row, select?: Row): Row {
   return Object.fromEntries(Object.keys(select).map((key) => [key, row[key]]));
 }
 
+function includeRow(row: Row, include?: Row): Row {
+  const selected = { ...row };
+  if (include?.asset?.select?.slug && !selected.asset) selected.asset = { slug: row.assetSlug, dataVersion: row.dataVersion ?? 1 };
+  return selected;
+}
+
 function collection(rows: Row[]) {
   return {
     rows,
@@ -49,9 +58,10 @@ function collection(rows: Row[]) {
       return { ...row };
     },
     async findFirst({ where, orderBy }: any = {}) { const row = orderRows(rows.filter((item) => matches(item, where)), orderBy)[0]; return row ? { ...row } : null; },
-    async findMany({ where, orderBy, take, select }: any = {}) {
-      return orderRows(rows.filter((row) => matches(row, where)), orderBy).slice(0, take ?? rows.length).map((row) => selectRow(row, select));
+    async findMany({ where, orderBy, take, select, include }: any = {}) {
+      return orderRows(rows.filter((row) => matches(row, where)), orderBy).slice(0, take ?? rows.length).map((row) => select ? selectRow(row, select) : includeRow(row, include));
     },
+    async count({ where }: any = {}) { return rows.filter((row) => matches(row, where)).length; },
     async update({ where, data }: any) {
       const row = rows.find((item) => matches(item, where));
       if (!row) throw new Error('not found');
@@ -97,6 +107,32 @@ function appWithDb(db: any) {
 beforeEach(() => setDatabaseClientForTests(null));
 
 describe('monitoring workflow regressions', () => {
+  it('returns complete source-library meta totals for filtered and unfiltered requests', async () => {
+    const checkedAt = new Date('2026-06-21T09:00:00Z');
+    const db = buildDb({
+      assetSources: [
+        { id: 'source-1', assetSlug: 'issuer-a', asset: { slug: 'issuer-a', dataVersion: 1 }, layer: 'market', field: 'tvl', sourceUrl: 'https://issuer.example/1', sourceType: 'official', reliability: 90, status: 'verified', checkedAt, checkedBy: 'reviewer', value: null, notes: null },
+        { id: 'source-2', assetSlug: 'issuer-a', asset: { slug: 'issuer-a', dataVersion: 1 }, layer: 'market', field: 'aum', sourceUrl: 'https://issuer.example/2', sourceType: 'official', reliability: 90, status: 'verified', checkedAt, checkedBy: 'reviewer', value: null, notes: null },
+        { id: 'source-3', assetSlug: 'issuer-a', asset: { slug: 'issuer-a', dataVersion: 1 }, layer: 'reserve', field: 'audit', sourceUrl: 'https://issuer.example/3', sourceType: 'audit', reliability: 75, status: 'needs_review', checkedAt, checkedBy: 'manual', value: null, notes: null },
+      ],
+    });
+    const app = appWithDb(db);
+
+    const unfiltered = await app.request('/v1/admin/monitoring/sources?limit=2', { headers: { 'x-admin-key': 'test-admin-key' } });
+    const unfilteredBody = await unfiltered.json();
+    assert.equal(unfiltered.status, 200);
+    assert.equal(unfilteredBody.data.length, 2);
+    assert.equal(unfilteredBody.meta.total, 3);
+    assert.equal(unfilteredBody.meta.limit, 2);
+
+    const filtered = await app.request('/v1/admin/monitoring/sources?status=verified&limit=1', { headers: { 'x-admin-key': 'test-admin-key' } });
+    const filteredBody = await filtered.json();
+    assert.equal(filtered.status, 200);
+    assert.equal(filteredBody.data.length, 1);
+    assert.equal(filteredBody.meta.total, 2);
+    assert.equal(filteredBody.meta.limit, 1);
+  });
+
   it('reopens only resolved review tasks, preserves original context, clears stale validation, and writes audit log', async () => {
     const db = buildDb({ reviewTasks: [{
       id: 'task-1', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'original reserve mismatch', status: 'resolved',
