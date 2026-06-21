@@ -159,12 +159,24 @@ function layerMatchesQuery(layer: (typeof layers)[number], query: string): boole
   return normalizeLayer(layer.title) === normalized || normalizeLayer(layer.file) === normalized;
 }
 
+function allowedAbsoluteUrl(value: string): string | null {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function LayersPage({ searchParams }: LayersPageProps) {
   const params = searchParams ? await searchParams : {};
   const assetSlug = singleParam(params, "assetSlug");
   const layerQuery = singleParam(params, "layer");
   const field = singleParam(params, "field");
   const sourceUrl = singleParam(params, "sourceUrl");
+  const safeSourceUrl = allowedAbsoluteUrl(sourceUrl);
   const hasContext = Boolean(assetSlug || layerQuery || field || sourceUrl);
   const visibleLayers = layerQuery ? layers.filter((layer) => layerMatchesQuery(layer, layerQuery)) : layers;
 
@@ -217,12 +229,12 @@ export default async function LayersPage({ searchParams }: LayersPageProps) {
             </div>
             <div>
               <p className="terminal-label text-[var(--text-label)]">Source</p>
-              {sourceUrl ? (
-                <a href={sourceUrl} target="_blank" rel="noreferrer" className="mt-1 block truncate font-mono text-[#8DEBFF] hover:underline">
-                  {sourceUrl}
+              {safeSourceUrl ? (
+                <a href={safeSourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate font-mono text-[#8DEBFF] hover:underline">
+                  {safeSourceUrl}
                 </a>
               ) : (
-                <p className="mt-1 font-mono text-white">No source context</p>
+                <p className="mt-1 font-mono text-white">{sourceUrl ? "Invalid or unsupported source URL" : "No source context"}</p>
               )}
             </div>
           </div>
