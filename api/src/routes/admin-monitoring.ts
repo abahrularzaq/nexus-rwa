@@ -400,16 +400,16 @@ async function findReviewTaskValidationEvidence(task: { assetSlug: string; layer
 }
 
 async function reopenReviewTask(id: string, metadata: ReopenMetadata, actor: string) {
-  const existing = await db.reviewTask.findUnique({ where: { id } });
-  if (!existing) return { kind: 'not-found' as const };
-  if (existing.status !== 'resolved') {
-    return { kind: 'invalid-transition' as const, status: existing.status };
-  }
-
   return db.$transaction(async (tx) => {
+    const existing = await tx.reviewTask.findUnique({ where: { id } });
+    if (!existing) return { kind: 'not-found' as const };
+    if (existing.status !== 'resolved') {
+      return { kind: 'invalid-transition' as const, status: existing.status };
+    }
+
     const reopenedAt = new Date();
-    const updated = await tx.reviewTask.update({
-      where: { id },
+    const updateResult = await tx.reviewTask.updateMany({
+      where: { id, status: 'resolved' },
       data: {
         status: 'reopened',
         reopenedAt,
@@ -423,6 +423,13 @@ async function reopenReviewTask(id: string, metadata: ReopenMetadata, actor: str
         validatedBy: null,
       },
     });
+
+    if (updateResult.count !== 1) {
+      return { kind: 'invalid-transition' as const, status: 'status_changed' };
+    }
+
+    const updated = await tx.reviewTask.findUniqueOrThrow({ where: { id } });
+
     await createMonitoringRepairLog(tx, {
       actor,
       action: 'reopen_review_task',
@@ -452,24 +459,24 @@ async function reopenReviewTask(id: string, metadata: ReopenMetadata, actor: str
       reason: metadata.reason,
       evidenceUrl: existing.validationEvidenceRef || existing.evidenceUrl,
     });
+
     return { kind: 'ok' as const, data: updated };
   });
 }
 
 async function reopenHealthCheck(id: string, metadata: ReopenMetadata, actor: string) {
-  const existing = await db.dataHealthCheck.findUnique({ where: { id } });
-  if (!existing) return { kind: 'not-found' as const };
-  if (existing.status !== 'resolved') {
-    return { kind: 'invalid-transition' as const, status: existing.status };
-  }
-
   return db.$transaction(async (tx) => {
+    const existing = await tx.dataHealthCheck.findUnique({ where: { id } });
+    if (!existing) return { kind: 'not-found' as const };
+    if (existing.status !== 'resolved') {
+      return { kind: 'invalid-transition' as const, status: existing.status };
+    }
+
     const reopenedAt = new Date();
-    const updated = await tx.dataHealthCheck.update({
-      where: { id },
+    const updateResult = await tx.dataHealthCheck.updateMany({
+      where: { id, status: 'resolved' },
       data: {
         status: 'reopened',
-        reason: metadata.reason,
         reopenedAt,
         reopenedBy: actor,
         reopenReason: metadata.reason,
@@ -481,6 +488,13 @@ async function reopenHealthCheck(id: string, metadata: ReopenMetadata, actor: st
         validatedBy: null,
       },
     });
+
+    if (updateResult.count !== 1) {
+      return { kind: 'invalid-transition' as const, status: 'status_changed' };
+    }
+
+    const updated = await tx.dataHealthCheck.findUniqueOrThrow({ where: { id } });
+
     await createMonitoringRepairLog(tx, {
       actor,
       action: 'reopen_health_check',
@@ -513,6 +527,7 @@ async function reopenHealthCheck(id: string, metadata: ReopenMetadata, actor: st
       reason: metadata.reason,
       evidenceUrl: existing.validationEvidenceRef || existing.evidenceUrl,
     });
+
     return { kind: 'ok' as const, data: updated };
   });
 }
