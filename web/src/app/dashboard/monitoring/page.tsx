@@ -202,6 +202,10 @@ function asText(value: unknown): string {
   return String(value);
 }
 
+function isEmptyDisplayText(value: string): boolean {
+  return value === "â€”" || value === "—";
+}
+
 function getRowId(row: Record<string, unknown>): string | null {
   return typeof row.id === "string" && row.id.trim() ? row.id : null;
 }
@@ -464,24 +468,51 @@ function isMissingAdminSessionError(error: unknown): boolean {
   );
 }
 
-function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string): string {
+function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string, layer = "", field = ""): string {
   const params = new URLSearchParams({ limit: "250" });
   if (assetSlug.trim()) params.set("assetSlug", assetSlug.trim());
+  if (layer.trim()) params.set("layer", layer.trim());
+  if (field.trim()) params.set("field", field.trim());
   if (status.trim()) params.set("status", status.trim());
   return `${MONITORING_DETAIL_PROXY_BASE}/${resource}?${params.toString()}`;
 }
 
-function buildAssetHref(assetSlug: unknown): string | null {
-  const slug = asText(assetSlug);
-  if (slug === "—") return null;
-  return `/dashboard/assets/${encodeURIComponent(slug)}`;
+function appendContextParams(base: string, context: { tab?: string; assetSlug?: unknown; layer?: unknown; field?: unknown; sourceUrl?: unknown }): string {
+  const params = new URLSearchParams();
+  if (context.tab) params.set("tab", context.tab);
+  const assetSlug = asText(context.assetSlug);
+  const layer = asText(context.layer);
+  const field = asText(context.field);
+  const sourceUrl = typeof context.sourceUrl === "string" ? context.sourceUrl : null;
+  if (assetSlug !== "â€”") params.set("assetSlug", assetSlug);
+  if (layer !== "â€”") params.set("layer", layer);
+  if (field !== "â€”") params.set("field", field);
+  for (const key of ["assetSlug", "layer", "field"]) {
+    const value = params.get(key);
+    if (value && isEmptyDisplayText(value)) params.delete(key);
+  }
+  if (sourceUrl) params.set("sourceUrl", sourceUrl);
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
-function buildLayerHref(assetSlug: unknown, layer: unknown): string | null {
+function rowHasSourceContext(row: Record<string, unknown>, resource?: DetailResource): boolean {
+  return resource === "source-health" || resource === "sources" || Boolean(row.field || getRowUrl(row));
+}
+
+function buildAssetHref(assetSlug: unknown, row?: Record<string, unknown>, resource?: DetailResource): string | null {
+  const slug = asText(assetSlug);
+  if (slug === "—") return null;
+  const base = `/dashboard/assets/${encodeURIComponent(slug)}`;
+  if (!row || !rowHasSourceContext(row, resource)) return base;
+  return appendContextParams(base, { tab: "sources", assetSlug: slug, layer: row.layer, field: row.field, sourceUrl: getRowUrl(row) });
+}
+
+function buildLayerHref(assetSlug: unknown, layer: unknown, field?: unknown, sourceUrl?: unknown): string | null {
   const slug = asText(assetSlug);
   const layerName = asText(layer);
   if (slug === "—" || layerName === "—") return null;
-  return "/dashboard/layers";
+  return appendContextParams("/dashboard/layers", { assetSlug: slug, layer: layerName, field, sourceUrl });
 }
 
 function csvEscape(value: unknown): string {
@@ -758,8 +789,8 @@ function IssueTable({
                 const status = rowStatus(row);
                 const url = getRowUrl(row);
                 const id = getRowId(row);
-                const assetHref = buildAssetHref(row.assetSlug);
-                const layerHref = buildLayerHref(row.assetSlug, row.layer);
+                const assetHref = buildAssetHref(row.assetSlug, row, resource);
+                const layerHref = buildLayerHref(row.assetSlug, row.layer, row.field, getRowUrl(row));
                 const loading = Boolean(id && actionLoadingId === id);
 
                 return (
@@ -789,6 +820,9 @@ function IssueTable({
                     </td>
                     <td className="max-w-[320px] px-4 py-3 text-[var(--text-secondary)]">
                       <span className="line-clamp-2">{rowIssue(row)}</span>
+                      {asText(row.field) !== "â€”" ? (
+                        <span className="mt-1 block font-mono text-xs text-[var(--text-muted)]">{asText(row.field)}</span>
+                      ) : null}
                     </td>
                     <td className="max-w-[360px] px-4 py-3 text-[var(--text-secondary)]">
                       <div className="flex flex-col gap-1">
@@ -908,15 +942,15 @@ function UnifiedQueueTable({
               <tr><td colSpan={8} className="px-4 py-6 text-center text-[var(--text-secondary)]">No unified work items match the current filters.</td></tr>
             ) : rows.map((row) => {
               const loading = actionLoadingId === row.id;
-              const assetHref = buildAssetHref(row.assetSlug);
-              const layerHref = buildLayerHref(row.assetSlug, row.layer);
+              const assetHref = buildAssetHref(row.assetSlug, row.raw, row.resource);
+              const layerHref = buildLayerHref(row.assetSlug, row.layer, row.raw.field, row.sourceUrl);
               return (
                 <tr key={`${row.resource}-${row.id}`} className="border-b border-[rgba(30,42,58,0.55)] last:border-0">
                   <td className="px-4 py-3"><span className="rounded-full border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white">{resourceLabels[row.resource]}</span></td>
                   <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.severity)}`}>{row.severity}</span></td>
                   <td className="px-4 py-3 terminal-data text-white">{assetHref ? <a href={assetHref} className="hover:text-[var(--accent-cyan)] hover:underline">{row.assetSlug}</a> : row.assetSlug}</td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">{layerHref ? <a href={layerHref} className="hover:text-[var(--accent-cyan)] hover:underline">{row.layer}</a> : row.layer}</td>
-                  <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.problem}</span>{row.sourceUrl ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex max-w-[260px] items-center gap-1 truncate text-xs text-[var(--accent-cyan)] hover:underline"><span className="truncate">{row.sourceUrl}</span><ExternalLink className="size-3 shrink-0" /></a> : null}</td>
+                  <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.problem}</span>{asText(row.raw.field) !== "â€”" ? <span className="mt-1 block font-mono text-xs text-[var(--text-muted)]">{asText(row.raw.field)}</span> : null}{row.sourceUrl ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex max-w-[260px] items-center gap-1 truncate text-xs text-[var(--accent-cyan)] hover:underline"><span className="truncate">{row.sourceUrl}</span><ExternalLink className="size-3 shrink-0" /></a> : null}</td>
                   <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.suggestedAction}</span></td>
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt ?? row.createdAt)}</td>
                   <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
@@ -957,8 +991,8 @@ function DetailPanelContent({
 }) {
   const id = getRowId(row);
   const url = getRowUrl(row);
-  const assetHref = buildAssetHref(row.assetSlug);
-  const layerHref = buildLayerHref(row.assetSlug, row.layer);
+  const assetHref = buildAssetHref(row.assetSlug, row, resource);
+  const layerHref = buildLayerHref(row.assetSlug, row.layer, row.field, getRowUrl(row));
   const loading = Boolean(id && actionLoadingId === id);
   const suggestedAction = typeof row.suggestedAction === "string" && row.suggestedAction.trim()
     ? row.suggestedAction
@@ -1242,6 +1276,7 @@ export default function MonitoringPage() {
   const [assetSlug, setAssetSlug] = useState("");
   const [status, setStatus] = useState("open");
   const [layer, setLayer] = useState("");
+  const [field, setField] = useState("");
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -1268,22 +1303,30 @@ export default function MonitoringPage() {
 
   const unifiedFilteredRows = useMemo(() => {
     const layerQuery = layer.trim().toLowerCase();
+    const fieldQuery = field.trim().toLowerCase();
     const assetQuery = assetSlug.trim().toLowerCase();
     const rows = unifiedRows.filter((row) => {
       const matchesLayer = !layerQuery || row.layer.toLowerCase().includes(layerQuery);
+      const rowField = asText(row.raw.field).toLowerCase();
+      const matchesField = !fieldQuery || (rowField !== "â€”" && rowField.includes(fieldQuery));
       const matchesAsset = !assetQuery || row.assetSlug.toLowerCase().includes(assetQuery);
-      return matchesLayer && matchesAsset;
+      return matchesLayer && matchesField && matchesAsset;
     });
     return [...rows].sort((a, b) => unifiedPriorityScore(a) - unifiedPriorityScore(b));
-  }, [assetSlug, layer, unifiedRows]);
+  }, [assetSlug, field, layer, unifiedRows]);
 
   const filteredRows = useMemo(() => {
     const layerQuery = layer.trim().toLowerCase();
-    const rows = layerQuery
-      ? detailRows.filter((row) => asText(row.layer).toLowerCase().includes(layerQuery))
-      : detailRows;
+    const fieldQuery = field.trim().toLowerCase();
+    const rows = detailRows.filter((row) => {
+      const rowLayer = asText(row.layer).toLowerCase();
+      const rowField = asText(row.field).toLowerCase();
+      const matchesLayer = !layerQuery || (rowLayer !== "â€”" && rowLayer.includes(layerQuery));
+      const matchesField = !fieldQuery || (rowField !== "â€”" && rowField.includes(fieldQuery));
+      return matchesLayer && matchesField;
+    });
     return [...rows].sort((a, b) => priorityScore(a) - priorityScore(b));
-  }, [detailRows, layer]);
+  }, [detailRows, field, layer]);
 
   const statusOptions = useMemo(() => {
     const values = new Set<string>();
@@ -1293,6 +1336,24 @@ export default function MonitoringPage() {
     }
     return Array.from(values).sort();
   }, [detailRows]);
+
+  const layerOptions = useMemo(() => {
+    const values = new Set<string>();
+    for (const row of [...detailRows, ...unifiedRows.map((item) => item.raw)]) {
+      const value = asText(row.layer);
+      if (value !== "â€”") values.add(value);
+    }
+    return Array.from(values).sort();
+  }, [detailRows, unifiedRows]);
+
+  const fieldOptions = useMemo(() => {
+    const values = new Set<string>();
+    for (const row of [...detailRows, ...unifiedRows.map((item) => item.raw)]) {
+      const value = asText(row.field);
+      if (value !== "â€”") values.add(value);
+    }
+    return Array.from(values).sort();
+  }, [detailRows, unifiedRows]);
 
   const selectedActionStatus = useMemo(() => {
     if (!selectedRow) return undefined;
@@ -1403,8 +1464,10 @@ export default function MonitoringPage() {
       selectedResource = resource,
       selectedAssetSlug = assetSlug,
       selectedStatus = status,
+      selectedLayer = layer,
+      selectedField = field,
     ) => {
-      const url = buildDetailUrl(selectedResource, selectedAssetSlug, selectedStatus);
+      const url = buildDetailUrl(selectedResource, selectedAssetSlug, selectedStatus, selectedLayer, selectedField);
       setDetailLoading(true);
       setError(null);
 
@@ -1432,7 +1495,7 @@ export default function MonitoringPage() {
         setDetailLoading(false);
       }
     },
-    [assetSlug, resource, status],
+    [assetSlug, field, layer, resource, status],
   );
 
   const resetMonitoringState = useCallback(() => {
@@ -1443,6 +1506,7 @@ export default function MonitoringPage() {
     setRepairLogs([]);
     setSelectedRow(null);
     setActionStatuses({});
+    setField("");
     setAdvancedMode(false);
   }, []);
 
@@ -1622,10 +1686,11 @@ export default function MonitoringPage() {
       setResource(item.resource);
       setStatus(item.status);
       setLayer("");
+      setField("");
       setSelectedRow(null);
       setAdvancedMode(true);
       try {
-        await loadDetailRows(item.resource, assetSlug, item.status);
+        await loadDetailRows(item.resource, assetSlug, item.status, "", "");
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
@@ -1647,10 +1712,11 @@ export default function MonitoringPage() {
     if (assetSlug.trim()) parts.splice(2, 0, assetSlug.trim());
     if (status.trim()) parts.splice(2, 0, status.trim());
     if (layer.trim()) parts.splice(2, 0, layer.trim());
+    if (field.trim()) parts.splice(2, 0, field.trim());
 
     const safeFilename = `${parts.join("-").replace(/[^a-zA-Z0-9._-]+/g, "-")}.csv`;
     downloadCsv(safeFilename, buildCsv(filteredRows));
-  }, [assetSlug, filteredRows, layer, resource, status]);
+  }, [assetSlug, field, filteredRows, layer, resource, status]);
 
   const handleCloseRow = useCallback(
     async (row: Record<string, unknown>, metadata?: ResolutionMetadata) => {
@@ -1971,7 +2037,7 @@ export default function MonitoringPage() {
                 Export CSV
               </button>
             </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
               <div>
                 <label className="terminal-label mb-2 block">Dataset</label>
                 <select
@@ -2018,9 +2084,30 @@ export default function MonitoringPage() {
                 <input
                   value={layer}
                   onChange={(event) => setLayer(event.target.value)}
+                  list="monitoring-layer-options"
                   placeholder="reserve / market"
                   className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
                 />
+                <datalist id="monitoring-layer-options">
+                  {layerOptions.map((value) => (
+                    <option key={value} value={value} />
+                  ))}
+                </datalist>
+              </div>
+              <div>
+                <label className="terminal-label mb-2 block">Field</label>
+                <input
+                  value={field}
+                  onChange={(event) => setField(event.target.value)}
+                  list="monitoring-field-options"
+                  placeholder="custodian / sourceUrl"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+                <datalist id="monitoring-field-options">
+                  {fieldOptions.map((value) => (
+                    <option key={value} value={value} />
+                  ))}
+                </datalist>
               </div>
               <div className="flex items-end gap-2">
                 <button
@@ -2044,6 +2131,7 @@ export default function MonitoringPage() {
                     setAssetSlug("");
                     setStatus("");
                     setLayer("");
+                    setField("");
                     setSelectedRow(null);
                   }}
                   className="rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)]"

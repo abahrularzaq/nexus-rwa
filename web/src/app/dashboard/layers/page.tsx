@@ -140,7 +140,34 @@ const evidenceRules = [
   "Proof-of-reserves is only marked true when explicitly confirmed.",
 ];
 
-export default function LayersPage() {
+type LayersPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function singleParam(params: Record<string, string | string[] | undefined>, key: string): string {
+  const value = params[key];
+  return Array.isArray(value) ? (value[0] ?? "") : value ?? "";
+}
+
+function normalizeLayer(value: string): string {
+  return value.trim().toLowerCase().replace(/\.json$/, "");
+}
+
+function layerMatchesQuery(layer: (typeof layers)[number], query: string): boolean {
+  const normalized = normalizeLayer(query);
+  if (!normalized) return true;
+  return normalizeLayer(layer.title) === normalized || normalizeLayer(layer.file) === normalized;
+}
+
+export default async function LayersPage({ searchParams }: LayersPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const assetSlug = singleParam(params, "assetSlug");
+  const layerQuery = singleParam(params, "layer");
+  const field = singleParam(params, "field");
+  const sourceUrl = singleParam(params, "sourceUrl");
+  const hasContext = Boolean(assetSlug || layerQuery || field || sourceUrl);
+  const visibleLayers = layerQuery ? layers.filter((layer) => layerMatchesQuery(layer, layerQuery)) : layers;
+
   return (
     <div className="relative isolate space-y-8 overflow-hidden pb-10">
       <div className="pointer-events-none absolute inset-x-[-18%] top-[-180px] -z-10 h-[520px] bg-[radial-gradient(circle_at_28%_22%,rgba(0,209,255,0.18),transparent_34%),radial-gradient(circle_at_72%_18%,rgba(185,131,255,0.13),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(255,184,0,0.08),transparent_36%)] blur-2xl" />
@@ -171,6 +198,36 @@ export default function LayersPage() {
           </Link>
         </div>
       </header>
+
+      {hasContext ? (
+        <section className="rounded-xl border border-[#00D1FF]/20 bg-[#00D1FF]/[0.045] p-4">
+          <p className="terminal-label text-[#8DEBFF]">Monitoring context</p>
+          <div className="mt-3 grid gap-3 text-sm md:grid-cols-4">
+            <div>
+              <p className="terminal-label text-[var(--text-label)]">Asset</p>
+              <p className="mt-1 font-mono text-white">{assetSlug || "No asset context"}</p>
+            </div>
+            <div>
+              <p className="terminal-label text-[var(--text-label)]">Layer</p>
+              <p className="mt-1 font-mono text-white">{layerQuery || "All layers"}</p>
+            </div>
+            <div>
+              <p className="terminal-label text-[var(--text-label)]">Field</p>
+              <p className="mt-1 font-mono text-white">{field || "No field context"}</p>
+            </div>
+            <div>
+              <p className="terminal-label text-[var(--text-label)]">Source</p>
+              {sourceUrl ? (
+                <a href={sourceUrl} target="_blank" rel="noreferrer" className="mt-1 block truncate font-mono text-[#8DEBFF] hover:underline">
+                  {sourceUrl}
+                </a>
+              ) : (
+                <p className="mt-1 font-mono text-white">No source context</p>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="relative overflow-hidden rounded-xl border border-[#B983FF]/20 bg-[linear-gradient(135deg,rgba(8,13,25,0.96),rgba(11,20,38,0.88))] p-4 shadow-[0_0_40px_rgba(0,209,255,0.06)]">
         <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_100%_0%,rgba(185,131,255,0.16),transparent_45%)]" />
@@ -216,10 +273,13 @@ export default function LayersPage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {layers.map((layer, index) => (
+        {visibleLayers.length ? visibleLayers.map((layer) => {
+          const index = layers.findIndex((item) => item.title === layer.title);
+          const isContextLayer = Boolean(layerQuery && layerMatchesQuery(layer, layerQuery));
+          return (
           <div
             key={layer.title}
-            className={`group relative overflow-hidden rounded-xl border p-5 shadow-[0_0_28px_rgba(0,209,255,0.04)] transition hover:-translate-y-0.5 hover:border-[#00D1FF]/35 hover:shadow-[0_0_34px_rgba(0,209,255,0.1)] ${layerAccentStyles[layer.status]}`}
+            className={`group relative overflow-hidden rounded-xl border p-5 shadow-[0_0_28px_rgba(0,209,255,0.04)] transition hover:-translate-y-0.5 hover:border-[#00D1FF]/35 hover:shadow-[0_0_34px_rgba(0,209,255,0.1)] ${layerAccentStyles[layer.status]} ${isContextLayer ? "ring-1 ring-[#00D1FF]/45" : ""}`}
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#00D1FF]/50 to-transparent opacity-0 transition group-hover:opacity-100" />
             <div className="flex items-start justify-between gap-3">
@@ -256,7 +316,15 @@ export default function LayersPage() {
               </p>
             </div>
           </div>
-        ))}
+          );
+        }) : (
+          <div className="data-surface p-6 md:col-span-2 xl:col-span-3">
+            <p className="terminal-label text-[#FFB800]">No matching layer</p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              No layer matches <span className="font-mono text-white">{layerQuery}</span>. The asset context was preserved, but this page only knows the declared 12-layer model.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="relative overflow-hidden rounded-xl border border-[#00D1FF]/20 bg-[linear-gradient(145deg,rgba(0,209,255,0.08),rgba(255,255,255,0.025))] p-5 shadow-[0_0_32px_rgba(0,209,255,0.06)]">

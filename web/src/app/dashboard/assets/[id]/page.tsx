@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import {
   ArrowLeft,
@@ -84,6 +84,10 @@ const ASSET_TABS: { id: AssetTabId; label: string; layers: string }[] = [
   { id: "sources", label: "Sources", layers: "Evidence trail" },
   { id: "events", label: "Events", layers: "Timeline" },
 ];
+
+function parseAssetTab(value: string | null): AssetTabId | null {
+  return value && ASSET_TABS.some((item) => item.id === value) ? (value as AssetTabId) : null;
+}
 
 function toRiskLevel(s: string | undefined): RiskBadgeProps["level"] {
   const u = (s ?? "MEDIUM").toUpperCase();
@@ -299,6 +303,7 @@ function BlockchainTab({ asset }: { asset: AssetWithLayers }) {
 
 export default function AssetDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const { address } = useAccount();
   const rawId = params?.id;
   const slug =
@@ -314,7 +319,7 @@ export default function AssetDetailPage() {
   const [loading, setLoading] = useState(true);
   const [peersLoading, setPeersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<AssetTabId>("overview");
+  const [activeTab, setActiveTab] = useState<AssetTabId>(() => parseAssetTab(searchParams.get("tab")) ?? "overview");
 
   const apiBase = useMemo(
     () => (API_URL ?? "").trim().replace(/\/$/, ""),
