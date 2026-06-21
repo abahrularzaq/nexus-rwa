@@ -339,6 +339,9 @@ model DataHealthCheck {
   validationEvidenceRef String?
   validatedAt          DateTime?
   validatedBy          String?
+  reopenedAt           DateTime?
+  reopenedBy           String?
+  reopenReason         String?
   lastCheckedAt  DateTime  @default(now())
   nextCheckAt    DateTime?
   createdAt      DateTime  @default(now())
@@ -348,6 +351,7 @@ model DataHealthCheck {
   @@index([layer])
   @@index([status])
   @@index([severity])
+  @@index([reopenedAt])
   @@index([lastCheckedAt])
   @@index([nextCheckAt])
 }
@@ -410,6 +414,9 @@ model ReviewTask {
   validationEvidenceRef String?
   validatedAt          DateTime?
   validatedBy          String?
+  reopenedAt           DateTime?
+  reopenedBy           String?
+  reopenReason         String?
   createdAt      DateTime  @default(now())
   resolvedAt     DateTime?
 
@@ -419,6 +426,7 @@ model ReviewTask {
   @@index([priority])
   @@index([createdAt])
   @@index([resolvedAt])
+  @@index([reopenedAt])
 }
 
 model MonitoringRepairLog {
