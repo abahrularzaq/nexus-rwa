@@ -16,6 +16,7 @@ const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
 const MANUAL_REQUIRED_CHECKED_BY = new Set(['manual_required', 'manual-review-required']);
 const SOURCE_STATUS_OPTIONS = new Set([...SOURCE_VERIFICATION_STATUSES, 'healthy', 'redirected', 'restricted', 'timeout', 'error', 'broken', 'deprecated']);
 const RESOLUTION_TYPES = new Set(['fixed_source', 'verified_manual', 'false_positive', 'accepted_risk', 'deferred', 'replaced_provider']);
+const VALIDATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type QueryOptions = {
   limit: number;
@@ -29,6 +30,14 @@ type ResolutionMetadata = {
   resolutionType: string;
   resolutionNote: string;
   evidenceUrl?: string | null;
+};
+
+type ValidationEvidence = {
+  method: 'source-health' | 'data-health-check';
+  result: string;
+  evidenceId: string;
+  evidenceRef: string;
+  validatedAt: Date;
 };
 
 type SourceRepairBody = {
@@ -171,7 +180,7 @@ async function parseResolutionMetadata(c: any): Promise<ResolutionMetadata | { e
   }
 
   if (!resolutionNote) {
-    return { error: 'resolutionNote is required to close monitoring work.' };
+    return { error: 'resolutionNote is required for monitoring repair or resolution work.' };
   }
 
   if (evidenceUrl && !/^https?:\/\//i.test(evidenceUrl)) {
@@ -261,6 +270,187 @@ function notFound(c: any, message: string) {
   );
 }
 
+function validationRequired(c: any, message: string) {
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: 'VALIDATION_REQUIRED',
+        message,
+      },
+    },
+    409,
+  );
+}
+
+function validationCutoff(createdAt: Date): Date {
+  return new Date(Math.max(createdAt.getTime(), Date.now() - VALIDATION_WINDOW_MS));
+}
+
+function extractFirstHttpUrl(value?: string | null): string | null {
+  if (!value) return null;
+  const match = value.match(/https?:\/\/\S+/i);
+  return match ? match[0].replace(/[),.;\]]+$/, '') : null;
+}
+
+function validationPayload(evidence: ValidationEvidence, actor: string) {
+  return {
+    validationMethod: evidence.method,
+    validationResult: evidence.result,
+    validationEvidenceId: evidence.evidenceId,
+    validationEvidenceRef: evidence.evidenceRef,
+    validatedAt: evidence.validatedAt,
+    validatedBy: actor,
+  };
+}
+
+async function findSourceValidationEvidence(input: {
+  assetSlug: string;
+  layer: string;
+  createdAt: Date;
+  reason?: string | null;
+  evidenceUrl?: string | null;
+}): Promise<ValidationEvidence | null> {
+  const sourceUrl = input.evidenceUrl || extractFirstHttpUrl(input.reason);
+  const row = await db.sourceHealth.findFirst({
+    where: {
+      assetSlug: input.assetSlug,
+      layer: input.layer,
+      ...(sourceUrl ? { url: sourceUrl } : {}),
+      status: { in: ['healthy', 'redirected'] },
+      lastCheckedAt: { gte: validationCutoff(input.createdAt) },
+    },
+    orderBy: { lastCheckedAt: 'desc' },
+  });
+
+  if (!row) return null;
+  return {
+    method: 'source-health',
+    result: row.status,
+    evidenceId: row.id,
+    evidenceRef: sourceUrl ? row.url : `${row.assetSlug}/${row.layer}${row.field ? `/${row.field}` : ''}`,
+    validatedAt: row.lastCheckedAt,
+  };
+}
+
+async function findLayerValidationEvidence(input: {
+  assetSlug: string;
+  layer: string;
+  createdAt: Date;
+  excludeId?: string;
+}): Promise<ValidationEvidence | null> {
+  const row = await db.dataHealthCheck.findFirst({
+    where: {
+      assetSlug: input.assetSlug,
+      layer: input.layer,
+      status: { in: ['current', 'resolved'] },
+      ...(input.excludeId ? { id: { not: input.excludeId } } : {}),
+      lastCheckedAt: { gte: validationCutoff(input.createdAt) },
+    },
+    orderBy: { lastCheckedAt: 'desc' },
+  });
+
+  if (!row) return null;
+  return {
+    method: 'data-health-check',
+    result: row.status,
+    evidenceId: row.id,
+    evidenceRef: `${row.assetSlug}/${row.layer}`,
+    validatedAt: row.lastCheckedAt,
+  };
+}
+
+async function findReviewTaskValidationEvidence(task: { assetSlug: string; layer: string; reason: string; createdAt: Date }, metadata: ResolutionMetadata): Promise<ValidationEvidence | null> {
+  const sourceEvidence = await findSourceValidationEvidence({
+    assetSlug: task.assetSlug,
+    layer: task.layer,
+    reason: task.reason,
+    evidenceUrl: metadata.evidenceUrl,
+    createdAt: task.createdAt,
+  });
+  if (sourceEvidence) return sourceEvidence;
+
+  return findLayerValidationEvidence({
+    assetSlug: task.assetSlug,
+    layer: task.layer,
+    createdAt: task.createdAt,
+  });
+}
+
+async function markReviewTaskPendingValidation(id: string, metadata: ResolutionMetadata, actor: string) {
+  const existing = await db.reviewTask.findUnique({ where: { id } });
+  if (!existing) return null;
+
+  return db.$transaction(async (tx) => {
+    const updated = await tx.reviewTask.update({
+      where: { id },
+      data: {
+        status: 'pending_validation',
+        resolvedAt: null,
+        resolutionType: metadata.resolutionType,
+        resolutionNote: metadata.resolutionNote,
+        evidenceUrl: metadata.evidenceUrl,
+        validationMethod: null,
+        validationResult: null,
+        validationEvidenceId: null,
+        validationEvidenceRef: null,
+        validatedAt: null,
+        validatedBy: null,
+      },
+    });
+    await createMonitoringRepairLog(tx, {
+      actor,
+      action: 'submit_review_task_repair',
+      resource: 'review-task',
+      resourceId: id,
+      assetSlug: existing.assetSlug,
+      layer: existing.layer,
+      oldValue: { status: existing.status, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl },
+      newValue: { status: updated.status, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl, validationResult: updated.validationResult },
+      reason: metadata.resolutionNote,
+      evidenceUrl: metadata.evidenceUrl,
+    });
+    return updated;
+  });
+}
+
+async function markHealthCheckPendingValidation(id: string, metadata: ResolutionMetadata, actor: string) {
+  const existing = await db.dataHealthCheck.findUnique({ where: { id } });
+  if (!existing) return null;
+
+  return db.$transaction(async (tx) => {
+    const updated = await tx.dataHealthCheck.update({
+      where: { id },
+      data: {
+        status: 'pending_validation',
+        reason: metadata.resolutionNote,
+        resolutionType: metadata.resolutionType,
+        resolutionNote: metadata.resolutionNote,
+        evidenceUrl: metadata.evidenceUrl,
+        validationMethod: null,
+        validationResult: null,
+        validationEvidenceId: null,
+        validationEvidenceRef: null,
+        validatedAt: null,
+        validatedBy: null,
+      },
+    });
+    await createMonitoringRepairLog(tx, {
+      actor,
+      action: 'submit_health_check_repair',
+      resource: 'health-check',
+      resourceId: id,
+      assetSlug: existing.assetSlug,
+      layer: existing.layer,
+      oldValue: { status: existing.status, severity: existing.severity, reason: existing.reason, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl },
+      newValue: { status: updated.status, severity: updated.severity, reason: updated.reason, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl, validationResult: updated.validationResult },
+      reason: metadata.resolutionNote,
+      evidenceUrl: metadata.evidenceUrl,
+    });
+    return updated;
+  });
+}
+
 adminMonitoringRouter.get('/overview', async (c) => {
   try {
     const [healthChecks, sourceHealthRows, openReviewTasks, failedSyncLogs, assetSources] = await Promise.all([
@@ -303,7 +493,7 @@ adminMonitoringRouter.get('/overview', async (c) => {
     const assetPriorityByAsset = new Map([...sourceRowsByAsset.keys(), ...new Set([...healthChecks.map((row) => row.assetSlug), ...sourceHealth.map((row) => row.assetSlug)])].map((assetSlug) => [assetSlug, monitoringPriorityForAsset(assetSlug)]));
     const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset, assetPriorityByAsset });
     const recentHealthIssues = await db.dataHealthCheck.findMany({
-      where: { status: { not: 'current' } },
+      where: { status: { notIn: ['current', 'resolved'] } },
       orderBy: { lastCheckedAt: 'desc' },
       take: 10,
       select: { assetSlug: true, layer: true, status: true, severity: true, reason: true, lastCheckedAt: true },
@@ -579,6 +769,36 @@ adminMonitoringRouter.get('/sync-logs', async (c) => {
   }
 });
 
+adminMonitoringRouter.patch('/review-tasks/:id/repair', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const metadata = await parseResolutionMetadata(c);
+    if ('error' in metadata) return validationError(c, metadata.error);
+
+    const task = await markReviewTaskPendingValidation(id, metadata, adminActor(c));
+    if (!task) return notFound(c, `Review task not found: ${id}`);
+
+    return c.json({ success: true, data: task });
+  } catch (err) {
+    return internalError(c, err, 'Review task repair submission failed');
+  }
+});
+
+adminMonitoringRouter.patch('/health-checks/:id/repair', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const metadata = await parseResolutionMetadata(c);
+    if ('error' in metadata) return validationError(c, metadata.error);
+
+    const check = await markHealthCheckPendingValidation(id, metadata, adminActor(c));
+    if (!check) return notFound(c, `Health check not found: ${id}`);
+
+    return c.json({ success: true, data: check });
+  } catch (err) {
+    return internalError(c, err, 'Health check repair submission failed');
+  }
+});
+
 adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
   try {
     const id = c.req.param('id');
@@ -587,23 +807,29 @@ adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
 
     const existing = await db.reviewTask.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Review task not found: ${id}`);
+    const actor = adminActor(c);
+    const evidence = await findReviewTaskValidationEvidence(existing, metadata);
+    if (!evidence) {
+      return validationRequired(c, 'Matching successful validation evidence is required before this review task can be resolved. Submit repair to keep it pending validation, then run source or freshness checks.');
+    }
 
     const task = await db.$transaction(async (tx) => {
       const updated = await tx.reviewTask.update({
         where: { id },
         data: {
-          status: 'closed',
+          status: 'resolved',
           resolvedAt: new Date(),
           resolutionType: metadata.resolutionType,
           resolutionNote: metadata.resolutionNote,
           evidenceUrl: metadata.evidenceUrl,
+          ...validationPayload(evidence, actor),
         },
       });
       await createMonitoringRepairLog(tx, {
-        actor: adminActor(c), action: 'close_review_task', resource: 'review-task', resourceId: id,
+        actor, action: 'resolve_review_task', resource: 'review-task', resourceId: id,
         assetSlug: existing.assetSlug, layer: existing.layer,
-        oldValue: { status: existing.status, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl },
-        newValue: { status: updated.status, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl },
+        oldValue: { status: existing.status, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl, validationResult: existing.validationResult },
+        newValue: { status: updated.status, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl, validationMethod: updated.validationMethod, validationResult: updated.validationResult, validationEvidenceId: updated.validationEvidenceId, validationEvidenceRef: updated.validationEvidenceRef, validatedAt: updated.validatedAt },
         reason: metadata.resolutionNote, evidenceUrl: metadata.evidenceUrl,
       });
       return updated;
@@ -611,7 +837,7 @@ adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
 
     return c.json({ success: true, data: task });
   } catch (err) {
-    return internalError(c, err, 'Review task close failed');
+    return internalError(c, err, 'Review task resolution failed');
   }
 });
 
@@ -623,20 +849,31 @@ adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
 
     const existing = await db.dataHealthCheck.findUnique({ where: { id } });
     if (!existing) return notFound(c, `Health check not found: ${id}`);
+    const actor = adminActor(c);
+    const evidence = await findLayerValidationEvidence({
+      assetSlug: existing.assetSlug,
+      layer: existing.layer,
+      createdAt: existing.createdAt,
+      excludeId: existing.id,
+    });
+    if (!evidence) {
+      return validationRequired(c, 'Matching successful layer validation evidence is required before this health check can be resolved. Submit repair to keep it pending validation, then run freshness/import validation.');
+    }
 
     const check = await db.$transaction(async (tx) => {
       const updated = await tx.dataHealthCheck.update({
         where: { id },
         data: {
-          status: 'current', severity: 'low', reason: metadata.resolutionNote, lastCheckedAt: new Date(),
+          status: 'resolved', severity: 'low', reason: metadata.resolutionNote,
           resolutionType: metadata.resolutionType, resolutionNote: metadata.resolutionNote, evidenceUrl: metadata.evidenceUrl,
+          ...validationPayload(evidence, actor),
         },
       });
       await createMonitoringRepairLog(tx, {
-        actor: adminActor(c), action: 'close_health_check', resource: 'health-check', resourceId: id,
+        actor, action: 'resolve_health_check', resource: 'health-check', resourceId: id,
         assetSlug: existing.assetSlug, layer: existing.layer,
-        oldValue: { status: existing.status, severity: existing.severity, reason: existing.reason, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl },
-        newValue: { status: updated.status, severity: updated.severity, reason: updated.reason, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl },
+        oldValue: { status: existing.status, severity: existing.severity, reason: existing.reason, resolutionType: existing.resolutionType, resolutionNote: existing.resolutionNote, evidenceUrl: existing.evidenceUrl, validationResult: existing.validationResult },
+        newValue: { status: updated.status, severity: updated.severity, reason: updated.reason, resolutionType: updated.resolutionType, resolutionNote: updated.resolutionNote, evidenceUrl: updated.evidenceUrl, validationMethod: updated.validationMethod, validationResult: updated.validationResult, validationEvidenceId: updated.validationEvidenceId, validationEvidenceRef: updated.validationEvidenceRef, validatedAt: updated.validatedAt },
         reason: metadata.resolutionNote, evidenceUrl: metadata.evidenceUrl,
       });
       return updated;
@@ -644,7 +881,7 @@ adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
 
     return c.json({ success: true, data: check });
   } catch (err) {
-    return internalError(c, err, 'Health check close failed');
+    return internalError(c, err, 'Health check resolution failed');
   }
 });
 

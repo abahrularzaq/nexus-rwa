@@ -4,7 +4,7 @@ import { resolveAdminKey } from "@/lib/admin-session";
 export const dynamic = "force-dynamic";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:3001";
-const ALLOWED_RESOURCES = new Set(["source-health"]);
+const ALLOWED_RESOURCES = new Set(["source-health", "review-tasks", "health-checks"]);
 
 function apiBase(): string {
   return API_URL.trim().replace(/\/$/, "");

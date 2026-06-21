@@ -87,7 +87,7 @@ type MonitoringRepairLog = {
 
 type SourceHealthStatus = "healthy" | "redirected" | "restricted" | "deprecated" | "broken" | "error";
 
-type ActionVerificationStatus = "pending verification" | "verified" | "failed verification";
+type ActionVerificationStatus = "pending validation" | "verified" | "failed validation";
 
 type ResolutionType =
   | "fixed_source"
@@ -277,7 +277,7 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   }
 
   if (resource === "review-tasks") {
-    return "Review evidence, repair missing/low-confidence source notes, then close after validation.";
+    return "Review evidence, submit repair notes, run validation checks, then resolve with matching evidence.";
   }
 
   if (resource === "source-health" || resource === "sources") {
@@ -285,7 +285,7 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   }
 
   if (resource === "health-checks") {
-    return "Run import/sync for the stale layer, verify current data, then close the health check.";
+    return "Run import/sync for the stale layer, submit repair notes, then resolve after a fresh current health check exists.";
   }
 
   return "Inspect failed sync log, fix import/source issue, and rerun the sync job.";
@@ -376,7 +376,7 @@ function statusClass(status: string): string {
   if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh", "verified"].includes(status)) {
     return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   }
-  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed verification"].includes(status)) {
+  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed validation"].includes(status)) {
     return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
   }
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
@@ -410,10 +410,10 @@ function actionStateKey(resource: DetailResource, id: string): string {
 }
 
 function manualVerificationInstruction(resource: DetailResource): string {
-  if (resource === "source-health" || resource === "sources") return "Manual verification: run `check:sources` to confirm source issues are resolved.";
-  if (resource === "health-checks") return "Manual verification: run `check:freshness` to confirm freshness issues are resolved.";
+  if (resource === "source-health" || resource === "sources") return "Pending validation: run `check:sources` so a fresh healthy/redirected source-health record exists before resolving.";
+  if (resource === "health-checks") return "Pending validation: run `check:freshness` or the relevant import/sync so a fresh current layer health record exists before resolving.";
   if (resource === "sync-logs") return "Manual verification: retry provider sync and confirm the next sync log succeeds.";
-  return "Manual verification: review the repaired evidence and confirm the task remains resolved.";
+  return "Pending validation: review the repaired evidence and run the matching source or freshness check before resolving.";
 }
 
 function getErrorMessage(body: unknown, fallback: string): string {
@@ -719,7 +719,7 @@ function WorkflowRail() {
     { title: "1. Triage", body: "Mulai dari broken/error source, high review, lalu needs-sync." },
     { title: "2. Verify", body: "Buka source, cek official URL, final redirect, field, dan layer evidence." },
     { title: "3. Repair", body: "Replace source di data layer, sync ulang, tandai restricted untuk access-gated source, atau broken/deprecated untuk source yang tidak valid." },
-    { title: "4. Close", body: "Close task hanya setelah source valid, layer current, dan audit trail jelas." },
+    { title: "4. Resolve", body: "Resolve hanya setelah source valid, layer current, matching validation evidence ada, dan audit trail jelas." },
   ];
 
   return (
@@ -882,7 +882,7 @@ function IssueTable({
                             className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"
                           >
                             <ClipboardCheck className="size-3" />
-                            Close
+                            Resolve
                           </button>
                         ) : null}
                       </div>
@@ -956,7 +956,7 @@ function UnifiedQueueTable({
                   <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
                     <button type="button" onClick={() => onView(row)} className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white hover:border-[var(--accent-cyan)]"><Eye className="size-3" />Detail</button>
                     {row.resource === "source-health" ? <select value="" onChange={(event) => { const nextStatus = event.target.value; if (nextStatus) onSourceStatus(row, nextStatus); event.target.value = ""; }} disabled={loading} aria-label="Update source status" className="rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-2 py-1 text-xs text-white outline-none transition hover:border-[var(--accent-cyan)] disabled:opacity-60"><option value="">Set status…</option>{sourceHealthStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : null}
-                    {(row.resource === "review-tasks" || row.resource === "health-checks") ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Close</button> : null}
+                    {(row.resource === "review-tasks" || row.resource === "health-checks") ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Resolve</button> : null}
                   </div></td>
                 </tr>
               );
@@ -973,6 +973,7 @@ function DetailPanelContent({
   resource,
   onClear,
   onClose,
+  onSubmitRepair,
   onSourceStatus,
   onSourceRepair,
   actionLoadingId,
@@ -983,6 +984,7 @@ function DetailPanelContent({
   resource: DetailResource;
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
   actionLoadingId: string | null;
@@ -1024,9 +1026,9 @@ function DetailPanelContent({
   };
   const closeNote = JSON.stringify(
     {
-      resolvedBy: "admin",
-      resolvedAt: new Date().toISOString(),
-      action: resource === "source-health" ? "source_status_reviewed" : "monitoring_task_closed",
+      requestedBy: "admin",
+      requestedAt: new Date().toISOString(),
+      action: resource === "source-health" ? "source_status_reviewed" : "monitoring_resolution_request",
       assetSlug: asText(row.assetSlug),
       layer: asText(row.layer),
       issue: rowIssue(row),
@@ -1070,6 +1072,21 @@ function DetailPanelContent({
               <span className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(actionStatus)}`}>
                 {actionStatus}
               </span>
+            </div>
+          ) : null}
+          {row.validationResult || row.validationMethod || row.validationEvidenceRef ? (
+            <div className="rounded-lg border border-[#00FF88]/20 bg-[#00FF88]/[0.04] p-3">
+              <p className="terminal-label mb-2 text-[#74FFB8]">Validation evidence</p>
+              <div className="grid gap-2 text-xs text-[var(--text-secondary)]">
+                <p>Method: <span className="font-mono text-white">{asText(row.validationMethod)}</span></p>
+                <p>Result: <span className="font-mono text-white">{asText(row.validationResult)}</span></p>
+                <p>Evidence: <span className="font-mono text-white">{asText(row.validationEvidenceRef ?? row.validationEvidenceId)}</span></p>
+                <p>Validated: <span className="font-mono text-white">{formatDate(row.validatedAt)}</span></p>
+              </div>
+            </div>
+          ) : rowStatus(row) === "pending_validation" ? (
+            <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+              Pending validation: a repair note exists, but no matching successful validation record has been attached yet.
             </div>
           ) : null}
           <div className="grid gap-3 md:grid-cols-3">
@@ -1168,7 +1185,7 @@ function DetailPanelContent({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white hover:border-[var(--accent-cyan)]"
             >
               <ClipboardCheck className="size-4" />
-              Copy close log
+              Copy resolution note
             </button>
             {url && id ? (
               <form
@@ -1213,17 +1230,27 @@ function DetailPanelContent({
               </div>
             ) : null}
             {(resource === "review-tasks" || resource === "health-checks") && id ? (
-              <button
-                type="button"
-                onClick={() => onClose(row, closeMetadata)}
-                disabled={loading || !resolutionNote.trim()}
-                className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60"
-              >
-                Close after validation
-              </button>
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => onSubmitRepair(row, closeMetadata)}
+                  disabled={loading || !resolutionNote.trim()}
+                  className="rounded-md border border-[#FFB800]/30 bg-[#FFB800]/10 px-3 py-2 text-sm font-semibold text-[#FFB800] disabled:opacity-60"
+                >
+                  Submit repair for validation
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onClose(row, closeMetadata)}
+                  disabled={loading || !resolutionNote.trim()}
+                  className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60"
+                >
+                  Resolve with validation evidence
+                </button>
+              </div>
             ) : null}
           </div>
-          {actionStatus === "pending verification" ? (
+          {actionStatus === "pending validation" ? (
             granularCheckAvailable ? (
               <button
                 type="button"
@@ -1240,7 +1267,7 @@ function DetailPanelContent({
             )
           ) : null}
           <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
-            Restricted = akses dibatasi tetapi source belum terbukti rusak; broken = URL/konten tidak tersedia atau tidak lagi mendukung evidence. Close hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan audit note sudah aman.
+            Restricted = akses dibatasi tetapi source belum terbukti rusak; broken = URL/konten tidak tersedia atau tidak lagi mendukung evidence. Resolve hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan matching validation evidence tersedia.
           </div>
         </div>
       </div>
@@ -1253,6 +1280,7 @@ function DetailPanel(props: {
   resource: DetailResource;
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
   actionLoadingId: string | null;
@@ -1388,7 +1416,14 @@ export default function MonitoringPage() {
         count: data.healthStatusSummary["needs-sync"] ?? 0,
         resource: "health-checks",
         status: "needs-sync",
-        helper: "Run import/sync, validate frontend, then close.",
+        helper: "Run import/sync, submit repair, then resolve after validation.",
+      },
+      {
+        label: "Pending validation",
+        count: (data.healthStatusSummary.pending_validation ?? 0),
+        resource: "health-checks",
+        status: "pending_validation",
+        helper: "Validation evidence is still required before resolution.",
       },
       {
         label: "Manual review queue",
@@ -1420,6 +1455,7 @@ export default function MonitoringPage() {
   const loadUnifiedRows = useCallback(async () => {
     const requests: Array<[ActionableDetailResource, string]> = [
       ["review-tasks", "open"],
+      ["review-tasks", "pending_validation"],
       ["source-health", "restricted"],
       ["source-health", "broken"],
       ["source-health", "error"],
@@ -1428,6 +1464,7 @@ export default function MonitoringPage() {
       ["source-health", "low-confidence"],
       ["health-checks", "stale"],
       ["health-checks", "needs-sync"],
+      ["health-checks", "pending_validation"],
       ["sync-logs", "failed"],
       ["sync-logs", "error"],
     ];
@@ -1722,12 +1759,12 @@ export default function MonitoringPage() {
     async (row: Record<string, unknown>, metadata?: ResolutionMetadata) => {
       const id = getRowId(row);
       if (!id) {
-        setError("This row has no id, so it cannot be closed from the workbench.");
+        setError("This row has no id, so it cannot be resolved from the workbench.");
         return;
       }
       const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
       if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
-        setError("Close action is only available for review tasks and layer health checks.");
+        setError("Resolve action is only available for review tasks and layer health checks.");
         return;
       }
 
@@ -1752,21 +1789,74 @@ export default function MonitoringPage() {
         const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
         if (!response.ok || !body.success) {
           throw new MonitoringRequestError(
-            getErrorMessage(body, response.statusText || "Close action failed"),
+            getErrorMessage(body, response.statusText || "Resolve action failed"),
             response.status,
             getErrorCode(body),
           );
         }
 
-        markActionStatus(targetResource, id, "pending verification");
+        markActionStatus(targetResource, id, "verified");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: targetResource });
-        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} updated. Pending verification.`);
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} resolved with validation evidence.`);
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
         }
-        setError(err instanceof Error ? err.message : "Close action failed");
+        setError(err instanceof Error ? err.message : "Resolve action failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
+  );
+
+  const handleSubmitRepair = useCallback(
+    async (row: Record<string, unknown>, metadata?: ResolutionMetadata) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This row has no id, so it cannot be moved to pending validation.");
+        return;
+      }
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
+        setError("Repair submission is only available for review tasks and layer health checks.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/repair`, {
+          method: "PATCH",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resolutionType: metadata?.resolutionType ?? "verified_manual",
+            resolutionNote: metadata?.resolutionNote ?? getSuggestedAction(row, targetResource),
+            ...(metadata?.evidenceUrl ? { evidenceUrl: metadata.evidenceUrl } : {}),
+          }),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Repair submission failed"),
+            response.status,
+            getErrorCode(body),
+          );
+        }
+
+        markActionStatus(targetResource, id, "pending validation");
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} moved to pending validation. Run the matching validation check before resolving.`);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
+        setError(err instanceof Error ? err.message : "Repair submission failed");
       } finally {
         setActionLoadingId(null);
       }
@@ -1805,10 +1895,10 @@ export default function MonitoringPage() {
           );
         }
 
-        markActionStatus(resource, id, "pending verification");
+        markActionStatus(resource, id, "pending validation");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data.source, resource, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
-        setNotice("Source item updated. Pending verification.");
+        setNotice("Source item updated. Pending validation.");
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
@@ -1852,10 +1942,10 @@ export default function MonitoringPage() {
           );
         }
 
-        markActionStatus("source-health", id, "pending verification");
+        markActionStatus("source-health", id, "pending validation");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: "source-health" });
-        setNotice(`Source item updated to ${nextStatus}. Pending verification.`);
+        setNotice(`Source item updated to ${nextStatus}. Pending validation.`);
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
@@ -1876,7 +1966,7 @@ export default function MonitoringPage() {
           <p className="terminal-label mb-1.5">Admin monitoring</p>
           <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white">Data Repair Workbench</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Triage source errors, review stale layers, run sync checks, and close resolved dataset issues.
+            Triage source errors, review stale layers, run sync checks, and resolve only with validation evidence.
           </p>
           <p className="mt-2 text-xs text-[var(--text-muted)]">
             Monitoring proxy: <span className="terminal-data text-[var(--accent-cyan)]">{MONITORING_OVERVIEW_PROXY_URL}</span>
@@ -2148,6 +2238,7 @@ export default function MonitoringPage() {
             resource={(selectedRow?.resource as DetailResource | undefined) ?? resource}
             onClear={() => setSelectedRow(null)}
             onClose={handleCloseRow}
+            onSubmitRepair={handleSubmitRepair}
             onSourceStatus={handleSourceStatus}
             onSourceRepair={handleSourceRepair}
             actionLoadingId={actionLoadingId}
