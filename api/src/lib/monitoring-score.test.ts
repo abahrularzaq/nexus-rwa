@@ -47,6 +47,20 @@ test('keeps restricted sources in watch without stale or incomplete escalation',
   assert.equal(score.score, 100);
 });
 
+test('counts reopened health checks as active watch issues instead of resolved', () => {
+  const [score] = buildAssetMonitoringScores(
+    [{ assetSlug: 'issuer-reopen', layer: 'reserve', status: 'reopened' }],
+    [],
+    {
+      sourceRowsByAsset: new Map([['issuer-reopen', [{ layer: 'reserve', sourceUrl: 'https://example.com/reserve', reliability: 4 }]]]),
+    },
+  );
+
+  assert.equal(score.status, 'watch');
+  assert.equal(score.totalIssues, 1);
+  assert.equal(score.score, 84);
+});
+
 test('flags missing required layers as incomplete with layer and priority weighting', () => {
   const [score] = buildAssetMonitoringScores(
     [{ assetSlug: 'issuer-d', layer: 'market', status: 'current' }],

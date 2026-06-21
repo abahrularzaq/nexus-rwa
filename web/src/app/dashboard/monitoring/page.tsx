@@ -34,11 +34,13 @@ type MonitoringOverview = {
     totalHealthChecks: number;
     totalSourceChecks: number;
     openReviewTasks: number;
+    reopenedReviewTasks?: number;
     failedOrNonSuccessSyncLogs: number;
   };
   healthStatusSummary: Record<string, number>;
   healthSeveritySummary: Record<string, number>;
   sourceStatusSummary: Record<string, number>;
+  reviewStatusSummary?: Record<string, number>;
   reviewPrioritySummary: Record<string, number>;
   assetStatusSummary: Record<string, number>;
   assetSummaries: Array<{
@@ -101,6 +103,10 @@ type ResolutionMetadata = {
   resolutionType: ResolutionType;
   resolutionNote: string;
   evidenceUrl?: string;
+};
+
+type ReopenMetadata = {
+  reason: string;
 };
 
 type SourceRepairPayload = {
@@ -179,6 +185,8 @@ const csvColumns = [
   "createdAt",
   "startedAt",
   "resolvedAt",
+  "reopenedAt",
+  "reopenReason",
 ] as const;
 
 function apiBase(): string {
@@ -373,10 +381,14 @@ function normalizeMonitoringRow(resource: ActionableDetailResource, row: Record<
 }
 
 function statusClass(status: string): string {
-  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh", "verified"].includes(status)) {
+  const normalized = status.toLowerCase();
+  if (normalized === "reopened") {
+    return "border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)]";
+  }
+  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh", "verified"].includes(normalized)) {
     return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   }
-  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed validation"].includes(status)) {
+  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed validation"].includes(normalized)) {
     return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
   }
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
@@ -874,7 +886,7 @@ function IssueTable({
                             ))}
                           </select>
                         ) : null}
-                        {(resource === "review-tasks" || resource === "health-checks") && id ? (
+                        {(resource === "review-tasks" || resource === "health-checks") && id && status.toLowerCase() !== "resolved" ? (
                           <button
                             type="button"
                             onClick={() => onClose(row)}
@@ -956,7 +968,7 @@ function UnifiedQueueTable({
                   <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
                     <button type="button" onClick={() => onView(row)} className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white hover:border-[var(--accent-cyan)]"><Eye className="size-3" />Detail</button>
                     {row.resource === "source-health" ? <select value="" onChange={(event) => { const nextStatus = event.target.value; if (nextStatus) onSourceStatus(row, nextStatus); event.target.value = ""; }} disabled={loading} aria-label="Update source status" className="rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-2 py-1 text-xs text-white outline-none transition hover:border-[var(--accent-cyan)] disabled:opacity-60"><option value="">Set status…</option>{sourceHealthStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : null}
-                    {(row.resource === "review-tasks" || row.resource === "health-checks") ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Resolve</button> : null}
+                    {(row.resource === "review-tasks" || row.resource === "health-checks") && row.status.toLowerCase() !== "resolved" ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Resolve</button> : null}
                   </div></td>
                 </tr>
               );
@@ -973,6 +985,7 @@ function DetailPanelContent({
   resource,
   onClear,
   onClose,
+  onReopen,
   onSubmitRepair,
   onSourceStatus,
   onSourceRepair,
@@ -984,6 +997,7 @@ function DetailPanelContent({
   resource: DetailResource;
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onReopen: (row: Record<string, unknown>, metadata: ReopenMetadata) => void;
   onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
@@ -996,6 +1010,9 @@ function DetailPanelContent({
   const assetHref = buildAssetHref(row.assetSlug, row, resource);
   const layerHref = buildLayerHref(row.assetSlug, row.layer, row.field, getRowUrl(row));
   const loading = Boolean(id && actionLoadingId === id);
+  const status = rowStatus(row).toLowerCase();
+  const canReopen = (resource === "review-tasks" || resource === "health-checks") && status === "resolved";
+  const canResolveOrRepair = (resource === "review-tasks" || resource === "health-checks") && status !== "resolved";
   const suggestedAction = typeof row.suggestedAction === "string" && row.suggestedAction.trim()
     ? row.suggestedAction
     : getSuggestedAction(row, resource);
@@ -1018,6 +1035,12 @@ function DetailPanelContent({
     typeof row.reliability === "number" ? String(row.reliability) : typeof row.baseReliability === "number" ? String(row.baseReliability) : "80",
   );
   const [repairEvidenceNote, setRepairEvidenceNote] = useState("");
+  const [reopenReason, setReopenReason] = useState(
+    typeof row.reopenReason === "string" && row.reopenReason.trim()
+      ? row.reopenReason
+      : "",
+  );
+  const [reopenConfirmed, setReopenConfirmed] = useState(false);
 
   const closeMetadata = {
     resolutionType,
@@ -1074,7 +1097,7 @@ function DetailPanelContent({
               </span>
             </div>
           ) : null}
-          {row.validationResult || row.validationMethod || row.validationEvidenceRef ? (
+          {status !== "reopened" && (row.validationResult || row.validationMethod || row.validationEvidenceRef) ? (
             <div className="rounded-lg border border-[#00FF88]/20 bg-[#00FF88]/[0.04] p-3">
               <p className="terminal-label mb-2 text-[#74FFB8]">Validation evidence</p>
               <div className="grid gap-2 text-xs text-[var(--text-secondary)]">
@@ -1229,7 +1252,7 @@ function DetailPanelContent({
                 </div>
               </div>
             ) : null}
-            {(resource === "review-tasks" || resource === "health-checks") && id ? (
+            {canResolveOrRepair && id ? (
               <div className="grid gap-2">
                 <button
                   type="button"
@@ -1248,6 +1271,41 @@ function DetailPanelContent({
                   Resolve with validation evidence
                 </button>
               </div>
+            ) : null}
+            {canReopen && id ? (
+              <form
+                className="grid gap-2 rounded-lg border border-[var(--accent-cyan)]/25 bg-[var(--accent-cyan)]/5 p-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onReopen(row, { reason: reopenReason.trim() });
+                }}
+              >
+                <p className="terminal-label">Reopen resolved issue</p>
+                <textarea
+                  value={reopenReason}
+                  onChange={(event) => setReopenReason(event.target.value)}
+                  rows={3}
+                  placeholder="Why the previous resolution is no longer valid"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+                <label className="flex items-start gap-2 text-xs leading-relaxed text-[var(--text-secondary)]">
+                  <input
+                    type="checkbox"
+                    checked={reopenConfirmed}
+                    onChange={(event) => setReopenConfirmed(event.target.checked)}
+                    className="mt-0.5 size-4 rounded border-[var(--border-line)] bg-[#0A0E1A]"
+                  />
+                  <span>Confirm this resolved issue should become active again and require fresh validation before it is resolved.</span>
+                </label>
+                <button
+                  type="submit"
+                  disabled={loading || !reopenReason.trim() || !reopenConfirmed}
+                  className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--accent-cyan)]/35 bg-[var(--accent-cyan)]/10 px-3 py-2 text-sm font-semibold text-[var(--accent-cyan)] disabled:opacity-60"
+                >
+                  <RefreshCw className="size-4" />
+                  Reopen
+                </button>
+              </form>
             ) : null}
           </div>
           {actionStatus === "pending validation" ? (
@@ -1280,6 +1338,7 @@ function DetailPanel(props: {
   resource: DetailResource;
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onReopen: (row: Record<string, unknown>, metadata: ReopenMetadata) => void;
   onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
@@ -1420,14 +1479,21 @@ export default function MonitoringPage() {
       },
       {
         label: "Pending validation",
-        count: (data.healthStatusSummary.pending_validation ?? 0),
+        count: (data.healthStatusSummary.pending_validation ?? 0) + (data.reviewStatusSummary?.pending_validation ?? 0),
         resource: "health-checks",
         status: "pending_validation",
         helper: "Validation evidence is still required before resolution.",
       },
       {
+        label: "Reopened issues",
+        count: (data.healthStatusSummary.reopened ?? 0) + (data.reviewStatusSummary?.reopened ?? 0),
+        resource: "review-tasks",
+        status: "reopened",
+        helper: "Previously resolved issues that are active again.",
+      },
+      {
         label: "Manual review queue",
-        count: data.overview.openReviewTasks,
+        count: data.reviewStatusSummary?.open ?? data.overview.openReviewTasks,
         resource: "review-tasks",
         status: "open",
         helper: "Resolve evidence conflicts and missing source notes.",
@@ -1455,6 +1521,7 @@ export default function MonitoringPage() {
   const loadUnifiedRows = useCallback(async () => {
     const requests: Array<[ActionableDetailResource, string]> = [
       ["review-tasks", "open"],
+      ["review-tasks", "reopened"],
       ["review-tasks", "pending_validation"],
       ["source-health", "restricted"],
       ["source-health", "broken"],
@@ -1464,6 +1531,7 @@ export default function MonitoringPage() {
       ["source-health", "low-confidence"],
       ["health-checks", "stale"],
       ["health-checks", "needs-sync"],
+      ["health-checks", "reopened"],
       ["health-checks", "pending_validation"],
       ["sync-logs", "failed"],
       ["sync-logs", "error"],
@@ -1864,6 +1932,59 @@ export default function MonitoringPage() {
     [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
   );
 
+  const handleReopenRow = useCallback(
+    async (row: Record<string, unknown>, metadata: ReopenMetadata) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This row has no id, so it cannot be reopened from the workbench.");
+        return;
+      }
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
+        setError("Reopen action is only available for review tasks and layer health checks.");
+        return;
+      }
+      if (!metadata.reason.trim()) {
+        setError("Enter a reopen reason before reopening this issue.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/reopen`, {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: metadata.reason.trim() }),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Reopen action failed"),
+            response.status,
+            getErrorCode(body),
+          );
+        }
+
+        markActionStatus(targetResource, id, "pending validation");
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} reopened and returned to the active queue.`);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
+        setError(err instanceof Error ? err.message : "Reopen action failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
+  );
+
   const handleSourceRepair = useCallback(
     async (row: Record<string, unknown>, payload: SourceRepairPayload) => {
       const id = getRowId(row);
@@ -2065,9 +2186,9 @@ export default function MonitoringPage() {
               icon={DatabaseZap}
             />
             <StatCard
-              label="Open tasks"
+              label="Active review tasks"
               value={data.overview.openReviewTasks}
-              helper="Manual review queue"
+              helper={`${data.reviewStatusSummary?.open ?? 0} open, ${data.overview.reopenedReviewTasks ?? data.reviewStatusSummary?.reopened ?? 0} reopened`}
               icon={AlertTriangle}
             />
             <StatCard
@@ -2238,6 +2359,7 @@ export default function MonitoringPage() {
             resource={(selectedRow?.resource as DetailResource | undefined) ?? resource}
             onClear={() => setSelectedRow(null)}
             onClose={handleCloseRow}
+            onReopen={handleReopenRow}
             onSubmitRepair={handleSubmitRepair}
             onSourceStatus={handleSourceStatus}
             onSourceRepair={handleSourceRepair}

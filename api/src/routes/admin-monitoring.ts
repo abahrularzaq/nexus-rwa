@@ -32,6 +32,10 @@ type ResolutionMetadata = {
   evidenceUrl?: string | null;
 };
 
+type ReopenMetadata = {
+  reason: string;
+};
+
 type ValidationEvidence = {
   method: 'source-health' | 'data-health-check';
   result: string;
@@ -190,6 +194,19 @@ async function parseResolutionMetadata(c: any): Promise<ResolutionMetadata | { e
   return { resolutionType, resolutionNote, evidenceUrl: evidenceUrl || null };
 }
 
+async function parseReopenMetadata(c: any): Promise<ReopenMetadata | { error: string }> {
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const reason = typeof body.reason === 'string'
+    ? body.reason.trim()
+    : typeof body.reopenReason === 'string'
+      ? body.reopenReason.trim()
+      : '';
+
+  if (!reason) return { error: 'reopen reason is required.' };
+
+  return { reason };
+}
+
 function parseReliability(value: unknown): number | null {
   const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
   if (!Number.isFinite(parsed)) return null;
@@ -287,6 +304,10 @@ function validationCutoff(createdAt: Date): Date {
   return new Date(Math.max(createdAt.getTime(), Date.now() - VALIDATION_WINDOW_MS));
 }
 
+function validationBaseline(createdAt: Date, reopenedAt?: Date | null): Date {
+  return reopenedAt && reopenedAt.getTime() > createdAt.getTime() ? reopenedAt : createdAt;
+}
+
 function extractFirstHttpUrl(value?: string | null): string | null {
   if (!value) return null;
   const match = value.match(/https?:\/\/\S+/i);
@@ -360,20 +381,139 @@ async function findLayerValidationEvidence(input: {
   };
 }
 
-async function findReviewTaskValidationEvidence(task: { assetSlug: string; layer: string; reason: string; createdAt: Date }, metadata: ResolutionMetadata): Promise<ValidationEvidence | null> {
+async function findReviewTaskValidationEvidence(task: { assetSlug: string; layer: string; reason: string; createdAt: Date; reopenedAt?: Date | null }, metadata: ResolutionMetadata): Promise<ValidationEvidence | null> {
+  const createdAt = validationBaseline(task.createdAt, task.reopenedAt);
   const sourceEvidence = await findSourceValidationEvidence({
     assetSlug: task.assetSlug,
     layer: task.layer,
     reason: task.reason,
     evidenceUrl: metadata.evidenceUrl,
-    createdAt: task.createdAt,
+    createdAt,
   });
   if (sourceEvidence) return sourceEvidence;
 
   return findLayerValidationEvidence({
     assetSlug: task.assetSlug,
     layer: task.layer,
-    createdAt: task.createdAt,
+    createdAt,
+  });
+}
+
+async function reopenReviewTask(id: string, metadata: ReopenMetadata, actor: string) {
+  const existing = await db.reviewTask.findUnique({ where: { id } });
+  if (!existing) return { kind: 'not-found' as const };
+  if (existing.status !== 'resolved') {
+    return { kind: 'invalid-transition' as const, status: existing.status };
+  }
+
+  return db.$transaction(async (tx) => {
+    const reopenedAt = new Date();
+    const updated = await tx.reviewTask.update({
+      where: { id },
+      data: {
+        status: 'reopened',
+        reopenedAt,
+        reopenedBy: actor,
+        reopenReason: metadata.reason,
+        validationMethod: null,
+        validationResult: null,
+        validationEvidenceId: null,
+        validationEvidenceRef: null,
+        validatedAt: null,
+        validatedBy: null,
+      },
+    });
+    await createMonitoringRepairLog(tx, {
+      actor,
+      action: 'reopen_review_task',
+      resource: 'review-task',
+      resourceId: id,
+      assetSlug: existing.assetSlug,
+      layer: existing.layer,
+      oldValue: {
+        status: existing.status,
+        resolvedAt: existing.resolvedAt,
+        resolutionType: existing.resolutionType,
+        resolutionNote: existing.resolutionNote,
+        evidenceUrl: existing.evidenceUrl,
+        validationMethod: existing.validationMethod,
+        validationResult: existing.validationResult,
+        validationEvidenceId: existing.validationEvidenceId,
+        validationEvidenceRef: existing.validationEvidenceRef,
+        validatedAt: existing.validatedAt,
+      },
+      newValue: {
+        status: updated.status,
+        reopenedAt: updated.reopenedAt,
+        reopenedBy: updated.reopenedBy,
+        reopenReason: updated.reopenReason,
+        validationResult: updated.validationResult,
+      },
+      reason: metadata.reason,
+      evidenceUrl: existing.validationEvidenceRef || existing.evidenceUrl,
+    });
+    return { kind: 'ok' as const, data: updated };
+  });
+}
+
+async function reopenHealthCheck(id: string, metadata: ReopenMetadata, actor: string) {
+  const existing = await db.dataHealthCheck.findUnique({ where: { id } });
+  if (!existing) return { kind: 'not-found' as const };
+  if (existing.status !== 'resolved') {
+    return { kind: 'invalid-transition' as const, status: existing.status };
+  }
+
+  return db.$transaction(async (tx) => {
+    const reopenedAt = new Date();
+    const updated = await tx.dataHealthCheck.update({
+      where: { id },
+      data: {
+        status: 'reopened',
+        reason: metadata.reason,
+        reopenedAt,
+        reopenedBy: actor,
+        reopenReason: metadata.reason,
+        validationMethod: null,
+        validationResult: null,
+        validationEvidenceId: null,
+        validationEvidenceRef: null,
+        validatedAt: null,
+        validatedBy: null,
+      },
+    });
+    await createMonitoringRepairLog(tx, {
+      actor,
+      action: 'reopen_health_check',
+      resource: 'health-check',
+      resourceId: id,
+      assetSlug: existing.assetSlug,
+      layer: existing.layer,
+      oldValue: {
+        status: existing.status,
+        severity: existing.severity,
+        reason: existing.reason,
+        resolutionType: existing.resolutionType,
+        resolutionNote: existing.resolutionNote,
+        evidenceUrl: existing.evidenceUrl,
+        validationMethod: existing.validationMethod,
+        validationResult: existing.validationResult,
+        validationEvidenceId: existing.validationEvidenceId,
+        validationEvidenceRef: existing.validationEvidenceRef,
+        validatedAt: existing.validatedAt,
+      },
+      newValue: {
+        status: updated.status,
+        severity: updated.severity,
+        reason: updated.reason,
+        reopenedAt: updated.reopenedAt,
+        reopenedBy: updated.reopenedBy,
+        reopenReason: updated.reopenReason,
+        validationResult: updated.validationResult,
+      },
+      reason: metadata.reason,
+      evidenceUrl: existing.validationEvidenceRef || existing.evidenceUrl,
+    });
+    return { kind: 'ok' as const, data: updated };
   });
 }
 
@@ -465,10 +605,10 @@ adminMonitoringRouter.get('/overview', async (c) => {
         select: { status: true, assetSlug: true, layer: true, field: true, url: true, httpStatus: true, errorMessage: true, lastCheckedAt: true },
       }),
       db.reviewTask.findMany({
-        where: { status: 'open' },
+        where: { status: { in: ['open', 'reopened'] } },
         orderBy: { createdAt: 'desc' },
         take: 5000,
-        select: { priority: true, assetSlug: true, layer: true, reason: true, createdAt: true },
+        select: { priority: true, assetSlug: true, layer: true, reason: true, status: true, createdAt: true, reopenedAt: true },
       }),
       db.syncLog.findMany({
         where: { status: { not: 'success' } },
@@ -508,11 +648,13 @@ adminMonitoringRouter.get('/overview', async (c) => {
           totalHealthChecks: healthChecks.length,
           totalSourceChecks: sourceHealth.length,
           openReviewTasks: openReviewTasks.length,
+          reopenedReviewTasks: openReviewTasks.filter((row) => row.status === 'reopened').length,
           failedOrNonSuccessSyncLogs: failedSyncLogs.length,
         },
         healthStatusSummary: countBy(healthChecks, 'status'),
         healthSeveritySummary: countBy(healthChecks, 'severity'),
         sourceStatusSummary: countBy(sourceHealth, 'status'),
+        reviewStatusSummary: countBy(openReviewTasks, 'status'),
         reviewPrioritySummary: countBy(openReviewTasks, 'priority'),
         assetStatusSummary: countBy(assetSummaries, 'status'),
         assetSummaries,
@@ -799,6 +941,52 @@ adminMonitoringRouter.patch('/health-checks/:id/repair', async (c) => {
   }
 });
 
+async function handleReopen(c: any, resource: string, id: string) {
+  const metadata = await parseReopenMetadata(c);
+  if ('error' in metadata) return validationError(c, metadata.error);
+
+  const result = resource === 'review-tasks'
+    ? await reopenReviewTask(id, metadata, adminActor(c))
+    : resource === 'health-checks'
+      ? await reopenHealthCheck(id, metadata, adminActor(c))
+      : null;
+
+  if (!result) return validationError(c, `Unsupported reopen action for monitoring resource: ${resource}`);
+  if (result.kind === 'not-found') {
+    return notFound(c, `${resource === 'review-tasks' ? 'Review task' : 'Health check'} not found: ${id}`);
+  }
+  if (result.kind === 'invalid-transition') {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: ERROR_CODES.VALIDATION_ERROR,
+          message: `Only resolved ${resource === 'review-tasks' ? 'review tasks' : 'health checks'} can be reopened. Current status: ${result.status}.`,
+        },
+      },
+      409,
+    );
+  }
+
+  return c.json({ success: true, data: result.data });
+}
+
+adminMonitoringRouter.patch('/:resource/:id/reopen', async (c) => {
+  try {
+    return await handleReopen(c, c.req.param('resource'), c.req.param('id'));
+  } catch (err) {
+    return internalError(c, err, 'Monitoring reopen failed');
+  }
+});
+
+adminMonitoringRouter.post('/:resource/:id/reopen', async (c) => {
+  try {
+    return await handleReopen(c, c.req.param('resource'), c.req.param('id'));
+  } catch (err) {
+    return internalError(c, err, 'Monitoring reopen failed');
+  }
+});
+
 adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
   try {
     const id = c.req.param('id');
@@ -853,7 +1041,7 @@ adminMonitoringRouter.patch('/health-checks/:id/close', async (c) => {
     const evidence = await findLayerValidationEvidence({
       assetSlug: existing.assetSlug,
       layer: existing.layer,
-      createdAt: existing.createdAt,
+      createdAt: validationBaseline(existing.createdAt, existing.reopenedAt),
       excludeId: existing.id,
     });
     if (!evidence) {
