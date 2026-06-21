@@ -736,7 +736,16 @@ adminMonitoringRouter.get('/sources', async (c) => {
   try {
     const query = parseQuery(c);
     const rows = await getSourceTrail({ assetSlug: query.assetSlug, layer: query.layer, field: query.field, status: query.status, limit: query.limit });
-    return c.json({ success: true, data: rows });
+    const total = query.status
+      ? rows.length
+      : await db.assetSource.count({
+        where: {
+          ...(query.assetSlug ? { asset: { slug: query.assetSlug } } : {}),
+          ...(query.layer ? { layer: query.layer } : {}),
+          ...(query.field ? { field: query.field } : {}),
+        },
+      });
+    return c.json({ success: true, data: rows, meta: { total, limit: query.limit } });
   } catch (err) {
     return internalError(c, err, 'Source evidence library query failed');
   }

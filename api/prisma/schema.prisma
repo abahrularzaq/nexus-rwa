@@ -276,6 +276,7 @@ model AssetSource {
   @@index([field])
   @@index([sourceType])
   @@index([status])
+  @@unique([assetId, layer, field, sourceUrl])
 }
 
 model SourceRepairAudit {

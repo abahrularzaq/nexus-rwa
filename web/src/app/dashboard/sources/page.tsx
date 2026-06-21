@@ -60,7 +60,7 @@ type SourceQualityRow = {
 };
 
 type ApiResponse<T> =
-  | { success: true; data: T }
+  | { success: true; data: T; meta?: { total?: number; limit?: number } }
   | { success: false; error: { code: string; message: string } };
 
 type SessionResponse = {
@@ -280,6 +280,7 @@ function isPaidTier(tier: AccessTier | "free"): boolean {
 export default function SourcesPage() {
   const { address } = useAccount();
   const [rows, setRows] = useState<SourceRow[]>([]);
+  const [sourceTotal, setSourceTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accessTier, setAccessTier] = useState<AccessTier | "free">("free");
@@ -314,11 +315,13 @@ export default function SourcesPage() {
 
       const normalized = normalizeRows(body.data);
       setRows(normalized);
-      if (normalized.length === 0) {
+      setSourceTotal(typeof body.meta?.total === "number" ? body.meta.total : normalized.length);
+      if ((body.meta?.total ?? normalized.length) === 0) {
         setError("Endpoint Sources sudah hidup, tetapi database belum mengembalikan source rows.");
       }
     } catch (err) {
       setRows([]);
+      setSourceTotal(0);
       setError(err instanceof Error ? err.message : "Gagal memuat source evidence dari API.");
     } finally {
       setLoading(false);
@@ -633,7 +636,7 @@ export default function SourcesPage() {
           </div>
           <div className="flex items-center gap-2 rounded-full border border-[#00D1FF]/20 bg-[#00D1FF]/[0.06] px-3 py-1.5 text-xs text-[var(--text-secondary)]">
             <Database className="size-4 text-[var(--accent-cyan)]" />
-            Showing {filteredRows.length}/{rowsWithTier.length} sources
+            Showing {filteredRows.length}/{sourceTotal} sources
           </div>
         </div>
 
