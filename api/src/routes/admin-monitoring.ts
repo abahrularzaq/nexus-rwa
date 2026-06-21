@@ -888,17 +888,13 @@ async function assignMonitoringIssue(resource: string, id: string, metadata: Ass
     const model = (resource === 'review-tasks' ? tx.reviewTask : tx.dataHealthCheck) as any;
     const existing = await model.findUnique({ where: { id } });
     if (!existing) return { kind: 'not-found' as const };
-    if (['resolved', 'current'].includes(existing.status)) return { kind: 'inactive' as const, status: existing.status };
     if (!assignmentMatches(existing.assignedOwner, metadata.expectedAssignedOwner)) {
       return { kind: 'assignment-conflict' as const, assignedOwner: existing.assignedOwner ?? null };
     }
 
-    const assignedAt = new Date();
-    const data = {
-      assignedOwner: metadata.assignedOwner,
-      assignedAt,
-      assignedBy: actor,
-    };
+    const data = metadata.assignedOwner
+      ? { assignedOwner: metadata.assignedOwner, assignedAt: new Date(), assignedBy: actor }
+      : { assignedOwner: null, assignedAt: null, assignedBy: null };
     const where = {
       id,
       ...(metadata.expectedAssignedOwner !== undefined ? { assignedOwner: metadata.expectedAssignedOwner } : {}),
@@ -1014,9 +1010,6 @@ async function handleAssignment(c: any, resource: string, id: string) {
   const result = await assignMonitoringIssue(resource, id, metadata, adminActor(c));
   if (result.kind === 'unsupported') return validationError(c, `Unsupported assignment action for monitoring resource: ${resource}`);
   if (result.kind === 'not-found') return notFound(c, `${resource === 'review-tasks' ? 'Review task' : 'Health check'} not found: ${id}`);
-  if (result.kind === 'inactive') {
-    return c.json({ success: false, error: { code: ERROR_CODES.VALIDATION_ERROR, message: `Only active monitoring issues can be assigned. Current status: ${result.status}.` } }, 409);
-  }
   if (result.kind === 'assignment-conflict') {
     return c.json({ success: false, error: { code: 'ASSIGNMENT_CONFLICT', message: `Assignment changed before this update. Current owner: ${result.assignedOwner ?? 'unassigned'}.` } }, 409);
   }

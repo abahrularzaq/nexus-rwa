@@ -202,7 +202,7 @@ describe('monitoring workflow regressions', () => {
   });
 
   it('rejects stale assignment overwrites and can explicitly unassign health checks', async () => {
-    const db = buildDb({ healthChecks: [{ id: 'hc-owner-1', assetSlug: 'issuer-a', layer: 'legal', status: 'reopened', severity: 'medium', reason: 'owner needed', lastCheckedAt: new Date('2026-06-21T09:00:00Z'), assignedOwner: 'Bahrul' }] });
+    const db = buildDb({ healthChecks: [{ id: 'hc-owner-1', assetSlug: 'issuer-a', layer: 'legal', status: 'reopened', severity: 'medium', reason: 'owner needed', lastCheckedAt: new Date('2026-06-21T09:00:00Z'), assignedOwner: 'Bahrul', assignedAt: new Date('2026-06-21T09:10:00Z'), assignedBy: 'admin-a' }] });
     const app = appWithDb(db);
 
     const conflict = await app.request('/v1/admin/monitoring/health-checks/hc-owner-1/assignment', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ assignedOwner: 'Maya', expectedAssignedOwner: null }) });
@@ -213,8 +213,59 @@ describe('monitoring workflow regressions', () => {
     const body = await unassign.json();
     assert.equal(unassign.status, 200);
     assert.equal(body.data.assignedOwner, null);
+    assert.equal(body.data.assignedAt, null);
+    assert.equal(body.data.assignedBy, null);
     assert.equal(body.data.status, 'reopened');
     assert.equal(db.monitoringRepairLog.rows[0].action, 'unassign_monitoring_issue');
+  });
+
+
+  it('assigns resolved review tasks and preserves assignment when reopened', async () => {
+    const db = buildDb({ reviewTasks: [{ id: 'task-owner-resolved', assetSlug: 'issuer-a', layer: 'legal', priority: 'medium', reason: 'resolved issue', status: 'resolved', createdAt: new Date('2026-06-20T09:00:00Z'), resolvedAt: new Date('2026-06-21T09:00:00Z'), assignedOwner: null }] });
+    const app = appWithDb(db);
+
+    const assign = await app.request('/v1/admin/monitoring/review-tasks/task-owner-resolved/assignment', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ assignedOwner: 'Bahrul', expectedAssignedOwner: null }) });
+    const assigned = await assign.json();
+
+    assert.equal(assign.status, 200);
+    assert.equal(assigned.data.status, 'resolved');
+    assert.equal(assigned.data.assignedOwner, 'Bahrul');
+    assert.ok(assigned.data.assignedAt);
+    assert.equal(assigned.data.assignedBy, 'admin');
+
+    const reopen = await app.request('/v1/admin/monitoring/review-tasks/task-owner-resolved/reopen', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ reason: 'owner follow-up found new evidence' }) });
+    const reopened = await reopen.json();
+
+    assert.equal(reopen.status, 200);
+    assert.equal(reopened.data.status, 'reopened');
+    assert.equal(reopened.data.assignedOwner, 'Bahrul');
+    assert.equal(reopened.data.assignedBy, 'admin');
+    assert.ok(reopened.data.assignedAt);
+  });
+
+  it('preserves assignment metadata across repair and resolution lifecycle transitions', async () => {
+    const db = buildDb({
+      reviewTasks: [{ id: 'task-owner-lifecycle', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'bad reserve URL https://issuer.example/reserve', status: 'open', createdAt: new Date('2026-06-20T09:00:00Z'), assignedOwner: 'Bahrul', assignedAt: new Date('2026-06-21T08:00:00Z'), assignedBy: 'lead-admin' }],
+      sourceHealth: [{ id: 'fresh-source-owner', assetSlug: 'issuer-a', layer: 'reserve', field: 'proof', url: 'https://issuer.example/reserve', status: 'healthy', lastCheckedAt: new Date('2026-06-21T10:00:00Z') }],
+    });
+    const app = appWithDb(db);
+    const payload = { resolutionType: 'fixed_source', resolutionNote: 'owner kept while source was fixed', evidenceUrl: 'https://issuer.example/reserve' };
+
+    const repair = await app.request('/v1/admin/monitoring/review-tasks/task-owner-lifecycle/repair', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
+    const repaired = await repair.json();
+    assert.equal(repair.status, 200);
+    assert.equal(repaired.data.status, 'pending_validation');
+    assert.equal(repaired.data.assignedOwner, 'Bahrul');
+    assert.equal(repaired.data.assignedBy, 'lead-admin');
+    assert.equal(new Date(repaired.data.assignedAt).toISOString(), '2026-06-21T08:00:00.000Z');
+
+    const close = await app.request('/v1/admin/monitoring/review-tasks/task-owner-lifecycle/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
+    const closed = await close.json();
+    assert.equal(close.status, 200);
+    assert.equal(closed.data.status, 'resolved');
+    assert.equal(closed.data.assignedOwner, 'Bahrul');
+    assert.equal(closed.data.assignedBy, 'lead-admin');
+    assert.equal(new Date(closed.data.assignedAt).toISOString(), '2026-06-21T08:00:00.000Z');
   });
 
 });
