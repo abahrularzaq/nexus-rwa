@@ -35,9 +35,9 @@
     "create:api-key": "node --import tsx/esm src/scripts/create-api-key.ts",
     "check:api-key": "node --import tsx/esm src/scripts/check-api-key.ts",
     "lint": "eslint \"src/**/*.ts\"",
-    "test": "node --import tsx --test $(find src tests -name '*.test.ts' -print)",
-    "test:watch": "node --import tsx --test --watch $(find src tests -name '*.test.ts' -print)",
-    "test:coverage": "node --import tsx --experimental-test-coverage --test $(find src tests -name '*.test.ts' -print)",
+    "test": "node scripts/run-node-tests.mjs --test",
+    "test:watch": "node scripts/run-node-tests.mjs --test --watch",
+    "test:coverage": "node scripts/run-node-tests.mjs --experimental-test-coverage --test",
     "typecheck": "prisma generate && tsc --noEmit",
     "import:all-asset-files": "node --import tsx/esm src/scripts/import-all-assets-from-files.ts",
     "validate:asset-production": "node --import tsx/esm src/scripts/validate-normalized-assets.ts --strict-monitoring"
