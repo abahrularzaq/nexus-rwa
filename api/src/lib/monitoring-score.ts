@@ -85,7 +85,7 @@ export function buildAssetMonitoringScores(
     const priority = normalizePriority(options.assetPriorityByAsset?.get(assetSlug));
 
     const staleRows = latestHealth.filter((row) => row.status === 'stale');
-    const healthWatchRows = latestHealth.filter((row) => !['current', 'stale'].includes(row.status));
+    const healthWatchRows = latestHealth.filter((row) => !['current', 'resolved', 'stale'].includes(row.status));
     const missingSourceRows = sourceRows.filter((source) => !source.sourceUrl);
     const missingSource = missingSourceRows.length + (sourceRows.length === 0 ? 1 : 0);
     const lowConfidenceRows = sourceRows.filter((source) => typeof source.reliability === 'number' && source.reliability < 3);

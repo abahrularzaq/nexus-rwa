@@ -333,6 +333,12 @@ model DataHealthCheck {
   resolutionType String?
   resolutionNote String?
   evidenceUrl    String?
+  validationMethod     String?
+  validationResult     String?
+  validationEvidenceId String?
+  validationEvidenceRef String?
+  validatedAt          DateTime?
+  validatedBy          String?
   lastCheckedAt  DateTime  @default(now())
   nextCheckAt    DateTime?
   createdAt      DateTime  @default(now())
@@ -398,6 +404,12 @@ model ReviewTask {
   resolutionType String?
   resolutionNote String?
   evidenceUrl    String?
+  validationMethod     String?
+  validationResult     String?
+  validationEvidenceId String?
+  validationEvidenceRef String?
+  validatedAt          DateTime?
+  validatedBy          String?
   createdAt      DateTime  @default(now())
   resolvedAt     DateTime?
 
