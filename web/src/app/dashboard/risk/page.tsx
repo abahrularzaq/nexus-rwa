@@ -59,6 +59,9 @@ export default function RiskPage() {
             categories. Scores reflect TVL stability, yield sustainability,
             holder depth, and protocol maturity.
           </p>
+          <p className="mt-2 text-xs text-[var(--text-muted)]">
+            Contextual dashboard page retained for risk-matrix deep links. Primary navigation uses Risk & Grade.
+          </p>
         </div>
         <Link
           href="/dashboard/assets"
@@ -201,7 +204,7 @@ export default function RiskPage() {
         <p className="mt-2 text-sm text-[var(--text-secondary)]">
           Per-asset risk breakdown:{" "}
           <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[var(--accent-amber)]">
-            GET /v1/assets/:id/risk
+            GET /v1/assets/:slug/risk
           </code>{" "}
           — returns score, level, and factors. Matrix above is derived client-side
           from{" "}

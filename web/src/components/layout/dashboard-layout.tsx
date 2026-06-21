@@ -12,7 +12,6 @@ import {
   Menu,
   RefreshCw,
   Shield,
-  Users,
   Wallet,
   X,
 } from "lucide-react";
@@ -41,9 +40,10 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { id: "assets", label: "Assets", href: "/dashboard/assets", icon: Coins },
-  { id: "yield-analytics", label: "Yield Analytics", href: "/dashboard/yield-analytics", icon: LineChart },
-  { id: "risk-score", label: "Risk Score", href: "/dashboard/risk-score", icon: Shield },
-  { id: "holders", label: "Holders", href: "/dashboard/holders", icon: Users },
+  // Legacy layout component retained for older imports. Keep every href aligned
+  // with a real app/dashboard route; active navigation lives in app/dashboard/layout.tsx.
+  { id: "yield", label: "Yield", href: "/dashboard/yield", icon: LineChart },
+  { id: "risk-grade", label: "Risk & Grade", href: "/dashboard/risk-grade", icon: Shield },
   { id: "api-docs", label: "API Docs", href: "/dashboard/api-docs", icon: BookOpen },
 ];
 

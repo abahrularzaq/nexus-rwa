@@ -6,11 +6,11 @@ import { FadeUp } from "@/components/landing/primitives";
 const cards = [
   {
     Icon: BarChart2,
-    title: "Yield Snapshot",
-    body: "Current yield fields for tracked assets, with deeper historical coverage added as each asset dataset matures.",
-    badge: "FREE",
+    title: "Yield History",
+    body: "Pro yield, TVL, and risk history for tracked assets where history has been captured.",
+    badge: "PRO",
     badgeStyle: { bg: "rgba(255,184,0,0.15)", color: "#FFB800" },
-    endpoint: "GET /v1/assets/:id/yield",
+    endpoint: "GET /v1/assets/:slug/history",
   },
   {
     Icon: Shield,
@@ -18,15 +18,15 @@ const cards = [
     body: "Public risk level and grade label for discovery, with full risk breakdown available in Pro access.",
     badge: "PRO",
     badgeStyle: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" },
-    endpoint: "GET /v1/assets/:id/risk",
+    endpoint: "GET /v1/assets/:slug/risk",
   },
   {
     Icon: Users,
-    title: "Holder Signals",
-    body: "Holder count and concentration signals where verified on-chain data is available. Coverage may vary by asset.",
+    title: "Asset Sources",
+    body: "Field-level source trail and reliability metadata for Pro research workflows.",
     badge: "PRO",
     badgeStyle: { bg: "rgba(124,58,237,0.15)", color: "#A78BFA" },
-    endpoint: "GET /v1/assets/:id/holders",
+    endpoint: "GET /v1/assets/:slug/sources",
   },
   {
     Icon: TrendingUp,

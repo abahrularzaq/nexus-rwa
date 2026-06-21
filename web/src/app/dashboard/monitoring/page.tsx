@@ -481,7 +481,7 @@ function buildLayerHref(assetSlug: unknown, layer: unknown): string | null {
   const slug = asText(assetSlug);
   const layerName = asText(layer);
   if (slug === "—" || layerName === "—") return null;
-  return `/dashboard/layers?assetSlug=${encodeURIComponent(slug)}&layer=${encodeURIComponent(layerName)}`;
+  return "/dashboard/layers";
 }
 
 function csvEscape(value: unknown): string {

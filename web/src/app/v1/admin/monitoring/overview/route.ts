@@ -3,6 +3,8 @@ import { resolveAdminKey } from "@/lib/admin-session";
 
 export const dynamic = "force-dynamic";
 
+// Compatibility alias for older clients. Dashboard code uses
+// /api/admin/monitoring/overview as the canonical Next.js proxy route.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:3001";
 
 function apiBase(): string {

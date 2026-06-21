@@ -359,7 +359,7 @@ export default function RiskGradePage() {
             <p className="terminal-label text-[#8DEBFF]">API</p>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
               Public matrix uses <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[#8DEBFF]">GET /v1/assets</code>.
-              Pro factor breakdown and grade context use <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[#8DEBFF]">GET /v1/assets/:id/risk</code>.
+              Pro factor breakdown and grade context use <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[#8DEBFF]">GET /v1/assets/:slug/risk</code>.
             </p>
           </div>
           <Link href="/dashboard/layers" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#B983FF]/40 bg-[#B983FF]/15 px-4 py-2 text-sm font-medium text-[#E6D0FF] shadow-[0_0_24px_rgba(185,131,255,0.12)] transition hover:bg-[#B983FF]/25 hover:shadow-[0_0_34px_rgba(185,131,255,0.2)]">
