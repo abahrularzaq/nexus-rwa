@@ -24,6 +24,7 @@ type QueryOptions = {
   layer?: string;
   field?: string;
   status?: string;
+  assignedOwner?: string;
 };
 
 type ResolutionMetadata = {
@@ -35,6 +36,36 @@ type ResolutionMetadata = {
 type ReopenMetadata = {
   reason: string;
 };
+
+type AssignmentMetadata = {
+  assignedOwner: string | null;
+  expectedAssignedOwner?: string | null;
+};
+
+async function parseAssignmentMetadata(c: any): Promise<AssignmentMetadata | { error: string }> {
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const rawOwner = Object.prototype.hasOwnProperty.call(body, 'assignedOwner') ? body.assignedOwner : body.owner;
+  const assignedOwner = typeof rawOwner === 'string' ? rawOwner.trim() : rawOwner === null ? null : undefined;
+  const rawExpected = Object.prototype.hasOwnProperty.call(body, 'expectedAssignedOwner') ? body.expectedAssignedOwner : body.expectedOwner;
+  const expectedAssignedOwner = typeof rawExpected === 'string' ? rawExpected.trim() || null : rawExpected === null ? null : undefined;
+
+  if (assignedOwner === undefined) return { error: 'assignedOwner is required. Use a non-empty owner name or null to unassign.' };
+  if (typeof assignedOwner === 'string' && !assignedOwner) return { error: 'assignedOwner must be a non-empty owner name or null to unassign.' };
+  if (typeof assignedOwner === 'string' && assignedOwner.length > 120) return { error: 'assignedOwner must be 120 characters or fewer.' };
+
+  return { assignedOwner, ...(expectedAssignedOwner !== undefined ? { expectedAssignedOwner } : {}) };
+}
+
+function assignmentWhere(query: QueryOptions) {
+  if (!query.assignedOwner) return {};
+  if (query.assignedOwner === '__unassigned') return { assignedOwner: null };
+  return { assignedOwner: query.assignedOwner };
+}
+
+function assignmentMatches(actual?: string | null, expected?: string | null): boolean {
+  if (expected === undefined) return true;
+  return (actual ?? null) === (expected || null);
+}
 
 type ValidationEvidence = {
   method: 'source-health' | 'data-health-check';
@@ -88,6 +119,7 @@ function parseQuery(c: any): QueryOptions {
     layer: c.req.query('layer') || undefined,
     field: c.req.query('field') || undefined,
     status: c.req.query('status') || undefined,
+    assignedOwner: c.req.query('assignedOwner') || undefined,
   };
 }
 
@@ -847,6 +879,52 @@ adminMonitoringRouter.get('/source-reliability', async (c) => {
   }
 });
 
+
+async function assignMonitoringIssue(resource: string, id: string, metadata: AssignmentMetadata, actor: string) {
+  const auditResource = resource === 'review-tasks' ? 'review-task' : resource === 'health-checks' ? 'health-check' : null;
+  if (!auditResource) return { kind: 'unsupported' as const };
+
+  return db.$transaction(async (tx) => {
+    const model = (resource === 'review-tasks' ? tx.reviewTask : tx.dataHealthCheck) as any;
+    const existing = await model.findUnique({ where: { id } });
+    if (!existing) return { kind: 'not-found' as const };
+    if (['resolved', 'current'].includes(existing.status)) return { kind: 'inactive' as const, status: existing.status };
+    if (!assignmentMatches(existing.assignedOwner, metadata.expectedAssignedOwner)) {
+      return { kind: 'assignment-conflict' as const, assignedOwner: existing.assignedOwner ?? null };
+    }
+
+    const assignedAt = new Date();
+    const data = {
+      assignedOwner: metadata.assignedOwner,
+      assignedAt,
+      assignedBy: actor,
+    };
+    const where = {
+      id,
+      ...(metadata.expectedAssignedOwner !== undefined ? { assignedOwner: metadata.expectedAssignedOwner } : {}),
+    };
+    const updateResult = await model.updateMany({ where, data });
+    if (updateResult.count !== 1) {
+      return { kind: 'assignment-conflict' as const, assignedOwner: existing.assignedOwner ?? null };
+    }
+
+    const updated = await model.findUniqueOrThrow({ where: { id } });
+    await createMonitoringRepairLog(tx, {
+      actor,
+      action: metadata.assignedOwner ? 'assign_monitoring_issue' : 'unassign_monitoring_issue',
+      resource: auditResource,
+      resourceId: id,
+      assetSlug: existing.assetSlug,
+      layer: existing.layer,
+      oldValue: { assignedOwner: existing.assignedOwner ?? null, assignedAt: existing.assignedAt ?? null, assignedBy: existing.assignedBy ?? null, status: existing.status },
+      newValue: { assignedOwner: updated.assignedOwner ?? null, assignedAt: updated.assignedAt ?? null, assignedBy: updated.assignedBy ?? null, status: updated.status },
+      reason: metadata.assignedOwner ? `Assigned to ${metadata.assignedOwner}` : 'Unassigned monitoring issue',
+    });
+
+    return { kind: 'ok' as const, data: updated };
+  });
+}
+
 adminMonitoringRouter.get('/review-tasks', async (c) => {
   try {
     const query = parseQuery(c);
@@ -855,6 +933,7 @@ adminMonitoringRouter.get('/review-tasks', async (c) => {
         ...(query.status ? { status: query.status } : {}),
         ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
         ...(query.layer ? { layer: query.layer } : {}),
+        ...assignmentWhere(query),
       },
       orderBy: { createdAt: 'desc' },
       take: query.limit,
@@ -896,6 +975,7 @@ adminMonitoringRouter.get('/health-checks', async (c) => {
         ...(query.status ? { status: query.status } : {}),
         ...(query.assetSlug ? { assetSlug: query.assetSlug } : {}),
         ...(query.layer ? { layer: query.layer } : {}),
+        ...assignmentWhere(query),
       },
       orderBy: { lastCheckedAt: 'desc' },
       take: query.limit,
@@ -923,6 +1003,32 @@ adminMonitoringRouter.get('/sync-logs', async (c) => {
     return c.json({ success: true, data: rows });
   } catch (err) {
     return internalError(c, err, 'Sync log query failed');
+  }
+});
+
+
+async function handleAssignment(c: any, resource: string, id: string) {
+  const metadata = await parseAssignmentMetadata(c);
+  if ('error' in metadata) return validationError(c, metadata.error);
+
+  const result = await assignMonitoringIssue(resource, id, metadata, adminActor(c));
+  if (result.kind === 'unsupported') return validationError(c, `Unsupported assignment action for monitoring resource: ${resource}`);
+  if (result.kind === 'not-found') return notFound(c, `${resource === 'review-tasks' ? 'Review task' : 'Health check'} not found: ${id}`);
+  if (result.kind === 'inactive') {
+    return c.json({ success: false, error: { code: ERROR_CODES.VALIDATION_ERROR, message: `Only active monitoring issues can be assigned. Current status: ${result.status}.` } }, 409);
+  }
+  if (result.kind === 'assignment-conflict') {
+    return c.json({ success: false, error: { code: 'ASSIGNMENT_CONFLICT', message: `Assignment changed before this update. Current owner: ${result.assignedOwner ?? 'unassigned'}.` } }, 409);
+  }
+
+  return c.json({ success: true, data: result.data });
+}
+
+adminMonitoringRouter.patch('/:resource/:id/assignment', async (c) => {
+  try {
+    return await handleAssignment(c, c.req.param('resource'), c.req.param('id'));
+  } catch (err) {
+    return internalError(c, err, 'Monitoring assignment failed');
   }
 });
 

@@ -18,6 +18,7 @@ import {
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
+  UserCheck,
   Wrench,
 } from "lucide-react";
 
@@ -109,6 +110,11 @@ type ReopenMetadata = {
   reason: string;
 };
 
+type AssignmentPayload = {
+  assignedOwner: string | null;
+  expectedAssignedOwner?: string | null;
+};
+
 type SourceRepairPayload = {
   newUrl: string;
   reason: string;
@@ -187,6 +193,9 @@ const csvColumns = [
   "resolvedAt",
   "reopenedAt",
   "reopenReason",
+  "assignedOwner",
+  "assignedAt",
+  "assignedBy",
 ] as const;
 
 function apiBase(): string {
@@ -480,12 +489,13 @@ function isMissingAdminSessionError(error: unknown): boolean {
   );
 }
 
-function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string, layer = "", field = ""): string {
+function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string, layer = "", field = "", assignedOwner = ""): string {
   const params = new URLSearchParams({ limit: "250" });
   if (assetSlug.trim()) params.set("assetSlug", assetSlug.trim());
   if (layer.trim()) params.set("layer", layer.trim());
   if (field.trim()) params.set("field", field.trim());
   if (status.trim()) params.set("status", status.trim());
+  if ((resource === "review-tasks" || resource === "health-checks") && assignedOwner.trim()) params.set("assignedOwner", assignedOwner.trim());
   return `${MONITORING_DETAIL_PROXY_BASE}/${resource}?${params.toString()}`;
 }
 
@@ -989,6 +999,7 @@ function DetailPanelContent({
   onSubmitRepair,
   onSourceStatus,
   onSourceRepair,
+  onAssign,
   actionLoadingId,
   actionStatus,
   granularCheckAvailable = false,
@@ -1001,6 +1012,7 @@ function DetailPanelContent({
   onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
+  onAssign: (row: Record<string, unknown>, payload: AssignmentPayload) => void;
   actionLoadingId: string | null;
   actionStatus?: ActionVerificationStatus;
   granularCheckAvailable?: boolean;
@@ -1041,6 +1053,7 @@ function DetailPanelContent({
       : "",
   );
   const [reopenConfirmed, setReopenConfirmed] = useState(false);
+  const [assignedOwner, setAssignedOwner] = useState(typeof row.assignedOwner === "string" ? row.assignedOwner : "");
 
   const closeMetadata = {
     resolutionType,
@@ -1110,6 +1123,13 @@ function DetailPanelContent({
           ) : rowStatus(row) === "pending_validation" ? (
             <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
               Pending validation: a repair note exists, but no matching successful validation record has been attached yet.
+            </div>
+          ) : null}
+          {(resource === "review-tasks" || resource === "health-checks") ? (
+            <div className="rounded-lg border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/[0.04] p-3">
+              <p className="terminal-label mb-2">Owner</p>
+              <p className="text-sm text-white">{typeof row.assignedOwner === "string" && row.assignedOwner.trim() ? row.assignedOwner : "Unassigned"}</p>
+              {row.assignedAt ? <p className="mt-1 text-xs text-[var(--text-muted)]">Updated {formatDate(row.assignedAt)} by {asText(row.assignedBy)}</p> : null}
             </div>
           ) : null}
           <div className="grid gap-3 md:grid-cols-3">
@@ -1252,6 +1272,31 @@ function DetailPanelContent({
                 </div>
               </div>
             ) : null}
+            {(resource === "review-tasks" || resource === "health-checks") && id && status !== "resolved" ? (
+              <form
+                className="grid gap-2 rounded-lg border border-[var(--accent-cyan)]/25 bg-[var(--accent-cyan)]/5 p-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const trimmedOwner = assignedOwner.trim();
+                  onAssign(row, {
+                    assignedOwner: trimmedOwner ? trimmedOwner : null,
+                    expectedAssignedOwner: typeof row.assignedOwner === "string" && row.assignedOwner.trim() ? row.assignedOwner : null,
+                  });
+                }}
+              >
+                <p className="terminal-label">Assignment</p>
+                <input
+                  value={assignedOwner}
+                  onChange={(event) => setAssignedOwner(event.target.value)}
+                  placeholder="Owner name, or leave blank to unassign"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+                <button type="submit" disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--accent-cyan)]/35 bg-[var(--accent-cyan)]/10 px-3 py-2 text-sm font-semibold text-[var(--accent-cyan)] disabled:opacity-60">
+                  <UserCheck className="size-4" />
+                  {assignedOwner.trim() ? "Assign owner" : "Unassign"}
+                </button>
+              </form>
+            ) : null}
             {canResolveOrRepair && id ? (
               <div className="grid gap-2">
                 <button
@@ -1342,6 +1387,7 @@ function DetailPanel(props: {
   onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
+  onAssign: (row: Record<string, unknown>, payload: AssignmentPayload) => void;
   actionLoadingId: string | null;
   actionStatus?: ActionVerificationStatus;
   granularCheckAvailable?: boolean;
@@ -1364,6 +1410,7 @@ export default function MonitoringPage() {
   const [status, setStatus] = useState("open");
   const [layer, setLayer] = useState("");
   const [field, setField] = useState("");
+  const [assignedOwnerFilter, setAssignedOwnerFilter] = useState("");
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -1572,7 +1619,7 @@ export default function MonitoringPage() {
       selectedLayer = layer,
       selectedField = field,
     ) => {
-      const url = buildDetailUrl(selectedResource, selectedAssetSlug, selectedStatus, selectedLayer, selectedField);
+      const url = buildDetailUrl(selectedResource, selectedAssetSlug, selectedStatus, selectedLayer, selectedField, assignedOwnerFilter);
       setDetailLoading(true);
       setError(null);
 
@@ -1600,7 +1647,7 @@ export default function MonitoringPage() {
         setDetailLoading(false);
       }
     },
-    [assetSlug, field, layer, resource, status],
+    [assetSlug, assignedOwnerFilter, field, layer, resource, status],
   );
 
   const resetMonitoringState = useCallback(() => {
@@ -1612,6 +1659,7 @@ export default function MonitoringPage() {
     setSelectedRow(null);
     setActionStatuses({});
     setField("");
+    setAssignedOwnerFilter("");
     setAdvancedMode(false);
   }, []);
 
@@ -1985,6 +2033,49 @@ export default function MonitoringPage() {
     [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
   );
 
+
+  const handleAssignRow = useCallback(
+    async (row: Record<string, unknown>, payload: AssignmentPayload) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This row has no id, so it cannot be assigned from the workbench.");
+        return;
+      }
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
+        setError("Assignment is only available for review tasks and layer health checks.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/assignment`, {
+          method: "PATCH",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(getErrorMessage(body, response.statusText || "Assignment failed"), response.status, getErrorCode(body));
+        }
+
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(payload.assignedOwner ? `${targetResource === "review-tasks" ? "Review task" : "Health check"} assigned to ${payload.assignedOwner}.` : `${targetResource === "review-tasks" ? "Review task" : "Health check"} unassigned.`);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) resetMonitoringState();
+        setError(err instanceof Error ? err.message : "Assignment failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, resetMonitoringState, resource],
+  );
+
   const handleSourceRepair = useCallback(
     async (row: Record<string, unknown>, payload: SourceRepairPayload) => {
       const id = getRowId(row);
@@ -2320,6 +2411,15 @@ export default function MonitoringPage() {
                   ))}
                 </datalist>
               </div>
+              <div>
+                <label className="terminal-label mb-2 block">Owner</label>
+                <input
+                  value={assignedOwnerFilter}
+                  onChange={(event) => setAssignedOwnerFilter(event.target.value)}
+                  placeholder="Bahrul or __unassigned"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+              </div>
               <div className="flex items-end gap-2">
                 <button
                   type="button"
@@ -2343,6 +2443,7 @@ export default function MonitoringPage() {
                     setStatus("");
                     setLayer("");
                     setField("");
+                    setAssignedOwnerFilter("");
                     setSelectedRow(null);
                   }}
                   className="rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)]"
@@ -2363,6 +2464,7 @@ export default function MonitoringPage() {
             onSubmitRepair={handleSubmitRepair}
             onSourceStatus={handleSourceStatus}
             onSourceRepair={handleSourceRepair}
+            onAssign={handleAssignRow}
             actionLoadingId={actionLoadingId}
             actionStatus={selectedActionStatus}
             granularCheckAvailable={false}

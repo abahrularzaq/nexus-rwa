@@ -342,6 +342,9 @@ model DataHealthCheck {
   reopenedAt           DateTime?
   reopenedBy           String?
   reopenReason         String?
+  assignedOwner        String?
+  assignedAt           DateTime?
+  assignedBy           String?
   lastCheckedAt  DateTime  @default(now())
   nextCheckAt    DateTime?
   createdAt      DateTime  @default(now())
@@ -352,6 +355,7 @@ model DataHealthCheck {
   @@index([status])
   @@index([severity])
   @@index([reopenedAt])
+  @@index([assignedOwner])
   @@index([lastCheckedAt])
   @@index([nextCheckAt])
 }
@@ -417,6 +421,9 @@ model ReviewTask {
   reopenedAt           DateTime?
   reopenedBy           String?
   reopenReason         String?
+  assignedOwner        String?
+  assignedAt           DateTime?
+  assignedBy           String?
   createdAt      DateTime  @default(now())
   resolvedAt     DateTime?
 
@@ -427,6 +434,7 @@ model ReviewTask {
   @@index([createdAt])
   @@index([resolvedAt])
   @@index([reopenedAt])
+  @@index([assignedOwner])
 }
 
 model MonitoringRepairLog {

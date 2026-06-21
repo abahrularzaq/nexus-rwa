@@ -180,4 +180,41 @@ describe('monitoring workflow regressions', () => {
     assert.equal(res.status, 409);
     assert.equal(db.monitoringRepairLog.rows.length, 0);
   });
+
+  it('assigns, filters, preserves status, and audit-logs active review tasks', async () => {
+    const db = buildDb({ reviewTasks: [{ id: 'task-owner-1', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'owner needed', status: 'open', createdAt: new Date('2026-06-21T09:00:00Z'), assignedOwner: null }] });
+    const app = appWithDb(db);
+
+    const assign = await app.request('/v1/admin/monitoring/review-tasks/task-owner-1/assignment', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ assignedOwner: 'Bahrul', expectedAssignedOwner: null }) });
+    const assigned = await assign.json();
+
+    assert.equal(assign.status, 200);
+    assert.equal(assigned.data.status, 'open');
+    assert.equal(assigned.data.assignedOwner, 'Bahrul');
+    assert.equal(db.monitoringRepairLog.rows[0].action, 'assign_monitoring_issue');
+    assert.equal(db.monitoringRepairLog.rows[0].oldValue.assignedOwner, null);
+    assert.equal(db.monitoringRepairLog.rows[0].newValue.assignedOwner, 'Bahrul');
+
+    const filtered = await app.request('/v1/admin/monitoring/review-tasks?assignedOwner=Bahrul', { headers: { 'x-admin-key': 'test-admin-key' } });
+    const filteredBody = await filtered.json();
+    assert.equal(filtered.status, 200);
+    assert.equal(filteredBody.data.length, 1);
+  });
+
+  it('rejects stale assignment overwrites and can explicitly unassign health checks', async () => {
+    const db = buildDb({ healthChecks: [{ id: 'hc-owner-1', assetSlug: 'issuer-a', layer: 'legal', status: 'reopened', severity: 'medium', reason: 'owner needed', lastCheckedAt: new Date('2026-06-21T09:00:00Z'), assignedOwner: 'Bahrul' }] });
+    const app = appWithDb(db);
+
+    const conflict = await app.request('/v1/admin/monitoring/health-checks/hc-owner-1/assignment', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ assignedOwner: 'Maya', expectedAssignedOwner: null }) });
+    assert.equal(conflict.status, 409);
+    assert.equal(db.dataHealthCheck.rows[0].assignedOwner, 'Bahrul');
+
+    const unassign = await app.request('/v1/admin/monitoring/health-checks/hc-owner-1/assignment', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ assignedOwner: null, expectedAssignedOwner: 'Bahrul' }) });
+    const body = await unassign.json();
+    assert.equal(unassign.status, 200);
+    assert.equal(body.data.assignedOwner, null);
+    assert.equal(body.data.status, 'reopened');
+    assert.equal(db.monitoringRepairLog.rows[0].action, 'unassign_monitoring_issue');
+  });
+
 });
