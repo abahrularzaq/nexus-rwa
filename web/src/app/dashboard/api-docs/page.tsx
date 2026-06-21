@@ -61,8 +61,8 @@ const accessMeta: Record<Access, { badge: string; className: string }> = {
   },
 };
 
-const idParam: ParamRow = {
-  name: "id",
+const slugParam: ParamRow = {
+  name: "slug",
   in: "path",
   type: "string",
   required: "required",
@@ -273,12 +273,12 @@ function buildEndpoints(
     {
       id: "asset-detail",
       method: "GET",
-      path: "/v1/assets/:id",
+      path: "/v1/assets/:slug",
       access: "free",
       description:
         "Public asset profile with identity, market summary, current yield, public risk level, grade label, and events.",
       curl: `curl ${base}/assets/blackrock-buidl`,
-      params: [idParam],
+      params: [slugParam],
       x402: "No payment required for the public asset detail layer.",
       response: `{
   "success": true,
@@ -293,12 +293,12 @@ function buildEndpoints(
     {
       id: "asset-events",
       method: "GET",
-      path: "/v1/assets/:id/events",
+      path: "/v1/assets/:slug/events",
       access: "free",
       description:
         "Public asset event timeline such as launches, audits, incidents, and major updates.",
       curl: `curl ${base}/assets/blackrock-buidl/events`,
-      params: [idParam],
+      params: [slugParam],
       x402: "No payment required.",
       response: `{
   "success": true,
@@ -371,14 +371,14 @@ function buildEndpoints(
     {
       id: "asset-full",
       method: "GET",
-      path: "/v1/assets/:id/full",
+      path: "/v1/assets/:slug/full",
       access: "pro",
       description:
         "Full Pro asset profile with reserve, compliance, liquidity, risk, sources, history, and AI narrative.",
       curl: `curl ${base}/assets/blackrock-buidl/full \\
   ${walletHeader} \\
   ${apiKeyHeader}`,
-      params: [idParam],
+      params: [slugParam],
       x402: "Requires Pro 24h pass. If wallet has active Pro session, send X-Wallet-Address. If not unlocked, API returns HTTP 402 with x402 payment metadata.",
       response: `{
   "success": true,
@@ -394,7 +394,7 @@ function buildEndpoints(
     {
       id: "asset-history",
       method: "GET",
-      path: "/v1/assets/:id/history",
+      path: "/v1/assets/:slug/history",
       access: "pro",
       description:
         "Pro time-series yield, TVL, holder, and risk history for one asset. Current backend returns the history array directly in data.",
@@ -402,7 +402,7 @@ function buildEndpoints(
   ${walletHeader} \\
   ${apiKeyHeader}`,
       params: [
-        idParam,
+        slugParam,
         {
           name: "period",
           in: "query",
@@ -428,14 +428,14 @@ function buildEndpoints(
     {
       id: "asset-risk",
       method: "GET",
-      path: "/v1/assets/:id/risk",
+      path: "/v1/assets/:slug/risk",
       access: "pro",
       description:
         "Pro risk scoring, factor breakdown, mitigants, and grade context.",
       curl: `curl ${base}/assets/blackrock-buidl/risk \\
   ${walletHeader} \\
   ${apiKeyHeader}`,
-      params: [idParam],
+      params: [slugParam],
       x402: "Requires Pro 24h pass. Send X-Wallet-Address for an active wallet session.",
       response: `{
   "success": true,
@@ -448,13 +448,13 @@ function buildEndpoints(
     {
       id: "asset-sources",
       method: "GET",
-      path: "/v1/assets/:id/sources",
+      path: "/v1/assets/:slug/sources",
       access: "pro",
       description: "Pro field-level source trail and reliability metadata.",
       curl: `curl ${base}/assets/blackrock-buidl/sources \\
   ${walletHeader} \\
   ${apiKeyHeader}`,
-      params: [idParam],
+      params: [slugParam],
       x402: "Requires Pro 24h pass. Send X-Wallet-Address for an active wallet session.",
       response: `{
   "success": true,
@@ -466,14 +466,14 @@ function buildEndpoints(
     {
       id: "asset-insight",
       method: "GET",
-      path: "/v1/assets/:id/insight",
+      path: "/v1/assets/:slug/insight",
       access: "pro",
       description:
         "Pro AI-generated RWA insight with outlook, opportunities, risks, and watch list. If provider AI is unavailable, local fallback can return a valid 200 response.",
       curl: `curl ${base}/assets/blackrock-buidl/insight \\
   ${walletHeader} \\
   ${apiKeyHeader}`,
-      params: [idParam],
+      params: [slugParam],
       x402: "Requires Pro 24h pass. Send X-Wallet-Address for an active wallet session.",
       response: `{
   "success": true,

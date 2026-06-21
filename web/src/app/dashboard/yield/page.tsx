@@ -59,6 +59,9 @@ export default function YieldPage() {
             benchmark line marks the market average from the latest overview
             snapshot.
           </p>
+          <p className="mt-2 text-xs text-[var(--text-muted)]">
+            Contextual dashboard page linked from yield components; not part of primary sidebar navigation.
+          </p>
         </div>
         <Link
           href="/dashboard/assets"
@@ -143,7 +146,7 @@ export default function YieldPage() {
         <p className="mt-2 text-sm text-[var(--text-secondary)]">
           Per-asset yield history:{" "}
           <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[var(--accent-amber)]">
-            GET /v1/assets/:id/yield
+            GET /v1/assets/:slug/history
           </code>
           . Ladder above is derived client-side from{" "}
           <code className="rounded bg-[var(--bg-panel)] px-1.5 py-0.5 font-mono text-xs text-[var(--accent-amber)]">

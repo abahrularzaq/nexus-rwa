@@ -235,7 +235,7 @@ export default function DashboardLayout({
           <div className="mt-auto space-y-3 border-t border-[var(--border-line)] px-3 py-3">
             <div className="flex items-center gap-2 text-xs text-[#8892A4]">
               <span className="size-2 shrink-0 rounded-full bg-[#00FF88] shadow-[0_0_8px_rgba(0,255,136,0.6)]" />
-              <span className="text-[#8892A4]">API Connected</span>
+              <span className="text-[#8892A4]">API workspace</span>
             </div>
             <PaymentHistory />
             <Link

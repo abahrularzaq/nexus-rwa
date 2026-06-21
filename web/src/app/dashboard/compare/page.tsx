@@ -190,6 +190,9 @@ function ComparePageContent() {
               Select 2–4 assets to compare full profile data across risk score, yield, TVL/AUM,
               reserve transparency, compliance profile, liquidity, and source quality.
             </p>
+            <p className="mt-2 text-xs text-[#4A5568]">
+              Contextual workspace opened from asset detail links; not part of primary sidebar navigation.
+            </p>
           </div>
           <Link href="/dashboard/assets" className="inline-flex items-center gap-2 rounded-lg border border-[#00D1FF]/25 bg-[#00D1FF]/[0.06] px-4 py-2 text-sm font-semibold text-[#8DEBFF] transition hover:border-[#00D4FF] hover:text-white">
             Browse assets
