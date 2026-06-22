@@ -3,6 +3,7 @@ import path from 'node:path';
 import { Hono } from 'hono';
 import { db } from '../lib/database.js';
 import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
+import { buildSourceHealthSummary } from '../lib/source-health-summary.js';
 import { adminAuthMiddleware } from '../middleware/admin-auth.js';
 import { ERROR_CODES } from '../shared/index.js';
 import { getSourceReliabilitySummary, getSourceTrailResult, SOURCE_VERIFICATION_STATUSES } from '../services/source-reliability.service.js';
@@ -686,6 +687,7 @@ adminMonitoringRouter.get('/overview', async (c) => {
       select: { assetSlug: true, layer: true, status: true, severity: true, reason: true, lastCheckedAt: true },
     });
     const recentSourceIssues = sourceHealth.filter((row) => !['healthy', 'redirected'].includes(row.status)).slice(0, 10);
+    const sourceHealthSummary = buildSourceHealthSummary(sourceHealth);
 
     return c.json({
       success: true,
@@ -693,7 +695,7 @@ adminMonitoringRouter.get('/overview', async (c) => {
         generatedAt: new Date().toISOString(),
         overview: {
           totalHealthChecks: healthChecks.length,
-          totalSourceChecks: sourceHealth.length,
+          totalSourceChecks: sourceHealthSummary.total,
           openReviewTasks: openReviewTasks.length,
           reopenedReviewTasks: openReviewTasks.filter((row) => row.status === 'reopened').length,
           failedOrNonSuccessSyncLogs: failedSyncLogs.length,
@@ -701,6 +703,7 @@ adminMonitoringRouter.get('/overview', async (c) => {
         healthStatusSummary: countBy(healthChecks, 'status'),
         healthSeveritySummary: countBy(healthChecks, 'severity'),
         sourceStatusSummary: countBy(sourceHealth, 'status'),
+        sourceHealthSummary,
         reviewStatusSummary: countBy(openReviewTasks, 'status'),
         reviewPrioritySummary: countBy(openReviewTasks, 'priority'),
         assetStatusSummary: countBy(assetSummaries, 'status'),
