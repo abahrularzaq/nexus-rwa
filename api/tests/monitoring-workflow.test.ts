@@ -158,10 +158,13 @@ describe('monitoring workflow regressions', () => {
   });
 
   it('requires validation evidence fresher than reopenedAt before resolving reopened review tasks', async () => {
-    const reopenedAt = new Date('2026-06-21T10:00:00Z');
+    const now = Date.now();
+    const reopenedAt = new Date(now - 60 * 60 * 1000);
+    const staleEvidenceAt = new Date(reopenedAt.getTime() - 60 * 1000);
+    const freshEvidenceAt = new Date(reopenedAt.getTime() + 60 * 1000);
     const db = buildDb({
       reviewTasks: [{ id: 'task-2', assetSlug: 'issuer-a', layer: 'legal', priority: 'medium', reason: 'bad legal URL https://issuer.example/legal', status: 'reopened', createdAt: new Date('2026-06-20T00:00:00Z'), reopenedAt }],
-      sourceHealth: [{ id: 'old-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: new Date('2026-06-21T09:00:00Z') }],
+      sourceHealth: [{ id: 'old-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: staleEvidenceAt }],
     });
     const app = appWithDb(db);
     const payload = { resolutionType: 'fixed_source', resolutionNote: 'fixed', evidenceUrl: 'https://issuer.example/legal' };
@@ -169,7 +172,7 @@ describe('monitoring workflow regressions', () => {
     const stale = await app.request('/v1/admin/monitoring/review-tasks/task-2/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
     assert.equal(stale.status, 409);
 
-    db.sourceHealth.rows.push({ id: 'fresh-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: new Date('2026-06-21T10:01:00Z') });
+    db.sourceHealth.rows.push({ id: 'fresh-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: freshEvidenceAt });
     const fresh = await app.request('/v1/admin/monitoring/review-tasks/task-2/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
     const body = await fresh.json();
     assert.equal(fresh.status, 200);
@@ -280,9 +283,13 @@ describe('monitoring workflow regressions', () => {
   });
 
   it('preserves assignment metadata across repair and resolution lifecycle transitions', async () => {
+    const now = Date.now();
+    const createdAt = new Date(now - 2 * 60 * 60 * 1000);
+    const assignedAt = new Date(now - 90 * 60 * 1000);
+    const evidenceAt = new Date(now - 5 * 60 * 1000);
     const db = buildDb({
-      reviewTasks: [{ id: 'task-owner-lifecycle', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'bad reserve URL https://issuer.example/reserve', status: 'open', createdAt: new Date('2026-06-20T09:00:00Z'), assignedOwner: 'Bahrul', assignedAt: new Date('2026-06-21T08:00:00Z'), assignedBy: 'lead-admin' }],
-      sourceHealth: [{ id: 'fresh-source-owner', assetSlug: 'issuer-a', layer: 'reserve', field: 'proof', url: 'https://issuer.example/reserve', status: 'healthy', lastCheckedAt: new Date('2026-06-21T10:00:00Z') }],
+      reviewTasks: [{ id: 'task-owner-lifecycle', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'bad reserve URL https://issuer.example/reserve', status: 'open', createdAt, assignedOwner: 'Bahrul', assignedAt, assignedBy: 'lead-admin' }],
+      sourceHealth: [{ id: 'fresh-source-owner', assetSlug: 'issuer-a', layer: 'reserve', field: 'proof', url: 'https://issuer.example/reserve', status: 'healthy', lastCheckedAt: evidenceAt }],
     });
     const app = appWithDb(db);
     const payload = { resolutionType: 'fixed_source', resolutionNote: 'owner kept while source was fixed', evidenceUrl: 'https://issuer.example/reserve' };
@@ -293,7 +300,7 @@ describe('monitoring workflow regressions', () => {
     assert.equal(repaired.data.status, 'pending_validation');
     assert.equal(repaired.data.assignedOwner, 'Bahrul');
     assert.equal(repaired.data.assignedBy, 'lead-admin');
-    assert.equal(new Date(repaired.data.assignedAt).toISOString(), '2026-06-21T08:00:00.000Z');
+    assert.equal(new Date(repaired.data.assignedAt).toISOString(), assignedAt.toISOString());
 
     const close = await app.request('/v1/admin/monitoring/review-tasks/task-owner-lifecycle/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
     const closed = await close.json();
@@ -301,7 +308,7 @@ describe('monitoring workflow regressions', () => {
     assert.equal(closed.data.status, 'resolved');
     assert.equal(closed.data.assignedOwner, 'Bahrul');
     assert.equal(closed.data.assignedBy, 'lead-admin');
-    assert.equal(new Date(closed.data.assignedAt).toISOString(), '2026-06-21T08:00:00.000Z');
+    assert.equal(new Date(closed.data.assignedAt).toISOString(), assignedAt.toISOString());
   });
 
 });
