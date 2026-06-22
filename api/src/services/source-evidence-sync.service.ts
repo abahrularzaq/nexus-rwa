@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { db } from '../lib/database.js';
 
 export type CanonicalSourceEvidence = {
@@ -19,7 +19,9 @@ export type SourceEvidenceWarning = { assetSlug: string; index: number; message:
 export type SourceEvidenceSyncResult = { discovered: number; inserted: number; updated: number; skippedInvalid: number; duplicateRowsPrevented: number; warnings: SourceEvidenceWarning[]; finalTotal?: number };
 
 type DbClient = PrismaClient;
-type Tx = Prisma.TransactionClient;
+type AssetSourceKey = Pick<CanonicalSourceEvidence, 'assetSlug' | 'layer' | 'field' | 'sourceUrl'>;
+
+const SOURCE_SYNC_CHUNK_SIZE = 25;
 
 const ROOT = process.cwd();
 export const DEFAULT_ASSETS_DIR = path.resolve(ROOT, '..', 'data', 'assets');
@@ -28,8 +30,20 @@ function readJson(filePath: string): unknown {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-function keyOf(row: Pick<CanonicalSourceEvidence, 'assetSlug' | 'layer' | 'field' | 'sourceUrl'>): string {
+function keyOf(row: AssetSourceKey): string {
   return `${row.assetSlug}::${row.layer}::${row.field}::${row.sourceUrl}`;
+}
+
+function dbKeyOf(row: Pick<CanonicalSourceEvidence, 'layer' | 'field' | 'sourceUrl'> & { assetId: string }): string {
+  return `${row.assetId}::${row.layer}::${row.field}::${row.sourceUrl}`;
+}
+
+function chunks<T>(items: T[], size = SOURCE_SYNC_CHUNK_SIZE): T[][] {
+  const result: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    result.push(items.slice(index, index + size));
+  }
+  return result;
 }
 
 export function extractSourceEvidenceFromSourcesJson(assetSlug: string, json: unknown): { rows: CanonicalSourceEvidence[]; warnings: SourceEvidenceWarning[]; duplicateRowsPrevented: number } {
@@ -106,27 +120,85 @@ export async function syncCanonicalSourceEvidence(options: { assetsDir?: string;
   const client = options.client ?? db;
   if (options.dryRun) return { discovered: rows.length, inserted: 0, updated: 0, skippedInvalid: warnings.length - duplicateRowsPrevented, duplicateRowsPrevented, warnings };
 
+  const assetSlugs = [...new Set(rows.map((row) => row.assetSlug))].sort();
+
+  for (const [chunkIndex, slugChunk] of chunks(assetSlugs).entries()) {
+    try {
+      await client.$transaction(slugChunk.map((slug) => client.asset.upsert({ where: { slug }, create: { slug }, update: {} })));
+    } catch (error) {
+      throw new Error(`Source evidence sync failed while ensuring assets in chunk ${chunkIndex + 1} for slugs: ${slugChunk.join(', ')}`, { cause: error });
+    }
+  }
+
+  const assets = await client.asset.findMany({ where: { slug: { in: assetSlugs } }, select: { id: true, slug: true } });
+  const assetIdBySlug = new Map(assets.map((asset) => [asset.slug, asset.id]));
+  const missingSlugs = assetSlugs.filter((slug) => !assetIdBySlug.has(slug));
+  if (missingSlugs.length > 0) {
+    throw new Error(`Source evidence sync failed because required assets were not found after upsert: ${missingSlugs.join(', ')}`);
+  }
+
+  const existingSources = new Map<string, { id: string }>();
+  for (const [chunkIndex, rowChunk] of chunks(rows).entries()) {
+    const filters = rowChunk.map((row) => ({
+      assetId: assetIdBySlug.get(row.assetSlug)!,
+      layer: row.layer,
+      field: row.field,
+      sourceUrl: row.sourceUrl,
+    }));
+    try {
+      const existing = await client.assetSource.findMany({
+        where: { OR: filters },
+        select: { id: true, assetId: true, layer: true, field: true, sourceUrl: true },
+      });
+      for (const source of existing) {
+        existingSources.set(dbKeyOf(source), { id: source.id });
+      }
+    } catch (error) {
+      const first = rowChunk[0];
+      throw new Error(`Source evidence sync failed while reading existing sources in chunk ${chunkIndex + 1} starting at ${first ? keyOf(first) : 'empty chunk'}`, { cause: error });
+    }
+  }
+
   let inserted = 0;
   let updated = 0;
 
-  await client.$transaction(async (tx: Tx) => {
-    for (const row of rows) {
-      const asset = await tx.asset.upsert({ where: { slug: row.assetSlug }, create: { slug: row.assetSlug }, update: {} });
-      const existing = await tx.assetSource.findUnique({ where: { assetId_layer_field_sourceUrl: { assetId: asset.id, layer: row.layer, field: row.field, sourceUrl: row.sourceUrl } } });
+  for (const [chunkIndex, rowChunk] of chunks(rows).entries()) {
+    let chunkInserted = 0;
+    let chunkUpdated = 0;
+    const operations = rowChunk.map((row) => {
+      const assetId = assetIdBySlug.get(row.assetSlug)!;
+      const dbKey = dbKeyOf({ assetId, layer: row.layer, field: row.field, sourceUrl: row.sourceUrl });
+      const existing = existingSources.get(dbKey);
       if (existing) {
-        updated += 1;
-        await tx.assetSource.update({
+        chunkUpdated += 1;
+        return client.assetSource.update({
           where: { id: existing.id },
           data: { value: row.value, sourceType: row.sourceType, reliability: row.reliability },
         });
-      } else {
-        inserted += 1;
-        await tx.assetSource.create({
-          data: { assetId: asset.id, layer: row.layer, field: row.field, value: row.value, sourceUrl: row.sourceUrl, sourceType: row.sourceType, reliability: row.reliability, checkedBy: row.checkedBy ?? 'manual', notes: row.notes },
-        });
       }
+
+      chunkInserted += 1;
+      return client.assetSource.create({
+        data: { assetId, layer: row.layer, field: row.field, value: row.value, sourceUrl: row.sourceUrl, sourceType: row.sourceType, reliability: row.reliability, checkedBy: row.checkedBy ?? 'manual', notes: row.notes },
+      });
+    });
+
+    try {
+      await client.$transaction(operations);
+      inserted += chunkInserted;
+      updated += chunkUpdated;
+      for (const row of rowChunk) {
+        const assetId = assetIdBySlug.get(row.assetSlug)!;
+        const dbKey = dbKeyOf({ assetId, layer: row.layer, field: row.field, sourceUrl: row.sourceUrl });
+        if (!existingSources.has(dbKey)) {
+          existingSources.set(dbKey, { id: dbKey });
+        }
+      }
+    } catch (error) {
+      const first = rowChunk[0];
+      throw new Error(`Source evidence sync failed while writing source chunk ${chunkIndex + 1} starting at ${first ? keyOf(first) : 'empty chunk'}`, { cause: error });
     }
-  });
+  }
 
   const finalTotal = await client.assetSource.count();
   return { discovered: rows.length, inserted, updated, skippedInvalid: warnings.length - duplicateRowsPrevented, duplicateRowsPrevented, warnings, finalTotal };
