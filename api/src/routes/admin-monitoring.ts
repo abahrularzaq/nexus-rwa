@@ -646,7 +646,7 @@ adminMonitoringRouter.get('/overview', async (c) => {
       db.dataHealthCheck.findMany({
         orderBy: { lastCheckedAt: 'desc' },
         take: 5000,
-        select: { status: true, severity: true, assetSlug: true, layer: true },
+        select: { status: true, severity: true, assetSlug: true, layer: true, reason: true, lastCheckedAt: true },
       }),
       db.sourceHealth.findMany({
         orderBy: { lastCheckedAt: 'desc' },
@@ -680,14 +680,19 @@ adminMonitoringRouter.get('/overview', async (c) => {
       healthChecks,
       syncLogs: failedSyncLogs,
     });
-    const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null }>>>((acc, source) => {
+    const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null; checkedAt?: Date | null }>>>((acc, source) => {
       const rows = acc.get(source.asset.slug) ?? [];
-      rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer });
+      rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer, checkedAt: source.checkedAt });
       acc.set(source.asset.slug, rows);
       return acc;
     }, new Map());
     const assetPriorityByAsset = new Map([...sourceRowsByAsset.keys(), ...new Set([...healthChecks.map((row) => row.assetSlug), ...sourceHealth.map((row) => row.assetSlug)])].map((assetSlug) => [assetSlug, monitoringPriorityForAsset(assetSlug)]));
-    const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset, assetPriorityByAsset });
+    const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, {
+      sourceRowsByAsset,
+      assetPriorityByAsset,
+      reviewTasks: queueReviewTasks,
+      syncLogs: failedSyncLogs,
+    });
     const recentHealthIssues = await db.dataHealthCheck.findMany({
       where: { status: { notIn: ['current', 'resolved'] } },
       orderBy: { lastCheckedAt: 'desc' },
