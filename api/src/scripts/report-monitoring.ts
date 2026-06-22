@@ -83,18 +83,18 @@ async function main(): Promise<void> {
     db.dataHealthCheck.findMany({
       orderBy: { lastCheckedAt: 'desc' },
       take: 5000,
-      select: { status: true, severity: true, assetSlug: true, layer: true },
+      select: { status: true, severity: true, assetSlug: true, layer: true, reason: true, lastCheckedAt: true },
     }),
     db.sourceHealth.findMany({
       orderBy: { lastCheckedAt: 'desc' },
       take: 5000,
-      select: { status: true, assetSlug: true, layer: true, field: true, url: true, httpStatus: true },
+      select: { status: true, assetSlug: true, layer: true, field: true, url: true, httpStatus: true, errorMessage: true, lastCheckedAt: true },
     }),
     db.reviewTask.findMany({
       where: { status: 'open' },
       orderBy: { createdAt: 'desc' },
       take: 5000,
-      select: { priority: true, assetSlug: true, layer: true, reason: true, createdAt: true },
+      select: { priority: true, assetSlug: true, layer: true, reason: true, status: true, createdAt: true, reopenedAt: true },
     }),
     db.syncLog.findMany({
       where: { status: { not: 'success' } },
@@ -127,14 +127,19 @@ async function main(): Promise<void> {
     }),
   ]);
 
-  const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null }>>>((acc, source) => {
+  const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null; checkedAt?: Date | null }>>>((acc, source) => {
     const rows = acc.get(source.asset.slug) ?? [];
-    rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer });
+    rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer, checkedAt: source.checkedAt });
     acc.set(source.asset.slug, rows);
     return acc;
   }, new Map());
   const assetPriorityByAsset = new Map([...sourceRowsByAsset.keys(), ...new Set([...healthChecks.map((row) => row.assetSlug), ...sourceHealth.map((row) => row.assetSlug)])].map((assetSlug) => [assetSlug, monitoringPriorityForAsset(assetSlug)]));
-  const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, { sourceRowsByAsset, assetPriorityByAsset });
+  const assetSummaries = buildAssetMonitoringScores(healthChecks, sourceHealth, {
+    sourceRowsByAsset,
+    assetPriorityByAsset,
+    reviewTasks: openReviewTasks,
+    syncLogs: failedSyncLogs,
+  });
 
   const report = {
     generatedAt: new Date().toISOString(),
