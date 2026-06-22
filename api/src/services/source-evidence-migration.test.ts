@@ -6,6 +6,10 @@ import { describe, it } from 'node:test';
 type AssetSourceRow = { id: string; assetId: string; layer: string; field: string; sourceUrl: string; status: string; checkedBy: string | null; notes: string | null; checkedAt: Date; reliability: number };
 type AuditRow = { id: string; assetSourceId: string };
 
+function migrationSql(): string {
+  return fs.readFileSync(path.resolve('prisma/migrations/20260621000000_asset_source_unique_key/migration.sql'), 'utf8');
+}
+
 function metadataScore(row: AssetSourceRow): number {
   return (row.status !== 'needs_review' ? 100 : 0)
     + (row.checkedBy && !['manual', 'importer'].includes(row.checkedBy) ? 10 : 0)
@@ -64,11 +68,27 @@ describe('AssetSource unique-key migration policy', () => {
     assert.equal(deduped[0].notes, 'approved');
   });
 
+  it('migration SQL creates AssetSource.status before ranking by status', () => {
+    const sql = migrationSql();
+    const statusColumn = sql.indexOf('ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT \'needs_review\'');
+    const firstStatusReference = sql.indexOf('s.status');
+
+    assert.ok(statusColumn > -1);
+    assert.ok(firstStatusReference > statusColumn);
+  });
+
+  it('migration SQL is idempotent when AssetSource.status already exists', () => {
+    const sql = migrationSql();
+
+    assert.match(sql, /ALTER TABLE "AssetSource"\s+ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT 'needs_review';/);
+    assert.match(sql, /CREATE INDEX IF NOT EXISTS "AssetSource_status_idx"\s+ON "AssetSource"\("status"\);/);
+  });
+
   it('migration SQL updates dependent audits before deleting duplicate sources', () => {
-    const sql = fs.readFileSync(path.resolve('prisma/migrations/20260621000000_asset_source_unique_key/migration.sql'), 'utf8');
+    const sql = migrationSql();
     const auditUpdate = sql.indexOf('UPDATE "SourceRepairAudit"');
     const sourceDelete = sql.indexOf('DELETE FROM "AssetSource"');
-    const uniqueIndex = sql.indexOf('CREATE UNIQUE INDEX');
+    const uniqueIndex = sql.indexOf('CREATE UNIQUE INDEX "AssetSource_assetId_layer_field_sourceUrl_key"');
 
     assert.ok(auditUpdate > -1);
     assert.ok(sourceDelete > auditUpdate);

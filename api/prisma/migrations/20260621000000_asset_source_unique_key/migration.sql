@@ -10,6 +10,12 @@
 -- besides AssetSource.assetId itself; this migration intentionally preserves those audit records
 -- before deleting duplicate AssetSource rows and creating the unique index.
 
+ALTER TABLE "AssetSource"
+ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT 'needs_review';
+
+CREATE INDEX IF NOT EXISTS "AssetSource_status_idx"
+ON "AssetSource"("status");
+
 WITH ranked_sources AS (
   SELECT
     s.id,
