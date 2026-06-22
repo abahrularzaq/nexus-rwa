@@ -69,6 +69,10 @@ type MonitoringOverview = {
     lowConfidenceSource: number;
     incompleteLayer: number;
     totalIssues: number;
+    primaryReason?: string | null;
+    openIssueCount?: number;
+    highestSeverity?: string | null;
+    lastCheckedAt?: string | null;
   }>;
   recentHealthIssues: Array<Record<string, unknown>>;
   recentSourceIssues: Array<Record<string, unknown>>;
@@ -685,16 +689,16 @@ function AssetSummaryTable({ rows }: { rows: MonitoringOverview["assetSummaries"
         <span className="text-xs text-[var(--text-secondary)]">Top {sorted.length} risk assets</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] text-left text-sm">
+        <table className="w-full min-w-[1040px] text-left text-sm">
           <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
             <tr>
               <th className="px-4 py-3 font-medium">Asset</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Score</th>
-              <th className="px-4 py-3 font-medium">Stale data</th>
-              <th className="px-4 py-3 font-medium">Missing source</th>
-              <th className="px-4 py-3 font-medium">Low confidence</th>
-              <th className="px-4 py-3 font-medium">Incomplete layer</th>
+              <th className="px-4 py-3 font-medium">Primary reason</th>
+              <th className="px-4 py-3 font-medium">Open issues</th>
+              <th className="px-4 py-3 font-medium">Highest severity</th>
+              <th className="px-4 py-3 font-medium">Last checked</th>
             </tr>
           </thead>
           <tbody>
@@ -708,10 +712,12 @@ function AssetSummaryTable({ rows }: { rows: MonitoringOverview["assetSummaries"
                   </td>
                   <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></td>
                   <td className="px-4 py-3 terminal-data text-white">{row.score}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.staleData}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.missingSource}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.lowConfidenceSource}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.incompleteLayer}</td>
+                  <td className="px-4 py-3 max-w-sm text-[var(--text-secondary)]">
+                    <span className="line-clamp-2">{row.primaryReason || "—"}</span>
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.openIssueCount ?? row.totalIssues}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.highestSeverity || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt)}</td>
                 </tr>
               ))
             )}
