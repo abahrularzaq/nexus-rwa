@@ -9,6 +9,7 @@ process.env.PAYMENT_RECIPIENT = '0x0000000000000000000000000000000000000001';
 
 const { createApp } = await import('../src/index.js');
 const { setDatabaseClientForTests } = await import('../src/lib/database.js');
+const { buildSourceHealthSummary } = await import('../src/lib/source-health-summary.js');
 
 const passThrough = async (_c: any, next: () => Promise<void>) => next();
 const adminHeaders = { 'content-type': 'application/json', 'x-admin-key': 'test-admin-key' };
@@ -107,6 +108,75 @@ function appWithDb(db: any) {
 beforeEach(() => setDatabaseClientForTests(null));
 
 describe('monitoring workflow regressions', () => {
+  it('counts verified source statuses as healthy in canonical source health', () => {
+    const summary = buildSourceHealthSummary([{ status: 'verified' }]);
+
+    assert.equal(summary.healthy, 1);
+    assert.equal(summary.restricted, 0);
+    assert.equal(summary.broken, 0);
+    assert.equal(summary.total, 1);
+    assert.equal(summary.healthPercentage, 100);
+  });
+
+  it('maps mixed source statuses into canonical source health buckets', () => {
+    const summary = buildSourceHealthSummary([
+      { status: 'healthy' },
+      { status: 'redirected' },
+      { status: 'verified' },
+      { status: 'restricted' },
+      { status: 'timeout' },
+      { status: 'stale' },
+      { status: 'conflicting' },
+      { status: 'needs_review' },
+      { status: 'broken' },
+      { status: 'error' },
+      { status: 'deprecated' },
+      { status: 'unavailable' },
+    ]);
+
+    assert.equal(summary.healthy, 3);
+    assert.equal(summary.restricted, 5);
+    assert.equal(summary.watch, 5);
+    assert.equal(summary.broken, 4);
+    assert.equal(summary.total, 12);
+    assert.equal(summary.healthPercentage, 25);
+  });
+
+  it('keeps empty canonical source health percentage finite', () => {
+    const summary = buildSourceHealthSummary([]);
+
+    assert.equal(summary.total, 0);
+    assert.equal(summary.healthPercentage, 0);
+    assert.equal(Number.isNaN(summary.healthPercentage), false);
+  });
+
+  it('returns canonical source health summary from monitoring overview', async () => {
+    const db = buildDb({
+      sourceHealth: [
+        { id: 'source-health-1', assetSlug: 'issuer-a', layer: 'market', field: 'tvl', url: 'https://issuer.example/1', status: 'verified', lastCheckedAt: new Date('2026-06-21T09:00:00Z') },
+        { id: 'source-health-2', assetSlug: 'issuer-a', layer: 'market', field: 'aum', url: 'https://issuer.example/2', status: 'unavailable', lastCheckedAt: new Date('2026-06-21T09:01:00Z') },
+        { id: 'source-health-3', assetSlug: 'issuer-a', layer: 'legal', field: 'terms', url: 'https://issuer.example/3', status: 'restricted', lastCheckedAt: new Date('2026-06-21T09:02:00Z') },
+      ],
+    });
+    const app = appWithDb(db);
+
+    const res = await app.request('/v1/admin/monitoring/overview', { headers: { 'x-admin-key': 'test-admin-key' } });
+    const body = await res.json();
+
+    assert.equal(res.status, 200);
+    assert.equal(body.data.sourceStatusSummary.verified, 1);
+    assert.equal(body.data.sourceStatusSummary.unavailable, 1);
+    assert.deepEqual(body.data.sourceHealthSummary, {
+      healthy: 1,
+      restricted: 1,
+      watch: 1,
+      broken: 1,
+      total: 3,
+      healthPercentage: 33,
+    });
+    assert.equal(body.data.overview.totalSourceChecks, 3);
+  });
+
   it('returns complete source-library meta totals for filtered and unfiltered requests', async () => {
     const checkedAt = new Date('2026-06-21T09:00:00Z');
     const db = buildDb({

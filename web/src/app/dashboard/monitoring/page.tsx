@@ -41,6 +41,14 @@ type MonitoringOverview = {
   healthStatusSummary: Record<string, number>;
   healthSeveritySummary: Record<string, number>;
   sourceStatusSummary: Record<string, number>;
+  sourceHealthSummary: {
+    healthy: number;
+    restricted: number;
+    watch: number;
+    broken: number;
+    total: number;
+    healthPercentage: number;
+  };
   reviewStatusSummary?: Record<string, number>;
   reviewPrioritySummary: Record<string, number>;
   assetStatusSummary: Record<string, number>;
@@ -1430,9 +1438,7 @@ export default function MonitoringPage() {
 
   const sourceScore = useMemo(() => {
     if (!data) return "—";
-    const ok = (data.sourceStatusSummary.healthy ?? 0) + (data.sourceStatusSummary.redirected ?? 0);
-    const total = data.overview.totalSourceChecks || 1;
-    return `${Math.round((ok / total) * 100)}%`;
+    return `${data.sourceHealthSummary.healthPercentage}%`;
   }, [data]);
 
   const unifiedFilteredRows = useMemo(() => {
@@ -2273,7 +2279,7 @@ export default function MonitoringPage() {
             <StatCard
               label="Source health"
               value={sourceScore}
-              helper={`${data.sourceStatusSummary.healthy ?? 0} healthy, ${data.sourceStatusSummary.restricted ?? 0} restricted watch, ${data.sourceStatusSummary.broken ?? 0} broken`}
+              helper={`${data.sourceHealthSummary.healthy} healthy, ${data.sourceHealthSummary.restricted} restricted watch, ${data.sourceHealthSummary.broken} broken`}
               icon={DatabaseZap}
             />
             <StatCard
