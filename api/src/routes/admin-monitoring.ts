@@ -5,7 +5,7 @@ import { db } from '../lib/database.js';
 import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
 import { adminAuthMiddleware } from '../middleware/admin-auth.js';
 import { ERROR_CODES } from '../shared/index.js';
-import { getSourceReliabilitySummary, getSourceTrail, SOURCE_VERIFICATION_STATUSES } from '../services/source-reliability.service.js';
+import { getSourceReliabilitySummary, getSourceTrailResult, SOURCE_VERIFICATION_STATUSES } from '../services/source-reliability.service.js';
 
 export const adminMonitoringRouter = new Hono();
 
@@ -735,8 +735,8 @@ adminMonitoringRouter.get('/repair-logs', async (c) => {
 adminMonitoringRouter.get('/sources', async (c) => {
   try {
     const query = parseQuery(c);
-    const rows = await getSourceTrail({ assetSlug: query.assetSlug, layer: query.layer, field: query.field, status: query.status, limit: query.limit });
-    return c.json({ success: true, data: rows });
+    const result = await getSourceTrailResult({ assetSlug: query.assetSlug, layer: query.layer, field: query.field, status: query.status, limit: query.limit });
+    return c.json({ success: true, data: result.rows, meta: { total: result.total, limit: result.limit } });
   } catch (err) {
     return internalError(c, err, 'Source evidence library query failed');
   }

@@ -94,16 +94,16 @@ function latestHealthKey(assetSlug: string, layer: string, field: string | null,
   return `${assetSlug}::${layer}::${field ?? ''}::${url}`;
 }
 
-export async function getSourceTrail(options: SourceTrailOptions = {}) {
+export async function getSourceTrailResult(options: SourceTrailOptions = {}) {
   const limit = Math.min(Math.max(options.limit ?? 100, 1), 500);
+  const sourceWhere = {
+    ...(options.assetSlug ? { asset: { slug: options.assetSlug } } : {}),
+    ...(options.layer ? { layer: options.layer } : {}),
+    ...(options.field ? { field: options.field } : {}),
+  };
   const sources = await db.assetSource.findMany({
-    where: {
-      ...(options.assetSlug ? { asset: { slug: options.assetSlug } } : {}),
-      ...(options.layer ? { layer: options.layer } : {}),
-      ...(options.field ? { field: options.field } : {}),
-    },
+    where: sourceWhere,
     orderBy: { checkedAt: 'desc' },
-    take: 5000,
     include: { asset: { select: { slug: true, dataVersion: true } } },
   });
 
@@ -122,6 +122,8 @@ export async function getSourceTrail(options: SourceTrailOptions = {}) {
     const key = latestHealthKey(row.assetSlug, row.layer, row.field ?? null, row.url);
     if (!latestHealth.has(key)) latestHealth.set(key, row);
   }
+
+  const totalBeforeStatusFilter = await db.assetSource.count({ where: sourceWhere });
 
   const rows = sources.map((source) => {
     const assetSlug = source.asset.slug;
@@ -149,7 +151,12 @@ export async function getSourceTrail(options: SourceTrailOptions = {}) {
     };
   }).filter((row) => !options.status || row.status === options.status);
 
-  return rows.slice(0, limit);
+  const total = options.status ? rows.length : totalBeforeStatusFilter;
+  return { rows: rows.slice(0, limit), total, limit };
+}
+
+export async function getSourceTrail(options: SourceTrailOptions = {}) {
+  return (await getSourceTrailResult(options)).rows;
 }
 
 export async function getSourceReliabilitySummary(assetSlug?: string) {

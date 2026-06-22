@@ -18,6 +18,9 @@ type Row = Record<string, any>;
 function matches(row: Row, where: Row = {}): boolean {
   return Object.entries(where).every(([key, expected]) => {
     const actual = row[key];
+    if (key === 'asset' && expected && typeof expected === 'object' && 'slug' in expected) {
+      return row.asset?.slug === expected.slug || row.assetSlug === expected.slug;
+    }
     if (expected && typeof expected === 'object' && !Array.isArray(expected) && !(expected instanceof Date)) {
       if ('in' in expected) return expected.in.includes(actual);
       if ('notIn' in expected) return !expected.notIn.includes(actual);
@@ -39,6 +42,12 @@ function selectRow(row: Row, select?: Row): Row {
   return Object.fromEntries(Object.keys(select).map((key) => [key, row[key]]));
 }
 
+function includeRow(row: Row, include?: Row): Row {
+  const selected = { ...row };
+  if (include?.asset?.select?.slug && !selected.asset) selected.asset = { slug: row.assetSlug, dataVersion: row.dataVersion ?? 1 };
+  return selected;
+}
+
 function collection(rows: Row[]) {
   return {
     rows,
@@ -49,9 +58,10 @@ function collection(rows: Row[]) {
       return { ...row };
     },
     async findFirst({ where, orderBy }: any = {}) { const row = orderRows(rows.filter((item) => matches(item, where)), orderBy)[0]; return row ? { ...row } : null; },
-    async findMany({ where, orderBy, take, select }: any = {}) {
-      return orderRows(rows.filter((row) => matches(row, where)), orderBy).slice(0, take ?? rows.length).map((row) => selectRow(row, select));
+    async findMany({ where, orderBy, take, select, include }: any = {}) {
+      return orderRows(rows.filter((row) => matches(row, where)), orderBy).slice(0, take ?? rows.length).map((row) => select ? selectRow(row, select) : includeRow(row, include));
     },
+    async count({ where }: any = {}) { return rows.filter((row) => matches(row, where)).length; },
     async update({ where, data }: any) {
       const row = rows.find((item) => matches(item, where));
       if (!row) throw new Error('not found');
@@ -97,6 +107,32 @@ function appWithDb(db: any) {
 beforeEach(() => setDatabaseClientForTests(null));
 
 describe('monitoring workflow regressions', () => {
+  it('returns complete source-library meta totals for filtered and unfiltered requests', async () => {
+    const checkedAt = new Date('2026-06-21T09:00:00Z');
+    const db = buildDb({
+      assetSources: [
+        { id: 'source-1', assetSlug: 'issuer-a', asset: { slug: 'issuer-a', dataVersion: 1 }, layer: 'market', field: 'tvl', sourceUrl: 'https://issuer.example/1', sourceType: 'official', reliability: 90, status: 'verified', checkedAt, checkedBy: 'reviewer', value: null, notes: null },
+        { id: 'source-2', assetSlug: 'issuer-a', asset: { slug: 'issuer-a', dataVersion: 1 }, layer: 'market', field: 'aum', sourceUrl: 'https://issuer.example/2', sourceType: 'official', reliability: 90, status: 'verified', checkedAt, checkedBy: 'reviewer', value: null, notes: null },
+        { id: 'source-3', assetSlug: 'issuer-a', asset: { slug: 'issuer-a', dataVersion: 1 }, layer: 'reserve', field: 'audit', sourceUrl: 'https://issuer.example/3', sourceType: 'audit', reliability: 75, status: 'needs_review', checkedAt, checkedBy: 'manual', value: null, notes: null },
+      ],
+    });
+    const app = appWithDb(db);
+
+    const unfiltered = await app.request('/v1/admin/monitoring/sources?limit=2', { headers: { 'x-admin-key': 'test-admin-key' } });
+    const unfilteredBody = await unfiltered.json();
+    assert.equal(unfiltered.status, 200);
+    assert.equal(unfilteredBody.data.length, 2);
+    assert.equal(unfilteredBody.meta.total, 3);
+    assert.equal(unfilteredBody.meta.limit, 2);
+
+    const filtered = await app.request('/v1/admin/monitoring/sources?status=verified&limit=1', { headers: { 'x-admin-key': 'test-admin-key' } });
+    const filteredBody = await filtered.json();
+    assert.equal(filtered.status, 200);
+    assert.equal(filteredBody.data.length, 1);
+    assert.equal(filteredBody.meta.total, 2);
+    assert.equal(filteredBody.meta.limit, 1);
+  });
+
   it('reopens only resolved review tasks, preserves original context, clears stale validation, and writes audit log', async () => {
     const db = buildDb({ reviewTasks: [{
       id: 'task-1', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'original reserve mismatch', status: 'resolved',
@@ -122,10 +158,13 @@ describe('monitoring workflow regressions', () => {
   });
 
   it('requires validation evidence fresher than reopenedAt before resolving reopened review tasks', async () => {
-    const reopenedAt = new Date('2026-06-21T10:00:00Z');
+    const now = Date.now();
+    const reopenedAt = new Date(now - 60 * 60 * 1000);
+    const staleEvidenceAt = new Date(reopenedAt.getTime() - 60 * 1000);
+    const freshEvidenceAt = new Date(reopenedAt.getTime() + 60 * 1000);
     const db = buildDb({
       reviewTasks: [{ id: 'task-2', assetSlug: 'issuer-a', layer: 'legal', priority: 'medium', reason: 'bad legal URL https://issuer.example/legal', status: 'reopened', createdAt: new Date('2026-06-20T00:00:00Z'), reopenedAt }],
-      sourceHealth: [{ id: 'old-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: new Date('2026-06-21T09:00:00Z') }],
+      sourceHealth: [{ id: 'old-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: staleEvidenceAt }],
     });
     const app = appWithDb(db);
     const payload = { resolutionType: 'fixed_source', resolutionNote: 'fixed', evidenceUrl: 'https://issuer.example/legal' };
@@ -133,7 +172,7 @@ describe('monitoring workflow regressions', () => {
     const stale = await app.request('/v1/admin/monitoring/review-tasks/task-2/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
     assert.equal(stale.status, 409);
 
-    db.sourceHealth.rows.push({ id: 'fresh-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: new Date('2026-06-21T10:01:00Z') });
+    db.sourceHealth.rows.push({ id: 'fresh-source', assetSlug: 'issuer-a', layer: 'legal', field: 'docs', url: 'https://issuer.example/legal', status: 'healthy', lastCheckedAt: freshEvidenceAt });
     const fresh = await app.request('/v1/admin/monitoring/review-tasks/task-2/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
     const body = await fresh.json();
     assert.equal(fresh.status, 200);
@@ -244,9 +283,13 @@ describe('monitoring workflow regressions', () => {
   });
 
   it('preserves assignment metadata across repair and resolution lifecycle transitions', async () => {
+    const now = Date.now();
+    const createdAt = new Date(now - 2 * 60 * 60 * 1000);
+    const assignedAt = new Date(now - 90 * 60 * 1000);
+    const evidenceAt = new Date(now - 5 * 60 * 1000);
     const db = buildDb({
-      reviewTasks: [{ id: 'task-owner-lifecycle', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'bad reserve URL https://issuer.example/reserve', status: 'open', createdAt: new Date('2026-06-20T09:00:00Z'), assignedOwner: 'Bahrul', assignedAt: new Date('2026-06-21T08:00:00Z'), assignedBy: 'lead-admin' }],
-      sourceHealth: [{ id: 'fresh-source-owner', assetSlug: 'issuer-a', layer: 'reserve', field: 'proof', url: 'https://issuer.example/reserve', status: 'healthy', lastCheckedAt: new Date('2026-06-21T10:00:00Z') }],
+      reviewTasks: [{ id: 'task-owner-lifecycle', assetSlug: 'issuer-a', layer: 'reserve', priority: 'high', reason: 'bad reserve URL https://issuer.example/reserve', status: 'open', createdAt, assignedOwner: 'Bahrul', assignedAt, assignedBy: 'lead-admin' }],
+      sourceHealth: [{ id: 'fresh-source-owner', assetSlug: 'issuer-a', layer: 'reserve', field: 'proof', url: 'https://issuer.example/reserve', status: 'healthy', lastCheckedAt: evidenceAt }],
     });
     const app = appWithDb(db);
     const payload = { resolutionType: 'fixed_source', resolutionNote: 'owner kept while source was fixed', evidenceUrl: 'https://issuer.example/reserve' };
@@ -257,7 +300,7 @@ describe('monitoring workflow regressions', () => {
     assert.equal(repaired.data.status, 'pending_validation');
     assert.equal(repaired.data.assignedOwner, 'Bahrul');
     assert.equal(repaired.data.assignedBy, 'lead-admin');
-    assert.equal(new Date(repaired.data.assignedAt).toISOString(), '2026-06-21T08:00:00.000Z');
+    assert.equal(new Date(repaired.data.assignedAt).toISOString(), assignedAt.toISOString());
 
     const close = await app.request('/v1/admin/monitoring/review-tasks/task-owner-lifecycle/close', { method: 'PATCH', headers: adminHeaders, body: JSON.stringify(payload) });
     const closed = await close.json();
@@ -265,7 +308,7 @@ describe('monitoring workflow regressions', () => {
     assert.equal(closed.data.status, 'resolved');
     assert.equal(closed.data.assignedOwner, 'Bahrul');
     assert.equal(closed.data.assignedBy, 'lead-admin');
-    assert.equal(new Date(closed.data.assignedAt).toISOString(), '2026-06-21T08:00:00.000Z');
+    assert.equal(new Date(closed.data.assignedAt).toISOString(), assignedAt.toISOString());
   });
 
 });

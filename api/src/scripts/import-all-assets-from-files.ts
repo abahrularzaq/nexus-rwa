@@ -1,5 +1,6 @@
 import { createRequire } from 'module';
 import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 require('dotenv').config();
@@ -12,6 +13,13 @@ type ImportAllOptions = {
   dryRun: boolean;
   force: boolean;
 };
+
+type AssetFileImporter = typeof importAssetFromFiles;
+let assetFileImporter: AssetFileImporter = importAssetFromFiles;
+
+export function setAssetFileImporterForTests(importer: AssetFileImporter | null): void {
+  assetFileImporter = importer ?? importAssetFromFiles;
+}
 
 type ImportResult = {
   slug: string;
@@ -34,7 +42,7 @@ function discoverAssetSlugs(): string[] {
     .sort((a, b) => a.localeCompare(b));
 }
 
-async function importAllAssets(options: ImportAllOptions): Promise<ImportResult[]> {
+export async function importAllAssets(options: ImportAllOptions): Promise<ImportResult[]> {
   const slugs = discoverAssetSlugs();
   const results: ImportResult[] = [];
 
@@ -43,7 +51,7 @@ async function importAllAssets(options: ImportAllOptions): Promise<ImportResult[
 
   for (const slug of slugs) {
     try {
-      const ok = await importAssetFromFiles({ slug, ...options });
+      const ok = await assetFileImporter({ slug, ...options });
       results.push({ slug, ok });
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
@@ -82,9 +90,11 @@ async function main(): Promise<void> {
   }
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  })
-  .finally(() => db.$disconnect());
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main()
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    })
+    .finally(() => db.$disconnect());
+}
