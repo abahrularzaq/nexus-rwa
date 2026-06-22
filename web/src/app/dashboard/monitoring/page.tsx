@@ -49,6 +49,14 @@ type MonitoringOverview = {
     total: number;
     healthPercentage: number;
   };
+  unifiedQueueBreakdown: {
+    totalIssues: number;
+    byType: Array<{
+      type: MonitoringWorkType;
+      label: string;
+      count: number;
+    }>;
+  };
   reviewStatusSummary?: Record<string, number>;
   reviewPrioritySummary: Record<string, number>;
   assetStatusSummary: Record<string, number>;
@@ -931,27 +939,44 @@ function IssueTable({
 
 function UnifiedQueueTable({
   rows,
+  breakdown,
   actionLoadingId,
   onView,
   onClose,
   onSourceStatus,
 }: {
   rows: MonitoringWorkItem[];
+  breakdown: MonitoringOverview["unifiedQueueBreakdown"];
   actionLoadingId: string | null;
   onView: (row: MonitoringWorkItem) => void;
   onClose: (row: MonitoringWorkItem, metadata?: ResolutionMetadata) => void;
   onSourceStatus: (row: MonitoringWorkItem, status: string) => void;
 }) {
+  const perTypeTotal = breakdown.byType.reduce((total, item) => total + item.count, 0);
+  const filtered = rows.length !== breakdown.totalIssues;
+
   return (
     <div className="data-surface overflow-hidden">
-      <div className="flex items-center justify-between border-b border-[var(--border-line)] px-4 py-3">
+      <div className="flex flex-col gap-3 border-b border-[var(--border-line)] px-4 py-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="terminal-label">Unified monitoring queue</p>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
             Default triage sorted by critical/high review tasks, broken/error sources, stale health checks, failed sync logs, then low-confidence/missing sources.
           </p>
         </div>
-        <span className="text-xs text-[var(--text-secondary)]">{rows.length} rows</span>
+        <div className="flex flex-wrap items-center gap-2 lg:max-w-[560px] lg:justify-end">
+          <span className="rounded-full border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--accent-cyan)]">
+            {breakdown.totalIssues} total issues
+          </span>
+          {breakdown.byType.map((item) => (
+            <span key={item.type} className="rounded-full border border-[var(--border-line)] bg-white/[0.03] px-2.5 py-1 text-xs text-[var(--text-secondary)]">
+              {item.label}: <span className="font-mono text-white">{item.count}</span>
+            </span>
+          ))}
+          <span className={`text-xs ${perTypeTotal === breakdown.totalIssues ? "text-[var(--text-muted)]" : "text-[#FF8888]"}`}>
+            sum {perTypeTotal}{filtered ? ` · showing ${rows.length}` : ""}
+          </span>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1220px] text-left text-sm">
@@ -1545,11 +1570,11 @@ export default function MonitoringPage() {
         helper: "Previously resolved issues that are active again.",
       },
       {
-        label: "Manual review queue",
-        count: data.reviewStatusSummary?.open ?? data.overview.openReviewTasks,
-        resource: "review-tasks",
-        status: "open",
-        helper: "Resolve evidence conflicts and missing source notes.",
+        label: "Restricted sources",
+        count: data.sourceStatusSummary.restricted ?? 0,
+        resource: "source-health",
+        status: "restricted",
+        helper: "Confirm gated sources or replace when evidence is unavailable.",
       },
     ];
   }, [data]);
@@ -2490,6 +2515,7 @@ export default function MonitoringPage() {
             ) : (
               <UnifiedQueueTable
                 rows={unifiedFilteredRows}
+                breakdown={data.unifiedQueueBreakdown}
                 actionLoadingId={actionLoadingId}
                 onView={(row) => {
                   setResource(row.resource);

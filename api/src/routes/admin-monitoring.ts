@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Hono } from 'hono';
 import { db } from '../lib/database.js';
+import { buildMonitoringQueueBreakdown } from '../lib/monitoring-queue.js';
 import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
 import { buildSourceHealthSummary } from '../lib/source-health-summary.js';
 import { adminAuthMiddleware } from '../middleware/admin-auth.js';
@@ -641,7 +642,7 @@ async function markHealthCheckPendingValidation(id: string, metadata: Resolution
 
 adminMonitoringRouter.get('/overview', async (c) => {
   try {
-    const [healthChecks, sourceHealthRows, openReviewTasks, failedSyncLogs, assetSources] = await Promise.all([
+    const [healthChecks, sourceHealthRows, queueReviewTasks, failedSyncLogs, assetSources] = await Promise.all([
       db.dataHealthCheck.findMany({
         orderBy: { lastCheckedAt: 'desc' },
         take: 5000,
@@ -653,7 +654,7 @@ adminMonitoringRouter.get('/overview', async (c) => {
         select: { status: true, assetSlug: true, layer: true, field: true, url: true, httpStatus: true, errorMessage: true, lastCheckedAt: true },
       }),
       db.reviewTask.findMany({
-        where: { status: { in: ['open', 'reopened'] } },
+        where: { status: { in: ['open', 'reopened', 'pending_validation'] } },
         orderBy: { createdAt: 'desc' },
         take: 5000,
         select: { priority: true, assetSlug: true, layer: true, reason: true, status: true, createdAt: true, reopenedAt: true },
@@ -672,6 +673,13 @@ adminMonitoringRouter.get('/overview', async (c) => {
     ]);
 
     const sourceHealth = uniqueLatestSourceRows(filterAutoCheckedSourceRows(sourceHealthRows));
+    const openReviewTasks = queueReviewTasks.filter((row) => row.status === 'open' || row.status === 'reopened');
+    const unifiedQueueBreakdown = buildMonitoringQueueBreakdown({
+      reviewTasks: queueReviewTasks,
+      sourceHealth,
+      healthChecks,
+      syncLogs: failedSyncLogs,
+    });
     const sourceRowsByAsset = assetSources.reduce<Map<string, Array<{ sourceUrl?: string | null; reliability?: number | null; layer?: string | null }>>>((acc, source) => {
       const rows = acc.get(source.asset.slug) ?? [];
       rows.push({ sourceUrl: source.sourceUrl, reliability: source.reliability, layer: source.layer });
@@ -704,8 +712,9 @@ adminMonitoringRouter.get('/overview', async (c) => {
         healthSeveritySummary: countBy(healthChecks, 'severity'),
         sourceStatusSummary: countBy(sourceHealth, 'status'),
         sourceHealthSummary,
-        reviewStatusSummary: countBy(openReviewTasks, 'status'),
-        reviewPrioritySummary: countBy(openReviewTasks, 'priority'),
+        reviewStatusSummary: countBy(queueReviewTasks, 'status'),
+        reviewPrioritySummary: countBy(queueReviewTasks, 'priority'),
+        unifiedQueueBreakdown,
         assetStatusSummary: countBy(assetSummaries, 'status'),
         assetSummaries,
         recentHealthIssues,
