@@ -21,6 +21,11 @@ import {
   UserCheck,
   Wrench,
 } from "lucide-react";
+import {
+  buildMonitoringReviewContext,
+  withMonitoringReviewContext,
+  type MonitoringReviewContext,
+} from "@/lib/monitoring-review-context";
 
 const MONITORING_OVERVIEW_PROXY_URL = "/api/admin/monitoring/overview";
 const MONITORING_DETAIL_PROXY_BASE = "/api/admin/monitoring";
@@ -156,6 +161,10 @@ type MonitoringWorkItem = {
   createdAt?: string;
   lastCheckedAt?: string;
   raw: Record<string, unknown>;
+};
+
+type MonitoringSelectedRow = Record<string, unknown> & {
+  reviewContext?: MonitoringReviewContext;
 };
 
 type QueueShortcut = {
@@ -947,6 +956,7 @@ function UnifiedQueueTable({
   rows,
   breakdown,
   actionLoadingId,
+  onReview,
   onView,
   onClose,
   onSourceStatus,
@@ -954,6 +964,7 @@ function UnifiedQueueTable({
   rows: MonitoringWorkItem[];
   breakdown: MonitoringOverview["unifiedQueueBreakdown"];
   actionLoadingId: string | null;
+  onReview: (row: MonitoringWorkItem) => void;
   onView: (row: MonitoringWorkItem) => void;
   onClose: (row: MonitoringWorkItem, metadata?: ResolutionMetadata) => void;
   onSourceStatus: (row: MonitoringWorkItem, status: string) => void;
@@ -1015,6 +1026,7 @@ function UnifiedQueueTable({
                   <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.suggestedAction}</span></td>
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt ?? row.createdAt)}</td>
                   <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => onReview(row)} aria-label={`Review ${row.type} ${row.id} for ${row.assetSlug} ${row.layer}`} className="inline-flex items-center gap-1 rounded-md border border-[var(--accent-cyan)]/35 bg-[var(--accent-cyan)]/10 px-2 py-1 text-xs font-semibold text-[var(--accent-cyan)] hover:border-[var(--accent-cyan)]"><ClipboardCheck className="size-3" />Review</button>
                     <button type="button" onClick={() => onView(row)} className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white hover:border-[var(--accent-cyan)]"><Eye className="size-3" />Detail</button>
                     {row.resource === "source-health" ? <select value="" onChange={(event) => { const nextStatus = event.target.value; if (nextStatus) onSourceStatus(row, nextStatus); event.target.value = ""; }} disabled={loading} aria-label="Update source status" className="rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-2 py-1 text-xs text-white outline-none transition hover:border-[var(--accent-cyan)] disabled:opacity-60"><option value="">Set status…</option>{sourceHealthStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : null}
                     {(row.resource === "review-tasks" || row.resource === "health-checks") && row.status.toLowerCase() !== "resolved" ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Resolve</button> : null}
@@ -1067,6 +1079,7 @@ function DetailPanelContent({
   const suggestedAction = typeof row.suggestedAction === "string" && row.suggestedAction.trim()
     ? row.suggestedAction
     : getSuggestedAction(row, resource);
+  const reviewContext = (row.reviewContext as MonitoringReviewContext | undefined) ?? buildMonitoringReviewContext({ ...row, resource });
   const [resolutionType, setResolutionType] = useState<ResolutionType>(
     typeof row.resolutionType === "string" && resolutionTypeOptions.some((option) => option.value === row.resolutionType)
       ? (row.resolutionType as ResolutionType)
@@ -1140,6 +1153,37 @@ function DetailPanelContent({
           <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
             <p className="terminal-label mb-2">Suggested action</p>
             <p className="text-sm leading-relaxed text-white">{suggestedAction}</p>
+          </div>
+          <div className="rounded-lg border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/[0.04] p-3">
+            <p className="terminal-label mb-3">Review context</p>
+            <dl className="grid gap-3 text-xs md:grid-cols-2">
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Issue ID</dt>
+                <dd className="mt-1 break-words font-mono text-white">{reviewContext.issueId}</dd>
+              </div>
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Issue type</dt>
+                <dd className="mt-1 break-words font-mono text-white">{reviewContext.issueType}</dd>
+              </div>
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Field path</dt>
+                <dd className="mt-1 break-words font-mono text-white">{reviewContext.fieldPath}</dd>
+              </div>
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Timestamp</dt>
+                <dd className="mt-1 break-words font-mono text-white">{formatDate(reviewContext.timestamp)}</dd>
+              </div>
+              <div className="md:col-span-2">
+                <dt className="terminal-label text-[var(--text-label)]">Source URL</dt>
+                <dd className="mt-1 break-words font-mono text-white">
+                  {reviewContext.sourceUrl ? (
+                    <a href={reviewContext.sourceUrl} target="_blank" rel="noreferrer" className="text-[var(--accent-cyan)] hover:underline">
+                      {reviewContext.sourceUrl}
+                    </a>
+                  ) : "N/A"}
+                </dd>
+              </div>
+            </dl>
           </div>
           {actionStatus ? (
             <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
@@ -1450,7 +1494,7 @@ export default function MonitoringPage() {
   const [layer, setLayer] = useState("");
   const [field, setField] = useState("");
   const [assignedOwnerFilter, setAssignedOwnerFilter] = useState("");
-  const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
+  const [selectedRow, setSelectedRow] = useState<MonitoringSelectedRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -1890,6 +1934,13 @@ export default function MonitoringPage() {
     },
     [assetSlug, loadDetailRows, resetMonitoringState],
   );
+
+  const handleReviewQueueItem = useCallback((row: MonitoringWorkItem) => {
+    setResource(row.resource);
+    setSelectedRow(withMonitoringReviewContext(row) as unknown as MonitoringSelectedRow);
+    setNotice(`Review context loaded for ${row.type} ${row.id}.`);
+    setError(null);
+  }, []);
 
   const handleExportCsv = useCallback(() => {
     if (filteredRows.length === 0) {
@@ -2514,7 +2565,7 @@ export default function MonitoringPage() {
                 rows={filteredRows}
                 resource={resource}
                 actionLoadingId={actionLoadingId}
-                onView={setSelectedRow}
+                onView={(row) => setSelectedRow(row as MonitoringSelectedRow)}
                 onClose={handleCloseRow}
                 onSourceStatus={handleSourceStatus}
               />
@@ -2523,9 +2574,10 @@ export default function MonitoringPage() {
                 rows={unifiedFilteredRows}
                 breakdown={data.unifiedQueueBreakdown}
                 actionLoadingId={actionLoadingId}
+                onReview={handleReviewQueueItem}
                 onView={(row) => {
                   setResource(row.resource);
-                  setSelectedRow(row as unknown as Record<string, unknown>);
+                  setSelectedRow(row as unknown as MonitoringSelectedRow);
                 }}
                 onClose={handleCloseRow}
                 onSourceStatus={handleSourceStatus}
