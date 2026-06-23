@@ -28,7 +28,9 @@ Thumbs.db
 *.swp
 
 # Prisma
-api/prisma/migrations/
+api/prisma/migrations/*
+!api/prisma/migrations/20260623000000_review_task_fingerprint/
+!api/prisma/migrations/20260623000000_review_task_fingerprint/migration.sql
 
 # Cache
 .turbo/

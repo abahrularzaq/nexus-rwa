@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { db } from '../lib/database.js';
 import { buildMonitoringQueueBreakdown } from '../lib/monitoring-queue.js';
 import { buildAssetMonitoringScores } from '../lib/monitoring-score.js';
+import { activeFingerprintFor } from '../lib/review-task-fingerprint.js';
 import { buildSourceHealthSummary } from '../lib/source-health-summary.js';
 import { adminAuthMiddleware } from '../middleware/admin-auth.js';
 import { ERROR_CODES } from '../shared/index.js';
@@ -442,10 +443,12 @@ async function reopenReviewTask(id: string, metadata: ReopenMetadata, actor: str
     }
 
     const reopenedAt = new Date();
+    const activeFingerprint = activeFingerprintFor('reopened', existing.fingerprint);
     const updateResult = await tx.reviewTask.updateMany({
       where: { id, status: 'resolved' },
       data: {
         status: 'reopened',
+        activeFingerprint,
         reopenedAt,
         reopenedBy: actor,
         reopenReason: metadata.reason,
@@ -1137,6 +1140,7 @@ adminMonitoringRouter.patch('/review-tasks/:id/close', async (c) => {
         where: { id },
         data: {
           status: 'resolved',
+          activeFingerprint: null,
           resolvedAt: new Date(),
           resolutionType: metadata.resolutionType,
           resolutionNote: metadata.resolutionNote,

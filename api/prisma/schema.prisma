@@ -407,6 +407,11 @@ model ReviewTask {
   id                    String    @id @default(cuid())
   assetSlug             String
   layer                 String
+  fieldPath             String?
+  sourceUrl             String?
+  issueType             String    @default("legacy")
+  fingerprint           String?
+  activeFingerprint     String?   @unique
   priority              String
   reason                String
   status                String    @default("open")
@@ -425,13 +430,19 @@ model ReviewTask {
   assignedOwner         String?
   assignedAt            DateTime?
   assignedBy            String?
+  lastDetectedAt        DateTime  @default(now())
+  occurrenceCount       Int       @default(1)
   createdAt             DateTime  @default(now())
   resolvedAt            DateTime?
 
   @@index([assetSlug])
   @@index([layer])
+  @@index([fieldPath])
+  @@index([issueType])
+  @@index([fingerprint])
   @@index([status])
   @@index([priority])
+  @@index([lastDetectedAt])
   @@index([createdAt])
   @@index([resolvedAt])
   @@index([reopenedAt])
