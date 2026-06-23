@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { db } from '../lib/database.js';
+import { upsertReviewTaskDetection } from '../lib/review-task-fingerprint.js';
 
 const ROOT = process.cwd();
 const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
@@ -231,14 +232,12 @@ async function saveHealthResult(result: HealthResult): Promise<void> {
   });
 
   if (result.status !== 'current') {
-    await db.reviewTask.create({
-      data: {
-        assetSlug: result.assetSlug,
-        layer: result.layer,
-        priority: result.severity,
-        reason: result.reason,
-        status: 'open',
-      },
+    await upsertReviewTaskDetection({
+      assetSlug: result.assetSlug,
+      layer: result.layer,
+      issueType: `freshness:${result.status}`,
+      priority: result.severity,
+      reason: result.reason,
     });
   }
 }
