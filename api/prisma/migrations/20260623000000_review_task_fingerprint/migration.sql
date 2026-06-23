@@ -7,7 +7,7 @@ ALTER TABLE "ReviewTask"
   ADD COLUMN "lastDetectedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ADD COLUMN "occurrenceCount" INTEGER NOT NULL DEFAULT 1;
 
-WITH normalized AS (
+WITH extracted AS (
   SELECT
     "id",
     CASE
@@ -17,15 +17,45 @@ WITH normalized AS (
     END AS "fieldPath",
     CASE
       WHEN substring("reason" from '(https?://[^[:space:]()]+)') IS NOT NULL
-        THEN regexp_replace(lower(split_part(trim(substring("reason" from '(https?://[^[:space:]()]+)')), '#', 1)), '/+$', '')
+        THEN split_part(trim(substring("reason" from '(https?://[^[:space:]()]+)')), '#', 1)
       ELSE NULL
-    END AS "sourceUrl",
+    END AS "rawSourceUrl",
     CASE
       WHEN "reason" ~* '^Source URL issue for [^:]+:'
         THEN 'source-url:' || lower(coalesce(substring("reason" from '\(([^ )]+)'), 'unknown'))
       ELSE 'legacy:' || md5(lower(trim("reason")))
     END AS "issueType"
   FROM "ReviewTask"
+),
+url_parts AS (
+  SELECT
+    "id",
+    "fieldPath",
+    "rawSourceUrl",
+    regexp_match("rawSourceUrl", '^(https?)://([^/?#:]+)(:[0-9]+)?([^?#]*)(\?.*)?$', 'i') AS "sourceUrlParts",
+    "issueType"
+  FROM extracted
+),
+normalized AS (
+  SELECT
+    "id",
+    "fieldPath",
+    CASE
+      WHEN "rawSourceUrl" IS NULL THEN NULL
+      WHEN "sourceUrlParts" IS NULL THEN regexp_replace("rawSourceUrl", '/+$', '')
+      ELSE lower("sourceUrlParts"[1])
+        || '://'
+        || lower("sourceUrlParts"[2])
+        || coalesce("sourceUrlParts"[3], '')
+        || CASE
+          WHEN coalesce("sourceUrlParts"[4], '') = '' THEN '/'
+          WHEN length("sourceUrlParts"[4]) > 1 THEN regexp_replace("sourceUrlParts"[4], '/+$', '')
+          ELSE "sourceUrlParts"[4]
+        END
+        || coalesce("sourceUrlParts"[5], '')
+    END AS "sourceUrl",
+    "issueType"
+  FROM url_parts
 ),
 fingerprinted AS (
   SELECT

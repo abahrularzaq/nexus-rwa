@@ -6,6 +6,7 @@ process.env.NODE_ENV = 'test';
 const { setDatabaseClientForTests } = await import('./database.js');
 const {
   buildReviewTaskFingerprint,
+  normalizeSourceUrl,
   upsertReviewTaskDetection,
 } = await import('./review-task-fingerprint.js');
 
@@ -114,6 +115,26 @@ describe('review task fingerprinting', () => {
     const second = buildReviewTaskFingerprint(detection({ sourceUrl: 'https://issuer.example/report?id=2' }));
 
     assert.notEqual(first, second);
+  });
+
+  it('preserves path and query casing while normalizing scheme and host', () => {
+    assert.equal(
+      normalizeSourceUrl(' HTTPS://Issuer.Example/Reports/Latest/?Token=ABC#section '),
+      'https://issuer.example/Reports/Latest?Token=ABC',
+    );
+
+    const runtimeIdentity = buildReviewTaskFingerprint(detection({
+      sourceUrl: 'https://issuer.example/Reports/Latest?Token=ABC',
+    }));
+    const backfillEquivalentIdentity = buildReviewTaskFingerprint(detection({
+      sourceUrl: ' HTTPS://Issuer.Example/Reports/Latest/?Token=ABC#section ',
+    }));
+    const lowercasedPathIdentity = buildReviewTaskFingerprint(detection({
+      sourceUrl: 'https://issuer.example/reports/latest?token=abc',
+    }));
+
+    assert.equal(backfillEquivalentIdentity, runtimeIdentity);
+    assert.notEqual(lowercasedPathIdentity, runtimeIdentity);
   });
 
   it('does not merge different field paths', () => {
