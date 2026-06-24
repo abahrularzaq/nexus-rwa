@@ -6,185 +6,144 @@
 - Symbol: bC3M
 - Slug: `backed-bc3m`
 - Branch: `pilot/backed-bc3m-research`
-- Review date: 2026-06-24
+- Initial review date: 2026-06-24
+- Recheck date: 2026-06-24
 - Agent: Source Verification Agent
-- Scope: Independent verification of the refreshed research package only
+- Scope: Independent verification plus narrow recheck of B-001 and RC-001 through RC-003
 
 ## Overall verdict
 
-- Verdict: `blocked`
-- `safeToProceed: false`
-- Recommended next action: `return_for_fix`
+- Verdict: `advance`
+- `safeToProceed: true`
+- Recommended next action: Proceed to Risk & Grading Agent
 
-The Research Agent materially improved data honesty, especially in reserve, compliance, liquidity, and market fields. However, the package cannot advance to Risk & Grading because seven blockchain deployments retain non-null contract addresses that were not independently tied to official product-level evidence or verified chain explorer records during this review. Product-specific legal documentation is also incomplete, but that issue is recorded as a warning rather than the primary blocker because the official product page and current issuer-level prospectus support the core identity and general structure.
+The narrow correction package resolves the only blocking source-verification issue. The research package now retains only the independently verified Ethereum deployment, represents unsupported network deployments as unresolved rather than factual, uses `null` for the unsupported whitelist field, and maps the Ethereum address to a verified explorer instead of relying on CoinGecko as multi-chain evidence.
 
-## Sources independently checked
+## Recheck findings
 
-### Strong official sources
+### B-001 — Seven unsupported non-Ethereum deployments
 
-1. Backed bC3M product page  
-   https://assets.backed.fi/products/bc3m
-
-2. Backed legal documentation  
-   https://assets.backed.fi/legal-documentation
-
-3. Backed product database  
-   https://assets.backed.fi/legal-documentation/product-database
-
-4. Ethereum explorer record  
-   https://etherscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7
-
-### Medium secondary source
-
-5. CoinGecko bC3M page  
-   https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro
-
-## Claims verified
-
-### Identity and product structure
-
-- The product name and symbol are supported by the official product page.
-- The product ISIN `CH1173294286` is supported by the official product page.
-- Backed Assets (JE) Limited is identified as issuer.
-- bC3M is described as a tracker certificate issued as an ERC-20 token.
-- The underlying is the Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF, ISIN `FR0010754200`.
-- The underlying seeks to track a short-duration Eurozone government-bill index with coupons reinvested.
-
-### Issuance and redemption status
-
-- The no-new-issuance notice is displayed directly on the bC3M product page, not only on a generic site page.
-- The same notice states that redemption remains supported for existing holders.
-- The official product page states `0.5% for Issuance and Redemption`.
-- The Research Agent correctly removed the interpretation that this is an early-redemption fee.
-
-### Legal and regulatory structure
-
-- The legal documentation states that the Base Prospectus was approved in Liechtenstein by the FMA on 2026-05-08.
-- The current Base Prospectus is stated to remain valid until 2027-05-07, subject to supplements.
-- The legal category is a certificate tracking an underlying and the applicable law is Swiss law.
-- The legal page identifies bToken support on Ethereum, Gnosis, Polygon, Arbitrum, Fantom, Avalanche, BNB Smart Chain, and Base.
-- The legal page states that ERC-20 and Solana SPL tokens have no technical transfer restrictions.
-
-### Service providers and reserve wording
-
-- The official product page lists Alpaca Securities LLC, InCore Bank AG, and Maerki Baumann & Co. AG under both broker and custodian headings.
-- Security Agent Services AG is listed as security agent.
-- The corrected reserve description as Eurozone government-bill ETF exposure is materially accurate.
-- `hasProofOfReserves: null`, `collateralizationRatio: null`, `reserveBreakdown: null`, `auditor: null`, and `redemptionAsset: null` are honest representations of the accessible evidence.
-
-### Investor eligibility
-
-- U.S. persons are explicitly excluded.
-- Access is limited to professional or qualified investors, existing holders seeking redemption, or purchasers following an offer from a licensed institution.
-- The Research Agent correctly avoided treating the UK as an unconditional blocked jurisdiction because the official text also provides for certain validated UK professional clients.
-- `kycRequired: null` and `sanctionsScreening: null` are acceptable because the source states eligibility and sanctions conditions but does not document the operational controls used for bC3M.
-
-### Market and liquidity
-
-- CoinGecko reports that BC3M has stopped trading on all exchanges it lists and shows zero 24-hour volume.
-- CoinGecko explicitly describes USD 146.75 as the last recorded price rather than a price established by current trading.
-- Market cap of USD 10,041,676 and supply of approximately 68,426 are secondary-source observations.
-- Removing market capitalization from `aumUsd` was required and correct.
-- The market file appropriately uses low confidence and warns that the data needs synchronization.
-- Direct redemption and active secondary-market liquidity are correctly treated as different concepts.
-
-## Blocking issues
-
-### B-001 — Seven chain contract deployments are not independently verified
-
-Affected file: `data/assets/backed-bc3m/blockchain.json`
-
-The package contains the same non-null contract address for Gnosis, Polygon, Arbitrum, Avalanche, Fantom, BNB Smart Chain, and Base. The official legal page confirms that bTokens may exist on these networks, but it does not expose the bC3M address in accessible text. CoinGecko is a secondary source and its chain listing is not sufficient by itself for a material contract-address claim.
-
-Ethereum is independently supported: Etherscan labels the address as `Backed Finance: bC3M Token`, identifies the bC3M token tracker, and links the contract to Backed. Equivalent evidence was not established for the other seven chains in this review.
-
-Required resolution:
-
-- Obtain official product-level contract links or verified explorer records for each chain; or
-- remove unsupported chain entries; or
-- set unsupported contract addresses to `null` if the repository schema permits a chain record without an address.
-
-Owner: Research Agent
-
-Resume condition: Every retained non-null contract address is independently tied to bC3M on the stated chain.
-
-## Required corrections
+- Status: `resolved`
+- Result: Gnosis, Polygon, Arbitrum, Avalanche, Fantom, BNB Smart Chain, and Base were removed from `blockchain.json`.
+- The issuer's legal page remains recorded only as evidence of Backed's general bToken network scope.
+- The removed networks remain visible as unresolved research gaps in `sources.json` and `source-discovery.md`.
+- No unsupported product-level contract address remains for those networks.
 
 ### RC-001 — Blockchain deployment evidence
 
-File: `data/assets/backed-bc3m/blockchain.json`
+- Status: `resolved`
+- `blockchain.json` contains one record only: Ethereum.
+- Ethereum address: `0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7`.
+- Etherscan identifies the address as the Backed Finance bC3M token and exposes the bC3M token tracker.
+- `isVerified: true` is therefore supported for the Ethereum record.
+- No deterministic-address or general-network inference is used for other chains.
 
-- Ethereum may remain with the current address, and `isVerified` should be updated to `true` if that field represents explorer/source verification.
-- Gnosis, Polygon, Arbitrum, Avalanche, Fantom, BNB Smart Chain, and Base must not retain non-null addresses without chain-specific official or verified-explorer evidence.
-- Do not infer that deterministic same-address deployment proves that a contract exists on every supported network.
+### RC-002 — Source map overstatement
 
-### RC-002 — Source map overstates contract support
+- Status: `resolved`
+- `sources.json` separates:
+  - general issuer-level network scope from the Backed legal page;
+  - product-level Ethereum deployment evidence from Etherscan;
+  - unresolved non-Ethereum networks.
+- CoinGecko is no longer used as final evidence for any contract deployment.
+- CoinGecko remains limited to market observations.
 
-File: `data/assets/backed-bc3m/sources.json`
+### RC-003 — Unsupported whitelist value
 
-Current contract-address mapping uses CoinGecko as evidence for the address across supported chains. Revise the entry so it supports Ethereum only unless chain-specific evidence is added. Record other chains as unresolved rather than verified.
+- Status: `resolved`
+- `hasWhitelist` is now `null`.
+- The package no longer treats absence of technical transfer restrictions as proof that all whitelist or administrative eligibility logic is absent.
 
-### RC-003 — `hasWhitelist` is unsupported
+## Verified package findings
 
-File: `data/assets/backed-bc3m/blockchain.json`
+### Identity and structure
 
-All eight records currently use `hasWhitelist: false`. The legal documentation confirms no technical transfer restrictions but does not explicitly establish the absence of all whitelist logic or administrative eligibility controls in the contract architecture. If this field cannot be proven from verified contract behavior or documentation, change it to `null` where the schema permits.
+- Name, symbol, product ISIN, issuer, tracker-certificate structure, underlying ETF, and underlying ISIN are supported by the official product page.
+- The reserve description correctly refers to Eurozone government-bill ETF exposure rather than U.S. Treasury backing.
 
-## Non-blocking warnings
+### Issuance, redemption, and fee
 
-### W-001 — Product-specific legal documents are unavailable or broken
+- The bC3M product page displays the no-new-issuance notice.
+- Redemption remains supported for existing holders.
+- The official 0.5% figure is correctly represented as an issuance/redemption fee rather than an early-redemption penalty.
+- Settlement time, minimum amount, settlement asset, and gating terms remain `null` because they were not verified.
 
-- The current product database does not expose a searchable bC3M entry by name or ISIN.
-- The English KID link on the product page resolves through a placeholder-like ISIN `CH0000000000` and returned 404 during verification.
-- A bC3M-specific current final terms document was not located.
+### Legal and compliance
 
-The issuer-level Base Prospectus supports the general legal framework, but it should not be described as complete product-level documentation.
+- The current issuer-level Base Prospectus is described as approved by the Liechtenstein FMA on 2026-05-08 and valid until 2027-05-07, subject to supplements.
+- Swiss-law tracker-certificate wording is supported.
+- U.S. exclusion and professional/qualified-investor access language are supported.
+- The UK wording is correctly treated as conditional rather than an unconditional country block.
+- Operational KYC and sanctions-screening fields remain `null` because the accessible evidence does not describe the specific controls.
 
-### W-002 — Issuance notice is current on-page but page content is dated
+### Reserve and service providers
 
-The no-new-issuance notice is live on the bC3M page, so the claim is supported. The page also carries a `Last updated on May 30, 2025` label. Preserve the verification date and avoid implying the underlying product details were comprehensively refreshed in 2026.
+- Custodian and broker names are explicitly listed by the issuer.
+- No collateral ratio, reserve breakdown, reserve audit, attestation, auditor, redemption asset, or proof-of-reserves mechanism is claimed without evidence.
 
-### W-003 — Custodian evidence is issuer-published only
+### Market and yield
 
-The product page explicitly lists the three firms under custodian, so the field is supportable. No independent service-provider confirmation or product-specific custody report was reviewed. This limits source strength but does not require the field to be removed.
+- CoinGecko market values are clearly labeled as secondary, low-confidence, and last-recorded rather than active-market values.
+- Market capitalization is not represented as AUM.
+- No unsupported current yield is reported.
 
-### W-004 — Market values are not active-market prices
+## Remaining non-blocking warnings
 
-The stored values are acceptable only with their warning, observation date, secondary-source attribution, and low confidence. They should not be used as evidence of current executable liquidity, NAV, AUM, or redemption value.
+### W-001 — Product-specific legal documentation gap
 
-### W-005 — Redemption mechanics remain incomplete
+A current bC3M-specific final terms document was not located, and the English KID link returned 404. The issuer-level prospectus supports the general framework but is not complete product-specific evidence.
 
-The right of existing holders to redeem is supported. Settlement time, minimum redemption amount, settlement asset, processing steps, and suspension or gating conditions remain `null`, as required.
+### W-002 — Product page freshness
 
-## Layer verdicts
+The live issuance/redemption notice is visible, but the product page carries a 2025-05-30 last-updated label. The package appropriately records the 2026-06-24 verification date without implying all underlying product details were refreshed in 2026.
+
+### W-003 — Custodian evidence source concentration
+
+Custodian relationships are supported by the issuer's product page but were not independently confirmed through service-provider documentation.
+
+### W-004 — Inactive market data
+
+The displayed price and market capitalization are last-recorded secondary-source values with zero active 24-hour trading volume. They must not be interpreted as executable price, NAV, AUM, redemption value, or active liquidity.
+
+### W-005 — Incomplete redemption mechanics
+
+The right to redeem is supported, but settlement and operational details remain unavailable.
+
+### W-006 — Other network deployments unresolved
+
+Backed generally lists seven additional EVM networks within its bToken scope. No product-level bC3M deployment is currently represented for them. They may be added later only with chain-specific evidence.
+
+## Layer verdicts after recheck
 
 | Layer | Verdict | Notes |
 |---|---|---|
-| Identity | pass | Core identity and description are officially supported |
-| Blockchain | fail | Seven non-null chain addresses and whitelist booleans remain unsupported |
-| Reserve | pass with warning | Wording is conservative; no PoR or ratio is claimed |
-| Institutional | pass with warning | Issuer and structure supported; product-specific legal file missing |
-| Compliance | pass with warning | Eligibility wording is conservative and UK conflict is handled |
-| Liquidity | pass with warning | Redemption supported; mechanics remain incomplete |
-| Market | pass with warning | Secondary, last-recorded values are clearly flagged |
-| Yield | pass | No unsupported current yield is reported |
-| Sources | needs fix | Contract evidence mapping must be narrowed or strengthened |
+| Identity | pass | Core identity and description supported |
+| Blockchain | pass with warning | Ethereum verified; seven other networks remain unresolved and omitted |
+| Reserve | pass with warning | Conservative wording; no unsupported PoR or ratio |
+| Institutional | pass with warning | Issuer and structure supported; product-specific legal document missing |
+| Compliance | pass with warning | Eligibility wording is conservative and conflicts are visible |
+| Liquidity | pass with warning | Redemption supported; mechanics incomplete |
+| Market | pass with warning | Secondary last-recorded values are transparently labeled |
+| Yield | pass | No unsupported current yield |
+| Sources | pass | Product-level, issuer-level, unresolved, and secondary evidence are separated |
 
 ## Source quality assessment
 
-- Official product and legal coverage: strong for identity, issuer, underlying, general legal structure, service providers, eligibility, and issuance/redemption status.
-- Product-specific legal coverage: incomplete.
-- Reserve and audit coverage: limited but represented honestly with `null` values.
-- Blockchain evidence: strong for Ethereum, insufficient for seven other retained deployments.
-- Market coverage: secondary and stale by market-activity standards, but transparently labeled.
-
-Recommended source-score range for the later grading agent, after blockers are resolved: `68–76`. This is not a grade and should not be copied mechanically; the lower bound reflects missing product-specific legal documents and chain verification, while the upper bound reflects strong official issuer coverage for most non-market claims.
+- Strong official coverage exists for identity, issuer, underlying, legal framework, service-provider listing, eligibility, and issuance/redemption status.
+- Ethereum contract evidence is independently verified.
+- Product-specific legal, reserve-reporting, and active-market evidence remain incomplete but are represented honestly.
+- Recommended source-score range for the later grading agent: `72–78`.
+- This recommendation is not a grade and should be evaluated alongside the grading model.
 
 ## Final decision
 
 ```text
-safeToProceed: false
-verdict: return_for_fix
+safeToProceed: true
+verdict: advance
+B-001: resolved
+RC-001: resolved
+RC-002: resolved
+RC-003: resolved
 ```
 
-The workflow must return to the Research Agent for narrowly scoped blockchain and source-map corrections. Do not begin Risk & Grading until B-001 and RC-001 through RC-003 are resolved and independently rechecked.
+The package is sufficiently honest and traceable to proceed to Risk & Grading. The remaining issues are explicit non-blocking warnings and must remain visible in blockers, warnings, and next actions generated by the grading stage.
