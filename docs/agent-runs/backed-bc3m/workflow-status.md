@@ -12,27 +12,11 @@
 - Started: 2026-06-24
 - Last updated: 2026-06-24
 
-## Approved scope
-
-### Included
-
-- Refresh and revalidate existing Backed bC3M research data.
-- Update only evidence-backed research-layer fields.
-- Document stale, conflicting, unsupported, or unavailable evidence.
-- Prepare a handoff to the Source Verification Agent.
-
-### Excluded
-
-- Risk scoring or grading.
-- Build, import, lint, typecheck, test, or QA.
-- Application code, Prisma schema, migrations, dependencies, UI, and unrelated assets.
-- Automatic merge or publication.
-
 ## Current workflow status
 
-- Current stage: Research
-- Current status: in_progress
-- Current owner agent: Research Agent
+- Current stage: Source Verification
+- Current status: pending
+- Current owner agent: Source Verification Agent
 - Next agent: Source Verification Agent
 - Human decision required: no
 
@@ -40,57 +24,85 @@
 
 | Stage | Agent | Status | Started | Completed | Output | Notes |
 |---|---|---|---|---|---|---|
-| 1 | Coordinator Agent | done | 2026-06-24 | 2026-06-24 | workflow-status.md | Pilot scope and Gate 1 approved |
-| 2 | Research Agent | in_progress | 2026-06-24 | | source-discovery.md and layer drafts | Refresh only |
+| 1 | Coordinator Agent | done | 2026-06-24 | 2026-06-24 | workflow-status.md | Scope approved |
+| 2 | Research Agent | done | 2026-06-24 | 2026-06-24 | source-discovery.md and layer drafts | Ready for review |
 | 3 | Source Verification Agent | pending | | | source-review.md | |
 | 4 | Risk & Grading Agent | pending | | | risk.json and grade-baseline.json | |
 | 5 | Build Agent | pending | | | build-report.md | |
 | 6 | QA Review Agent | pending | | | qa-review.md | |
 | 7 | Human merge decision | pending | | | PR decision | |
 
-## Current blockers
+## Research result
 
-None.
+### Files changed
 
-## Current warnings
+- `data/assets/backed-bc3m/source-discovery.md`
+- `data/assets/backed-bc3m/reserve.json`
+- `data/assets/backed-bc3m/compliance.json`
+- `data/assets/backed-bc3m/liquidity.json`
+- `data/assets/backed-bc3m/market.json`
+- `data/assets/backed-bc3m/sources.json`
+- `docs/agent-runs/backed-bc3m/workflow-status.md`
 
-| ID | Warning | Affected layer/file | Follow-up action | Status |
-|---|---|---|---|---|
-| W-001 | Official product page is dated 2025-05-30 although the global issuance/redemption notice remains live | source-discovery.md, identity.json, liquidity.json | Source Verification should confirm the notice still governs bC3M | open |
-| W-002 | Contract address is exposed by CoinGecko and explorer links, but the accessible official page does not expose the address as text | blockchain.json, sources.json | Independently verify each chain deployment | open |
-| W-003 | Current Base Prospectus is issuer-level; a working bC3M-specific final terms document was not located | institutional.json, compliance.json | Treat product-specific legal coverage as unresolved | open |
+### Files reviewed but unchanged
 
-## Decisions made
+- `data/assets/backed-bc3m/identity.json`
+- `data/assets/backed-bc3m/blockchain.json`
+- `data/assets/backed-bc3m/institutional.json`
+- `data/assets/backed-bc3m/yield.json`
 
-| Date | Decision | Reason | Decided by |
-|---|---|---|---|
-| 2026-06-24 | Use Backed bC3M refresh as the first agent-team pilot | Existing asset files allow a full real-world handoff test | Coordinator Agent |
-| 2026-06-24 | Correct unsupported or overstated research fields instead of preserving them | Research rules require source-supported non-null values | Research Agent |
+### Main corrections
+
+- Corrected the backing description to Eurozone government-bill ETF exposure.
+- Replaced unsupported reserve, settlement, and operational-control claims with `null`.
+- Removed an unsupported fee interpretation and deferred liquidity scoring.
+- Removed market capitalization from the AUM field.
+- Refreshed the market observation date and source notes.
+
+### Remaining gaps
+
+- Product-specific final terms.
+- Chain-by-chain contract confirmation.
+- Direct redemption details.
+- Product-specific reserve reporting.
+- Current official yield.
+- Active market liquidity.
 
 ## Latest stage result
 
 - Stage: Research
 - Agent: Research Agent
-- Verdict: pending
-- Evidence: Research refresh in progress.
-- Output files: pending
-- Remaining blockers: None
-- Remaining warnings: W-001, W-002, W-003
+- Verdict: `advance`
+- Evidence: All existing research layers were reviewed and material unsupported claims were corrected or neutralized.
+- Output files: Listed above.
+- Remaining blockers: None at Research stage.
+- Remaining warnings: Legal-document specificity, deployment confirmation, and dynamic-market freshness require independent review.
 
 ## Next action
 
 - Next agent: Source Verification Agent
-- Required input: Updated files under `data/assets/backed-bc3m/` and this workflow status.
-- Allowed files: `docs/agent-runs/backed-bc3m/source-review.md` and corrections explicitly returned to Research.
-- Forbidden files: risk, grade, build, QA, application code, schema, migrations, dependencies, and unrelated assets.
+- Required input:
+  - `docs/agents/README.md`
+  - `docs/agents/03-source-verification-agent.md`
+  - `docs/agent-runs/backed-bc3m/workflow-status.md`
+  - all files under `data/assets/backed-bc3m/`
+- Allowed files:
+  - `docs/agent-runs/backed-bc3m/source-review.md`
+  - `docs/agent-runs/backed-bc3m/workflow-status.md`
+  - research files only for explicitly required corrections
+- Forbidden files:
+  - `risk.json`
+  - `grade-baseline.json`
+  - build and QA reports
+  - application code, schema, migrations, dependencies, and unrelated assets
 - Required output: Independent source review with explicit `safeToProceed` verdict.
-- Acceptance criteria: Material claims checked, blockers separated from warnings, and required corrections identified.
-- Stop condition: Stop after the source-verification verdict.
+- Acceptance criteria: Check material claims, source quality, deployments, unresolved gaps, and required corrections.
+- Stop condition: Stop after the verification verdict. Do not grade, build, or QA.
 
 ## Final status
 
 - Workflow completed: no
 - Safe to merge: pending
 - Safe to publish: pending
-- Final recommendation: Complete Research, then hand off to Source Verification
+- Final recommendation: Advance to Source Verification Agent
 - Human approval required: yes
