@@ -1,37 +1,41 @@
 {
-  "overallScore": 55,
+  "overallScore": 48,
   "overallLevel": "MEDIUM",
-  "smartContractRisk": 60,
-  "counterpartyRisk": 62,
-  "liquidityRisk": 28,
-  "regulatoryRisk": 70,
-  "marketRisk": 55,
-  "concentrationRisk": 50,
+  "smartContractRisk": 68,
+  "counterpartyRisk": 52,
+  "liquidityRisk": 20,
+  "regulatoryRisk": 62,
+  "marketRisk": 22,
+  "concentrationRisk": 42,
   "riskFactors": [
-    "Backed states bTokens are no longer available for new issuance, which limits primary-market growth and makes the product more redemption-only for existing holders.",
-    "CoinGecko showed $0 24h trading volume and warned that BC3M tokens had stopped trading on listed exchanges, indicating weak observable secondary liquidity.",
-    "No bC3M-specific public proof-of-reserves, reserve breakdown, or audit/report URL was confirmed from the accessible official product page.",
-    "The token is exposed to issuer/certificate structure risk, service-provider risk, and the underlying Amundi ETF tracking Eurozone short-term government bills.",
-    "The product is restricted for U.S. persons and not promoted/offered to UK clients; investor eligibility and jurisdiction restrictions reduce accessibility.",
-    "Contract verification status was not confirmed for all listed chain deployments in this pass."
+    "A current bC3M-specific final terms document was not located, and the English KID link returned 404, limiting product-level legal evidence.",
+    "No bC3M-specific reserve breakdown, collateral ratio, reserve audit, attestation, assurance report, auditor, or proof-of-reserves mechanism was verified.",
+    "New bToken issuance is closed, while redemption remains available only for existing holders; the settlement period, settlement asset, minimum amount, process, and suspension conditions were not verified.",
+    "CoinGecko reports zero 24-hour volume and describes USD 146.75 as the last recorded price after BC3M stopped trading on its listed exchanges, indicating weak observable price discovery and secondary liquidity.",
+    "Only the Ethereum deployment is verified at product level. Seven other networks remain within Backed's general bToken scope but are not verified as bC3M deployments.",
+    "Custodian relationships are supported by the issuer's product page but were not independently confirmed through service-provider documentation.",
+    "The product is limited to professional or qualified investors, excludes U.S. persons, and has conditional UK access language, reducing accessibility and increasing compliance complexity.",
+    "The certificate structure introduces issuer, custody, broker, security-agent, and underlying-ETF counterparty dependencies."
   ],
   "mitigants": [
-    "The official product page identifies Backed Assets (JE) Limited as issuer and lists the product ISIN, underlying ETF, underlying ISIN, service providers, custodian entities, and security agent.",
-    "Backed's legal documentation page states its Base Prospectus was approved in Liechtenstein by the FMA as of May 8, 2026, with Swiss law as applicable law for products.",
-    "The underlying exposure is a short-duration Eurozone government bill ETF rather than a long-duration or unsecured private-credit asset.",
-    "Backed states redemption remains fully supported for existing bToken holders even though new issuance is closed.",
-    "The product has a clear official product page and public legal documentation hub."
+    "The official product page verifies the product name, symbol, product ISIN, issuer, underlying ETF, underlying ISIN, and service-provider roles.",
+    "The issuer-level Base Prospectus is stated to have been approved by the Liechtenstein FMA on 2026-05-08 and to remain valid until 2027-05-07, subject to supplements.",
+    "The Ethereum contract is independently identified as the Backed Finance bC3M token on Etherscan.",
+    "Unsupported multi-chain deployments, whitelist claims, AUM claims, proof-of-reserves claims, and settlement assumptions were removed or set to null.",
+    "Backed states that redemption remains supported for existing holders despite the closure of new issuance.",
+    "The underlying exposure is a short-duration Eurozone government-bill ETF rather than unsecured private credit or a long-duration speculative asset.",
+    "Market data is explicitly labeled as secondary, low-confidence, and last-recorded rather than current executable pricing."
   ],
-  "lastAssessed": "2026-06-12",
-  "assessmentMethod": "ai-assisted",
+  "lastAssessed": "2026-06-24",
+  "assessmentMethod": "agent-team-verified-evidence",
   "_meta": {
-    "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-12",
+    "dataOwner": "risk-grading-agent",
+    "lastManualReview": "2026-06-24",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
-    "confidence": null,
+    "confidence": "MEDIUM",
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Higher numeric component values represent stronger risk quality / lower assessed risk under the existing repository convention. Scores reflect verified evidence only and distinguish missing evidence from confirmed negative conditions."
   }
 }
