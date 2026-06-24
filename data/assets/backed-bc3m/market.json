@@ -10,15 +10,14 @@
   "totalSupply": 68426,
   "holderCount": null,
   "holderChange7d": null,
-  "aumUsd": 10041676,
-  "lastUpdated": "2026-06-12",
+  "aumUsd": null,
+  "lastUpdated": "2026-06-24",
   "sources": [
-    "coingecko",
-    "official_product_page"
+    "coingecko"
   ],
-  "confidence": "MEDIUM",
+  "confidence": "LOW",
   "_meta": {
-    "dataOwner": "auto-sync",
+    "dataOwner": "manual-research",
     "lastAutoSync": null,
     "syncFrequencyHours": 24,
     "syncProvider": null,
@@ -26,6 +25,6 @@
     "confidence": null,
     "freshnessStatus": "needs-sync",
     "status": "needs-sync",
-    "notes": "CoinGecko showed 24h volume as 0 and warned that BC3M tokens had stopped trading on listed exchanges; market data should be refreshed before production publication."
+    "notes": "CoinGecko states that the displayed USD 146.75 price is the last recorded price because BC3M had no 24-hour trading activity. Market capitalization and supply are secondary-source observations. The previous aumUsd value was removed because market capitalization is not evidence of issuer-reported AUM."
   }
 }
