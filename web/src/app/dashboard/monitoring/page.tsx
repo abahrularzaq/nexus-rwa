@@ -18,8 +18,14 @@ import {
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
+  UserCheck,
   Wrench,
 } from "lucide-react";
+import {
+  buildMonitoringReviewContext,
+  withMonitoringReviewContext,
+  type MonitoringReviewContext,
+} from "@/lib/monitoring-review-context";
 
 const MONITORING_OVERVIEW_PROXY_URL = "/api/admin/monitoring/overview";
 const MONITORING_DETAIL_PROXY_BASE = "/api/admin/monitoring";
@@ -34,11 +40,29 @@ type MonitoringOverview = {
     totalHealthChecks: number;
     totalSourceChecks: number;
     openReviewTasks: number;
+    reopenedReviewTasks?: number;
     failedOrNonSuccessSyncLogs: number;
   };
   healthStatusSummary: Record<string, number>;
   healthSeveritySummary: Record<string, number>;
   sourceStatusSummary: Record<string, number>;
+  sourceHealthSummary: {
+    healthy: number;
+    restricted: number;
+    watch: number;
+    broken: number;
+    total: number;
+    healthPercentage: number;
+  };
+  unifiedQueueBreakdown: {
+    totalIssues: number;
+    byType: Array<{
+      type: MonitoringWorkType;
+      label: string;
+      count: number;
+    }>;
+  };
+  reviewStatusSummary?: Record<string, number>;
   reviewPrioritySummary: Record<string, number>;
   assetStatusSummary: Record<string, number>;
   assetSummaries: Array<{
@@ -50,6 +74,10 @@ type MonitoringOverview = {
     lowConfidenceSource: number;
     incompleteLayer: number;
     totalIssues: number;
+    primaryReason?: string | null;
+    openIssueCount?: number;
+    highestSeverity?: string | null;
+    lastCheckedAt?: string | null;
   }>;
   recentHealthIssues: Array<Record<string, unknown>>;
   recentSourceIssues: Array<Record<string, unknown>>;
@@ -87,7 +115,7 @@ type MonitoringRepairLog = {
 
 type SourceHealthStatus = "healthy" | "redirected" | "restricted" | "deprecated" | "broken" | "error";
 
-type ActionVerificationStatus = "pending verification" | "verified" | "failed verification";
+type ActionVerificationStatus = "pending validation" | "verified" | "failed validation";
 
 type ResolutionType =
   | "fixed_source"
@@ -101,6 +129,15 @@ type ResolutionMetadata = {
   resolutionType: ResolutionType;
   resolutionNote: string;
   evidenceUrl?: string;
+};
+
+type ReopenMetadata = {
+  reason: string;
+};
+
+type AssignmentPayload = {
+  assignedOwner: string | null;
+  expectedAssignedOwner?: string | null;
 };
 
 type SourceRepairPayload = {
@@ -124,6 +161,10 @@ type MonitoringWorkItem = {
   createdAt?: string;
   lastCheckedAt?: string;
   raw: Record<string, unknown>;
+};
+
+type MonitoringSelectedRow = Record<string, unknown> & {
+  reviewContext?: MonitoringReviewContext;
 };
 
 type QueueShortcut = {
@@ -179,6 +220,11 @@ const csvColumns = [
   "createdAt",
   "startedAt",
   "resolvedAt",
+  "reopenedAt",
+  "reopenReason",
+  "assignedOwner",
+  "assignedAt",
+  "assignedBy",
 ] as const;
 
 function apiBase(): string {
@@ -277,7 +323,7 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   }
 
   if (resource === "review-tasks") {
-    return "Review evidence, repair missing/low-confidence source notes, then close after validation.";
+    return "Review evidence, submit repair notes, run validation checks, then resolve with matching evidence.";
   }
 
   if (resource === "source-health" || resource === "sources") {
@@ -285,7 +331,7 @@ function getSuggestedAction(row: Record<string, unknown>, resource: DetailResour
   }
 
   if (resource === "health-checks") {
-    return "Run import/sync for the stale layer, verify current data, then close the health check.";
+    return "Run import/sync for the stale layer, submit repair notes, then resolve after a fresh current health check exists.";
   }
 
   return "Inspect failed sync log, fix import/source issue, and rerun the sync job.";
@@ -373,10 +419,14 @@ function normalizeMonitoringRow(resource: ActionableDetailResource, row: Record<
 }
 
 function statusClass(status: string): string {
-  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh", "verified"].includes(status)) {
+  const normalized = status.toLowerCase();
+  if (normalized === "reopened") {
+    return "border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)]";
+  }
+  if (["healthy", "current", "success", "redirected", "closed", "resolved", "fresh", "verified"].includes(normalized)) {
     return "border-[#00FF88]/30 bg-[#00FF88]/10 text-[#00FF88]";
   }
-  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed verification"].includes(status)) {
+  if (["broken", "failed", "critical", "error", "high", "stale", "incomplete", "failed validation"].includes(normalized)) {
     return "border-[#FF4444]/30 bg-[#FF4444]/10 text-[#FF8888]";
   }
   return "border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]";
@@ -410,10 +460,10 @@ function actionStateKey(resource: DetailResource, id: string): string {
 }
 
 function manualVerificationInstruction(resource: DetailResource): string {
-  if (resource === "source-health" || resource === "sources") return "Manual verification: run `check:sources` to confirm source issues are resolved.";
-  if (resource === "health-checks") return "Manual verification: run `check:freshness` to confirm freshness issues are resolved.";
+  if (resource === "source-health" || resource === "sources") return "Pending validation: run `check:sources` so a fresh healthy/redirected source-health record exists before resolving.";
+  if (resource === "health-checks") return "Pending validation: run `check:freshness` or the relevant import/sync so a fresh current layer health record exists before resolving.";
   if (resource === "sync-logs") return "Manual verification: retry provider sync and confirm the next sync log succeeds.";
-  return "Manual verification: review the repaired evidence and confirm the task remains resolved.";
+  return "Pending validation: review the repaired evidence and run the matching source or freshness check before resolving.";
 }
 
 function getErrorMessage(body: unknown, fallback: string): string {
@@ -468,12 +518,13 @@ function isMissingAdminSessionError(error: unknown): boolean {
   );
 }
 
-function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string, layer = "", field = ""): string {
+function buildDetailUrl(resource: DetailResource, assetSlug: string, status: string, layer = "", field = "", assignedOwner = ""): string {
   const params = new URLSearchParams({ limit: "250" });
   if (assetSlug.trim()) params.set("assetSlug", assetSlug.trim());
   if (layer.trim()) params.set("layer", layer.trim());
   if (field.trim()) params.set("field", field.trim());
   if (status.trim()) params.set("status", status.trim());
+  if ((resource === "review-tasks" || resource === "health-checks") && assignedOwner.trim()) params.set("assignedOwner", assignedOwner.trim());
   return `${MONITORING_DETAIL_PROXY_BASE}/${resource}?${params.toString()}`;
 }
 
@@ -647,16 +698,16 @@ function AssetSummaryTable({ rows }: { rows: MonitoringOverview["assetSummaries"
         <span className="text-xs text-[var(--text-secondary)]">Top {sorted.length} risk assets</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] text-left text-sm">
+        <table className="w-full min-w-[1040px] text-left text-sm">
           <thead className="border-b border-[var(--border-line)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
             <tr>
               <th className="px-4 py-3 font-medium">Asset</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Score</th>
-              <th className="px-4 py-3 font-medium">Stale data</th>
-              <th className="px-4 py-3 font-medium">Missing source</th>
-              <th className="px-4 py-3 font-medium">Low confidence</th>
-              <th className="px-4 py-3 font-medium">Incomplete layer</th>
+              <th className="px-4 py-3 font-medium">Primary reason</th>
+              <th className="px-4 py-3 font-medium">Open issues</th>
+              <th className="px-4 py-3 font-medium">Highest severity</th>
+              <th className="px-4 py-3 font-medium">Last checked</th>
             </tr>
           </thead>
           <tbody>
@@ -670,10 +721,12 @@ function AssetSummaryTable({ rows }: { rows: MonitoringOverview["assetSummaries"
                   </td>
                   <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs ${statusClass(row.status)}`}>{row.status}</span></td>
                   <td className="px-4 py-3 terminal-data text-white">{row.score}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.staleData}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.missingSource}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.lowConfidenceSource}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.incompleteLayer}</td>
+                  <td className="px-4 py-3 max-w-sm text-[var(--text-secondary)]">
+                    <span className="line-clamp-2">{row.primaryReason || "—"}</span>
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.openIssueCount ?? row.totalIssues}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">{row.highestSeverity || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt)}</td>
                 </tr>
               ))
             )}
@@ -719,7 +772,7 @@ function WorkflowRail() {
     { title: "1. Triage", body: "Mulai dari broken/error source, high review, lalu needs-sync." },
     { title: "2. Verify", body: "Buka source, cek official URL, final redirect, field, dan layer evidence." },
     { title: "3. Repair", body: "Replace source di data layer, sync ulang, tandai restricted untuk access-gated source, atau broken/deprecated untuk source yang tidak valid." },
-    { title: "4. Close", body: "Close task hanya setelah source valid, layer current, dan audit trail jelas." },
+    { title: "4. Resolve", body: "Resolve hanya setelah source valid, layer current, matching validation evidence ada, dan audit trail jelas." },
   ];
 
   return (
@@ -874,7 +927,7 @@ function IssueTable({
                             ))}
                           </select>
                         ) : null}
-                        {(resource === "review-tasks" || resource === "health-checks") && id ? (
+                        {(resource === "review-tasks" || resource === "health-checks") && id && status.toLowerCase() !== "resolved" ? (
                           <button
                             type="button"
                             onClick={() => onClose(row)}
@@ -882,7 +935,7 @@ function IssueTable({
                             className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"
                           >
                             <ClipboardCheck className="size-3" />
-                            Close
+                            Resolve
                           </button>
                         ) : null}
                       </div>
@@ -901,27 +954,46 @@ function IssueTable({
 
 function UnifiedQueueTable({
   rows,
+  breakdown,
   actionLoadingId,
+  onReview,
   onView,
   onClose,
   onSourceStatus,
 }: {
   rows: MonitoringWorkItem[];
+  breakdown: MonitoringOverview["unifiedQueueBreakdown"];
   actionLoadingId: string | null;
+  onReview: (row: MonitoringWorkItem) => void;
   onView: (row: MonitoringWorkItem) => void;
   onClose: (row: MonitoringWorkItem, metadata?: ResolutionMetadata) => void;
   onSourceStatus: (row: MonitoringWorkItem, status: string) => void;
 }) {
+  const perTypeTotal = breakdown.byType.reduce((total, item) => total + item.count, 0);
+  const filtered = rows.length !== breakdown.totalIssues;
+
   return (
     <div className="data-surface overflow-hidden">
-      <div className="flex items-center justify-between border-b border-[var(--border-line)] px-4 py-3">
+      <div className="flex flex-col gap-3 border-b border-[var(--border-line)] px-4 py-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="terminal-label">Unified monitoring queue</p>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
             Default triage sorted by critical/high review tasks, broken/error sources, stale health checks, failed sync logs, then low-confidence/missing sources.
           </p>
         </div>
-        <span className="text-xs text-[var(--text-secondary)]">{rows.length} rows</span>
+        <div className="flex flex-wrap items-center gap-2 lg:max-w-[560px] lg:justify-end">
+          <span className="rounded-full border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--accent-cyan)]">
+            {breakdown.totalIssues} total issues
+          </span>
+          {breakdown.byType.map((item) => (
+            <span key={item.type} className="rounded-full border border-[var(--border-line)] bg-white/[0.03] px-2.5 py-1 text-xs text-[var(--text-secondary)]">
+              {item.label}: <span className="font-mono text-white">{item.count}</span>
+            </span>
+          ))}
+          <span className={`text-xs ${perTypeTotal === breakdown.totalIssues ? "text-[var(--text-muted)]" : "text-[#FF8888]"}`}>
+            sum {perTypeTotal}{filtered ? ` · showing ${rows.length}` : ""}
+          </span>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1220px] text-left text-sm">
@@ -954,9 +1026,10 @@ function UnifiedQueueTable({
                   <td className="max-w-[280px] px-4 py-3 text-[var(--text-secondary)]"><span className="line-clamp-2">{row.suggestedAction}</span></td>
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{formatDate(row.lastCheckedAt ?? row.createdAt)}</td>
                   <td className="px-4 py-3"><div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => onReview(row)} aria-label={`Review ${row.type} ${row.id} for ${row.assetSlug} ${row.layer}`} className="inline-flex items-center gap-1 rounded-md border border-[var(--accent-cyan)]/35 bg-[var(--accent-cyan)]/10 px-2 py-1 text-xs font-semibold text-[var(--accent-cyan)] hover:border-[var(--accent-cyan)]"><ClipboardCheck className="size-3" />Review</button>
                     <button type="button" onClick={() => onView(row)} className="inline-flex items-center gap-1 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-2 py-1 text-xs text-white hover:border-[var(--accent-cyan)]"><Eye className="size-3" />Detail</button>
                     {row.resource === "source-health" ? <select value="" onChange={(event) => { const nextStatus = event.target.value; if (nextStatus) onSourceStatus(row, nextStatus); event.target.value = ""; }} disabled={loading} aria-label="Update source status" className="rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-2 py-1 text-xs text-white outline-none transition hover:border-[var(--accent-cyan)] disabled:opacity-60"><option value="">Set status…</option>{sourceHealthStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : null}
-                    {(row.resource === "review-tasks" || row.resource === "health-checks") ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Close</button> : null}
+                    {(row.resource === "review-tasks" || row.resource === "health-checks") && row.status.toLowerCase() !== "resolved" ? <button type="button" onClick={() => onClose(row)} disabled={loading} className="inline-flex items-center gap-1 rounded-md border border-[#00FF88]/25 bg-[#00FF88]/10 px-2 py-1 text-xs text-[#00FF88] disabled:opacity-60"><ClipboardCheck className="size-3" />Resolve</button> : null}
                   </div></td>
                 </tr>
               );
@@ -973,8 +1046,11 @@ function DetailPanelContent({
   resource,
   onClear,
   onClose,
+  onReopen,
+  onSubmitRepair,
   onSourceStatus,
   onSourceRepair,
+  onAssign,
   actionLoadingId,
   actionStatus,
   granularCheckAvailable = false,
@@ -983,8 +1059,11 @@ function DetailPanelContent({
   resource: DetailResource;
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onReopen: (row: Record<string, unknown>, metadata: ReopenMetadata) => void;
+  onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
+  onAssign: (row: Record<string, unknown>, payload: AssignmentPayload) => void;
   actionLoadingId: string | null;
   actionStatus?: ActionVerificationStatus;
   granularCheckAvailable?: boolean;
@@ -994,9 +1073,13 @@ function DetailPanelContent({
   const assetHref = buildAssetHref(row.assetSlug, row, resource);
   const layerHref = buildLayerHref(row.assetSlug, row.layer, row.field, getRowUrl(row));
   const loading = Boolean(id && actionLoadingId === id);
+  const status = rowStatus(row).toLowerCase();
+  const canReopen = (resource === "review-tasks" || resource === "health-checks") && status === "resolved";
+  const canResolveOrRepair = (resource === "review-tasks" || resource === "health-checks") && status !== "resolved";
   const suggestedAction = typeof row.suggestedAction === "string" && row.suggestedAction.trim()
     ? row.suggestedAction
     : getSuggestedAction(row, resource);
+  const reviewContext = (row.reviewContext as MonitoringReviewContext | undefined) ?? buildMonitoringReviewContext({ ...row, resource });
   const [resolutionType, setResolutionType] = useState<ResolutionType>(
     typeof row.resolutionType === "string" && resolutionTypeOptions.some((option) => option.value === row.resolutionType)
       ? (row.resolutionType as ResolutionType)
@@ -1016,6 +1099,13 @@ function DetailPanelContent({
     typeof row.reliability === "number" ? String(row.reliability) : typeof row.baseReliability === "number" ? String(row.baseReliability) : "80",
   );
   const [repairEvidenceNote, setRepairEvidenceNote] = useState("");
+  const [reopenReason, setReopenReason] = useState(
+    typeof row.reopenReason === "string" && row.reopenReason.trim()
+      ? row.reopenReason
+      : "",
+  );
+  const [reopenConfirmed, setReopenConfirmed] = useState(false);
+  const [assignedOwner, setAssignedOwner] = useState(typeof row.assignedOwner === "string" ? row.assignedOwner : "");
 
   const closeMetadata = {
     resolutionType,
@@ -1024,9 +1114,9 @@ function DetailPanelContent({
   };
   const closeNote = JSON.stringify(
     {
-      resolvedBy: "admin",
-      resolvedAt: new Date().toISOString(),
-      action: resource === "source-health" ? "source_status_reviewed" : "monitoring_task_closed",
+      requestedBy: "admin",
+      requestedAt: new Date().toISOString(),
+      action: resource === "source-health" ? "source_status_reviewed" : "monitoring_resolution_request",
       assetSlug: asText(row.assetSlug),
       layer: asText(row.layer),
       issue: rowIssue(row),
@@ -1064,12 +1154,65 @@ function DetailPanelContent({
             <p className="terminal-label mb-2">Suggested action</p>
             <p className="text-sm leading-relaxed text-white">{suggestedAction}</p>
           </div>
+          <div className="rounded-lg border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/[0.04] p-3">
+            <p className="terminal-label mb-3">Review context</p>
+            <dl className="grid gap-3 text-xs md:grid-cols-2">
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Issue ID</dt>
+                <dd className="mt-1 break-words font-mono text-white">{reviewContext.issueId}</dd>
+              </div>
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Issue type</dt>
+                <dd className="mt-1 break-words font-mono text-white">{reviewContext.issueType}</dd>
+              </div>
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Field path</dt>
+                <dd className="mt-1 break-words font-mono text-white">{reviewContext.fieldPath}</dd>
+              </div>
+              <div>
+                <dt className="terminal-label text-[var(--text-label)]">Timestamp</dt>
+                <dd className="mt-1 break-words font-mono text-white">{formatDate(reviewContext.timestamp)}</dd>
+              </div>
+              <div className="md:col-span-2">
+                <dt className="terminal-label text-[var(--text-label)]">Source URL</dt>
+                <dd className="mt-1 break-words font-mono text-white">
+                  {reviewContext.sourceUrl ? (
+                    <a href={reviewContext.sourceUrl} target="_blank" rel="noreferrer" className="text-[var(--accent-cyan)] hover:underline">
+                      {reviewContext.sourceUrl}
+                    </a>
+                  ) : "N/A"}
+                </dd>
+              </div>
+            </dl>
+          </div>
           {actionStatus ? (
             <div className="rounded-lg border border-[var(--border-line)] bg-white/[0.025] p-3">
               <p className="terminal-label mb-2">Action status</p>
               <span className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(actionStatus)}`}>
                 {actionStatus}
               </span>
+            </div>
+          ) : null}
+          {status !== "reopened" && (row.validationResult || row.validationMethod || row.validationEvidenceRef) ? (
+            <div className="rounded-lg border border-[#00FF88]/20 bg-[#00FF88]/[0.04] p-3">
+              <p className="terminal-label mb-2 text-[#74FFB8]">Validation evidence</p>
+              <div className="grid gap-2 text-xs text-[var(--text-secondary)]">
+                <p>Method: <span className="font-mono text-white">{asText(row.validationMethod)}</span></p>
+                <p>Result: <span className="font-mono text-white">{asText(row.validationResult)}</span></p>
+                <p>Evidence: <span className="font-mono text-white">{asText(row.validationEvidenceRef ?? row.validationEvidenceId)}</span></p>
+                <p>Validated: <span className="font-mono text-white">{formatDate(row.validatedAt)}</span></p>
+              </div>
+            </div>
+          ) : rowStatus(row) === "pending_validation" ? (
+            <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+              Pending validation: a repair note exists, but no matching successful validation record has been attached yet.
+            </div>
+          ) : null}
+          {(resource === "review-tasks" || resource === "health-checks") ? (
+            <div className="rounded-lg border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/[0.04] p-3">
+              <p className="terminal-label mb-2">Owner</p>
+              <p className="text-sm text-white">{typeof row.assignedOwner === "string" && row.assignedOwner.trim() ? row.assignedOwner : "Unassigned"}</p>
+              {row.assignedAt ? <p className="mt-1 text-xs text-[var(--text-muted)]">Updated {formatDate(row.assignedAt)} by {asText(row.assignedBy)}</p> : null}
             </div>
           ) : null}
           <div className="grid gap-3 md:grid-cols-3">
@@ -1168,7 +1311,7 @@ function DetailPanelContent({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white hover:border-[var(--accent-cyan)]"
             >
               <ClipboardCheck className="size-4" />
-              Copy close log
+              Copy resolution note
             </button>
             {url && id ? (
               <form
@@ -1212,18 +1355,88 @@ function DetailPanelContent({
                 </div>
               </div>
             ) : null}
-            {(resource === "review-tasks" || resource === "health-checks") && id ? (
-              <button
-                type="button"
-                onClick={() => onClose(row, closeMetadata)}
-                disabled={loading || !resolutionNote.trim()}
-                className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60"
+            {(resource === "review-tasks" || resource === "health-checks") && id && status !== "resolved" ? (
+              <form
+                className="grid gap-2 rounded-lg border border-[var(--accent-cyan)]/25 bg-[var(--accent-cyan)]/5 p-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const trimmedOwner = assignedOwner.trim();
+                  onAssign(row, {
+                    assignedOwner: trimmedOwner ? trimmedOwner : null,
+                    expectedAssignedOwner: typeof row.assignedOwner === "string" && row.assignedOwner.trim() ? row.assignedOwner : null,
+                  });
+                }}
               >
-                Close after validation
-              </button>
+                <p className="terminal-label">Assignment</p>
+                <input
+                  value={assignedOwner}
+                  onChange={(event) => setAssignedOwner(event.target.value)}
+                  placeholder="Owner name, or leave blank to unassign"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+                <button type="submit" disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--accent-cyan)]/35 bg-[var(--accent-cyan)]/10 px-3 py-2 text-sm font-semibold text-[var(--accent-cyan)] disabled:opacity-60">
+                  <UserCheck className="size-4" />
+                  {assignedOwner.trim() ? "Assign owner" : "Unassign"}
+                </button>
+              </form>
+            ) : null}
+            {canResolveOrRepair && id ? (
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => onSubmitRepair(row, closeMetadata)}
+                  disabled={loading || !resolutionNote.trim()}
+                  className="rounded-md border border-[#FFB800]/30 bg-[#FFB800]/10 px-3 py-2 text-sm font-semibold text-[#FFB800] disabled:opacity-60"
+                >
+                  Submit repair for validation
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onClose(row, closeMetadata)}
+                  disabled={loading || !resolutionNote.trim()}
+                  className="rounded-md bg-[var(--accent-cyan)] px-3 py-2 text-sm font-semibold text-[#0A0E1A] disabled:opacity-60"
+                >
+                  Resolve with validation evidence
+                </button>
+              </div>
+            ) : null}
+            {canReopen && id ? (
+              <form
+                className="grid gap-2 rounded-lg border border-[var(--accent-cyan)]/25 bg-[var(--accent-cyan)]/5 p-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onReopen(row, { reason: reopenReason.trim() });
+                }}
+              >
+                <p className="terminal-label">Reopen resolved issue</p>
+                <textarea
+                  value={reopenReason}
+                  onChange={(event) => setReopenReason(event.target.value)}
+                  rows={3}
+                  placeholder="Why the previous resolution is no longer valid"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+                <label className="flex items-start gap-2 text-xs leading-relaxed text-[var(--text-secondary)]">
+                  <input
+                    type="checkbox"
+                    checked={reopenConfirmed}
+                    onChange={(event) => setReopenConfirmed(event.target.checked)}
+                    className="mt-0.5 size-4 rounded border-[var(--border-line)] bg-[#0A0E1A]"
+                  />
+                  <span>Confirm this resolved issue should become active again and require fresh validation before it is resolved.</span>
+                </label>
+                <button
+                  type="submit"
+                  disabled={loading || !reopenReason.trim() || !reopenConfirmed}
+                  className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--accent-cyan)]/35 bg-[var(--accent-cyan)]/10 px-3 py-2 text-sm font-semibold text-[var(--accent-cyan)] disabled:opacity-60"
+                >
+                  <RefreshCw className="size-4" />
+                  Reopen
+                </button>
+              </form>
             ) : null}
           </div>
-          {actionStatus === "pending verification" ? (
+          {actionStatus === "pending validation" ? (
             granularCheckAvailable ? (
               <button
                 type="button"
@@ -1240,7 +1453,7 @@ function DetailPanelContent({
             )
           ) : null}
           <div className="rounded-lg border border-[#FFB800]/20 bg-[#FFB800]/5 p-3 text-xs leading-relaxed text-[var(--text-secondary)]">
-            Restricted = akses dibatasi tetapi source belum terbukti rusak; broken = URL/konten tidak tersedia atau tidak lagi mendukung evidence. Close hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan audit note sudah aman.
+            Restricted = akses dibatasi tetapi source belum terbukti rusak; broken = URL/konten tidak tersedia atau tidak lagi mendukung evidence. Resolve hanya setelah source valid, data layer sudah diperbaiki, sync/import berhasil, dan matching validation evidence tersedia.
           </div>
         </div>
       </div>
@@ -1253,8 +1466,11 @@ function DetailPanel(props: {
   resource: DetailResource;
   onClear: () => void;
   onClose: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
+  onReopen: (row: Record<string, unknown>, metadata: ReopenMetadata) => void;
+  onSubmitRepair: (row: Record<string, unknown>, metadata: ResolutionMetadata) => void;
   onSourceStatus: (row: Record<string, unknown>, status: string) => void;
   onSourceRepair: (row: Record<string, unknown>, payload: SourceRepairPayload) => void;
+  onAssign: (row: Record<string, unknown>, payload: AssignmentPayload) => void;
   actionLoadingId: string | null;
   actionStatus?: ActionVerificationStatus;
   granularCheckAvailable?: boolean;
@@ -1277,7 +1493,8 @@ export default function MonitoringPage() {
   const [status, setStatus] = useState("open");
   const [layer, setLayer] = useState("");
   const [field, setField] = useState("");
-  const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
+  const [assignedOwnerFilter, setAssignedOwnerFilter] = useState("");
+  const [selectedRow, setSelectedRow] = useState<MonitoringSelectedRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -1296,9 +1513,7 @@ export default function MonitoringPage() {
 
   const sourceScore = useMemo(() => {
     if (!data) return "—";
-    const ok = (data.sourceStatusSummary.healthy ?? 0) + (data.sourceStatusSummary.redirected ?? 0);
-    const total = data.overview.totalSourceChecks || 1;
-    return `${Math.round((ok / total) * 100)}%`;
+    return `${data.sourceHealthSummary.healthPercentage}%`;
   }, [data]);
 
   const unifiedFilteredRows = useMemo(() => {
@@ -1388,14 +1603,28 @@ export default function MonitoringPage() {
         count: data.healthStatusSummary["needs-sync"] ?? 0,
         resource: "health-checks",
         status: "needs-sync",
-        helper: "Run import/sync, validate frontend, then close.",
+        helper: "Run import/sync, submit repair, then resolve after validation.",
       },
       {
-        label: "Manual review queue",
-        count: data.overview.openReviewTasks,
+        label: "Pending validation",
+        count: (data.healthStatusSummary.pending_validation ?? 0) + (data.reviewStatusSummary?.pending_validation ?? 0),
+        resource: "health-checks",
+        status: "pending_validation",
+        helper: "Validation evidence is still required before resolution.",
+      },
+      {
+        label: "Reopened issues",
+        count: (data.healthStatusSummary.reopened ?? 0) + (data.reviewStatusSummary?.reopened ?? 0),
         resource: "review-tasks",
-        status: "open",
-        helper: "Resolve evidence conflicts and missing source notes.",
+        status: "reopened",
+        helper: "Previously resolved issues that are active again.",
+      },
+      {
+        label: "Restricted sources",
+        count: data.sourceStatusSummary.restricted ?? 0,
+        resource: "source-health",
+        status: "restricted",
+        helper: "Confirm gated sources or replace when evidence is unavailable.",
       },
     ];
   }, [data]);
@@ -1420,6 +1649,8 @@ export default function MonitoringPage() {
   const loadUnifiedRows = useCallback(async () => {
     const requests: Array<[ActionableDetailResource, string]> = [
       ["review-tasks", "open"],
+      ["review-tasks", "reopened"],
+      ["review-tasks", "pending_validation"],
       ["source-health", "restricted"],
       ["source-health", "broken"],
       ["source-health", "error"],
@@ -1428,6 +1659,8 @@ export default function MonitoringPage() {
       ["source-health", "low-confidence"],
       ["health-checks", "stale"],
       ["health-checks", "needs-sync"],
+      ["health-checks", "reopened"],
+      ["health-checks", "pending_validation"],
       ["sync-logs", "failed"],
       ["sync-logs", "error"],
     ];
@@ -1467,7 +1700,7 @@ export default function MonitoringPage() {
       selectedLayer = layer,
       selectedField = field,
     ) => {
-      const url = buildDetailUrl(selectedResource, selectedAssetSlug, selectedStatus, selectedLayer, selectedField);
+      const url = buildDetailUrl(selectedResource, selectedAssetSlug, selectedStatus, selectedLayer, selectedField, assignedOwnerFilter);
       setDetailLoading(true);
       setError(null);
 
@@ -1495,7 +1728,7 @@ export default function MonitoringPage() {
         setDetailLoading(false);
       }
     },
-    [assetSlug, field, layer, resource, status],
+    [assetSlug, assignedOwnerFilter, field, layer, resource, status],
   );
 
   const resetMonitoringState = useCallback(() => {
@@ -1507,6 +1740,7 @@ export default function MonitoringPage() {
     setSelectedRow(null);
     setActionStatuses({});
     setField("");
+    setAssignedOwnerFilter("");
     setAdvancedMode(false);
   }, []);
 
@@ -1701,6 +1935,13 @@ export default function MonitoringPage() {
     [assetSlug, loadDetailRows, resetMonitoringState],
   );
 
+  const handleReviewQueueItem = useCallback((row: MonitoringWorkItem) => {
+    setResource(row.resource);
+    setSelectedRow(withMonitoringReviewContext(row) as unknown as MonitoringSelectedRow);
+    setNotice(`Review context loaded for ${row.type} ${row.id}.`);
+    setError(null);
+  }, []);
+
   const handleExportCsv = useCallback(() => {
     if (filteredRows.length === 0) {
       setError("No filtered monitoring rows to export.");
@@ -1722,12 +1963,12 @@ export default function MonitoringPage() {
     async (row: Record<string, unknown>, metadata?: ResolutionMetadata) => {
       const id = getRowId(row);
       if (!id) {
-        setError("This row has no id, so it cannot be closed from the workbench.");
+        setError("This row has no id, so it cannot be resolved from the workbench.");
         return;
       }
       const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
       if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
-        setError("Close action is only available for review tasks and layer health checks.");
+        setError("Resolve action is only available for review tasks and layer health checks.");
         return;
       }
 
@@ -1752,26 +1993,175 @@ export default function MonitoringPage() {
         const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
         if (!response.ok || !body.success) {
           throw new MonitoringRequestError(
-            getErrorMessage(body, response.statusText || "Close action failed"),
+            getErrorMessage(body, response.statusText || "Resolve action failed"),
             response.status,
             getErrorCode(body),
           );
         }
 
-        markActionStatus(targetResource, id, "pending verification");
+        markActionStatus(targetResource, id, "verified");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: targetResource });
-        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} updated. Pending verification.`);
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} resolved with validation evidence.`);
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
         }
-        setError(err instanceof Error ? err.message : "Close action failed");
+        setError(err instanceof Error ? err.message : "Resolve action failed");
       } finally {
         setActionLoadingId(null);
       }
     },
     [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
+  );
+
+  const handleSubmitRepair = useCallback(
+    async (row: Record<string, unknown>, metadata?: ResolutionMetadata) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This row has no id, so it cannot be moved to pending validation.");
+        return;
+      }
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
+        setError("Repair submission is only available for review tasks and layer health checks.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/repair`, {
+          method: "PATCH",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resolutionType: metadata?.resolutionType ?? "verified_manual",
+            resolutionNote: metadata?.resolutionNote ?? getSuggestedAction(row, targetResource),
+            ...(metadata?.evidenceUrl ? { evidenceUrl: metadata.evidenceUrl } : {}),
+          }),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Repair submission failed"),
+            response.status,
+            getErrorCode(body),
+          );
+        }
+
+        markActionStatus(targetResource, id, "pending validation");
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} moved to pending validation. Run the matching validation check before resolving.`);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
+        setError(err instanceof Error ? err.message : "Repair submission failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
+  );
+
+  const handleReopenRow = useCallback(
+    async (row: Record<string, unknown>, metadata: ReopenMetadata) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This row has no id, so it cannot be reopened from the workbench.");
+        return;
+      }
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
+        setError("Reopen action is only available for review tasks and layer health checks.");
+        return;
+      }
+      if (!metadata.reason.trim()) {
+        setError("Enter a reopen reason before reopening this issue.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/reopen`, {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: metadata.reason.trim() }),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(
+            getErrorMessage(body, response.statusText || "Reopen action failed"),
+            response.status,
+            getErrorCode(body),
+          );
+        }
+
+        markActionStatus(targetResource, id, "pending validation");
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(`${targetResource === "review-tasks" ? "Review task" : "Health check"} reopened and returned to the active queue.`);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) {
+          resetMonitoringState();
+        }
+        setError(err instanceof Error ? err.message : "Reopen action failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, markActionStatus, resetMonitoringState, resource],
+  );
+
+
+  const handleAssignRow = useCallback(
+    async (row: Record<string, unknown>, payload: AssignmentPayload) => {
+      const id = getRowId(row);
+      if (!id) {
+        setError("This row has no id, so it cannot be assigned from the workbench.");
+        return;
+      }
+      const targetResource = row.resource === "review-tasks" || row.resource === "health-checks" ? row.resource : resource;
+      if (targetResource !== "review-tasks" && targetResource !== "health-checks") {
+        setError("Assignment is only available for review tasks and layer health checks.");
+        return;
+      }
+
+      setActionLoadingId(id);
+      setError(null);
+      setNotice(null);
+
+      try {
+        const response = await fetch(`${MONITORING_DETAIL_PROXY_BASE}/${targetResource}/${encodeURIComponent(id)}/assignment`, {
+          method: "PATCH",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          cache: "no-store",
+        });
+        const body = (await response.json()) as ApiResponse<Record<string, unknown>>;
+        if (!response.ok || !body.success) {
+          throw new MonitoringRequestError(getErrorMessage(body, response.statusText || "Assignment failed"), response.status, getErrorCode(body));
+        }
+
+        await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
+        setSelectedRow({ ...body.data, resource: targetResource });
+        setNotice(payload.assignedOwner ? `${targetResource === "review-tasks" ? "Review task" : "Health check"} assigned to ${payload.assignedOwner}.` : `${targetResource === "review-tasks" ? "Review task" : "Health check"} unassigned.`);
+      } catch (err) {
+        if (isMissingAdminSessionError(err)) resetMonitoringState();
+        setError(err instanceof Error ? err.message : "Assignment failed");
+      } finally {
+        setActionLoadingId(null);
+      }
+    },
+    [loadDetailRows, loadMonitoringData, loadRepairLogs, resetMonitoringState, resource],
   );
 
   const handleSourceRepair = useCallback(
@@ -1805,10 +2195,10 @@ export default function MonitoringPage() {
           );
         }
 
-        markActionStatus(resource, id, "pending verification");
+        markActionStatus(resource, id, "pending validation");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data.source, resource, assetSlug: (body.data.source.asset as { slug?: string } | undefined)?.slug ?? body.data.source.assetSlug });
-        setNotice("Source item updated. Pending verification.");
+        setNotice("Source item updated. Pending validation.");
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
@@ -1852,10 +2242,10 @@ export default function MonitoringPage() {
           );
         }
 
-        markActionStatus("source-health", id, "pending verification");
+        markActionStatus("source-health", id, "pending validation");
         await Promise.all([loadMonitoringData(), loadDetailRows(), loadRepairLogs()]);
         setSelectedRow({ ...body.data, resource: "source-health" });
-        setNotice(`Source item updated to ${nextStatus}. Pending verification.`);
+        setNotice(`Source item updated to ${nextStatus}. Pending validation.`);
       } catch (err) {
         if (isMissingAdminSessionError(err)) {
           resetMonitoringState();
@@ -1876,7 +2266,7 @@ export default function MonitoringPage() {
           <p className="terminal-label mb-1.5">Admin monitoring</p>
           <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white">Data Repair Workbench</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Triage source errors, review stale layers, run sync checks, and close resolved dataset issues.
+            Triage source errors, review stale layers, run sync checks, and resolve only with validation evidence.
           </p>
           <p className="mt-2 text-xs text-[var(--text-muted)]">
             Monitoring proxy: <span className="terminal-data text-[var(--accent-cyan)]">{MONITORING_OVERVIEW_PROXY_URL}</span>
@@ -1971,13 +2361,13 @@ export default function MonitoringPage() {
             <StatCard
               label="Source health"
               value={sourceScore}
-              helper={`${data.sourceStatusSummary.healthy ?? 0} healthy, ${data.sourceStatusSummary.restricted ?? 0} restricted watch, ${data.sourceStatusSummary.broken ?? 0} broken`}
+              helper={`${data.sourceHealthSummary.healthy} healthy, ${data.sourceHealthSummary.restricted} restricted watch, ${data.sourceHealthSummary.broken} broken`}
               icon={DatabaseZap}
             />
             <StatCard
-              label="Open tasks"
+              label="Active review tasks"
               value={data.overview.openReviewTasks}
-              helper="Manual review queue"
+              helper={`${data.reviewStatusSummary?.open ?? 0} open, ${data.overview.reopenedReviewTasks ?? data.reviewStatusSummary?.reopened ?? 0} reopened`}
               icon={AlertTriangle}
             />
             <StatCard
@@ -2109,6 +2499,15 @@ export default function MonitoringPage() {
                   ))}
                 </datalist>
               </div>
+              <div>
+                <label className="terminal-label mb-2 block">Owner</label>
+                <input
+                  value={assignedOwnerFilter}
+                  onChange={(event) => setAssignedOwnerFilter(event.target.value)}
+                  placeholder="Bahrul or __unassigned"
+                  className="w-full rounded-md border border-[var(--border-line)] bg-[#0A0E1A] px-3 py-2 text-sm text-white outline-none transition focus:border-[var(--accent-cyan)]"
+                />
+              </div>
               <div className="flex items-end gap-2">
                 <button
                   type="button"
@@ -2132,6 +2531,7 @@ export default function MonitoringPage() {
                     setStatus("");
                     setLayer("");
                     setField("");
+                    setAssignedOwnerFilter("");
                     setSelectedRow(null);
                   }}
                   className="rounded-md border border-[var(--border-line)] bg-white/[0.03] px-3 py-2 text-sm text-white transition hover:border-[var(--accent-cyan)]"
@@ -2148,8 +2548,11 @@ export default function MonitoringPage() {
             resource={(selectedRow?.resource as DetailResource | undefined) ?? resource}
             onClear={() => setSelectedRow(null)}
             onClose={handleCloseRow}
+            onReopen={handleReopenRow}
+            onSubmitRepair={handleSubmitRepair}
             onSourceStatus={handleSourceStatus}
             onSourceRepair={handleSourceRepair}
+            onAssign={handleAssignRow}
             actionLoadingId={actionLoadingId}
             actionStatus={selectedActionStatus}
             granularCheckAvailable={false}
@@ -2162,17 +2565,19 @@ export default function MonitoringPage() {
                 rows={filteredRows}
                 resource={resource}
                 actionLoadingId={actionLoadingId}
-                onView={setSelectedRow}
+                onView={(row) => setSelectedRow(row as MonitoringSelectedRow)}
                 onClose={handleCloseRow}
                 onSourceStatus={handleSourceStatus}
               />
             ) : (
               <UnifiedQueueTable
                 rows={unifiedFilteredRows}
+                breakdown={data.unifiedQueueBreakdown}
                 actionLoadingId={actionLoadingId}
+                onReview={handleReviewQueueItem}
                 onView={(row) => {
                   setResource(row.resource);
-                  setSelectedRow(row as unknown as Record<string, unknown>);
+                  setSelectedRow(row as unknown as MonitoringSelectedRow);
                 }}
                 onClose={handleCloseRow}
                 onSourceStatus={handleSourceStatus}

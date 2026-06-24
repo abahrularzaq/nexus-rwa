@@ -20,6 +20,7 @@ const DATABASE_URL_ENV_BY_CONTEXT: Record<DatabaseRuntimeContext, string> = {
 
 let prisma: DatabaseClient | null = null;
 let activeDatabaseContext: DatabaseRuntimeContext | null = null;
+let testDatabaseClient: DatabaseClient | null = null;
 
 const prismaLogConfig: Prisma.PrismaClientOptions['log'] = IS_PRODUCTION
   ? ['warn', 'error']
@@ -88,6 +89,8 @@ function createDatabaseClient(context: DatabaseRuntimeContext): DatabaseClient {
 }
 
 function getDatabaseClient(context = getDatabaseRuntimeContext()): DatabaseClient {
+  if (testDatabaseClient) return testDatabaseClient;
+
   if (prisma && activeDatabaseContext !== context) {
     throw new Error(
       `Database client already initialized for "${activeDatabaseContext}"; `
@@ -123,4 +126,12 @@ export async function disconnectDatabase(): Promise<void> {
   await prisma.$disconnect();
   prisma = null;
   activeDatabaseContext = null;
+}
+
+export function setDatabaseClientForTests(client: DatabaseClient | null): void {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('setDatabaseClientForTests can only be used when NODE_ENV is test');
+  }
+
+  testDatabaseClient = client;
 }

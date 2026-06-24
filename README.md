@@ -134,7 +134,7 @@ npm run dev
 
 > **Source of truth:** curated asset content lives in `data/assets/{asset-slug}/` layer files and is loaded into Prisma with the asset file import pipeline. The Prisma seed catalog in `api/prisma/seed.ts` and `api/prisma/seed-helpers.ts` is only a local bootstrap/dev fallback for creating missing rows and API keys.
 
-Canonical curated asset data lives in `data/assets/{asset-slug}`. The Prisma database is hydrated from those files after migrations run; the seed step must not be treated as the primary asset catalog.
+Canonical curated asset data lives in `data/assets/{asset-slug}`. The Prisma database is hydrated from those files after migrations run; the seed step must not be treated as the primary asset catalog. The production asset import pipeline also synchronizes `sources.json` into the `AssetSource` source library table, so dashboard source counts are populated by the same canonical import step.
 
 ### Production-safe order
 
@@ -158,7 +158,7 @@ npm run import:all-asset-files -- --force
 npm run dev
 ```
 
-`npm run seed` is optional in environments where asset rows already exist. When it is used, it creates only missing bootstrap assets and skips existing assets so imported layer data is not overwritten.
+`npm run seed` is optional in environments where asset rows already exist. When it is used, it creates only missing bootstrap assets and skips existing assets so imported layer data is not overwritten. `npm run import:all-asset-files -- --force` is the normal production path and now idempotently syncs each asset's `sources.json` after the corresponding `Asset` row exists; operators do not need a separate source-library command during normal deployments.
 
 ### Single asset import
 
@@ -170,12 +170,14 @@ npm run import:asset-files -- --slug=blackrock-buidl --dry-run
 npm run import:asset-files -- --slug=blackrock-buidl --force
 ```
 
+Both single-asset and all-asset imports surface source-evidence warnings and fail if source synchronization fails. For emergency backfills or verification without importing layer data, run `npm run sync:sources -- --dry-run` or `npm run sync:sources` from the API workspace.
+
 ### Guardrails
 
 - Do not treat `api/prisma/seed-helpers.ts` catalog/minimal seeds as production asset content.
 - Do not use `prisma db push` for production deployments.
-- Re-run `npm run import:all-asset-files -- --force` after updating files under `data/assets/{asset-slug}/`.
-- Use `npm run import:asset-files -- --slug=<asset-slug> --force` when importing one changed asset.
+- Re-run `npm run import:all-asset-files -- --force` after updating files under `data/assets/{asset-slug}/`; this also synchronizes source evidence for all imported assets.
+- Use `npm run import:asset-files -- --slug=<asset-slug> --force` when importing one changed asset; this synchronizes only that asset's source evidence.
 - The import pipeline intentionally owns curated identity, reserve, risk, legal/compliance, liquidity, market, yield, institutional, and blockchain fields from the JSON layer files. Prisma seed remains only a bootstrap/dev fallback.
 
 ## Production deployment

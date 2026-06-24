@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { db } from '../lib/database.js';
+import { upsertReviewTaskDetection } from '../lib/review-task-fingerprint.js';
 
 const ROOT = process.cwd();
 const ASSETS_DIR = path.join(ROOT, '..', 'data', 'assets');
@@ -185,27 +186,16 @@ function buildReviewReason(result: SourceCheckResult): string {
   return `Source URL issue for ${result.layer}.${result.field ?? 'unknown'}: ${result.sourceUrl} (${result.status}${result.httpStatus ? ` ${result.httpStatus}` : ''})`;
 }
 
-async function createReviewTaskIfMissing(result: SourceCheckResult): Promise<void> {
+async function recordReviewTaskDetection(result: SourceCheckResult): Promise<void> {
   const reason = buildReviewReason(result);
-  const existingOpenTask = await db.reviewTask.findFirst({
-    where: {
-      assetSlug: result.assetSlug,
-      layer: result.layer,
-      reason,
-      status: 'open',
-    },
-  });
-
-  if (existingOpenTask) return;
-
-  await db.reviewTask.create({
-    data: {
-      assetSlug: result.assetSlug,
-      layer: result.layer,
-      priority: result.status === 'broken' ? 'high' : 'medium',
-      reason,
-      status: 'open',
-    },
+  await upsertReviewTaskDetection({
+    assetSlug: result.assetSlug,
+    layer: result.layer,
+    fieldPath: result.field ?? 'unknown',
+    sourceUrl: result.sourceUrl,
+    issueType: `source-url:${result.status}`,
+    priority: result.status === 'broken' ? 'high' : 'medium',
+    reason,
   });
 }
 
@@ -226,7 +216,7 @@ async function saveSourceResult(result: SourceCheckResult): Promise<void> {
   });
 
   if (result.status !== 'healthy' && result.status !== 'redirected') {
-    await createReviewTaskIfMissing(result);
+    await recordReviewTaskDetection(result);
   }
 }
 

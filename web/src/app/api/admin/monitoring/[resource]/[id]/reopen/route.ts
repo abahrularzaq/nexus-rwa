@@ -4,14 +4,17 @@ import { resolveAdminKey } from "@/lib/admin-session";
 export const dynamic = "force-dynamic";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:3001";
-const ALLOWED_RESOURCES = new Set(["health-checks", "source-health", "review-tasks", "sync-logs", "sources", "repair-logs"]);
+const ALLOWED_RESOURCES = new Set(["health-checks", "review-tasks"]);
 
 function apiBase(): string {
   return API_URL.trim().replace(/\/$/, "");
 }
 
-export async function GET(request: Request, { params }: { params: Promise<{ resource: string }> }) {
-  const { resource } = await params;
+async function forwardReopen(
+  request: Request,
+  { params }: { params: Promise<{ resource: string; id: string }> },
+) {
+  const { resource, id } = await params;
   const adminKey = resolveAdminKey(request);
 
   if (!ALLOWED_RESOURCES.has(resource)) {
@@ -20,7 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ reso
         success: false,
         error: {
           code: "INVALID_MONITORING_RESOURCE",
-          message: `Unsupported monitoring resource: ${resource}`,
+          message: `Unsupported reopen action for monitoring resource: ${resource}`,
         },
       },
       { status: 400 },
@@ -40,21 +43,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ reso
     );
   }
 
-  const incomingUrl = new URL(request.url);
-  const upstreamUrl = new URL(`${apiBase()}/v1/admin/monitoring/${resource}`);
-
-  for (const key of ["assetSlug", "layer", "field", "status", "assignedOwner", "limit"]) {
-    const value = incomingUrl.searchParams.get(key);
-    if (value) upstreamUrl.searchParams.set(key, value);
-  }
+  const upstreamUrl = `${apiBase()}/v1/admin/monitoring/${resource}/${encodeURIComponent(id)}/reopen`;
 
   try {
-    const upstream = await fetch(upstreamUrl.toString(), {
-      method: "GET",
+    const requestBody = await request.text();
+    const upstream = await fetch(upstreamUrl, {
+      method: request.method === "POST" ? "POST" : "PATCH",
       headers: {
         Accept: "application/json",
+        "Content-Type": request.headers.get("content-type") ?? "application/json",
         "X-Admin-Key": adminKey,
       },
+      body: requestBody || undefined,
       cache: "no-store",
     });
 
@@ -78,10 +78,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ reso
             error instanceof Error
               ? `Monitoring API unreachable from Next.js server: ${error.message}`
               : "Monitoring API unreachable from Next.js server",
-          upstreamUrl: upstreamUrl.toString(),
+          upstreamUrl,
         },
       },
       { status: 502 },
     );
   }
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ resource: string; id: string }> },
+) {
+  return forwardReopen(request, context);
+}
+
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ resource: string; id: string }> },
+) {
+  return forwardReopen(request, context);
 }

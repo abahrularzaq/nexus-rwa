@@ -27,9 +27,6 @@ Thumbs.db
 .idea/
 *.swp
 
-# Prisma
-api/prisma/migrations/
-
 # Cache
 .turbo/
 .cache/rwa-compass-dash/

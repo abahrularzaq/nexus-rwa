@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { db } from '../lib/database.js';
 import { calculateAssetGrade } from '../lib/assetGradeEngine.js';
+import { syncCanonicalSourceEvidence } from '../services/source-evidence-sync.service.js';
 
 const ROOT = process.cwd();
 
@@ -270,24 +271,11 @@ async function importAsset(slug: string) {
     });
   }
 
-  await db.assetSource.deleteMany({
-    where: { assetId: asset.id },
-  });
-
-  if (sources.length > 0) {
-    await db.assetSource.createMany({
-      data: sources.map((s) => ({
-        assetId: asset.id,
-        layer: s.layer,
-        field: s.field,
-        value: s.value === undefined || s.value === null ? null : String(s.value),
-        sourceUrl: s.sourceUrl,
-        sourceType: s.sourceType,
-        reliability: s.reliability,
-        checkedBy: s.checkedBy ?? 'manual',
-        notes: s.notes ?? null,
-      })),
-    });
+  const sourceSync = await syncCanonicalSourceEvidence({ assetSlugs: [slug] });
+  if (sourceSync.warnings.length > 0) {
+    for (const warning of sourceSync.warnings) {
+      console.warn(`[sources] ${warning.assetSlug}[${warning.index}]: ${warning.message}`);
+    }
   }
 
   const gradeInput = {
@@ -339,7 +327,7 @@ async function importAsset(slug: string) {
     },
   });
 
-  console.log(JSON.stringify({ slug, grade }, null, 2));
+  console.log(JSON.stringify({ slug, grade, sourceSync }, null, 2));
 }
 
 async function main() {

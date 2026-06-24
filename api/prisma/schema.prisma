@@ -256,21 +256,22 @@ model AssetLiquidity {
 }
 
 model AssetSource {
-  id          String              @id @default(cuid())
-  assetId     String
-  layer       String
-  field       String
-  value       String?
-  sourceUrl   String
-  sourceType  String
-  reliability Int
-  status      String   @default("needs_review")
-  checkedAt   DateTime @default(now())
-  checkedBy   String?
-  notes       String?
-  asset       Asset               @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  id           String              @id @default(cuid())
+  assetId      String
+  layer        String
+  field        String
+  value        String?
+  sourceUrl    String
+  sourceType   String
+  reliability  Int
+  status       String              @default("needs_review")
+  checkedAt    DateTime            @default(now())
+  checkedBy    String?
+  notes        String?
+  asset        Asset               @relation(fields: [assetId], references: [id], onDelete: Cascade)
   repairAudits SourceRepairAudit[]
 
+  @@unique([assetId, layer, field, sourceUrl])
   @@index([assetId])
   @@index([layer])
   @@index([field])
@@ -279,22 +280,22 @@ model AssetSource {
 }
 
 model SourceRepairAudit {
-  id               String      @id @default(cuid())
-  assetSourceId    String
-  assetSlug        String
-  layer            String
-  field            String
-  oldUrl           String
-  newUrl           String
-  oldReliability   Int?
-  newReliability   Int
-  oldStatus        String?
-  newStatus        String
-  reason           String
-  evidenceNote     String?
-  repairedBy       String?
-  createdAt        DateTime    @default(now())
-  assetSource      AssetSource @relation(fields: [assetSourceId], references: [id], onDelete: Cascade)
+  id             String      @id @default(cuid())
+  assetSourceId  String
+  assetSlug      String
+  layer          String
+  field          String
+  oldUrl         String
+  newUrl         String
+  oldReliability Int?
+  newReliability Int
+  oldStatus      String?
+  newStatus      String
+  reason         String
+  evidenceNote   String?
+  repairedBy     String?
+  createdAt      DateTime    @default(now())
+  assetSource    AssetSource @relation(fields: [assetSourceId], references: [id], onDelete: Cascade)
 
   @@index([assetSourceId])
   @@index([assetSlug])
@@ -324,24 +325,38 @@ model AssetGrade {
 }
 
 model DataHealthCheck {
-  id             String    @id @default(cuid())
-  assetSlug      String
-  layer          String
-  status         String
-  severity       String
-  reason         String?
-  resolutionType String?
-  resolutionNote String?
-  evidenceUrl    String?
-  lastCheckedAt  DateTime  @default(now())
-  nextCheckAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  assetSlug             String
+  layer                 String
+  status                String
+  severity              String
+  reason                String?
+  resolutionType        String?
+  resolutionNote        String?
+  evidenceUrl           String?
+  validationMethod      String?
+  validationResult      String?
+  validationEvidenceId  String?
+  validationEvidenceRef String?
+  validatedAt           DateTime?
+  validatedBy           String?
+  reopenedAt            DateTime?
+  reopenedBy            String?
+  reopenReason          String?
+  assignedOwner         String?
+  assignedAt            DateTime?
+  assignedBy            String?
+  lastCheckedAt         DateTime  @default(now())
+  nextCheckAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([assetSlug])
   @@index([layer])
   @@index([status])
   @@index([severity])
+  @@index([reopenedAt])
+  @@index([assignedOwner])
   @@index([lastCheckedAt])
   @@index([nextCheckAt])
 }
@@ -389,24 +404,49 @@ model SyncLog {
 }
 
 model ReviewTask {
-  id             String    @id @default(cuid())
-  assetSlug      String
-  layer          String
-  priority       String
-  reason         String
-  status         String    @default("open")
-  resolutionType String?
-  resolutionNote String?
-  evidenceUrl    String?
-  createdAt      DateTime  @default(now())
-  resolvedAt     DateTime?
+  id                    String    @id @default(cuid())
+  assetSlug             String
+  layer                 String
+  fieldPath             String?
+  sourceUrl             String?
+  issueType             String    @default("legacy")
+  fingerprint           String?
+  activeFingerprint     String?   @unique
+  priority              String
+  reason                String
+  status                String    @default("open")
+  resolutionType        String?
+  resolutionNote        String?
+  evidenceUrl           String?
+  validationMethod      String?
+  validationResult      String?
+  validationEvidenceId  String?
+  validationEvidenceRef String?
+  validatedAt           DateTime?
+  validatedBy           String?
+  reopenedAt            DateTime?
+  reopenedBy            String?
+  reopenReason          String?
+  assignedOwner         String?
+  assignedAt            DateTime?
+  assignedBy            String?
+  lastDetectedAt        DateTime  @default(now())
+  occurrenceCount       Int       @default(1)
+  createdAt             DateTime  @default(now())
+  resolvedAt            DateTime?
 
   @@index([assetSlug])
   @@index([layer])
+  @@index([fieldPath])
+  @@index([issueType])
+  @@index([fingerprint])
   @@index([status])
   @@index([priority])
+  @@index([lastDetectedAt])
   @@index([createdAt])
   @@index([resolvedAt])
+  @@index([reopenedAt])
+  @@index([assignedOwner])
 }
 
 model MonitoringRepairLog {
