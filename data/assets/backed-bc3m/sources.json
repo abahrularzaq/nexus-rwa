@@ -71,23 +71,33 @@
   },
   {
     "layer": "blockchain",
-    "field": "chains,transferRestrictions",
-    "value": "Ethereum, Gnosis, Polygon, Arbitrum, Fantom, Avalanche, BNB Smart Chain, Base; no technical transfer restrictions",
+    "field": "supportedNetworkScope,transferRestrictions",
+    "value": "Backed documentation generally lists Ethereum, Gnosis, Polygon, Arbitrum, Fantom, Avalanche, BNB Smart Chain, and Base for bTokens; ERC-20 tokens have no technical transfer restrictions",
     "sourceUrl": "https://assets.backed.fi/legal-documentation",
     "sourceType": "official_legal_documentation",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Official legal page lists supported bToken networks and states ERC-20 tokens have no technical transfer restrictions."
+    "notes": "This supports the issuer's general bToken network scope only. It does not prove a bC3M deployment or address on every listed chain."
   },
   {
     "layer": "blockchain",
-    "field": "contractAddress",
-    "value": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
-    "sourceType": "market_aggregator",
-    "reliability": 70,
+    "field": "ethereum.contractAddress,ethereum.tokenStandard,ethereum.isVerified",
+    "value": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7; ERC-20; true",
+    "sourceUrl": "https://etherscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
+    "sourceType": "verified_blockchain_explorer",
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Secondary source exposes the full address and chain explorer links. Independent chain-by-chain verification remains required."
+    "notes": "Etherscan identifies the address as Backed Finance bC3M Token and exposes the bC3M token tracker. Only Ethereum is retained as a product-level verified deployment."
+  },
+  {
+    "layer": "blockchain",
+    "field": "gnosis,polygon,arbitrum,avalanche,fantom,bsc,base",
+    "value": "unresolved",
+    "sourceUrl": "https://assets.backed.fi/legal-documentation",
+    "sourceType": "official_legal_documentation",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "The networks are within Backed's general bToken scope, but chain-specific bC3M contract evidence was not verified. Unsupported deployment entries were removed from blockchain.json."
   },
   {
     "layer": "liquidity",
