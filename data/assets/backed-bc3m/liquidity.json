@@ -1,22 +1,22 @@
 {
-  "redemptionType": "Existing bToken holders can redeem through Backed; new issuance is no longer available for bTokens. Product page states redemption is fully supported for existing holders.",
+  "redemptionType": "Existing bToken holders can redeem through Backed; new issuance is no longer available for bTokens.",
   "redemptionPeriodDays": null,
   "lockupPeriodDays": null,
-  "earlyRedemptionFee": 0.5,
+  "earlyRedemptionFee": null,
   "minRedemptionAmount": null,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
-  "liquidityScore": 25,
-  "liquidityNotes": "bC3M receives a conservative monthly/low-liquidity score because Backed states bTokens are closed to new issuance and CoinGecko showed $0 24h volume with a warning that listed exchange trading had stopped. Redemption is still supported for existing holders, but secondary liquidity appears weak.",
+  "liquidityScore": null,
+  "liquidityNotes": "CoinGecko showed zero 24-hour volume and no current listed-exchange activity. Direct redemption remains supported, but settlement time, minimum amount, settlement asset, and suspension terms were not verified. The official 0.5% figure is a general issuance/redemption fee, not an early-redemption fee.",
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-12",
+    "lastManualReview": "2026-06-24",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Liquidity scoring is deferred to the designated grading stage after source verification."
   }
 }
