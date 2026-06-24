@@ -14,10 +14,10 @@
 
 ## Current workflow status
 
-- Current stage: Source Verification recheck
+- Current stage: Risk & Grading
 - Current status: pending
-- Current owner agent: Source Verification Agent
-- Next agent: Source Verification Agent
+- Current owner agent: Risk & Grading Agent
+- Next agent: Risk & Grading Agent
 - Human decision required: no
 
 ## Agent stages
@@ -25,92 +25,96 @@
 | Stage | Agent | Status | Started | Completed | Output | Notes |
 |---|---|---|---|---|---|---|
 | 1 | Coordinator Agent | done | 2026-06-24 | 2026-06-24 | workflow-status.md | Scope approved |
-| 2 | Research Agent | done | 2026-06-24 | 2026-06-24 | source-discovery.md and corrected layer drafts | B-001 correction submitted |
-| 3 | Source Verification Agent | pending | 2026-06-24 | | source-review.md recheck | Previous verdict was `safeToProceed: false` |
-| 4 | Risk & Grading Agent | pending | | | risk.json and grade-baseline.json | Must not start before recheck |
+| 2 | Research Agent | done | 2026-06-24 | 2026-06-24 | source-discovery.md and corrected layer drafts | B-001 resolved |
+| 3 | Source Verification Agent | done | 2026-06-24 | 2026-06-24 | source-review.md | `safeToProceed: true` after recheck |
+| 4 | Risk & Grading Agent | pending | | | risk.json and grade-baseline.json | Ready to start |
 | 5 | Build Agent | pending | | | build-report.md | |
 | 6 | QA Review Agent | pending | | | qa-review.md | |
 | 7 | Human merge decision | pending | | | PR decision | |
 
 ## Current blockers
 
-| ID | Blocking issue | Owner agent | Required resolution | Status |
-|---|---|---|---|---|
-| B-001 | Seven non-Ethereum chain entries retained unsupported bC3M addresses | Research Agent | Remove unsupported entries and narrow evidence mapping | resolved_pending_recheck |
+None.
+
+## Resolved blockers
+
+| ID | Blocking issue | Resolution | Status |
+|---|---|---|---|
+| B-001 | Seven non-Ethereum chain entries retained unsupported bC3M addresses | Unsupported deployments removed; Ethereum retained with verified Etherscan evidence; source mapping narrowed | resolved |
 
 ## Current warnings
 
 | ID | Warning | Affected files | Follow-up |
 |---|---|---|---|
-| W-001 | Current bC3M final terms were not located and the English KID link returned 404 | institutional, compliance, source discovery | Keep product-specific legal gap visible |
-| W-002 | Product page is dated 2025-05-30 although the no-new-issuance notice remains live | identity, liquidity | Preserve verification date and freshness warning |
-| W-003 | Custodian evidence is issuer-published and lacks independent confirmation | reserve | Retain as warning |
-| W-004 | Market figures are last-recorded CoinGecko values, not active-market price discovery | market, liquidity | Keep low confidence and stale-market warning |
-| W-005 | Redemption settlement mechanics remain unavailable | liquidity | Keep unsupported fields null |
-| W-006 | Seven networks remain within Backed's general bToken scope but are not represented as product-level bC3M deployments | blockchain, sources | Re-add only when chain-specific evidence becomes available |
+| W-001 | Current bC3M final terms were not located and the English KID link returned 404 | institutional, compliance, source discovery | Reflect legal-document gap in grading warnings |
+| W-002 | Product page is dated 2025-05-30 although the no-new-issuance notice remains live | identity, liquidity | Preserve freshness warning |
+| W-003 | Custodian evidence is issuer-published and lacks independent confirmation | reserve | Reflect source concentration in grading |
+| W-004 | Market figures are last-recorded CoinGecko values, not active-market price discovery | market, liquidity | Do not overstate liquidity or market confidence |
+| W-005 | Redemption settlement mechanics remain unavailable | liquidity | Keep unsupported fields null and reflect uncertainty |
+| W-006 | Seven networks are within Backed's general bToken scope but are not represented as product-level bC3M deployments | blockchain, sources | Re-add only with chain-specific evidence |
 
-## Narrow Research correction result
+## Research correction result
 
-### Files changed
+- Only Ethereum remains in `blockchain.json`.
+- Ethereum address `0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7` is tied to bC3M through Etherscan.
+- `isVerified` is `true` for Ethereum.
+- `hasWhitelist` is `null`.
+- Gnosis, Polygon, Arbitrum, Avalanche, Fantom, BNB Smart Chain, and Base were removed as unverified product-level deployments.
+- `sources.json` separates general issuer network scope, verified Ethereum evidence, unresolved networks, and secondary market evidence.
+- CoinGecko is not used as final contract evidence.
 
-- `data/assets/backed-bc3m/blockchain.json`
-- `data/assets/backed-bc3m/sources.json`
-- `data/assets/backed-bc3m/source-discovery.md`
-- `docs/agent-runs/backed-bc3m/workflow-status.md`
+## Source Verification recheck result
 
-### Corrections completed
-
-- Retained only Ethereum as a product-level verified bC3M deployment.
-- Retained contract address `0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7` only for Ethereum.
-- Set Ethereum `isVerified` to `true` based on the Etherscan bC3M contract and token record.
-- Changed `hasWhitelist` from `false` to `null` because absence of whitelist logic was not explicitly proven.
-- Removed Gnosis, Polygon, Arbitrum, Avalanche, Fantom, BNB Smart Chain, and Base entries from `blockchain.json`.
-- Replaced CoinGecko contract evidence with the Ethereum Etherscan record.
-- Separated Backed's general supported-network statement from product-level deployment evidence.
-- Recorded all seven removed networks as unresolved in `sources.json` and `source-discovery.md`.
-
-### Evidence decision
-
-The official legal page supports Backed's general bToken network scope, but it does not prove a bC3M contract address on each network. CoinGecko was not used as final multi-chain contract evidence. Unsupported deployments were removed rather than inferred.
+- Output: `docs/agent-runs/backed-bc3m/source-review.md`
+- Verdict: `advance`
+- `safeToProceed: true`
+- B-001: resolved
+- RC-001: resolved
+- RC-002: resolved
+- RC-003: resolved
+- Blockchain layer: pass with warning
+- Sources layer: pass
+- Remaining issues: non-blocking warnings W-001 through W-006
 
 ## Latest stage result
 
-- Stage: Research correction
-- Agent: Research Agent
-- Verdict: `advance_to_recheck`
-- Evidence: Every retained non-null address is now tied to bC3M on the stated chain through a verified explorer record.
-- Output files: Listed above.
-- Remaining blockers: None claimed by Research; B-001 awaits independent recheck.
-- Remaining warnings: W-001 through W-006.
+- Stage: Source Verification recheck
+- Agent: Source Verification Agent
+- Verdict: `advance`
+- Evidence: Only the verified Ethereum deployment remains; unsupported whitelist and multi-chain claims were removed; source mapping now matches actual evidence.
+- Output files:
+  - `docs/agent-runs/backed-bc3m/source-review.md`
+  - `docs/agent-runs/backed-bc3m/workflow-status.md`
+- Remaining blockers: None
+- Remaining warnings: W-001 through W-006
 
 ## Next action
 
-- Next agent: Source Verification Agent
-- Exact scope: Recheck B-001 and RC-001 through RC-003 only.
+- Next agent: Risk & Grading Agent
+- Exact scope: Evaluate the verified bC3M package and update evidence-based risk and grade outputs only.
 - Required input:
-  - `docs/agents/03-source-verification-agent.md`
-  - `docs/agent-runs/backed-bc3m/source-review.md`
+  - `docs/agents/README.md`
+  - `docs/agents/04-risk-grading-agent.md`
   - `docs/agent-runs/backed-bc3m/workflow-status.md`
-  - `data/assets/backed-bc3m/blockchain.json`
-  - `data/assets/backed-bc3m/sources.json`
-  - `data/assets/backed-bc3m/source-discovery.md`
+  - `docs/agent-runs/backed-bc3m/source-review.md`
+  - all verified research-layer files under `data/assets/backed-bc3m/`
+  - existing `risk.json` and `grade-baseline.json`
 - Allowed files:
-  - `docs/agent-runs/backed-bc3m/source-review.md`
+  - `data/assets/backed-bc3m/risk.json`
+  - `data/assets/backed-bc3m/grade-baseline.json`
   - `docs/agent-runs/backed-bc3m/workflow-status.md`
-  - narrow research corrections only if another explicit defect is found
 - Forbidden files:
-  - `risk.json`
-  - `grade-baseline.json`
+  - research-layer files unless returning an explicit blocker
   - build and QA reports
   - application code, schema, migrations, dependencies, and unrelated assets
-- Required output: Recheck verdict with explicit `safeToProceed` value.
-- Acceptance criteria: Confirm only verified Ethereum remains, whitelist value is honest, and source mapping no longer overstates multi-chain evidence.
-- Stop condition: Stop after the Source Verification recheck. Do not grade, build, or QA.
+- Required output: Evidence-based risk and grade refresh with blockers, warnings, next actions, and handoff to Build Agent.
+- Acceptance criteria: Grade does not exceed verified evidence; unresolved legal, reserve, liquidity, market, and deployment limitations remain visible.
+- Stop condition: Stop after Risk & Grading outputs and handoff. Do not build or QA.
 
 ## Final status
 
 - Workflow completed: no
 - Safe to merge: pending
 - Safe to publish: pending
-- Final recommendation: Return to Source Verification Agent for blocker recheck
+- Final recommendation: Advance to Risk & Grading Agent
 - Human approval required: yes
