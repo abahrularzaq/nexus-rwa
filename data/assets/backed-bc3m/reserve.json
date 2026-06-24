@@ -1,25 +1,25 @@
 {
-  "backingType": "US Treasury",
-  "backingDescription": "bC3M tracks the Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF. The underlying ETF seeks to replicate the FTSE Eurozone Government Bill 0-6 Month Capped Index, which measures short-term sovereign bonds of certain Eurozone states with 0–6 month maturity.",
+  "backingType": "Eurozone government bills ETF exposure",
+  "backingDescription": "bC3M is a tracker certificate that tracks the Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF. The underlying ETF seeks to replicate the FTSE Eurozone Government Bill 0-6 Month Capped Index, which measures short-term sovereign bonds of certain Eurozone states with 0–6 month maturity.",
   "collateralizationRatio": null,
   "custodian": "Alpaca Securities LLC; InCore Bank AG; Maerki Baumann & Co. AG",
   "custodianUrl": null,
-  "hasProofOfReserves": false,
+  "hasProofOfReserves": null,
   "porOracleAddress": null,
   "porOracleChain": null,
   "lastAuditDate": null,
   "lastAuditUrl": null,
   "auditor": null,
   "reserveBreakdown": null,
-  "redemptionAsset": "Cash value of the underlying exposure",
+  "redemptionAsset": null,
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-12",
+    "lastManualReview": "2026-06-24",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
     "status": "current",
-    "notes": "No explicit bC3M proof-of-reserves or reserve breakdown was confirmed from the accessible official product page during this review."
+    "notes": "No explicit bC3M collateral ratio, reserve breakdown, reserve audit, attestation, redemption settlement asset, or proof-of-reserves mechanism was confirmed from accessible official sources. Absence of evidence is represented as null rather than false."
   }
 }
