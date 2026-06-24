@@ -14,10 +14,10 @@
 
 ## Current workflow status
 
-- Current stage: Risk & Grading
+- Current stage: Build
 - Current status: pending
-- Current owner agent: Risk & Grading Agent
-- Next agent: Risk & Grading Agent
+- Current owner agent: Build Agent
+- Next agent: Build Agent
 - Human decision required: no
 
 ## Agent stages
@@ -26,9 +26,9 @@
 |---|---|---|---|---|---|---|
 | 1 | Coordinator Agent | done | 2026-06-24 | 2026-06-24 | workflow-status.md | Scope approved |
 | 2 | Research Agent | done | 2026-06-24 | 2026-06-24 | source-discovery.md and corrected layer drafts | B-001 resolved |
-| 3 | Source Verification Agent | done | 2026-06-24 | 2026-06-24 | source-review.md | `safeToProceed: true` after recheck |
-| 4 | Risk & Grading Agent | pending | | | risk.json and grade-baseline.json | Ready to start |
-| 5 | Build Agent | pending | | | build-report.md | |
+| 3 | Source Verification Agent | done | 2026-06-24 | 2026-06-24 | source-review.md | `safeToProceed: true` |
+| 4 | Risk & Grading Agent | done | 2026-06-24 | 2026-06-24 | risk.json and grade-baseline.json | Research grade assigned |
+| 5 | Build Agent | pending | | | build-report.md | Ready to start |
 | 6 | QA Review Agent | pending | | | qa-review.md | |
 | 7 | Human merge decision | pending | | | PR decision | |
 
@@ -44,77 +44,95 @@ None.
 
 ## Current warnings
 
-| ID | Warning | Affected files | Follow-up |
+| ID | Warning | Scoring impact | Follow-up |
 |---|---|---|---|
-| W-001 | Current bC3M final terms were not located and the English KID link returned 404 | institutional, compliance, source discovery | Reflect legal-document gap in grading warnings |
-| W-002 | Product page is dated 2025-05-30 although the no-new-issuance notice remains live | identity, liquidity | Preserve freshness warning |
-| W-003 | Custodian evidence is issuer-published and lacks independent confirmation | reserve | Reflect source concentration in grading |
-| W-004 | Market figures are last-recorded CoinGecko values, not active-market price discovery | market, liquidity | Do not overstate liquidity or market confidence |
-| W-005 | Redemption settlement mechanics remain unavailable | liquidity | Keep unsupported fields null and reflect uncertainty |
-| W-006 | Seven networks are within Backed's general bToken scope but are not represented as product-level bC3M deployments | blockchain, sources | Re-add only with chain-specific evidence |
+| W-001 | Current bC3M-specific final terms were not located and the English KID link returned 404 | Reduced legal and source confidence | Obtain product-specific legal documents |
+| W-002 | Product page carries a 2025-05-30 update label | Reduced freshness confidence | Recheck official product details periodically |
+| W-003 | Custodian evidence is issuer-published only | Reduced reserve and counterparty confidence | Obtain independent service-provider confirmation |
+| W-004 | Market values are last-recorded CoinGecko observations with zero active volume | Material reduction to liquidity, market, and risk scores | Refresh only with clearly defined current market evidence |
+| W-005 | Redemption settlement mechanics are unavailable | Material reduction to liquidity and legal scores | Confirm period, asset, minimum, process, and suspension terms |
+| W-006 | Seven networks remain unresolved as product-level bC3M deployments | No multi-chain credit awarded | Re-add only with chain-specific evidence |
+| W-007 | No bC3M-specific reserve report, audit, attestation, assurance report, or PoR was verified | Material reduction to reserve score | Obtain authoritative product-level reserve evidence |
+| W-008 | New issuance is closed and the product is operationally redemption-only for existing holders | Limits primary-market growth and accessibility | Confirm long-term product lifecycle and redemption support |
 
-## Research correction result
+## Risk & Grading result
 
-- Only Ethereum remains in `blockchain.json`.
-- Ethereum address `0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7` is tied to bC3M through Etherscan.
-- `isVerified` is `true` for Ethereum.
-- `hasWhitelist` is `null`.
-- Gnosis, Polygon, Arbitrum, Avalanche, Fantom, BNB Smart Chain, and Base were removed as unverified product-level deployments.
-- `sources.json` separates general issuer network scope, verified Ethereum evidence, unresolved networks, and secondary market evidence.
-- CoinGecko is not used as final contract evidence.
+### Final grade
 
-## Source Verification recheck result
+- Grade: `research`
+- Total score: `58`
+- Previous grade: `analytics`
+- Previous score: `72`
+- Baseline date: `2026-06-24`
+- Grading profile: `asset_backed`
 
-- Output: `docs/agent-runs/backed-bc3m/source-review.md`
-- Verdict: `advance`
-- `safeToProceed: true`
-- B-001: resolved
-- RC-001: resolved
-- RC-002: resolved
-- RC-003: resolved
-- Blockchain layer: pass with warning
-- Sources layer: pass
-- Remaining issues: non-blocking warnings W-001 through W-006
+### Component scores
+
+| Component | Score | Rationale |
+|---|---:|---|
+| Completeness | 78 | All required files exist and unknown values are represented honestly, but important product-level legal, reserve, redemption, and market fields remain null |
+| Source | 75 | Strong official coverage for core identity and structure plus verified Ethereum evidence, offset by missing product-specific documents and secondary market reliance |
+| Legal | 68 | Issuer, jurisdiction, prospectus framework, eligibility, and redemption right are supported, but current final terms, KID, and settlement mechanics are missing |
+| Reserve | 48 | Underlying and issuer-published custodians are known, but no product-specific reserve composition, ratio, reporting, audit, attestation, assurance, or PoR exists in the verified package |
+| Liquidity | 22 | Redemption remains available, but issuance is closed, settlement mechanics are unknown, and observable exchange volume is zero |
+| Risk quality | 48 | Verified Ethereum contract and short-duration sovereign exposure mitigate risk, while issuer dependence, source gaps, inactive trading, and operational uncertainty remain material |
+
+### Scoring method
+
+The existing repository schema does not expose a reproducible permanent total-score formula in the reviewed asset files. The `58` total is therefore an evidence-based proposed baseline informed by the component profile and grade guardrails, not a silent new formula. Human review remains required.
+
+### Grade decision
+
+`institutional` is not supportable because product-level legal, reserve, redemption, and liquidity evidence is incomplete. `analytics` would also overstate confidence because the product lacks current product-specific legal documents, reserve reporting, active price discovery, and defined redemption settlement mechanics. The asset remains trackable with a verified issuer, underlying, legal framework, and Ethereum contract, making `research` the most defensible grade.
+
+### Files updated
+
+- `data/assets/backed-bc3m/risk.json`
+- `data/assets/backed-bc3m/grade-baseline.json`
+- `docs/agent-runs/backed-bc3m/workflow-status.md`
 
 ## Latest stage result
 
-- Stage: Source Verification recheck
-- Agent: Source Verification Agent
+- Stage: Risk & Grading
+- Agent: Risk & Grading Agent
 - Verdict: `advance`
-- Evidence: Only the verified Ethereum deployment remains; unsupported whitelist and multi-chain claims were removed; source mapping now matches actual evidence.
+- Evidence: Source Verification passed with `safeToProceed: true`; all scores were reduced or retained according to verified evidence and unresolved warnings.
 - Output files:
-  - `docs/agent-runs/backed-bc3m/source-review.md`
-  - `docs/agent-runs/backed-bc3m/workflow-status.md`
-- Remaining blockers: None
-- Remaining warnings: W-001 through W-006
-
-## Next action
-
-- Next agent: Risk & Grading Agent
-- Exact scope: Evaluate the verified bC3M package and update evidence-based risk and grade outputs only.
-- Required input:
-  - `docs/agents/README.md`
-  - `docs/agents/04-risk-grading-agent.md`
-  - `docs/agent-runs/backed-bc3m/workflow-status.md`
-  - `docs/agent-runs/backed-bc3m/source-review.md`
-  - all verified research-layer files under `data/assets/backed-bc3m/`
-  - existing `risk.json` and `grade-baseline.json`
-- Allowed files:
   - `data/assets/backed-bc3m/risk.json`
   - `data/assets/backed-bc3m/grade-baseline.json`
   - `docs/agent-runs/backed-bc3m/workflow-status.md`
+- Remaining blockers: None
+- Remaining warnings: W-001 through W-008
+
+## Next action
+
+- Next agent: Build Agent
+- Exact scope: Validate and integrate only the approved bC3M data and agent-run files already changed on this branch.
+- Required input:
+  - `docs/agents/README.md`
+  - `docs/agents/05-build-agent.md`
+  - `docs/agent-runs/backed-bc3m/workflow-status.md`
+  - `docs/agent-runs/backed-bc3m/source-review.md`
+  - all changed files under `data/assets/backed-bc3m/`
+- Allowed files:
+  - `docs/agent-runs/backed-bc3m/build-report.md`
+  - `docs/agent-runs/backed-bc3m/workflow-status.md`
+  - narrowly scoped corrections required for deterministic validation failures
 - Forbidden files:
-  - research-layer files unless returning an explicit blocker
-  - build and QA reports
-  - application code, schema, migrations, dependencies, and unrelated assets
-- Required output: Evidence-based risk and grade refresh with blockers, warnings, next actions, and handoff to Build Agent.
-- Acceptance criteria: Grade does not exceed verified evidence; unresolved legal, reserve, liquidity, market, and deployment limitations remain visible.
-- Stop condition: Stop after Risk & Grading outputs and handoff. Do not build or QA.
+  - unrelated assets
+  - schema or architecture changes without explicit approval
+  - UI redesign
+  - grade reinterpretation unless returning a blocker
+  - QA report
+  - automatic merge
+- Required output: Validation, import, typecheck, lint, test, and build results applicable to the repository; final diff scope; explicit readiness for QA.
+- Acceptance criteria: JSON and repository validations pass or failures are reported honestly; no unrelated changes; no fake fallback or placeholder data.
+- Stop condition: Stop after Build output and handoff to QA. Do not perform QA or merge.
 
 ## Final status
 
 - Workflow completed: no
 - Safe to merge: pending
 - Safe to publish: pending
-- Final recommendation: Advance to Risk & Grading Agent
+- Final recommendation: Advance to Build Agent
 - Human approval required: yes
