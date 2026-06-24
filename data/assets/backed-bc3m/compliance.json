@@ -2,25 +2,24 @@
   "regulatoryStatus": "approved_prospectus",
   "primaryRegulator": "Liechtenstein FMA",
   "regulatoryFramework": "EU Prospectus Regulation / Swiss law tracker certificate",
-  "kycRequired": true,
+  "kycRequired": null,
   "accreditedOnly": true,
   "blockedJurisdictions": [
-    "US",
-    "GB"
+    "US"
   ],
   "allowedJurisdictions": [],
-  "sanctionsScreening": true,
-  "amlPolicy": "Backed product materials state products are available only to qualified/professional investors through licensed entities and exclude U.S. persons and sanctioned persons.",
-  "lastComplianceCheck": "2026-06-12",
+  "sanctionsScreening": null,
+  "amlPolicy": "Backed's official materials limit access to professional or qualified investors and exclude U.S. persons and sanctioned persons. The accessible materials do not explicitly describe the operational KYC, AML, or sanctions-screening controls used for bC3M.",
+  "lastComplianceCheck": "2026-06-24",
   "legalOpinionUrl": null,
   "_meta": {
     "dataOwner": "manual-research",
-    "lastManualReview": "2026-06-12",
+    "lastManualReview": "2026-06-24",
     "reviewFrequencyDays": 30,
     "sourceTier": null,
     "confidence": null,
     "freshnessStatus": "current",
     "status": "current",
-    "notes": "UK clients are marked blocked because Backed's current product pages state products are not promoted or offered to UK clients. allowedJurisdictions left empty pending full country-level review."
+    "notes": "The website says products are not promoted or offered to UK clients but also states that certain products may be available to validated UK professional clients. GB is therefore not represented as an unconditional blocked jurisdiction without bC3M-specific evidence."
   }
 }
