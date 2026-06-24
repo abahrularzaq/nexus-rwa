@@ -5,94 +5,10 @@
     "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "tokenStandard": "ERC-20",
     "isTransferable": true,
-    "hasWhitelist": false,
+    "hasWhitelist": null,
     "hasTransferRestrictions": false,
     "explorerUrl": "https://etherscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
     "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "gnosis",
-    "chainId": 100,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://gnosisscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "polygon",
-    "chainId": 137,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://polygonscan.com/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "arbitrum",
-    "chainId": 42161,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://arbiscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "avalanche",
-    "chainId": 43114,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://snowtrace.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "fantom",
-    "chainId": 250,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://ftmscan.com/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "bsc",
-    "chainId": 56,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://bscscan.com/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
-  },
-  {
-    "chain": "base",
-    "chainId": 8453,
-    "contractAddress": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "tokenStandard": "ERC-20",
-    "isTransferable": true,
-    "hasWhitelist": false,
-    "hasTransferRestrictions": false,
-    "explorerUrl": "https://basescan.org/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "deployedAt": null,
-    "isVerified": false
+    "isVerified": true
   }
 ]
