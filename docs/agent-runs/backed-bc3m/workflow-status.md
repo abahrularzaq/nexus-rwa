@@ -14,11 +14,11 @@
 
 ## Current workflow status
 
-- Current stage: Build
-- Current status: pending
-- Current owner agent: Build Agent
-- Next agent: Build Agent
-- Human decision required: no
+- Current stage: Build remediation decision
+- Current status: blocked
+- Current owner agent: Coordinator Agent
+- Next agent: Coordinator Agent
+- Human decision required: yes
 
 ## Agent stages
 
@@ -28,13 +28,17 @@
 | 2 | Research Agent | done | 2026-06-24 | 2026-06-24 | source-discovery.md and corrected layer drafts | B-001 resolved |
 | 3 | Source Verification Agent | done | 2026-06-24 | 2026-06-24 | source-review.md | `safeToProceed: true` |
 | 4 | Risk & Grading Agent | done | 2026-06-24 | 2026-06-24 | risk.json and grade-baseline.json | Research grade assigned |
-| 5 | Build Agent | pending | | | build-report.md | Ready to start |
-| 6 | QA Review Agent | pending | | | qa-review.md | |
+| 5 | Build Agent | blocked | 2026-06-24 | 2026-06-24 | build-report.md | Importer/schema blockers; checks not executable in current environment |
+| 6 | QA Review Agent | pending | | | qa-review.md | Must not start |
 | 7 | Human merge decision | pending | | | PR decision | |
 
 ## Current blockers
 
-None.
+| ID | Blocking issue | Affected path | Required resolution | Status |
+|---|---|---|---|---|
+| BLD-001 | Reviewed unknown booleans are coerced to factual defaults during import | `api/src/lib/asset-file-import.ts`, Prisma boolean fields | Approve importer/schema handling for explicit unknown values and add regression coverage | open |
+| BLD-002 | Explicit numeric null values may not clear stale DB values during existing-asset refresh | `api/src/lib/asset-file-import.ts`, `api/src/scripts/import-from-files.ts` | Preserve explicit null in update payloads and test clearing old `liquidityScore` and `aumUsd` | open |
+| BLD-003 | Repository-native validation, import dry-run, typecheck, lint, tests, and build were not executed | Build environment | Run all required commands in a working checkout after remediation | open |
 
 ## Resolved blockers
 
@@ -44,95 +48,77 @@ None.
 
 ## Current warnings
 
-| ID | Warning | Scoring impact | Follow-up |
-|---|---|---|---|
-| W-001 | Current bC3M-specific final terms were not located and the English KID link returned 404 | Reduced legal and source confidence | Obtain product-specific legal documents |
-| W-002 | Product page carries a 2025-05-30 update label | Reduced freshness confidence | Recheck official product details periodically |
-| W-003 | Custodian evidence is issuer-published only | Reduced reserve and counterparty confidence | Obtain independent service-provider confirmation |
-| W-004 | Market values are last-recorded CoinGecko observations with zero active volume | Material reduction to liquidity, market, and risk scores | Refresh only with clearly defined current market evidence |
-| W-005 | Redemption settlement mechanics are unavailable | Material reduction to liquidity and legal scores | Confirm period, asset, minimum, process, and suspension terms |
-| W-006 | Seven networks remain unresolved as product-level bC3M deployments | No multi-chain credit awarded | Re-add only with chain-specific evidence |
-| W-007 | No bC3M-specific reserve report, audit, attestation, assurance report, or PoR was verified | Material reduction to reserve score | Obtain authoritative product-level reserve evidence |
-| W-008 | New issuance is closed and the product is operationally redemption-only for existing holders | Limits primary-market growth and accessibility | Confirm long-term product lifecycle and redemption support |
+| ID | Warning | Follow-up |
+|---|---|---|
+| W-001 | Current bC3M-specific final terms were not located and the English KID link returned 404 | Obtain product-specific legal documents |
+| W-002 | Product page carries a 2025-05-30 update label | Recheck official product details periodically |
+| W-003 | Custodian evidence is issuer-published only | Obtain independent service-provider confirmation |
+| W-004 | Market values are last-recorded CoinGecko observations with zero active volume | Do not treat as active pricing, NAV, AUM, or executable liquidity |
+| W-005 | Redemption settlement mechanics are unavailable | Confirm period, asset, minimum, process, and suspension terms |
+| W-006 | Seven networks remain unresolved as product-level bC3M deployments | Re-add only with chain-specific evidence |
+| W-007 | No product-specific reserve report, audit, attestation, assurance report, or PoR was verified | Obtain authoritative product-level reserve evidence |
+| W-008 | New issuance is closed and the product is redemption-only for existing holders | Confirm long-term lifecycle and redemption support |
 
 ## Risk & Grading result
 
-### Final grade
-
 - Grade: `research`
-- Total score: `58`
-- Previous grade: `analytics`
-- Previous score: `72`
+- Score: `58`
 - Baseline date: `2026-06-24`
-- Grading profile: `asset_backed`
+- Blockers at grading stage: none
+- Warnings preserved: W-001 through W-008
 
-### Component scores
+## Build result
 
-| Component | Score | Rationale |
-|---|---:|---|
-| Completeness | 78 | All required files exist and unknown values are represented honestly, but important product-level legal, reserve, redemption, and market fields remain null |
-| Source | 75 | Strong official coverage for core identity and structure plus verified Ethereum evidence, offset by missing product-specific documents and secondary market reliance |
-| Legal | 68 | Issuer, jurisdiction, prospectus framework, eligibility, and redemption right are supported, but current final terms, KID, and settlement mechanics are missing |
-| Reserve | 48 | Underlying and issuer-published custodians are known, but no product-specific reserve composition, ratio, reporting, audit, attestation, assurance, or PoR exists in the verified package |
-| Liquidity | 22 | Redemption remains available, but issuance is closed, settlement mechanics are unknown, and observable exchange volume is zero |
-| Risk quality | 48 | Verified Ethereum contract and short-duration sovereign exposure mitigate risk, while issuer dependence, source gaps, inactive trading, and operational uncertainty remain material |
+- Output: `docs/agent-runs/backed-bc3m/build-report.md`
+- Build passed: false
+- Import passed: not run
+- `readyForQA: false`
+- Diff scope: clean; only bC3M asset and agent-run files changed
+- Grade enum: compatible with existing `research` baselines
+- Ethereum-only blockchain file: statically compatible
+- Risk file fields and `MEDIUM` level: statically compatible
+- File-level `liquidityScore: null` and `aumUsd: null`: semantically correct but not safely integrated by current refresh importer
 
-### Scoring method
+### Deterministic findings
 
-The existing repository schema does not expose a reproducible permanent total-score formula in the reviewed asset files. The `58` total is therefore an evidence-based proposed baseline informed by the component profile and grade guardrails, not a silent new formula. Human review remains required.
-
-### Grade decision
-
-`institutional` is not supportable because product-level legal, reserve, redemption, and liquidity evidence is incomplete. `analytics` would also overstate confidence because the product lacks current product-specific legal documents, reserve reporting, active price discovery, and defined redemption settlement mechanics. The asset remains trackable with a verified issuer, underlying, legal framework, and Ethereum contract, making `research` the most defensible grade.
-
-### Files updated
-
-- `data/assets/backed-bc3m/risk.json`
-- `data/assets/backed-bc3m/grade-baseline.json`
-- `docs/agent-runs/backed-bc3m/workflow-status.md`
+1. `hasWhitelist: null` maps to `false`.
+2. `hasProofOfReserves: null` maps to `false`.
+3. `kycRequired: null` maps to `true`.
+4. `sanctionsScreening: null` maps to `false`.
+5. Numeric `null` maps to `undefined`, so existing DB values such as old liquidity score or AUM may remain unchanged.
+6. Prisma currently defines the affected boolean fields as non-null, so reviewed unknown states cannot be preserved without an explicit modeling decision.
 
 ## Latest stage result
 
-- Stage: Risk & Grading
-- Agent: Risk & Grading Agent
-- Verdict: `advance`
-- Evidence: Source Verification passed with `safeToProceed: true`; all scores were reduced or retained according to verified evidence and unresolved warnings.
+- Stage: Build
+- Agent: Build Agent
+- Verdict: `blocked`
+- Evidence: Static inspection of the repository-native importer and Prisma schema shows data-honesty loss during existing-asset import; executable checks were unavailable because the environment could not check out the repository.
 - Output files:
-  - `data/assets/backed-bc3m/risk.json`
-  - `data/assets/backed-bc3m/grade-baseline.json`
+  - `docs/agent-runs/backed-bc3m/build-report.md`
   - `docs/agent-runs/backed-bc3m/workflow-status.md`
-- Remaining blockers: None
+- Remaining blockers: BLD-001 through BLD-003
 - Remaining warnings: W-001 through W-008
 
 ## Next action
 
-- Next agent: Build Agent
-- Exact scope: Validate and integrate only the approved bC3M data and agent-run files already changed on this branch.
-- Required input:
-  - `docs/agents/README.md`
-  - `docs/agents/05-build-agent.md`
-  - `docs/agent-runs/backed-bc3m/workflow-status.md`
-  - `docs/agent-runs/backed-bc3m/source-review.md`
-  - all changed files under `data/assets/backed-bc3m/`
-- Allowed files:
-  - `docs/agent-runs/backed-bc3m/build-report.md`
-  - `docs/agent-runs/backed-bc3m/workflow-status.md`
-  - narrowly scoped corrections required for deterministic validation failures
-- Forbidden files:
-  - unrelated assets
-  - schema or architecture changes without explicit approval
-  - UI redesign
-  - grade reinterpretation unless returning a blocker
-  - QA report
-  - automatic merge
-- Required output: Validation, import, typecheck, lint, test, and build results applicable to the repository; final diff scope; explicit readiness for QA.
-- Acceptance criteria: JSON and repository validations pass or failures are reported honestly; no unrelated changes; no fake fallback or placeholder data.
-- Stop condition: Stop after Build output and handoff to QA. Do not perform QA or merge.
+- Next agent: Coordinator Agent
+- Decision required: Approve a separate, narrow integration-remediation scope before QA.
+- Recommended scope:
+  - define how unknown booleans are represented in Prisma and importer payloads;
+  - preserve explicit JSON null for nullable fields during existing-record updates;
+  - add regression tests for bC3M refresh clearing stale `liquidityScore` and `aumUsd`;
+  - run asset validation, normalized validation, verification, dry-run import, typecheck, lint, tests, and production build.
+- Forbidden until resolved:
+  - QA approval
+  - merge
+  - publication
+- Stop condition: Coordinator must decide whether to authorize importer-only remediation or importer plus schema migration.
 
 ## Final status
 
 - Workflow completed: no
-- Safe to merge: pending
-- Safe to publish: pending
-- Final recommendation: Advance to Build Agent
+- Safe to merge: no
+- Safe to publish: no
+- Final recommendation: Return to Coordinator for integration-remediation decision
 - Human approval required: yes
