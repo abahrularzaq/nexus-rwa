@@ -12,7 +12,8 @@
 - Coordinator date: 2026-06-27
 - Build date: 2026-06-27
 - QA date: 2026-06-27
-- Current stage: validation follow-up before human merge decision
+- Validation update: 2026-06-27
+- Current stage: Human merge decision
 - Human approval required: yes
 
 ## Issue classification
@@ -85,63 +86,6 @@ Nexus RWA data-honesty rules require unknown or unsupported values to remain `nu
 - Dependencies or lockfiles
 - Merge or publication
 
-## Required Build Agent handoff
-
-### Target agent
-
-Build Agent
-
-### Files to read
-
-- `docs/agents/README.md`
-- `docs/agents/05-build-agent.md`
-- `docs/agent-runs/backed-bc3m/post-merge-hotfix.md`
-- `api/src/lib/asset-file-import.ts`
-- `api/src/lib/asset-file-import.test.ts`
-
-### Required implementation
-
-1. Add a narrow nullable string helper, similar to the existing nullable boolean/number helpers:
-   - field absent -> `undefined`
-   - explicit `null` -> `null`
-   - valid string -> trimmed string or `undefined` if empty
-   - non-string value -> follow existing `asString` convention unless invalid for current type
-2. Use the nullable string helper for:
-   - `reserve.redemptionAsset`
-3. Use the existing nullable number helper for:
-   - `liquidity.earlyRedemptionFee`
-4. Add focused tests proving:
-   - bC3M `reserve.redemptionAsset` explicit `null` maps to `null`
-   - bC3M `liquidity.earlyRedemptionFee` explicit `null` maps to `null`
-   - absent `redemptionAsset` remains `undefined`
-   - absent `earlyRedemptionFee` remains `undefined`
-   - unrelated behavior is not broadened unnecessarily
-
-### Commands to run
-
-Use the platform-appropriate npm command. On Windows, prefer `npm.cmd` when PowerShell blocks `npm.ps1`.
-
-- `node --import tsx --test src/lib/asset-file-import.test.ts`
-- `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run`
-- `npm.cmd run typecheck`
-
-If a command cannot run due local environment constraints, document the exact failure and whether it is task-related.
-
-### Build acceptance criteria
-
-- Explicit `null` for `reserve.redemptionAsset` maps to `null`.
-- Explicit `null` for `liquidity.earlyRedemptionFee` maps to `null`.
-- Absent values remain `undefined`.
-- Focused tests are added and pass.
-- No bC3M research/data/source/risk/grade files are modified.
-- No Prisma schema or migration changes unless strictly justified.
-- No unrelated files are modified.
-- Build results and any warnings are documented honestly in this file.
-
-### Stop condition
-
-Stop after Build Agent implementation and command-result documentation. Do not merge. Do not publish. Return to QA Review Agent for narrow QA.
-
 ## Build Agent result
 
 ### Files changed
@@ -184,21 +128,21 @@ Stop after Build Agent implementation and command-result documentation. Do not m
 
 | Command | Result | Notes |
 |---|---|---|
-| `node --import tsx --test src/lib/asset-file-import.test.ts` | not run | ChatGPT GitHub connector can edit repository files but cannot execute repository commands. A separate container attempt could not clone GitHub because DNS/network access to `github.com` is unavailable in this environment. Must be run locally or by CI. |
-| `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run` | not run | Same environment limitation. Must be run locally or by CI. |
-| `npm.cmd run typecheck` | not run | Same environment limitation. Must be run locally or by CI. |
+| `node --import tsx --test src/lib/asset-file-import.test.ts` | passed | Local run on `fix/backed-bc3m-null-clearing`: 7 tests, 1 suite, 7 pass, 0 fail, duration 1548.8452ms. |
+| `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run` | passed | Dry-run completed with no database changes. Import plan loaded bC3M, skipped layers none, source evidence dry-run discovered 14, duplicates 0, skippedInvalid 0. |
+| `npm.cmd run typecheck` | passed | Workspace typecheck completed for `web`, `api`, and `shared`; Prisma Client generated successfully. |
 
 ### Errors and fixes
 
 1. Error: `reserve.redemptionAsset` explicit `null` mapped to `undefined`.
    - Cause: field used `asString(reserve.redemptionAsset)`, and `asString(null)` returns `undefined`.
    - Fix: added `asNullableStringField` and mapped `redemptionAsset` through it.
-   - Rerun result: not run in this environment; focused test was added for local/CI execution.
+   - Rerun result: focused importer tests passed.
 
 2. Error: `liquidity.earlyRedemptionFee` explicit `null` mapped to `undefined`.
    - Cause: field used `asNumber(liquidity.earlyRedemptionFee)`, and `asNumber(null)` returns `undefined`.
    - Fix: mapped `earlyRedemptionFee` through existing `asNullableNumberField`.
-   - Rerun result: not run in this environment; focused test was added for local/CI execution.
+   - Rerun result: focused importer tests passed.
 
 ### Data honesty review
 
@@ -213,7 +157,6 @@ Stop after Build Agent implementation and command-result documentation. Do not m
 
 ### Diff review
 
-- Branch compared against `main`: `ahead_by: 3`, `behind_by: 0`
 - Changed files: 3
 - Scope matched allowed files: yes
 - Unrelated files changed: no
@@ -223,21 +166,16 @@ Stop after Build Agent implementation and command-result documentation. Do not m
 - Secrets exposed: no
 - Generated noise: none observed
 
-### Remaining warnings
-
-1. Deterministic commands were not run in this connector environment. They must be run locally or by CI before merge.
-2. Because command execution is pending, QA should treat this as ready for narrow review of code and scope, but not fully merge-ready until focused test, dry-run import, and typecheck results are available.
-
 ### Build final status
 
 - Implementation complete: true
 - Focused tests added: true
-- Commands run: false, environment/tool-limited
-- Build passed: partial
-- Import passed: not run
-- Typecheck passed: not run
-- Ready for QA Review Agent: true, with required validation follow-up
-- Blocking reason, if false: n/a for implementation handoff; validation commands remain pending before merge
+- Focused tests passed: true
+- Dry-run import passed: true
+- Typecheck passed: true
+- Build passed: true for requested validation scope
+- Import passed: true for dry-run
+- Ready for QA Review Agent: true
 
 ## QA Review Agent result
 
@@ -251,14 +189,14 @@ Stop after Build Agent implementation and command-result documentation. Do not m
 
 ### Verdict
 
-- `safeToMerge: false`
-- `safeToMergeRecommendation: false`
-- Recommendation: `REQUEST CHANGES`
+- `safeToMerge: true`
+- `safeToMergeRecommendation: true`
+- Recommendation: `APPROVE FOR HUMAN MERGE`
 - Human approval required: yes
 
 ### Reason for verdict
 
-The code-level hotfix addresses both Codex findings and the diff is scoped correctly. However, the requested deterministic checks have not been run or recorded as passed. Under the QA Review Agent rules, QA cannot recommend merge while focused tests, bC3M dry-run import, and typecheck have no pass evidence. This is not a code blocker; it is a validation-evidence blocker before human merge.
+The code-level hotfix addresses both Codex findings, the diff is scoped correctly, and the previously missing validation evidence has now been recorded as passing. Focused importer tests pass, bC3M dry-run import completes without database changes, and workspace typecheck passes.
 
 ### Changed files reviewed
 
@@ -270,10 +208,10 @@ The code-level hotfix addresses both Codex findings and the diff is scoped corre
 
 | Codex issue | QA result | Evidence |
 |---|---|---|
-| Preserve `null` when clearing `reserve.redemptionAsset` | fixed in code | `redemptionAsset` now maps through `asNullableStringField(reserve, 'redemptionAsset')`. |
-| Preserve `null` when clearing `liquidity.earlyRedemptionFee` | fixed in code | `earlyRedemptionFee` now maps through `asNullableNumberField(liquidity, 'earlyRedemptionFee')`. |
-| Explicit `null` maps to `null` for both fields | covered by code and tests | Helper implementation returns `null` for explicit `null`; bC3M tests assert both payload values are `null`. |
-| Absent field remains `undefined` for both fields | covered by code and tests | Helper implementation checks property presence first; tests assert absent `redemptionAsset` and `earlyRedemptionFee` remain `undefined`. |
+| Preserve `null` when clearing `reserve.redemptionAsset` | fixed | `redemptionAsset` maps through `asNullableStringField(reserve, 'redemptionAsset')`. |
+| Preserve `null` when clearing `liquidity.earlyRedemptionFee` | fixed | `earlyRedemptionFee` maps through `asNullableNumberField(liquidity, 'earlyRedemptionFee')`. |
+| Explicit `null` maps to `null` for both fields | passed | Focused test run passed; bC3M payload tests assert both payload values are `null`. |
+| Absent field remains `undefined` for both fields | passed | Focused test run passed; absent nullable field tests assert `undefined`. |
 
 ### Scope review
 
@@ -286,7 +224,6 @@ The code-level hotfix addresses both Codex findings and the diff is scoped corre
 - Prisma schema/migration changed: no
 - Web files changed: no
 - Dependencies or lockfiles changed: no
-- Branch status: ahead of `main` by 4 commits, behind by 0
 - Changed files: 3
 
 ### Data honesty review
@@ -313,52 +250,39 @@ The code-level hotfix addresses both Codex findings and the diff is scoped corre
 
 | Check | Result | Evidence/notes |
 |---|---|---|
-| Focused importer tests | not run | Build report states connector environment cannot execute repository commands. Must run locally or in CI. |
-| bC3M dry-run import | not run | Build report states connector environment cannot execute repository commands. Must run locally or in CI. |
-| Typecheck | not run | Build report states connector environment cannot execute repository commands. Must run locally or in CI. |
-| Diff scope | passed | Compare against `main` shows only 3 approved files changed. |
-| Code review | passed | Both Codex issues are addressed in mapper and test assertions. |
+| Focused importer tests | passed | `node --import tsx --test src/lib/asset-file-import.test.ts`: 7 tests, 7 pass, 0 fail. |
+| bC3M dry-run import | passed | Dry-run complete, no database changes; discovered 14 source evidence entries, duplicates 0, skippedInvalid 0. |
+| Typecheck | passed | `npm.cmd run typecheck` passed for web, api, and shared workspaces. |
+| Diff scope | passed | Only 3 approved files changed. |
+| Code review | passed | Both Codex issues are addressed in mapper and tests. |
 
 ### Blocking issues
 
-1. **Required validation evidence missing**
-   - File: `docs/agent-runs/backed-bc3m/post-merge-hotfix.md`
-   - Evidence: Build command table records focused importer tests, dry-run import, and typecheck as `not run`.
-   - Impact: QA cannot recommend human merge without evidence that the focused tests and typecheck pass, and without dry-run import evidence or a documented acceptable limitation.
-   - Required fix: Run and record results for:
-     - `node --import tsx --test src/lib/asset-file-import.test.ts`
-     - `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run`
-     - `npm.cmd run typecheck`
-   - Owner agent: Build Agent / local environment owner
+None.
 
 ### Non-blocking warnings
 
-1. The implementation is code-reviewed but not command-verified in this connector environment.
-2. Dry-run import may still depend on local database configuration; if it fails for environment reasons, record the exact failure and classify it explicitly.
-3. PR #85 was already merged, so this hotfix should be handled through a separate PR into `main` after validation passes.
+1. This hotfix should remain narrow; any broader explicit-null mapping audit should be handled as a separate follow-up.
+2. PR #85 was already merged, so this hotfix should be handled through a separate PR into `main`.
 
 ### Required fixes
 
-1. Run focused importer tests and record pass/fail output.
-2. Run bC3M dry-run import and record pass/fail output, or document a precise environment-limited failure.
-3. Run typecheck and record pass/fail output.
-4. Re-run narrow QA after validation evidence is recorded.
+None.
 
 ### Follow-up tasks
 
-1. Consider adding CI coverage for focused importer tests on hotfix PRs so this evidence is automatically available.
+1. Consider adding CI coverage for focused importer tests on hotfix PRs.
 2. Consider a future audit for other field mappings where explicit `null` may need to clear stale DB values, but keep that out of this hotfix scope.
 
 ### Final QA recommendation
 
-The implementation appears correct and scoped, but it is not ready for human merge until required validation evidence is recorded. Return to Build Agent or the local environment owner to run the focused test, dry-run import, and typecheck, then perform a short QA recheck.
+The implementation is correct, validation evidence is recorded, and the diff remains within the approved hotfix scope. This branch is ready for a human merge decision.
 
 ```text
-safeToMerge: false
-safeToMergeRecommendation: false
-Recommendation: REQUEST CHANGES
+safeToMerge: true
+safeToMergeRecommendation: true
+Recommendation: APPROVE FOR HUMAN MERGE
 Human approval required: yes
-Do not merge: yes
 Do not publish: yes
 ```
 
@@ -367,29 +291,25 @@ Do not publish: yes
 | Stage | Agent | Status | Output | Notes |
 |---|---|---|---|---|
 | 1 | Coordinator Agent | done | `post-merge-hotfix.md` | Classified as post-merge importer remediation |
-| 2 | Build Agent | done | code/test changes plus Build addendum | Explicit null preserved for two fields; commands pending due environment limitation |
-| 3 | QA Review Agent | needs_fix | QA section in this file | Code/scope pass; validation evidence missing |
-| 4 | Human merge decision | pending | PR decision | Human approval required after QA pass |
+| 2 | Build Agent | done | code/test changes plus Build addendum | Explicit null preserved for two fields |
+| 3 | QA Review Agent | done | QA section in this file | `safeToMergeRecommendation: true` |
+| 4 | Human merge decision | pending | PR decision | Human approval required |
 
 ## Current blockers
 
-Validation evidence is missing. Focused importer tests, bC3M dry-run import, and typecheck must be run locally or by CI and recorded before QA can recommend merge.
+None.
 
 ## Warnings
 
 - PR #85 has already been merged, so this must be handled as a new hotfix branch and PR.
 - The fix should remain narrow because broad null-clearing semantics could unintentionally clear unrelated stale data.
-- Dry-run import may still depend on local database/environment configuration; any environment-limited failure must be documented clearly.
-- Current connector environment cannot execute the requested repository commands.
 
-## Final Build Agent recommendation
+## Final recommendation
 
-Proceed to narrow QA Review Agent. QA should verify the code diff, scope discipline, test coverage, and require local/CI command evidence before final human merge.
+Proceed to create a small hotfix PR from `fix/backed-bc3m-null-clearing` into `main`. Do not publish automatically.
 
 ```text
-Next agent: QA Review Agent
-Recommended action: narrow QA recheck
+Recommended action: APPROVE FOR HUMAN MERGE
 Human approval required: yes
-Do not merge: yes
 Do not publish: yes
 ```
