@@ -487,7 +487,7 @@ Typical checks include:
 npm.cmd run typecheck
 npm.cmd run build
 npm.cmd run import:asset-files --workspace=api -- --slug={slug} --dry-run
-npm.cmd run verify:assets
+npm.cmd run verify:assets --workspace=api
 ```
 
 For focused code changes, run focused tests where available.
