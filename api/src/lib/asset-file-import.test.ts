@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { assetFileImportTestHelpers, mapAssetFilesToImportPayload } from './asset-file-import.js';
 
-const { asNullableBoolField, asNullableNumberField } = assetFileImportTestHelpers;
+const { asNullableBoolField, asNullableStringField, asNullableNumberField } = assetFileImportTestHelpers;
 
 describe('asset file import null-preserving mappings', () => {
   it('preserves boolean true, false, explicit null, and absent fields distinctly', () => {
@@ -16,6 +16,21 @@ describe('asset file import null-preserving mappings', () => {
     assert.equal(asNullableBoolField(row, 'falseValue'), false);
     assert.equal(asNullableBoolField(row, 'nullValue'), null);
     assert.equal(asNullableBoolField(row, 'absentValue'), undefined);
+  });
+
+  it('preserves explicit nullable string fields without clearing absent values', () => {
+    const row: Record<string, unknown> = {
+      validString: '  cash  ',
+      emptyString: '  ',
+      numericValue: 123,
+      nullValue: null,
+    };
+
+    assert.equal(asNullableStringField(row, 'validString'), 'cash');
+    assert.equal(asNullableStringField(row, 'emptyString'), undefined);
+    assert.equal(asNullableStringField(row, 'numericValue'), '123');
+    assert.equal(asNullableStringField(row, 'nullValue'), null);
+    assert.equal(asNullableStringField(row, 'absentValue'), undefined);
   });
 
   it('preserves explicit nullable numeric fields without silently nulling invalid values', () => {
@@ -38,6 +53,7 @@ describe('asset file import null-preserving mappings', () => {
     assert.equal(payload.blockchain[0]?.chain, 'ethereum');
     assert.equal(payload.blockchain[0]?.hasWhitelist, null);
     assert.equal(payload.reserve.hasProofOfReserves, null);
+    assert.equal(payload.reserve.redemptionAsset, null);
     assert.equal(payload.compliance.kycRequired, null);
     assert.equal(payload.compliance.sanctionsScreening, null);
   });
@@ -45,10 +61,18 @@ describe('asset file import null-preserving mappings', () => {
   it('maps bC3M explicit numeric nulls while leaving unrelated null fields unchanged', () => {
     const payload = mapAssetFilesToImportPayload('backed-bc3m');
 
+    assert.equal(payload.liquidity.earlyRedemptionFee, null);
     assert.equal(payload.liquidity.liquidityScore, null);
     assert.equal(payload.market.aumUsd, null);
     assert.equal(payload.reserve.collateralizationRatio, undefined);
     assert.equal(payload.liquidity.redemptionPeriodDays, undefined);
+  });
+
+  it('keeps absent nullable fields distinct from explicit nulls', () => {
+    const row: Record<string, unknown> = {};
+
+    assert.equal(asNullableStringField(row, 'redemptionAsset'), undefined);
+    assert.equal(asNullableNumberField(row, 'earlyRedemptionFee'), undefined);
   });
 
   it('keeps implementation-default booleans compatible with existing true and false values', () => {
