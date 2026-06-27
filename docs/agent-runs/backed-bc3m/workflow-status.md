@@ -10,14 +10,14 @@
 - Task type: Existing asset refresh with integration remediation
 - Branch: pilot/backed-bc3m-research
 - Started: 2026-06-24
-- Last updated: 2026-06-25
+- Last updated: 2026-06-27
 
 ## Current workflow status
 
-- Current stage: Integration remediation
+- Current stage: Asset verification remediation / Coordinator decision
 - Current status: blocked
-- Current owner agent: Build Agent
-- Next agent: Coordinator Agent / environment owner
+- Current owner agent: Coordinator Agent / environment owner
+- Next agent: Coordinator Agent
 - Human decision required: yes
 
 ## Coordinator decision
@@ -36,8 +36,8 @@
 | 4 | Risk & Grading Agent | done | 2026-06-24 | 2026-06-24 | risk.json and grade-baseline.json | Research grade assigned |
 | 5A | Build Agent | blocked | 2026-06-24 | 2026-06-24 | build-report.md | BLD-001 through BLD-003 found |
 | 5B | Build Agent - integration remediation | blocked | 2026-06-25 | 2026-06-25 | code, migration, tests, updated build-report.md | BLD-001, BLD-002, and BLD-003A fixed; BLD-003B still blocked by local DB TLS credentials |
-| 6 | QA Review Agent | pending | | | qa-review.md | Must wait for remaining remediation checks |
-| 7 | Human merge decision | pending | | | PR decision | |
+| 6 | QA Review Agent | blocked | 2026-06-27 | 2026-06-27 | qa-review.md | `safeToMerge: false`; cannot approve while Build report says `readyForQA: false` |
+| 7 | Human merge decision | pending | | | PR decision | Must wait for BLD-003B resolution/classification |
 
 ## Current blockers
 
@@ -47,6 +47,7 @@
 | BLD-002 | Explicit numeric nulls do not clear stale existing DB values | Distinguish absent fields from explicit null and pass null to nullable Prisma fields | fixed_by_build |
 | BLD-003A | Normalized asset validator rejects approved nullable evidence booleans | Permit `boolean | null` only for the four approved evidence fields | fixed_by_build |
 | BLD-003B | Asset verification cannot connect to configured PostgreSQL database | Classify or resolve the local database/TLS credential issue, then rerun `verify:assets` | blocked_environment |
+| QA-001 | Build report still states `readyForQA: false` | Coordinator must resolve or formally classify BLD-003B before merge approval can be considered | open |
 
 ## Approved remediation scope
 
@@ -88,42 +89,18 @@
 - QA approval, merge, or publication.
 - Real database import unless explicitly authorized after dry-run validation.
 
-## Allowed files
-
-- `api/prisma/schema.prisma`
-- `api/prisma/migrations/20260625000000_nullable_evidence_booleans/migration.sql`
-- `api/src/lib/asset-file-import.ts`
-- `api/src/scripts/validate-normalized-assets.ts`
-- `api/src/scripts/import-from-files.ts` only if required to preserve explicit null during update
-- focused test files under existing API test conventions
-- `docs/agent-runs/backed-bc3m/build-report.md`
-- `docs/agent-runs/backed-bc3m/workflow-status.md`
-
-## Forbidden files
-
-- All files under `data/assets/backed-bc3m/`
-- `docs/agent-runs/backed-bc3m/source-review.md`
-- `docs/agent-runs/backed-bc3m/qa-review.md`
-- unrelated assets
-- web application files
-- unrelated API routes, services, or validation scripts
-- seed data unless Coordinator re-approves
-- unrelated Prisma models, migrations, or schema fields
-- dependencies and lockfiles
-- automatic merge or publication
-
 ## Implementation semantics
 
 ### Boolean tri-state
 
 For each approved boolean field:
 
-| JSON state | Import meaning | Build status |
-|---|---|---|
-| `true` | Store `true` | implemented and tested |
-| `false` | Store `false` | implemented and tested |
-| `null` | Store `null` | implemented and tested |
-| field absent | Preserve absence as `undefined` in payload mapping | implemented and tested |
+| JSON state | Import meaning | Build status | QA status |
+|---|---|---|---|
+| `true` | Store `true` | implemented and tested | accepted |
+| `false` | Store `false` | implemented and tested | accepted |
+| `null` | Store `null` | implemented and tested | accepted |
+| field absent | Preserve absence as `undefined` in payload mapping | implemented and tested | accepted |
 
 Normalized validation now permits `boolean | null` only for:
 
@@ -143,11 +120,11 @@ Normalized validation still requires non-null booleans for:
 
 For nullable numeric fields involved in this existing asset refresh:
 
-| JSON state | Import meaning | Build status |
-|---|---|---|
-| number | Store number | implemented and tested |
-| `null` | Clear existing DB value by storing `null` | implemented and tested in payload mapping |
-| field absent | Leave existing DB value unchanged | implemented and tested in helper mapping |
+| JSON state | Import meaning | Build status | QA status |
+|---|---|---|---|
+| number | Store number | implemented and tested | accepted |
+| `null` | Clear existing DB value by storing `null` | implemented and tested in payload mapping | accepted at payload level |
+| field absent | Leave existing DB value unchanged | implemented and tested in helper mapping | accepted at payload level |
 
 Invalid non-null numeric values remain `undefined`; they are not silently converted to `null`.
 
@@ -168,11 +145,24 @@ Invalid non-null numeric values remain `undefined`; they are not silently conver
 | `npm.cmd run test:backend` | passed: 68 tests, 0 failed |
 | `npm.cmd run build` | passed |
 
+## QA result
+
+- Output: `docs/agent-runs/backed-bc3m/qa-review.md`
+- QA verdict: `BLOCKED — ADDITIONAL INPUT REQUIRED`
+- `safeToMerge: false`
+- `safeToMergeRecommendation: false`
+- Scope review: pass
+- Data honesty review: pass
+- Source integrity review: pass
+- Grading integrity review: pass
+- Code/schema remediation review: pass
+- Merge readiness: blocked by BLD-003B / QA-001
+
 ## Final status
 
 - Workflow completed: no
 - Safe to merge: no
 - Safe to publish: no
-- `readyForQA: false`
-- Final recommendation: classify or resolve the asset-verification environment issue, then rerun `verify:assets` with working database credentials before QA.
-- Human approval required: yes before QA, merge, or publication
+- `readyForQA: false` remains because Build report records unresolved asset verification failure
+- Final recommendation: Coordinator must classify or resolve the asset-verification environment issue before any human merge decision.
+- Human approval required: yes before merge or publication
