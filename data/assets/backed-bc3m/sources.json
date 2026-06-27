@@ -1,152 +1,142 @@
 [
   {
     "layer": "identity",
-    "field": "name",
-    "value": "Backed GOVIES 0-6 Months Euro Investment Grade",
+    "field": "name,symbol,isin,websiteUrl",
+    "value": "Backed GOVIES 0-6 Months Euro Investment Grade; bC3M; CH1173294286",
     "sourceUrl": "https://assets.backed.fi/products/bc3m",
     "sourceType": "official_website",
     "reliability": 92,
     "checkedBy": "manual",
-    "notes": "Official Backed product page."
+    "notes": "Official product page reviewed 2026-06-24; page carries a 2025-05-30 last-updated label."
   },
   {
     "layer": "identity",
-    "field": "symbol",
-    "value": "bC3M",
+    "field": "description,underlying",
+    "value": "Tracker certificate tracking the Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF",
     "sourceUrl": "https://assets.backed.fi/products/bc3m",
     "sourceType": "official_website",
     "reliability": 92,
     "checkedBy": "manual",
-    "notes": "Official Backed product page."
-  },
-  {
-    "layer": "identity",
-    "field": "isin",
-    "value": "CH1173294286",
-    "sourceUrl": "https://assets.backed.fi/products/bc3m",
-    "sourceType": "official_website",
-    "reliability": 92,
-    "checkedBy": "manual",
-    "notes": "Product details on official page."
-  },
-  {
-    "layer": "identity",
-    "field": "websiteUrl",
-    "value": "https://assets.backed.fi/products/bc3m",
-    "sourceUrl": "https://assets.backed.fi/products/bc3m",
-    "sourceType": "official_website",
-    "reliability": 92,
-    "checkedBy": "manual",
-    "notes": "Official product page."
+    "notes": "Official investment objective and underlying information."
   },
   {
     "layer": "institutional",
-    "field": "issuerName",
-    "value": "Backed Assets (JE) Limited",
-    "sourceUrl": "https://assets.backed.fi/products/bc3m",
-    "sourceType": "official_website",
-    "reliability": 92,
-    "checkedBy": "manual",
-    "notes": "Product details on official page."
-  },
-  {
-    "layer": "institutional",
-    "field": "legalStructure",
-    "value": "Certificate tracker of an underlying",
+    "field": "issuerName,legalStructure,underlying",
+    "value": "Backed Assets (JE) Limited; Swiss-law certificate tracking an underlying; Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF",
     "sourceUrl": "https://assets.backed.fi/legal-documentation",
     "sourceType": "official_legal_documentation",
     "reliability": 92,
     "checkedBy": "manual",
-    "notes": "Legal documentation page states legal category and Swiss law."
+    "notes": "Legal hub confirms tracker-certificate category and Swiss law; product page confirms issuer and underlying."
   },
   {
     "layer": "institutional",
-    "field": "underlying",
-    "value": "Amundi ETF GOVIES 0-6 Months EUROMTS Investment Grade UCITS ETF",
+    "field": "newIssuanceAvailable",
+    "value": "false",
     "sourceUrl": "https://assets.backed.fi/products/bc3m",
     "sourceType": "official_website",
-    "reliability": 92,
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Underlying information on official product page."
+    "notes": "Live site notice says bTokens are no longer available for new issuance."
   },
   {
     "layer": "reserve",
-    "field": "custodian",
-    "value": "Alpaca Securities LLC; InCore Bank AG; Maerki Baumann & Co. AG",
+    "field": "backingDescription,custodian",
+    "value": "Exposure tracks a Eurozone government-bill ETF; Alpaca Securities LLC, InCore Bank AG, Maerki Baumann & Co. AG",
     "sourceUrl": "https://assets.backed.fi/products/bc3m",
     "sourceType": "official_website",
     "reliability": 88,
     "checkedBy": "manual",
-    "notes": "Service provider list on official product page."
-  },
-  {
-    "layer": "reserve",
-    "field": "securityAgent",
-    "value": "Security Agent Services AG",
-    "sourceUrl": "https://assets.backed.fi/products/bc3m",
-    "sourceType": "official_website",
-    "reliability": 88,
-    "checkedBy": "manual",
-    "notes": "Service provider list on official product page."
+    "notes": "Official underlying and service-provider sections. No bC3M reserve report, ratio, audit, or proof-of-reserves statement was located."
   },
   {
     "layer": "compliance",
-    "field": "regulatoryStatus",
-    "value": "Approved in Liechtenstein by FMA as of 2026-05-08",
+    "field": "regulatoryStatus,primaryRegulator,regulatoryFramework",
+    "value": "Base Prospectus approved by Liechtenstein FMA on 2026-05-08; EU Prospectus Regulation; Swiss law",
     "sourceUrl": "https://assets.backed.fi/legal-documentation",
     "sourceType": "official_legal_documentation",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Legal documentation page."
+    "notes": "Issuer-level Base Prospectus. A working bC3M-specific final terms document was not located."
   },
   {
     "layer": "compliance",
-    "field": "blockedJurisdictions",
-    "value": "U.S. persons prohibited; UK clients not offered/promoted",
+    "field": "accreditedOnly,blockedJurisdictions",
+    "value": "Professional/qualified investors; U.S. persons excluded",
     "sourceUrl": "https://assets.backed.fi/products/bc3m",
     "sourceType": "official_website",
     "reliability": 88,
     "checkedBy": "manual",
-    "notes": "Legal restrictions on official product page."
+    "notes": "UK language is conditional and was not represented as an unconditional country block."
   },
   {
     "layer": "blockchain",
-    "field": "contractAddress",
-    "value": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
-    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
-    "sourceType": "market_aggregator",
-    "reliability": 70,
+    "field": "supportedNetworkScope,transferRestrictions",
+    "value": "Backed documentation generally lists Ethereum, Gnosis, Polygon, Arbitrum, Fantom, Avalanche, BNB Smart Chain, and Base for bTokens; ERC-20 tokens have no technical transfer restrictions",
+    "sourceUrl": "https://assets.backed.fi/legal-documentation",
+    "sourceType": "official_legal_documentation",
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "CoinGecko provides full MetaMask import address and lists supported EVM chains; official page confirms EVM/ERC-20 support but does not expose text contract address in accessible crawl."
+    "notes": "This supports the issuer's general bToken network scope only. It does not prove a bC3M deployment or address on every listed chain."
   },
   {
-    "layer": "market",
-    "field": "marketCap",
-    "value": "10041676",
-    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
-    "sourceType": "market_aggregator",
-    "reliability": 65,
+    "layer": "blockchain",
+    "field": "ethereum.contractAddress,ethereum.tokenStandard,ethereum.isVerified",
+    "value": "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7; ERC-20; true",
+    "sourceUrl": "https://etherscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7",
+    "sourceType": "verified_blockchain_explorer",
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Time-sensitive market data captured on 2026-06-12."
+    "notes": "Etherscan identifies the address as Backed Finance bC3M Token and exposes the bC3M token tracker. Only Ethereum is retained as a product-level verified deployment."
   },
   {
-    "layer": "market",
-    "field": "volume24h",
-    "value": "0",
-    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
-    "sourceType": "market_aggregator",
-    "reliability": 65,
+    "layer": "blockchain",
+    "field": "gnosis,polygon,arbitrum,avalanche,fantom,bsc,base",
+    "value": "unresolved",
+    "sourceUrl": "https://assets.backed.fi/legal-documentation",
+    "sourceType": "official_legal_documentation",
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "CoinGecko warning indicates low/no recent trading activity."
+    "notes": "The networks are within Backed's general bToken scope, but chain-specific bC3M contract evidence was not verified. Unsupported deployment entries were removed from blockchain.json."
   },
   {
     "layer": "liquidity",
     "field": "redemptionType",
-    "value": "Existing bToken holders can redeem through Backed; new issuance is no longer available for bTokens. Product page states redemption is fully supported for existing holders.",
+    "value": "Redemption supported for existing holders; new bToken issuance unavailable",
     "sourceUrl": "https://assets.backed.fi/products/bc3m",
     "sourceType": "official_website",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Official product page states bTokens are closed to new issuance but redemption remains supported."
+    "notes": "Settlement period, minimum amount, settlement asset, and suspension terms were not verified."
+  },
+  {
+    "layer": "liquidity",
+    "field": "issuanceRedemptionFeeRaw",
+    "value": "0.5% for issuance and redemption",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 90,
+    "checkedBy": "manual",
+    "notes": "This is not evidence of an early-redemption fee."
+  },
+  {
+    "layer": "market",
+    "field": "price,marketCap,volume24h,circulatingSupply,totalSupply",
+    "value": "146.75; 10041676; 0; 68426; 68426",
+    "sourceUrl": "https://www.coingecko.com/en/coins/backed-govies-0-6-months-euro",
+    "sourceType": "market_aggregator",
+    "reliability": 65,
+    "checkedBy": "manual",
+    "notes": "Observed 2026-06-24. CoinGecko identifies the price as the last recorded price because there was no 24-hour trading activity. Market cap must not be treated as issuer-reported AUM."
+  },
+  {
+    "layer": "yield",
+    "field": "yieldType,yieldBenchmark,currentYield",
+    "value": "Underlying ETF total-return/coupons-reinvested exposure; FTSE Eurozone Government Bill 0-6 Month Capped Index; currentYield null",
+    "sourceUrl": "https://assets.backed.fi/products/bc3m",
+    "sourceType": "official_website",
+    "reliability": 88,
+    "checkedBy": "manual",
+    "notes": "No current official bC3M yield, APY, APR, or distribution yield was found."
   }
 ]
