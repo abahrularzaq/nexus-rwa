@@ -73,6 +73,13 @@ function asNullableBoolField(record: Record<string, unknown>, field: string): bo
   return asBool(value);
 }
 
+function asNullableStringField(record: Record<string, unknown>, field: string): string | null | undefined {
+  if (!hasOwnField(record, field)) return undefined;
+  const value = record[field];
+  if (value === null) return null;
+  return asString(value);
+}
+
 function asNullableNumberField(record: Record<string, unknown>, field: string): number | null | undefined {
   if (!hasOwnField(record, field)) return undefined;
   const value = record[field];
@@ -87,6 +94,7 @@ function asNullableIntField(record: Record<string, unknown>, field: string): num
 
 export const assetFileImportTestHelpers = {
   asNullableBoolField,
+  asNullableStringField,
   asNullableNumberField,
   asNullableIntField,
 };
@@ -245,7 +253,7 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       lastAuditUrl: asString(reserve.lastAuditUrl),
       auditor: asString(reserve.auditor),
       reserveBreakdown: breakdown,
-      redemptionAsset: asString(reserve.redemptionAsset),
+      redemptionAsset: asNullableStringField(reserve, 'redemptionAsset'),
     },
     risk: {
       overallScore: asInt(risk.overallScore),
@@ -308,7 +316,7 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       redemptionType: asString(liquidity.redemptionType),
       redemptionPeriodDays: asInt(liquidity.redemptionPeriodDays),
       lockupPeriodDays: asInt(liquidity.lockupPeriodDays),
-      earlyRedemptionFee: asNumber(liquidity.earlyRedemptionFee),
+      earlyRedemptionFee: asNullableNumberField(liquidity, 'earlyRedemptionFee'),
       minRedemptionAmount: asNumber(liquidity.minRedemptionAmount),
       dexPairs: (liquidity.dexPairs as Prisma.InputJsonValue | undefined) ?? [],
       onchainLiquidity: asNumber(liquidity.onchainLiquidity),
