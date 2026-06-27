@@ -103,7 +103,7 @@ model AssetReserve {
   collateralizationRatio Float?
   custodian              String?
   custodianUrl           String?
-  hasProofOfReserves     Boolean   @default(false)
+  hasProofOfReserves     Boolean?  @default(false)
   porOracleAddress       String?
   porOracleChain         String?
   lastAuditDate          DateTime?
@@ -160,7 +160,7 @@ model AssetBlockchain {
   contractAddress         String
   tokenStandard           String?
   isTransferable          Boolean   @default(true)
-  hasWhitelist            Boolean   @default(false)
+  hasWhitelist            Boolean?  @default(false)
   hasTransferRestrictions Boolean   @default(false)
   explorerUrl             String?
   deployedAt              DateTime?
@@ -228,11 +228,11 @@ model AssetCompliance {
   regulatoryStatus     String?
   primaryRegulator     String?
   regulatoryFramework  String?
-  kycRequired          Boolean   @default(true)
+  kycRequired          Boolean?  @default(true)
   accreditedOnly       Boolean   @default(false)
   blockedJurisdictions String[]
   allowedJurisdictions String[]
-  sanctionsScreening   Boolean   @default(false)
+  sanctionsScreening   Boolean?  @default(false)
   amlPolicy            String?
   lastComplianceCheck  DateTime?
   legalOpinionUrl      String?

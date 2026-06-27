@@ -1,224 +1,198 @@
-# Build Report — Backed bC3M Refresh
+# Build Report - Backed bC3M Integration Remediation
 
 ## Metadata
 
-- Task type: Existing asset refresh integration
+- Task type: Narrow integration remediation
 - Asset: Backed GOVIES 0-6 Months Euro Investment Grade
 - Slug: `backed-bc3m`
 - Branch: `pilot/backed-bc3m-research`
-- Date: 2026-06-24
+- Date: 2026-06-25
 - Agent: Build Agent
 
 ## Approved scope
 
 Included:
 
-- Validate the reviewed bC3M asset files and grading outputs.
-- Inspect repository-native validation and import paths.
-- Check null handling, enum compatibility, required files, and diff scope.
-- Record deterministic blockers and hand off without broadening scope.
+- Implement Coordinator option B: importer plus Prisma nullable-boolean migration.
+- Make only these Prisma fields nullable booleans:
+  - `AssetBlockchain.hasWhitelist`
+  - `AssetReserve.hasProofOfReserves`
+  - `AssetCompliance.kycRequired`
+  - `AssetCompliance.sanctionsScreening`
+- Preserve explicit boolean `null` for those evidence fields through asset-file mapping.
+- Preserve explicit numeric `null` for at least `liquidity.liquidityScore` and `market.aumUsd`.
+- Add focused API regression tests.
+- Run Prisma validation, asset validation, dry-run import, typecheck, lint, backend tests, and production build.
 
 Excluded:
 
-- Primary research or grading reinterpretation.
-- Application-code, Prisma-schema, migration, architecture, or UI changes.
-- Unrelated assets.
+- Changes under `data/assets/backed-bc3m/`.
+- Research, source-review, risk, grade, QA, web, dependency, unrelated asset, or unrelated model changes.
+- Real database import.
 - QA approval, merge, or publication.
 
-## Entry conditions
+## Files changed
 
-- Source Verification: passed.
-- `safeToProceed: true`: confirmed.
-- `risk.json`: present.
-- `grade-baseline.json`: present.
-- Risk & Grading stage: complete.
+### Created
 
-## Files changed before Build
+- `api/prisma/migrations/20260625000000_nullable_evidence_booleans/migration.sql`
+- `api/src/lib/asset-file-import.test.ts`
+- `api/src/scripts/validate-normalized-assets.test.ts`
 
-The branch is 19 commits ahead of `main` and changes only:
+### Modified
 
-- approved files under `data/assets/backed-bc3m/`
-- `docs/agent-runs/backed-bc3m/source-review.md`
-- `docs/agent-runs/backed-bc3m/workflow-status.md`
-
-No unrelated asset, application-code, schema, migration, or UI file appears in the branch diff.
-
-## Files created by Build
-
+- `api/prisma/schema.prisma`
+- `api/src/lib/asset-file-import.ts`
+- `api/src/scripts/validate-normalized-assets.ts`
 - `docs/agent-runs/backed-bc3m/build-report.md`
-
-## Files modified by Build
-
 - `docs/agent-runs/backed-bc3m/workflow-status.md`
 
-## Files intentionally unchanged
+### Intentionally unchanged
 
+- `api/src/scripts/import-from-files.ts`
 - All files under `data/assets/backed-bc3m/`
-- Application code
-- Prisma schema and migrations
-- Unrelated assets
-- QA report
+- Research, source-review, risk, grade, QA, web, dependency, and unrelated Prisma files
 
-No deterministic data correction could safely resolve the integration blockers without changing importer or schema behavior outside the approved scope.
+`api/src/scripts/import-from-files.ts` did not need changes. It already passes `payload.reserve`, `payload.compliance`, `payload.liquidity`, `payload.market`, and `payload.blockchain` directly into Prisma upsert/create operations. Once the mapper produces `null`, the script does not strip it.
 
-## Static compatibility findings
+## Implementation summary
 
-### Passed static checks
+- Added property-presence aware helpers in `api/src/lib/asset-file-import.ts` so approved evidence booleans distinguish `true`, `false`, explicit `null`, and absent properties.
+- Removed fallback defaults only for `hasWhitelist`, `hasProofOfReserves`, `kycRequired`, and `sanctionsScreening`.
+- Kept implementation-default boolean behavior for fields such as `isTransferable`, `hasTransferRestrictions`, `isVerified`, and `accreditedOnly`.
+- Added narrowly scoped nullable numeric mapping for `liquidityScore` and `aumUsd`.
+- Left invalid non-null numeric values as `undefined`; they are not silently converted to `null`.
+- Updated only the four approved Prisma boolean fields to `Boolean?` while preserving existing database defaults.
+- Added a PostgreSQL migration that only drops `NOT NULL` from the four approved columns.
+- Updated normalized-asset validation so only `reserve.hasProofOfReserves`, `blockchain[].hasWhitelist`, `compliance.kycRequired`, and `compliance.sanctionsScreening` accept `boolean | null`.
+- Kept `blockchain[].isTransferable`, `blockchain[].hasTransferRestrictions`, `blockchain[].isVerified`, and `compliance.accreditedOnly` as required non-null booleans.
 
-1. **Required asset files are present**
-   - The expected identity, blockchain, reserve, institutional, compliance, liquidity, market, yield, sources, risk, and grade-baseline files exist in the asset folder.
+## Migration SQL
 
-2. **Blockchain deployment scope**
-   - `blockchain.json` contains only the verified Ethereum deployment.
-   - The contract address is non-null and therefore will not be skipped by the current importer.
-   - Removed chain entries will be deleted by the importer because the blockchain relation uses `deleteMany: {}` followed by recreation from the payload.
+```sql
+ALTER TABLE "AssetBlockchain" ALTER COLUMN "hasWhitelist" DROP NOT NULL;
+ALTER TABLE "AssetReserve" ALTER COLUMN "hasProofOfReserves" DROP NOT NULL;
+ALTER TABLE "AssetCompliance" ALTER COLUMN "kycRequired" DROP NOT NULL;
+ALTER TABLE "AssetCompliance" ALTER COLUMN "sanctionsScreening" DROP NOT NULL;
+```
 
-3. **Grade value compatibility**
-   - `grade: "research"` follows an existing repository convention used by other grade-baseline files.
-   - Existing baseline field names and profile structure are preserved.
+The migration does not update any row values, so existing `true` and `false` values are preserved.
 
-4. **Risk file field compatibility**
-   - `risk.json` uses the fields consumed by `mapAssetFilesToImportPayload`, including `overallScore`, `overallLevel`, component risk fields, factors, mitigants, date, and method.
-   - `overallLevel: "MEDIUM"` is accepted by the importer's level normalizer.
+## Commands run
 
-5. **Nullable liquidity score at file level**
-   - Prisma defines `AssetLiquidity.liquidityScore` as nullable.
-   - The file value `null` is semantically valid for unknown or deliberately removed evidence.
-
-6. **Unsupported AUM removed at file level**
-   - `market.json` no longer represents market capitalization as `aumUsd`.
-
-7. **Warnings preserved**
-   - Legal, reserve, redemption, market, issuance, source, and unresolved deployment warnings remain visible in `grade-baseline.json`, `risk.json`, `source-review.md`, and workflow status.
-
-## Deterministic integration blockers
-
-### BLD-001 — Nullable booleans are coerced into unsupported claims
-
-Affected path: `api/src/lib/asset-file-import.ts`
-
-The current importer maps booleans using defaults:
-
-- `hasWhitelist: asBool(row.hasWhitelist) ?? false`
-- `hasProofOfReserves: asBool(reserve.hasProofOfReserves) ?? false`
-- `kycRequired: asBool(compliance.kycRequired) ?? true`
-- `sanctionsScreening: asBool(compliance.sanctionsScreening) ?? false`
-
-Consequences for this refresh:
-
-- `blockchain.hasWhitelist: null` becomes `false`.
-- `reserve.hasProofOfReserves: null` becomes `false`.
-- `compliance.kycRequired: null` becomes `true`.
-- `compliance.sanctionsScreening: null` becomes `false`.
-
-These conversions overwrite evidence-honesty decisions with inferred values. Prisma currently defines these fields as non-null booleans with defaults, so the database schema cannot preserve the reviewed unknown state.
-
-Resolution required:
-
-- Coordinator must approve a separate importer/schema compatibility task; or
-- the data model must explicitly define how unknown boolean evidence is represented without converting it into a factual true/false claim.
-
-The Build Agent did not change application code or schema because both were forbidden in this scope.
-
-### BLD-002 — Null numeric values do not clear stale database values during refresh
-
-Affected path: `api/src/lib/asset-file-import.ts` and `api/src/scripts/import-from-files.ts`
-
-The importer maps `null` numeric values to `undefined` through `asNumber` / `asInt`. The existing-asset import performs Prisma upserts using these payloads. In Prisma updates, omitted or undefined fields are not cleared.
-
-Consequences:
-
-- `liquidity.liquidityScore: null` may leave the previous database score unchanged.
-- `market.aumUsd: null` may leave the previous unsupported AUM unchanged.
-- Other intentionally cleared optional numeric fields may have the same behavior.
-
-This is material because the task is an existing asset refresh rather than a new record creation.
-
-Resolution required:
-
-- Update the importer to distinguish explicit JSON `null` from an absent field and pass `null` to nullable Prisma columns; then add a regression test for existing-asset refreshes.
-
-The Build Agent did not make this application-code change because it was outside the allowed files.
-
-## Commands and checks
-
-| Command or check | Result | Notes |
+| Command | Result | Notes |
 |---|---|---|
-| `git clone --branch pilot/backed-bc3m-research ...` | not run successfully | Execution environment could not resolve `github.com`; no local checkout was available |
-| Branch compare against `main` | passed | GitHub compare reports branch ahead by 19 commits with changes confined to bC3M asset and agent-run files |
-| GitHub Actions runs for current head | not available | No workflow runs were associated with the checked head commit |
-| JSON parsing | not run | No executable checkout was available; files were inspected through GitHub content API only |
-| Required-file validation | static pass | Required files were individually present; repository script was not executed |
-| `npm run validate:asset-files --workspace=api -- --slug=backed-bc3m` | not run | No local checkout/dependencies |
-| `npm run validate:normalized-assets --workspace=api` | not run | No local checkout/dependencies |
-| `npm run verify:assets --workspace=api` | not run | No local checkout/dependencies |
-| `npm run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run` | blocked before execution | Static inspection shows payload coercion and stale-null behavior would make the dry-run plan misleading |
-| `npm run typecheck` | not run | No local checkout/dependencies |
-| `npm run lint` | not run | No local checkout/dependencies |
-| `npm run test:backend` | not run | No local checkout/dependencies |
-| `npm run build` | not run | No local checkout/dependencies |
-| Final diff scope review | passed | No unrelated changed paths found |
+| `npm exec --workspace=api -- prisma format --schema prisma/schema.prisma` | failed | PowerShell blocked `npm.ps1` due local execution policy. Reran with `npm.cmd`. |
+| `npm exec --workspace=api -- prisma validate --schema prisma/schema.prisma` | failed | Same PowerShell `npm.ps1` execution policy issue. Reran with `npm.cmd`. |
+| `npm.cmd exec --workspace=api -- prisma format --schema prisma/schema.prisma` | passed | Schema formatted. |
+| `npm.cmd exec --workspace=api -- prisma validate --schema prisma/schema.prisma` | passed | Prisma schema valid. |
+| `node --import tsx --test src/lib/asset-file-import.test.ts` | passed | 5 tests passed. |
+| `node --import tsx --test src/scripts/validate-normalized-assets.test.ts` | passed | 4 tests passed. Covers true/false/null for approved fields, string/number rejection, non-null boolean rejection, and bC3M zero normalized errors. |
+| `npm.cmd run validate:asset-files --workspace=api -- --slug=backed-bc3m` | passed with warnings | Expected nullable-evidence warnings for missing reserve/compliance URLs and auditor/oracle fields. |
+| `npm.cmd run validate:normalized-assets --workspace=api -- --slug=backed-bc3m` | passed with warnings | 0 errors, 1 warning: optional `monitoring.json` missing. |
+| `npm.cmd run verify:assets --workspace=api` | failed | Local Prisma connection failed: `Error opening a TLS connection: No credentials are available in the security package (os error -2146893042)`. |
+| `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run` | passed | Dry-run only; no database changes. Source evidence dry-run discovered 14 rows, duplicates 0, skipped invalid 0. |
+| `npm.cmd run typecheck` | passed | All workspaces passed; Prisma client regenerated with nullable booleans. |
+| `npm.cmd run lint` | passed with warnings | No errors. Existing warnings in web hook deps and several API unused variables/directives. |
+| `npm.cmd run test:backend` | passed | 68 tests passed, 0 failed. The suite logged the existing local PostgreSQL TLS credential error in fallback paths, but tests completed successfully. |
+| `npm.cmd run build` | passed | Shared, web, and API production builds passed. Next.js generated `/assets/backed-bc3m`; API Prisma client generation and TypeScript build passed. |
+
+## Focused regression coverage
+
+`api/src/lib/asset-file-import.test.ts` covers:
+
+- boolean `true` remains `true`;
+- boolean `false` remains `false`;
+- explicit boolean `null` remains `null`;
+- absent boolean property remains `undefined`;
+- bC3M `hasWhitelist`, `hasProofOfReserves`, `kycRequired`, and `sanctionsScreening` map to `null`;
+- bC3M blockchain payload contains Ethereum only;
+- explicit `liquidityScore: null` remains `null`;
+- explicit `aumUsd: null` remains `null`;
+- absent numeric fields remain `undefined`;
+- invalid non-null numeric values remain `undefined`, not `null`;
+- existing true/false implementation booleans remain compatible;
+- unrelated existing null-valued fields such as `collateralizationRatio` and `redemptionPeriodDays` are not newly cleared by the scoped numeric helper.
+
+`api/src/scripts/validate-normalized-assets.test.ts` covers:
+
+- approved nullable evidence booleans accept `true`;
+- approved nullable evidence booleans accept `false`;
+- approved nullable evidence booleans accept `null`;
+- approved nullable evidence booleans reject strings and numbers with `must be boolean or null`;
+- non-null boolean fields still reject `null`;
+- bC3M normalized validation returns zero errors.
 
 ## Errors and fixes
 
-### Environment limitation
+1. Error: Approved nullable evidence booleans could not be represented in Prisma.
+   - Cause: Four evidence fields were required booleans.
+   - Fix: Changed only those four fields to `Boolean?` and added a migration that drops `NOT NULL`.
+   - Rerun result: Prisma validate, typecheck, tests, and build passed.
 
-- Error: Git checkout failed because the execution environment could not resolve `github.com`.
-- Impact: Repository-native validation, typecheck, lint, tests, import dry-run, and production build could not be executed.
-- Fix applied: None; results are reported as not run rather than passed.
+2. Error: Importer converted explicit boolean nulls into factual defaults.
+   - Cause: `asBool(...) ?? default` on evidence fields.
+   - Fix: Added property-presence aware nullable boolean mapping for the four approved fields.
+   - Rerun result: Focused regression and backend tests passed.
 
-### Task-related deterministic blockers
+3. Error: Importer converted explicit numeric nulls to `undefined`.
+   - Cause: `asNumber` / `asInt` treats `null` as absent.
+   - Fix: Added scoped nullable numeric mapping for `liquidityScore` and `aumUsd`.
+   - Rerun result: Focused regression and dry-run import passed.
 
-- BLD-001 and BLD-002 were identified through static inspection.
-- No fix was applied because the required changes affect forbidden application-code and schema paths.
+4. Error: Normalized asset validation rejects approved nullable booleans.
+   - Cause: `validate-normalized-assets` still treats the four evidence fields as required booleans.
+   - Fix: Added a narrow `boolean | null` validator path for only the four approved evidence fields.
+   - Rerun result: `validate:normalized-assets --slug=backed-bc3m` passed with 0 errors.
+
+5. Error: Asset verification cannot connect to the configured database.
+   - Cause: Local PostgreSQL TLS credential/security-package failure.
+   - Fix: Not applied; environment/database credential issue.
+   - Rerun result: Not rerun in this validator-remediation pass; readiness remains blocked until the asset-verification environment issue is classified or resolved.
 
 ## Data honesty review
 
 - Fake fallback introduced: no
-- Unsupported research value changed by Build: no
-- File-level null handling preserved: yes
-- Import-path null handling safe: no
-- Reviewed grade changed by Build: no
-- Unsupported AUM present in file: no
-- Unsupported multi-chain deployment present: no
+- Unsupported research value changed: no
+- Explicit boolean null preserved in payload: yes
+- Explicit numeric null preserved in payload: yes
+- Reviewed grade changed: no
+- bC3M data files modified: no
+- Real database import run: no
 
 ## Diff review
 
 - Unrelated files changed: no
-- Secrets exposed: none observed
-- Generated noise introduced: no
-- Scope matched: yes
-- Application-code changes made: no
-- Schema changes made: no
+- Secrets exposed: no
+- Generated noise removed: yes
+- Scope matched approved files: yes, except the remaining normalized-validator failure cannot be fixed within the allowed file list
+- `api/src/scripts/import-from-files.ts` changed: no, not required
 
 ## Remaining warnings
 
-1. Current bC3M final terms and working KID remain unavailable.
-2. Product-page freshness is limited.
-3. Custodian evidence remains issuer-published only.
-4. Market values are inactive last-recorded observations.
-5. Redemption settlement mechanics remain unknown.
-6. Seven non-Ethereum deployments remain unresolved.
-7. Product-specific reserve/audit/attestation evidence remains unavailable.
-8. New issuance remains closed.
-9. Full repository checks remain unexecuted due environment limitations.
+1. `verify:assets` previously failed in this environment due PostgreSQL TLS credential/security-package error and remains the outstanding QA-readiness blocker.
+2. `validate:asset-files` passes with existing bC3M evidence warnings for nullable reserve/compliance fields.
+3. `validate:normalized-assets` passes with one warning for optional missing `monitoring.json`.
+4. `lint` passes with pre-existing warnings:
+   - web `dashboard/monitoring/page.tsx` hook dependency warning;
+   - API unused variable/directive warnings in `redis.ts`, `x402.ts`, `asset.repository.ts`, `admin.ts`, `generate-monitoring.ts`, `test-sync.ts`, and `validate-asset-files.ts`.
 
 ## Final status
 
-- Build passed: false
-- Import passed: not run
+- Implementation complete: true
+- Prisma migration/schema validation passed: true
+- Focused regression tests passed: true
+- Dry-run import passed: true
+- Typecheck passed: true
+- Lint passed: true, with warnings
+- Backend tests passed: true
+- Production build passed: true
+- Validator-remediation checks passed: true
+- QA readiness checks passed: false
 - `readyForQA: false`
-- Blocking reasons:
-  1. Current importer/schema cannot preserve reviewed unknown boolean values.
-  2. Explicit null numeric values may fail to clear stale database values during existing-asset refresh.
-  3. Repository-native validation, typecheck, lint, tests, dry-run import, and production build were not executed.
 
-## Required next action
+Blocking reasons:
 
-Return to the Coordinator Agent for a narrowly scoped integration-remediation decision. A follow-up task should authorize changes to the importer and, if needed, Prisma nullability, with regression tests proving that:
+1. Asset verification requires a classified or resolved local database/TLS credential setup before QA handoff.
 
-- explicit JSON null remains unknown instead of becoming true or false;
-- explicit numeric null clears stale values in existing records;
-- bC3M dry-run and import preserve the verified package exactly.
-
-Do not proceed to QA until the remediation is implemented and all repository-native checks are run successfully.
+Recommended next action: classify or resolve the asset-verification environment issue, then rerun `verify:assets` in an environment with working database credentials before QA.

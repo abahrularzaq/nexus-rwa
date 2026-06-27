@@ -62,6 +62,35 @@ function asBool(value: unknown): boolean | undefined {
   return undefined;
 }
 
+function hasOwnField(record: Record<string, unknown>, field: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, field);
+}
+
+function asNullableBoolField(record: Record<string, unknown>, field: string): boolean | null | undefined {
+  if (!hasOwnField(record, field)) return undefined;
+  const value = record[field];
+  if (value === null) return null;
+  return asBool(value);
+}
+
+function asNullableNumberField(record: Record<string, unknown>, field: string): number | null | undefined {
+  if (!hasOwnField(record, field)) return undefined;
+  const value = record[field];
+  if (value === null) return null;
+  return asNumber(value);
+}
+
+function asNullableIntField(record: Record<string, unknown>, field: string): number | null | undefined {
+  const n = asNullableNumberField(record, field);
+  return n == null ? n : Math.round(n);
+}
+
+export const assetFileImportTestHelpers = {
+  asNullableBoolField,
+  asNullableNumberField,
+  asNullableIntField,
+};
+
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((v): v is string => typeof v === 'string' && v.trim() !== '');
@@ -178,7 +207,7 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       contractAddress: asString(row.contractAddress)!,
       tokenStandard: asString(row.tokenStandard),
       isTransferable: asBool(row.isTransferable) ?? true,
-      hasWhitelist: asBool(row.hasWhitelist) ?? false,
+      hasWhitelist: asNullableBoolField(row, 'hasWhitelist'),
       hasTransferRestrictions: asBool(row.hasTransferRestrictions) ?? false,
       explorerUrl: asString(row.explorerUrl),
       deployedAt: asDate(row.deployedAt),
@@ -209,7 +238,7 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       collateralizationRatio: asNumber(reserve.collateralizationRatio),
       custodian: asString(reserve.custodian),
       custodianUrl: asString(reserve.custodianUrl),
-      hasProofOfReserves: asBool(reserve.hasProofOfReserves) ?? false,
+      hasProofOfReserves: asNullableBoolField(reserve, 'hasProofOfReserves'),
       porOracleAddress: asString(reserve.porOracleAddress),
       porOracleChain: asString(reserve.porOracleChain),
       lastAuditDate: asDate(reserve.lastAuditDate),
@@ -266,11 +295,11 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       regulatoryStatus: asString(compliance.regulatoryStatus),
       primaryRegulator: asString(compliance.primaryRegulator),
       regulatoryFramework: asString(compliance.regulatoryFramework),
-      kycRequired: asBool(compliance.kycRequired) ?? true,
+      kycRequired: asNullableBoolField(compliance, 'kycRequired'),
       accreditedOnly: asBool(compliance.accreditedOnly) ?? false,
       blockedJurisdictions: asStringArray(compliance.blockedJurisdictions),
       allowedJurisdictions: asStringArray(compliance.allowedJurisdictions),
-      sanctionsScreening: asBool(compliance.sanctionsScreening) ?? false,
+      sanctionsScreening: asNullableBoolField(compliance, 'sanctionsScreening'),
       amlPolicy: asString(compliance.amlPolicy),
       lastComplianceCheck: asDate(compliance.lastComplianceCheck),
       legalOpinionUrl: asString(compliance.legalOpinionUrl),
@@ -284,7 +313,7 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       dexPairs: (liquidity.dexPairs as Prisma.InputJsonValue | undefined) ?? [],
       onchainLiquidity: asNumber(liquidity.onchainLiquidity),
       bidAskSpread: asNumber(liquidity.bidAskSpread),
-      liquidityScore: asInt(liquidity.liquidityScore),
+      liquidityScore: asNullableIntField(liquidity, 'liquidityScore'),
       liquidityNotes: asString(liquidity.liquidityNotes),
     },
     market: {
@@ -299,7 +328,7 @@ export function mapAssetFilesToImportPayload(slug: string): AssetFileImportPaylo
       totalSupply: asNumber(market.totalSupply),
       holderCount: asInt(market.holderCount),
       holderChange7d: asInt(market.holderChange7d),
-      aumUsd: asNumber(market.aumUsd),
+      aumUsd: asNullableNumberField(market, 'aumUsd'),
       lastUpdated: asDate(market.lastUpdated),
       sources: asStringArray(market.sources),
       confidence: asString(market.confidence),

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
 
@@ -85,6 +86,10 @@ function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean';
 }
 
+function isBooleanOrNull(value: unknown): value is boolean | null {
+  return value === null || typeof value === 'boolean';
+}
+
 function parseDate(value: unknown): Date | null {
   if (!isString(value)) return null;
   const date = new Date(value);
@@ -152,6 +157,17 @@ function requireBoolean(
   }
 }
 
+function requireBooleanOrNull(
+  json: Record<string, unknown>,
+  issues: ValidationIssue[],
+  assetSlug: string,
+  file: string,
+  field: string,
+): void {
+  if (!isBooleanOrNull(json[field])) {
+    addIssue(issues, 'error', assetSlug, file, `${field} must be boolean or null`, field);
+  }
+}
 
 function validateMeta(
   json: Record<string, unknown>,
@@ -292,7 +308,7 @@ function validateReserve(json: unknown, issues: ValidationIssue[], assetSlug: st
   if (json.backingType !== null && json.backingType !== undefined && !isString(json.backingType)) {
     addIssue(issues, 'error', assetSlug, file, 'backingType must be a non-empty string or null', 'backingType');
   }
-  requireBoolean(json, issues, assetSlug, file, 'hasProofOfReserves');
+  requireBooleanOrNull(json, issues, assetSlug, file, 'hasProofOfReserves');
 
   if (!isNumberOrNull(json.collateralizationRatio)) {
     addIssue(issues, 'error', assetSlug, file, 'collateralizationRatio must be number or null', 'collateralizationRatio');
@@ -381,10 +397,14 @@ function validateBlockchain(json: unknown, issues: ValidationIssue[], assetSlug:
       addIssue(issues, 'error', assetSlug, file, `blockchain[${index}].chainId must be number or null`, `blockchain[${index}].chainId`);
     }
 
-    for (const field of ['isTransferable', 'hasWhitelist', 'hasTransferRestrictions', 'isVerified'] as const) {
+    for (const field of ['isTransferable', 'hasTransferRestrictions', 'isVerified'] as const) {
       if (!isBoolean(item[field])) {
         addIssue(issues, 'error', assetSlug, file, `blockchain[${index}].${field} must be boolean`, `blockchain[${index}].${field}`);
       }
+    }
+
+    if (!isBooleanOrNull(item.hasWhitelist)) {
+      addIssue(issues, 'error', assetSlug, file, `blockchain[${index}].hasWhitelist must be boolean or null`, `blockchain[${index}].hasWhitelist`);
     }
   });
 }
@@ -396,9 +416,9 @@ function validateCompliance(json: unknown, issues: ValidationIssue[], assetSlug:
     return;
   }
 
-  for (const field of ['kycRequired', 'accreditedOnly', 'sanctionsScreening'] as const) {
-    requireBoolean(json, issues, assetSlug, file, field);
-  }
+  requireBooleanOrNull(json, issues, assetSlug, file, 'kycRequired');
+  requireBoolean(json, issues, assetSlug, file, 'accreditedOnly');
+  requireBooleanOrNull(json, issues, assetSlug, file, 'sanctionsScreening');
 
   for (const field of ['blockedJurisdictions', 'allowedJurisdictions'] as const) {
     if (!Array.isArray(json[field]) || !json[field].every((item) => typeof item === 'string')) {
@@ -730,4 +750,11 @@ function main(): void {
   }
 }
 
-main();
+export const validateNormalizedAssetTestHelpers = {
+  validateAsset,
+  validateRequiredJson,
+};
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
