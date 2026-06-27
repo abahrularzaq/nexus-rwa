@@ -14,10 +14,10 @@
 
 ## Current workflow status
 
-- Current stage: Coordinator decision after QA intake
-- Current status: needs_fix
-- Current owner agent: Build Agent
-- Next agent: Build Agent
+- Current stage: QA recheck
+- Current status: pending
+- Current owner agent: QA Review Agent
+- Next agent: QA Review Agent
 - Human decision required: no
 
 ## Coordinator decision
@@ -34,7 +34,7 @@
 - Issue: `BLD-003B / QA-001`
 - Decision: `verify:assets` is **environment-limited and not sufficient/applicable as the bC3M-specific verification gate in its current form**.
 - Reason: `api/src/scripts/verify-assets.ts` reads a hardcoded `VERIFIED_ASSETS` registry and queries those IDs from the configured database. The registry does not include `backed-bc3m`, so a successful run would not independently verify the bC3M refresh. The observed failure is also caused by local PostgreSQL TLS credential setup, not by a bC3M data, schema, importer, or validator failure.
-- Merge impact: this still blocks merge until the Build Agent records a replacement bC3M-specific verification gate and updates the Build report. The blocker is no longer “must rerun `verify:assets` locally”; it is “document and execute an applicable bC3M verification gate.”
+- Merge impact after Build recheck: this no longer blocks QA handoff because the Build Agent documented and passed a bC3M-specific replacement verification gate. `verify:assets` remains a follow-up tooling/environment issue, not a bC3M-specific blocker for this branch.
 
 ## Agent stages
 
@@ -45,10 +45,10 @@
 | 3 | Source Verification Agent | done | 2026-06-24 | 2026-06-24 | source-review.md | `safeToProceed: true` |
 | 4 | Risk & Grading Agent | done | 2026-06-24 | 2026-06-24 | risk.json and grade-baseline.json | Research grade assigned |
 | 5A | Build Agent | blocked | 2026-06-24 | 2026-06-24 | build-report.md | BLD-001 through BLD-003 found |
-| 5B | Build Agent - integration remediation | blocked | 2026-06-25 | 2026-06-25 | code, migration, tests, updated build-report.md | BLD-001, BLD-002, and BLD-003A fixed; BLD-003B now classified by Coordinator as environment-limited/not bC3M-specific |
+| 5B | Build Agent - integration remediation | done | 2026-06-25 | 2026-06-25 | code, migration, tests, updated build-report.md | BLD-001, BLD-002, and BLD-003A fixed |
 | 6 | QA Review Agent | blocked | 2026-06-27 | 2026-06-27 | qa-review.md | `safeToMerge: false`; requested Coordinator classification of BLD-003B |
-| 5C | Build Agent - replacement verification documentation | pending | | | updated build-report.md and workflow-status.md | Must document bC3M-specific replacement verification gate |
-| 6B | QA Review Agent - recheck | pending | | | updated qa-review.md or addendum | Only after Build records replacement verification and `readyForQA: true` |
+| 5C | Build Agent - replacement verification documentation | done | 2026-06-27 | 2026-06-27 | updated build-report.md and workflow-status.md | bC3M-specific replacement verification gate documented and passed |
+| 6B | QA Review Agent - recheck | pending | | | updated qa-review.md or addendum | Recheck Coordinator classification, replacement gate, and `readyForQA: true` |
 | 7 | Human merge decision | pending | | | PR decision | Must wait for QA pass |
 
 ## Current blockers
@@ -58,37 +58,37 @@
 | BLD-001 | Explicit null booleans are converted to default true/false values | Make relevant Prisma booleans nullable and preserve explicit null through the importer | fixed_by_build |
 | BLD-002 | Explicit numeric nulls do not clear stale existing DB values | Distinguish absent fields from explicit null and pass null to nullable Prisma fields | fixed_by_build |
 | BLD-003A | Normalized asset validator rejects approved nullable evidence booleans | Permit `boolean | null` only for the four approved evidence fields | fixed_by_build |
-| BLD-003B | `verify:assets` cannot run locally and does not verify bC3M in its current hardcoded registry form | Replace with documented bC3M-specific verification gate; keep `verify:assets` as a follow-up/tooling issue | classified_needs_build_update |
-| QA-001 | Build report still states `readyForQA: false` | Build Agent must update report after replacement verification is documented and executed | open |
+| BLD-003B | `verify:assets` cannot run locally and does not verify bC3M in its current hardcoded registry form | Replace with documented bC3M-specific verification gate; keep `verify:assets` as a follow-up/tooling issue | replaced_by_bC3M_gate |
+| QA-001 | Build report still states `readyForQA: false` | Build Agent must update report after replacement verification is documented and executed | fixed_by_build |
 
-## Required replacement verification gate
+## Replacement verification gate result
 
-The Build Agent must document and, where possible, execute the following bC3M-specific replacement verification before returning to QA:
+The Build Agent documented and passed the replacement bC3M-specific verification gate:
 
-1. Confirm `api/src/scripts/verify-assets.ts` does not include `backed-bc3m` in `VERIFIED_ASSETS`, so the script is not a bC3M-specific gate.
-2. Confirm the branch diff contains exactly one bC3M product-level blockchain row in `data/assets/backed-bc3m/blockchain.json`.
-3. Confirm that row is Ethereum only:
+1. Confirmed `api/src/scripts/verify-assets.ts` does not include `backed-bc3m` in `VERIFIED_ASSETS`, so the script is not a bC3M-specific gate.
+2. Confirmed `data/assets/backed-bc3m/blockchain.json` contains exactly one product-level blockchain row.
+3. Confirmed that row is Ethereum only:
    - `chain: "ethereum"`
    - `chainId: 1`
    - `contractAddress: "0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7"`
    - `explorerUrl: "https://etherscan.io/address/0x2f123cf3f37ce3328cc9b5b8415f9ec5109b45e7"`
    - `isVerified: true`
    - `hasWhitelist: null`
-4. Confirm Source Verification recorded B-001 and RC-001 through RC-003 as resolved.
-5. Confirm dry-run import completed successfully for `backed-bc3m` after importer/schema/validator remediation.
-6. Confirm `validate:asset-files --slug=backed-bc3m`, `validate:normalized-assets --slug=backed-bc3m`, focused tests, typecheck, backend tests, and production build remain passed.
-7. Record `verify:assets` as a follow-up tooling/environment issue, not as a blocker for this bC3M-specific branch, because it currently does not include `backed-bc3m` and failed before useful bC3M validation due local DB TLS configuration.
+4. Confirmed Source Verification recorded B-001 and RC-001 through RC-003 as resolved.
+5. Confirmed dry-run import completed successfully for `backed-bc3m` after importer/schema/validator remediation.
+6. Confirmed `validate:asset-files --slug=backed-bc3m`, `validate:normalized-assets --slug=backed-bc3m`, focused tests, typecheck, backend tests, and production build remain passed.
+7. Recorded `verify:assets` as a follow-up tooling/environment issue, not as a blocker for this bC3M-specific branch.
 
-## Allowed files for next Build Agent step
+## Allowed files for QA recheck
 
-- `docs/agent-runs/backed-bc3m/build-report.md`
+- `docs/agent-runs/backed-bc3m/qa-review.md`
 - `docs/agent-runs/backed-bc3m/workflow-status.md`
 
-## Forbidden files for next Build Agent step
+## Forbidden files for QA recheck
 
 - All files under `data/assets/backed-bc3m/`
 - `docs/agent-runs/backed-bc3m/source-review.md`
-- `docs/agent-runs/backed-bc3m/qa-review.md`
+- `docs/agent-runs/backed-bc3m/build-report.md`
 - Application code
 - Prisma schema or migrations
 - Tests
@@ -96,31 +96,6 @@ The Build Agent must document and, where possible, execute the following bC3M-sp
 - Unrelated assets
 - Dependencies or lockfiles
 - Merge or publication
-
-## Exact next commands
-
-The Build Agent should run or cite already-run equivalent outputs where available:
-
-```bash
-npm.cmd run validate:asset-files --workspace=api -- --slug=backed-bc3m
-npm.cmd run validate:normalized-assets --workspace=api -- --slug=backed-bc3m
-node --import tsx --test src/lib/asset-file-import.test.ts
-node --import tsx --test src/scripts/validate-normalized-assets.test.ts
-npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run
-npm.cmd run typecheck
-npm.cmd run test:backend
-npm.cmd run build
-```
-
-For the bC3M-specific static verification, use repository/file inspection rather than `verify:assets`:
-
-```bash
-git diff --name-only main...pilot/backed-bc3m-research
-git diff main...pilot/backed-bc3m-research -- data/assets/backed-bc3m/blockchain.json
-node -e "const fs=require('fs'); const rows=JSON.parse(fs.readFileSync('data/assets/backed-bc3m/blockchain.json','utf8')); console.log(rows)"
-```
-
-Stop after updating `build-report.md` and `workflow-status.md`. Do not perform QA again, merge, or publish.
 
 ## Approved remediation scope
 
@@ -221,20 +196,22 @@ Invalid non-null numeric values remain `undefined`; they are not silently conver
 ## QA result
 
 - Output: `docs/agent-runs/backed-bc3m/qa-review.md`
-- QA verdict: `BLOCKED — ADDITIONAL INPUT REQUIRED`
-- `safeToMerge: false`
-- `safeToMergeRecommendation: false`
+- Previous QA verdict: `BLOCKED — ADDITIONAL INPUT REQUIRED`
+- Previous `safeToMerge: false`
+- Previous `safeToMergeRecommendation: false`
 - Scope review: pass
 - Data honesty review: pass
 - Source integrity review: pass
 - Grading integrity review: pass
 - Code/schema remediation review: pass
-- Merge readiness: blocked by BLD-003B / QA-001 pending Coordinator classification and Build report update
+- Previous merge readiness: blocked by BLD-003B / QA-001 pending Coordinator classification and Build report update
+- Current status: ready for QA recheck
 
 ## Final status
 
 - Workflow completed: no
-- Safe to merge: no
+- Safe to merge: no, pending QA recheck and human approval
 - Safe to publish: no
-- Next action: Build Agent must update `build-report.md` with the replacement bC3M-specific verification gate, then set readiness for QA recheck only if that gate is satisfied.
+- `readyForQA: true`
+- Next action: QA Review Agent should recheck only Coordinator classification, replacement verification gate, updated Build readiness, and whether the previous blocker is resolved.
 - Human approval required: yes before merge or publication
