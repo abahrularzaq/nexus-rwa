@@ -10,7 +10,8 @@
 - Related PR: #85
 - Trigger: Codex post-merge review comments on PR #85
 - Coordinator date: 2026-06-27
-- Current stage: Build Agent handoff
+- Build date: 2026-06-27
+- Current stage: QA Review Agent handoff
 - Human approval required: yes
 
 ## Issue classification
@@ -140,32 +141,130 @@ If a command cannot run due local environment constraints, document the exact fa
 
 Stop after Build Agent implementation and command-result documentation. Do not merge. Do not publish. Return to QA Review Agent for narrow QA.
 
+## Build Agent result
+
+### Files changed
+
+#### Created
+
+- `docs/agent-runs/backed-bc3m/post-merge-hotfix.md`
+
+#### Modified
+
+- `api/src/lib/asset-file-import.ts`
+- `api/src/lib/asset-file-import.test.ts`
+
+#### Intentionally unchanged
+
+- `data/assets/backed-bc3m/`
+- `docs/agent-runs/backed-bc3m/source-review.md`
+- `data/assets/backed-bc3m/risk.json`
+- `data/assets/backed-bc3m/grade-baseline.json`
+- Prisma schema and migrations
+- Web files
+- Unrelated assets
+- Dependencies and lockfiles
+
+### Implementation summary
+
+- Added `asNullableStringField`, matching the existing property-presence pattern used by nullable boolean and nullable number helpers.
+- `asNullableStringField` preserves these states distinctly:
+  - absent field -> `undefined`
+  - explicit `null` -> `null`
+  - non-empty string -> trimmed string
+  - empty string -> `undefined`
+  - non-string value -> `String(value)`, following existing `asString` behavior
+- Exported `asNullableStringField` through `assetFileImportTestHelpers` for focused regression testing.
+- Updated `reserve.redemptionAsset` to use `asNullableStringField(reserve, 'redemptionAsset')`.
+- Updated `liquidity.earlyRedemptionFee` to use `asNullableNumberField(liquidity, 'earlyRedemptionFee')`.
+- Added tests for nullable string behavior, bC3M `redemptionAsset: null`, bC3M `earlyRedemptionFee: null`, and absent-field semantics.
+
+### Commands run
+
+| Command | Result | Notes |
+|---|---|---|
+| `node --import tsx --test src/lib/asset-file-import.test.ts` | not run | ChatGPT GitHub connector can edit repository files but cannot execute repository commands. A separate container attempt could not clone GitHub because DNS/network access to `github.com` is unavailable in this environment. Must be run locally or by CI. |
+| `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run` | not run | Same environment limitation. Must be run locally or by CI. |
+| `npm.cmd run typecheck` | not run | Same environment limitation. Must be run locally or by CI. |
+
+### Errors and fixes
+
+1. Error: `reserve.redemptionAsset` explicit `null` mapped to `undefined`.
+   - Cause: field used `asString(reserve.redemptionAsset)`, and `asString(null)` returns `undefined`.
+   - Fix: added `asNullableStringField` and mapped `redemptionAsset` through it.
+   - Rerun result: not run in this environment; focused test was added for local/CI execution.
+
+2. Error: `liquidity.earlyRedemptionFee` explicit `null` mapped to `undefined`.
+   - Cause: field used `asNumber(liquidity.earlyRedemptionFee)`, and `asNumber(null)` returns `undefined`.
+   - Fix: mapped `earlyRedemptionFee` through existing `asNullableNumberField`.
+   - Rerun result: not run in this environment; focused test was added for local/CI execution.
+
+### Data honesty review
+
+- Fake fallback introduced: no
+- Unsupported data changed: no
+- Asset research data changed: no
+- Source verification changed: no
+- Risk or grade changed: no
+- Null handling preserved: yes, for the two Codex-identified fields
+- Absent-field semantics preserved: yes
+- Broad nullability refactor introduced: no
+
+### Diff review
+
+- Branch compared against `main`: `ahead_by: 3`, `behind_by: 0`
+- Changed files: 3
+- Scope matched allowed files: yes
+- Unrelated files changed: no
+- Prisma schema or migration changed: no
+- Web files changed: no
+- Dependencies or lockfiles changed: no
+- Secrets exposed: no
+- Generated noise: none observed
+
+### Remaining warnings
+
+1. Deterministic commands were not run in this connector environment. They must be run locally or by CI before merge.
+2. Because command execution is pending, QA should treat this as ready for narrow review of code and scope, but not fully merge-ready until focused test, dry-run import, and typecheck results are available.
+
+### Build final status
+
+- Implementation complete: true
+- Focused tests added: true
+- Commands run: false, environment/tool-limited
+- Build passed: partial
+- Import passed: not run
+- Typecheck passed: not run
+- Ready for QA Review Agent: true, with required validation follow-up
+- Blocking reason, if false: n/a for implementation handoff; validation commands remain pending before merge
+
 ## Stage plan
 
 | Stage | Agent | Status | Output | Notes |
 |---|---|---|---|---|
 | 1 | Coordinator Agent | done | `post-merge-hotfix.md` | Classified as post-merge importer remediation |
-| 2 | Build Agent | pending | code/test changes plus Build addendum | Preserve explicit null for two fields |
-| 3 | QA Review Agent | pending | QA section in this file | Narrow QA only |
+| 2 | Build Agent | done | code/test changes plus Build addendum | Explicit null preserved for two fields; commands pending due environment limitation |
+| 3 | QA Review Agent | pending | QA section in this file | Narrow QA only; verify code, scope, and command results if available |
 | 4 | Human merge decision | pending | PR decision | Human approval required |
 
 ## Current blockers
 
-None for Build handoff.
+No implementation blocker remains. Validation commands must still be run locally or by CI before merge approval.
 
 ## Warnings
 
 - PR #85 has already been merged, so this must be handled as a new hotfix branch and PR.
-- The fix should be narrow because broad null-clearing semantics could unintentionally clear unrelated stale data.
+- The fix should remain narrow because broad null-clearing semantics could unintentionally clear unrelated stale data.
 - Dry-run import may still depend on local database/environment configuration; any environment-limited failure must be documented clearly.
+- Current connector environment cannot execute the requested repository commands.
 
-## Final Coordinator recommendation
+## Final Build Agent recommendation
 
-Proceed to Build Agent for the narrow importer fix. Do not run Research, Source Verification, or Risk & Grading again for this issue.
+Proceed to narrow QA Review Agent. QA should verify the code diff, scope discipline, test coverage, and require local/CI command evidence before final human merge.
 
 ```text
-Next agent: Build Agent
-Recommended action: implement narrow hotfix
+Next agent: QA Review Agent
+Recommended action: narrow QA recheck
 Human approval required: yes
 Do not merge: yes
 Do not publish: yes
