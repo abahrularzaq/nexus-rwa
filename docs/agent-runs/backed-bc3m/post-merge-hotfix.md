@@ -11,7 +11,8 @@
 - Trigger: Codex post-merge review comments on PR #85
 - Coordinator date: 2026-06-27
 - Build date: 2026-06-27
-- Current stage: QA Review Agent handoff
+- QA date: 2026-06-27
+- Current stage: validation follow-up before human merge decision
 - Human approval required: yes
 
 ## Issue classification
@@ -238,18 +239,141 @@ Stop after Build Agent implementation and command-result documentation. Do not m
 - Ready for QA Review Agent: true, with required validation follow-up
 - Blocking reason, if false: n/a for implementation handoff; validation commands remain pending before merge
 
+## QA Review Agent result
+
+### Metadata
+
+- Review type: Narrow QA for post-merge hotfix
+- Review date: 2026-06-27
+- Reviewed branch: `fix/backed-bc3m-null-clearing`
+- Base branch: `main`
+- QA scope: importer null-clearing fix only
+
+### Verdict
+
+- `safeToMerge: false`
+- `safeToMergeRecommendation: false`
+- Recommendation: `REQUEST CHANGES`
+- Human approval required: yes
+
+### Reason for verdict
+
+The code-level hotfix addresses both Codex findings and the diff is scoped correctly. However, the requested deterministic checks have not been run or recorded as passed. Under the QA Review Agent rules, QA cannot recommend merge while focused tests, bC3M dry-run import, and typecheck have no pass evidence. This is not a code blocker; it is a validation-evidence blocker before human merge.
+
+### Changed files reviewed
+
+- `api/src/lib/asset-file-import.ts`
+- `api/src/lib/asset-file-import.test.ts`
+- `docs/agent-runs/backed-bc3m/post-merge-hotfix.md`
+
+### Codex issue verification
+
+| Codex issue | QA result | Evidence |
+|---|---|---|
+| Preserve `null` when clearing `reserve.redemptionAsset` | fixed in code | `redemptionAsset` now maps through `asNullableStringField(reserve, 'redemptionAsset')`. |
+| Preserve `null` when clearing `liquidity.earlyRedemptionFee` | fixed in code | `earlyRedemptionFee` now maps through `asNullableNumberField(liquidity, 'earlyRedemptionFee')`. |
+| Explicit `null` maps to `null` for both fields | covered by code and tests | Helper implementation returns `null` for explicit `null`; bC3M tests assert both payload values are `null`. |
+| Absent field remains `undefined` for both fields | covered by code and tests | Helper implementation checks property presence first; tests assert absent `redemptionAsset` and `earlyRedemptionFee` remain `undefined`. |
+
+### Scope review
+
+- Scope matched: yes
+- Changed files match approved scope: yes
+- Unrelated files changed: no
+- Asset data changed: no
+- Source-review changed: no
+- Risk or grade files changed: no
+- Prisma schema/migration changed: no
+- Web files changed: no
+- Dependencies or lockfiles changed: no
+- Branch status: ahead of `main` by 4 commits, behind by 0
+- Changed files: 3
+
+### Data honesty review
+
+- Unsupported material claims introduced: none
+- Fake fallback values introduced: none
+- `null` replaced by misleading defaults: no
+- Stale-value clearing behavior improved: yes
+- Research values changed: no
+- Source verification changed: no
+- Risk/grade changed: no
+- Broad nullability refactor introduced: no
+
+### Code and repository safety review
+
+- Nullable string helper is narrow and property-presence aware: yes
+- Nullable number helper reused for `earlyRedemptionFee`: yes
+- Absent field semantics preserved: yes
+- No schema/API contract change observed: yes
+- No secrets or environment values committed: yes
+- Test coverage added for new helper and bC3M payload assertions: yes
+
+### Validation summary
+
+| Check | Result | Evidence/notes |
+|---|---|---|
+| Focused importer tests | not run | Build report states connector environment cannot execute repository commands. Must run locally or in CI. |
+| bC3M dry-run import | not run | Build report states connector environment cannot execute repository commands. Must run locally or in CI. |
+| Typecheck | not run | Build report states connector environment cannot execute repository commands. Must run locally or in CI. |
+| Diff scope | passed | Compare against `main` shows only 3 approved files changed. |
+| Code review | passed | Both Codex issues are addressed in mapper and test assertions. |
+
+### Blocking issues
+
+1. **Required validation evidence missing**
+   - File: `docs/agent-runs/backed-bc3m/post-merge-hotfix.md`
+   - Evidence: Build command table records focused importer tests, dry-run import, and typecheck as `not run`.
+   - Impact: QA cannot recommend human merge without evidence that the focused tests and typecheck pass, and without dry-run import evidence or a documented acceptable limitation.
+   - Required fix: Run and record results for:
+     - `node --import tsx --test src/lib/asset-file-import.test.ts`
+     - `npm.cmd run import:asset-files --workspace=api -- --slug=backed-bc3m --dry-run`
+     - `npm.cmd run typecheck`
+   - Owner agent: Build Agent / local environment owner
+
+### Non-blocking warnings
+
+1. The implementation is code-reviewed but not command-verified in this connector environment.
+2. Dry-run import may still depend on local database configuration; if it fails for environment reasons, record the exact failure and classify it explicitly.
+3. PR #85 was already merged, so this hotfix should be handled through a separate PR into `main` after validation passes.
+
+### Required fixes
+
+1. Run focused importer tests and record pass/fail output.
+2. Run bC3M dry-run import and record pass/fail output, or document a precise environment-limited failure.
+3. Run typecheck and record pass/fail output.
+4. Re-run narrow QA after validation evidence is recorded.
+
+### Follow-up tasks
+
+1. Consider adding CI coverage for focused importer tests on hotfix PRs so this evidence is automatically available.
+2. Consider a future audit for other field mappings where explicit `null` may need to clear stale DB values, but keep that out of this hotfix scope.
+
+### Final QA recommendation
+
+The implementation appears correct and scoped, but it is not ready for human merge until required validation evidence is recorded. Return to Build Agent or the local environment owner to run the focused test, dry-run import, and typecheck, then perform a short QA recheck.
+
+```text
+safeToMerge: false
+safeToMergeRecommendation: false
+Recommendation: REQUEST CHANGES
+Human approval required: yes
+Do not merge: yes
+Do not publish: yes
+```
+
 ## Stage plan
 
 | Stage | Agent | Status | Output | Notes |
 |---|---|---|---|---|
 | 1 | Coordinator Agent | done | `post-merge-hotfix.md` | Classified as post-merge importer remediation |
 | 2 | Build Agent | done | code/test changes plus Build addendum | Explicit null preserved for two fields; commands pending due environment limitation |
-| 3 | QA Review Agent | pending | QA section in this file | Narrow QA only; verify code, scope, and command results if available |
-| 4 | Human merge decision | pending | PR decision | Human approval required |
+| 3 | QA Review Agent | needs_fix | QA section in this file | Code/scope pass; validation evidence missing |
+| 4 | Human merge decision | pending | PR decision | Human approval required after QA pass |
 
 ## Current blockers
 
-No implementation blocker remains. Validation commands must still be run locally or by CI before merge approval.
+Validation evidence is missing. Focused importer tests, bC3M dry-run import, and typecheck must be run locally or by CI and recorded before QA can recommend merge.
 
 ## Warnings
 
