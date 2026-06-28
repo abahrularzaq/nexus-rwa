@@ -1,13 +1,13 @@
 {
   "slug": "ondo-ousg",
   "grade": "analytics",
-  "score": 82,
-  "completenessScore": 85,
-  "sourceScore": 87,
+  "score": 78,
+  "completenessScore": 82,
+  "sourceScore": 92,
   "legalScore": 85,
-  "reserveScore": 80,
-  "liquidityScore": 72,
-  "riskScore": 69,
+  "reserveScore": 65,
+  "liquidityScore": 58,
+  "riskScore": 66,
   "gradingProfile": "asset_backed",
   "assetClass": "tokenized_treasury",
   "instrumentType": "yield_bearing_note",
@@ -15,12 +15,12 @@
   "publicSegment": "RWA Assets",
   "gradeContext": "Analytics — Asset-backed Profile",
   "profileScores": {
-    "completenessScore": 85,
-    "sourceScore": 87,
+    "completenessScore": 82,
+    "sourceScore": 92,
     "legalScore": 85,
-    "reserveScore": 80,
-    "liquidityScore": 72,
-    "riskScore": 69
+    "reserveScore": 65,
+    "liquidityScore": 58,
+    "riskScore": 66
   },
   "applicability": {
     "reserve": "available",
@@ -30,19 +30,30 @@
   },
   "blockers": [],
   "warnings": [
-    "Missing legal opinion or legal document URL",
-    "No proof-of-reserves confirmed",
-    "Missing audit/report URL",
-    "Missing on-chain liquidity"
+    "No proof-of-reserves confirmed; hasProofOfReserves remains false.",
+    "Reserve breakdown remains null because exact reserve percentages are not supported by verified evidence.",
+    "No public OUSG reserve audit, fund audit, attestation, or reserve assurance report URL is verified; smart contract audit evidence is security evidence only.",
+    "Redemption currencies are verified as USDC, PYUSD, RLUSD, and USD bank wire, but T+1 timing and minimum redemption amount are not verified.",
+    "Missing verified on-chain liquidity; dexPairs remains empty.",
+    "Missing legal opinion or public offering/legal document URL."
   ],
-  "baselineDate": "2026-06-10",
-  "status": "analytics-grade baseline under asset_backed profile",
+  "baselineDate": "2026-06-28",
+  "status": "analytics-grade re-baseline under asset_backed profile after PR #88 evidence repair",
   "nextActions": [
-    "Find verified legal opinion or offering/legal document URL",
-    "Verify whether proof-of-reserves exists",
-    "Find public audit or assurance report URL",
-    "Verify on-chain liquidity from DEX or issuer redemption infrastructure",
-    "Refresh market TVL, AUM, current yield, and holder count from live sources",
-    "Verify smart contract audit auditor, scope, and audit date"
+    "Obtain official OUSG reserve composition with exact percentages and observation date before raising reserveScore.",
+    "Locate a public OUSG reserve audit, fund audit, attestation, assurance report, or proof-of-reserves mechanism; do not substitute smart contract audits for reserve assurance.",
+    "Verify official redemption timing, including whether T+1 applies, and confirm any current minimum redemption amount.",
+    "Add verified on-chain liquidity evidence only if DEX pairs, pool liquidity, or secondary-market depth are supported by reliable sources.",
+    "Find a public legal opinion, offering memorandum, subscription document, or equivalent legal document URL if available.",
+    "Refresh market TVL, AUM, current yield, holder count, and concentration metrics from current sources before any institutional-grade reconsideration."
+  ],
+  "notes": [
+    "Decision: keep Analytics; do not upgrade to Institutional.",
+    "SourceScore increased because PR #88 repaired canonical normalized evidence, corrected the official Ethereum OUSG contract, removed unsupported reserve percentages, and aligned legal/redemption source claims with official evidence.",
+    "CompletenessScore decreased because cleaner evidence now leaves reserveBreakdown, redemptionPeriodDays, minRedemptionAmount, and on-chain liquidity unset instead of filling unsupported values.",
+    "ReserveScore is constrained by missing exact reserve composition, no proof-of-reserves, and no verified reserve audit/attestation; smart contract audit evidence is not reserve assurance.",
+    "LiquidityScore is constrained because verified redemption currencies do not prove T+1 liquidity, redemption minimums, DEX liquidity, or secondary-market depth.",
+    "RiskScore remains constrained by reserve-transparency gaps, issuer/intermediary dependency, legal transfer restrictions, and unavailable on-chain liquidity evidence.",
+    "No blockers are added because the dataset is usable for Analytics, but the warnings prevent institutional-grade treatment under the asset_backed profile."
   ]
 }
