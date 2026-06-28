@@ -92,22 +92,22 @@
   {
     "layer": "reserve",
     "field": "reserveBreakdown",
-    "value": "BlackRock USD Institutional Digital Liquidity Fund (BUIDL): 82.57; WisdomTree Government Money Market Digital Fund (WTGXX): 8.13; Franklin OnChain U.S. Government Money Fund (BENJI): 4.88; Fundbridge Capital Institutional Funds ICAV (FBOXX): 2.39; Superstate Short Duration U.S. Government Securities Fund (USTB): 2.03",
-    "sourceUrl": "https://app.rwa.xyz/protocols/ondo-finance",
-    "sourceType": "market_aggregator",
+    "value": null,
+    "sourceUrl": "https://docs.ondo.finance/trust-and-security",
+    "sourceType": "official_docs",
     "reliability": 84,
-    "checkedBy": "manual_required",
-    "notes": "Legacy aggregator URL has returned 404 in source-health checks. Keep this field out of automatic URL reachability checks until a stable official or aggregator source is verified; refresh reserve composition manually before production publication because holdings can change."
+    "checkedBy": "manual",
+    "notes": "Exact percentages removed because prior RWA.xyz source was manual-required/stale and lacked a stable observation date. Official Ondo docs support only high-level backing/fund investment description."
   },
   {
     "layer": "reserve",
     "field": "hasProofOfReserves",
     "value": "false",
-    "sourceUrl": "https://docs.ondo.finance/ondo-global-markets/trust-and-transparency",
+    "sourceUrl": "https://docs.ondo.finance/trust-and-security",
     "sourceType": "official_docs",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Legacy sources.yaml states no on-chain proof-of-reserves oracle identified."
+    "notes": "No on-chain proof-of-reserves oracle confirmed. Fund disclosures, transparency docs, and smart contract audits are not treated as proof-of-reserves."
   },
   {
     "layer": "institutional",
@@ -162,22 +162,22 @@
   {
     "layer": "compliance",
     "field": "blockedJurisdictions",
-    "value": "CN,KP,IR,SY,CU,RU",
-    "sourceUrl": "https://ondo.finance/terms-of-service",
-    "sourceType": "terms_of_service",
-    "reliability": 81,
-    "checkedBy": "manual_required",
-    "notes": "Legacy terms-of-service URL has returned 404 in source-health checks. Keep this field out of automatic URL reachability checks until a current Ondo legal source is verified; blocked jurisdictions require manual legal review before production publication."
+    "value": "Albania, Afghanistan, Belarus, Bosnia and Herzegovina, Bulgaria, Burma, Central African Republic, Croatia, Cuba, DRC, Darfur Region of Sudan, Ethiopia, Iran, Iraq, Kosovo, Lebanon, Libya, Mali, Montenegro, Nicaragua, North Korea, North Macedonia, Romania, Russia, Serbia, Slovenia, Somalia, South Korea, South Sudan, Syria, Venezuela, West Bank, Ukraine: Crimea, Donetsk, Kherson, Luhansk, Zaporizhzhia, Sevastopol, Yemen",
+    "sourceUrl": "https://docs.ondo.finance/qualified-access-products/eligibility",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Replaced stale terms-of-service source with official OUSG Eligibility jurisdictional restrictions. China/CN is not included because the current reviewed source does not list it."
   },
   {
     "layer": "blockchain",
     "field": "contractAddress",
-    "value": "0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
-    "sourceUrl": "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
-    "sourceType": "block_explorer",
+    "value": "0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
+    "sourceUrl": "https://docs.ondo.finance/addresses",
+    "sourceType": "official_docs",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Ethereum contract from legacy metadata.json."
+    "notes": "Old repository value was replaced because official Ondo docs list this as the active Ethereum OUSG address; the old value was not confirmed by the reviewed official address source."
   },
   {
     "layer": "yield",
@@ -192,12 +192,12 @@
   {
     "layer": "liquidity",
     "field": "redemptionType",
-    "value": "T+1",
-    "sourceUrl": "https://ondo.finance/ousg",
-    "sourceType": "official_website",
+    "value": null,
+    "sourceUrl": "https://docs.ondo.finance/qualified-access-products/minting-and-redeeming",
+    "sourceType": "official_docs",
     "reliability": 68,
     "checkedBy": "manual",
-    "notes": "Migrated from legacy metadata.json."
+    "notes": "Previous T+1 timing was removed because current reviewed official source supports redemption currencies but not timing."
   },
   {
     "layer": "risk",
@@ -208,5 +208,25 @@
     "reliability": 74,
     "checkedBy": "manual",
     "notes": "Risk assessment synthesized from reserve, legal, operational, and transparency disclosures."
+  },
+  {
+    "layer": "blockchain",
+    "field": "smartContractAuditUrl",
+    "value": "https://docs.ondo.finance/audits",
+    "sourceUrl": "https://docs.ondo.finance/audits",
+    "sourceType": "official_docs",
+    "reliability": 92,
+    "checkedBy": "manual",
+    "notes": "Official Ondo audit inventory lists Ondo Funds and USDY Ethereum audits. This supports smart-contract/security evidence only and must not be treated as reserve audit, fund audit, attestation, or proof-of-reserves."
+  },
+  {
+    "layer": "liquidity",
+    "field": "redemptionCurrencies",
+    "value": "USDC, PYUSD, RLUSD, USD bank wire",
+    "sourceUrl": "https://docs.ondo.finance/qualified-access-products/minting-and-redeeming",
+    "sourceType": "official_docs",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "Official OUSG minting/redeeming page states supported investment and redemption currencies. This does not verify redemption timing or on-chain secondary liquidity."
   }
 ]

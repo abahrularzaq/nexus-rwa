@@ -92,14 +92,14 @@
       "field": "reserveBreakdown",
       "status": "manual-verification-required",
       "importance": "warning",
-      "notes": "Legacy RWA.xyz aggregator URL returned 404 in source-health checks. Refresh manually and replace with a stable official or aggregator source before enabling automatic URL checks."
+      "notes": "Exact reserve percentages were removed; official docs support high-level backing/fund investment description only. Refresh manually if a stable dated composition source is found."
     },
     {
       "layer": "compliance",
       "field": "blockedJurisdictions",
-      "status": "manual-verification-required",
+      "status": "verified-official-docs",
       "importance": "warning",
-      "notes": "Legacy Ondo terms-of-service URL returned 404 in source-health checks. Verify the current Ondo legal source manually before enabling automatic URL checks."
+      "notes": "Updated to official OUSG Eligibility jurisdictional restrictions source; monitor manually for legal/source changes."
     }
   ],
   "knownBlockers": [],
@@ -174,21 +174,20 @@
     },
     {
       "name": "reserve.reserveBreakdown",
-      "url": "https://app.rwa.xyz/protocols/ondo-finance",
-      "tier": "Tier 2",
+      "url": "https://docs.ondo.finance/trust-and-security",
+      "tier": "Tier 1",
       "frequencyDays": 90,
-      "status": "manual-verification-required"
+      "status": "official-docs-high-level-only"
     },
     {
       "name": "compliance.blockedJurisdictions",
-      "url": "https://ondo.finance/terms-of-service",
-      "tier": "Tier 2",
-      "frequencyDays": 90,
-      "status": "manual-verification-required"
+      "url": "https://docs.ondo.finance/qualified-access-products/eligibility",
+      "tier": "Tier 1",
+      "frequencyDays": 90
     },
     {
       "name": "blockchain.contractAddress",
-      "url": "https://etherscan.io/token/0x1bfe8cb57a0f5ecca7e7666798d9fb3f3a9befae",
+      "url": "https://docs.ondo.finance/addresses",
       "tier": "Tier 1",
       "frequencyDays": 30
     }
@@ -197,7 +196,7 @@
     "Generated from ondo-ousg asset layer files.",
     "Review manually before treating this as a production monitoring profile.",
     "Do not overwrite asset-specific analyst notes without checking source-discovery.md and grade-baseline.json.",
-    "reserve.reserveBreakdown and compliance.blockedJurisdictions are intentionally manual-required until stable current source URLs are verified."
+    "reserve.reserveBreakdown remains manual-required because exact percentages were removed; compliance.blockedJurisdictions now points to the official OUSG Eligibility page."
   ],
   "templateVersion": 1
 }

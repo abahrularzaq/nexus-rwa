@@ -1,14 +1,14 @@
 {
-  "redemptionType": "T+1",
-  "redemptionPeriodDays": 1,
+  "redemptionType": null,
+  "redemptionPeriodDays": null,
   "lockupPeriodDays": null,
   "earlyRedemptionFee": null,
-  "minRedemptionAmount": 100000,
+  "minRedemptionAmount": null,
   "dexPairs": [],
   "onchainLiquidity": null,
   "bidAskSpread": null,
   "liquidityScore": 78,
-  "liquidityNotes": "OUSG redemptions are processed through issuer-controlled institutional onboarding and treasury settlement infrastructure.",
+  "liquidityNotes": "Official Ondo docs confirm OUSG can be redeemed to USDC, PYUSD, RLUSD, or USD bank wire, but this repair pass did not verify T+1 timing or a current minimum redemption amount. Issuer redemption should not be conflated with DEX or secondary-market liquidity.",
   "_meta": {
     "dataOwner": "manual-research",
     "lastManualReview": "2026-06-05",
@@ -17,6 +17,6 @@
     "confidence": null,
     "freshnessStatus": "current",
     "status": "current",
-    "notes": null
+    "notes": "Unsupported T+1 timing and minimum redemption amount were removed pending official verification; dexPairs remains empty because issuer redemption is not DEX or secondary-market liquidity."
   }
 }
