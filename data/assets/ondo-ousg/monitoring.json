@@ -6,9 +6,10 @@
   "monitoringPriority": "medium",
   "gradeBaseline": {
     "grade": "analytics",
-    "score": 82,
-    "baselineDate": "2026-06-01",
-    "baselineFile": "grade-baseline.json"
+    "score": 77,
+    "baselineDate": "2026-06-28",
+    "baselineFile": "grade-baseline.json",
+    "status": "analytics-grade re-baseline under asset_backed profile after PR #88 evidence repair"
   },
   "reviewSchedule": {
     "lastManualReview": "2026-06-01",
