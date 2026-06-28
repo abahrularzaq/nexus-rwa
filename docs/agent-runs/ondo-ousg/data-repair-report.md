@@ -1,9 +1,9 @@
 # Data Repair Report — OUSG
 
 ## Summary
-- Files changed: `api/src/data/asset/ondo-ousg/metadata.json`, `data/assets/ondo-ousg/sources.json`, `data/assets/ondo-ousg/monitoring.json`, and this report.
+- Files changed: `api/src/data/asset/ondo-ousg/metadata.json`, canonical normalized files under `data/assets/ondo-ousg/` (`blockchain.json`, `liquidity.json`, `reserve.json`, `compliance.json`, `sources.json`, `monitoring.json`), and this report.
 - Fields corrected: Ethereum contract address/explorer URL, blocked jurisdictions evidence, proof-of-reserves notes, smart-contract audit evidence classification, redemption-currency evidence, and monitoring source-health URLs.
-- Fields set to null: `liquidity.redemptionType`, `liquidity.redemptionPeriodDays`, `liquidity.minRedemptionAmount`, and `reserve.reserveBreakdown` source value.
+- Fields set to null: `liquidity.redemptionType`, `liquidity.redemptionPeriodDays`, `liquidity.minRedemptionAmount`, canonical `reserve.reserveBreakdown`, and `reserve.reserveBreakdown` source value.
 - Sources replaced: contract address now uses Ondo Smart Contract Addresses; reserve breakdown/PoR context now uses Ondo Trust & Security; blocked jurisdictions now uses OUSG Eligibility; redemption evidence now uses OUSG Minting & Redeeming; smart-contract audit evidence now uses Ondo Smart Contract Audits.
 - Remaining unresolved issues: no proof-of-reserves oracle confirmed, no dated exact reserve percentages, T+1 timing unverified, current minimum redemption amount unverified, and institutional upgrade remains blocked until Source Verification Agent reruns.
 
@@ -15,7 +15,7 @@
 
 ## Reserve evidence repair
 - Previous reserve breakdown: BUIDL 82.57%; WTGXX 8.13%; BENJI 4.88%; FBOXX 2.39%; USTB 2.03%.
-- New value: `null` for exact percentages.
+- New value: `null` for exact percentages in both canonical `reserve.json` and source evidence.
 - Source: `https://docs.ondo.finance/trust-and-security`.
 - Observation date: none; no stable dated observation source was retained for exact reserve composition.
 - Remaining limitation: official Ondo docs support high-level backing/fund investment description only, not a current exact percentage breakdown.
