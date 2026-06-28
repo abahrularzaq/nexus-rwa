@@ -13,14 +13,14 @@
   "nextYieldDate": null,
   "yieldCurrency": "USD",
   "_meta": {
-    "dataOwner": "auto-sync",
+    "dataOwner": "manual-research",
     "lastAutoSync": null,
     "syncFrequencyHours": 24,
     "syncProvider": null,
     "syncStatus": "not-configured",
-    "confidence": null,
-    "freshnessStatus": "needs-sync",
-    "status": "needs-sync",
-    "notes": null
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "research-refreshed",
+    "notes": "Research Agent snapshot on 2026-06-28. RWA.xyz reported 7D APY 3.40% and 30D APY 2.49%. DeFiLlama reported average APY 3.34% across tracked pools. Treat these as aggregator-reported yield observations, not official issuer SEC yield or official fund yield methodology."
   }
 }
