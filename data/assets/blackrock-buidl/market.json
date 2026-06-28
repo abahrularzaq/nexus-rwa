@@ -1,17 +1,17 @@
 {
-  "tvl": 2972036988,
+  "tvl": 3054000000,
   "tvl7dChange": null,
   "tvl30dChange": null,
   "price": 1,
   "priceChange24h": 0,
-  "marketCap": 2428983972,
+  "marketCap": 2248639185,
   "volume24h": 0,
-  "circulatingSupply": 2428983972,
-  "totalSupply": 2428983972,
-  "holderCount": 109,
+  "circulatingSupply": 2234682194.01,
+  "totalSupply": 2234682194.01,
+  "holderCount": 110,
   "holderChange7d": null,
-  "aumUsd": 2415026981,
-  "lastUpdated": "2026-06-02",
+  "aumUsd": 2234682194,
+  "lastUpdated": "2026-06-28",
   "sources": [
     "https://app.rwa.xyz/assets/BUIDL",
     "https://defillama.com/protocol/blackrock-buidl",
@@ -20,14 +20,14 @@
   ],
   "confidence": "MEDIUM",
   "_meta": {
-    "dataOwner": "auto-sync",
+    "dataOwner": "manual-research",
     "lastAutoSync": null,
     "syncFrequencyHours": 24,
     "syncProvider": null,
     "syncStatus": "not-configured",
-    "confidence": null,
-    "freshnessStatus": "needs-sync",
-    "status": "needs-sync",
-    "notes": null
+    "confidence": "medium",
+    "freshnessStatus": "current",
+    "status": "research-refreshed",
+    "notes": "Research Agent snapshot on 2026-06-28. RWA.xyz reported Total Asset Value 2,234,682,194 USD, NAV 1.00 USD, holders 110, token supply/circulating supply 2,234,682,194.01, and 7D APY 3.40%. DeFiLlama reported TVL 3.054b USD and BUIDL liquidity 320,081 USD. CoinGecko reported market cap 2,248,639,185 USD and price 1.00 USD; its page states BUIDL was not traded in the last 24h, so volume24h remains 0. AUM/Total Asset Value and DeFiLlama TVL are different metrics and must not be summed."
   }
 }
