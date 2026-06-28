@@ -8,9 +8,9 @@
 - Slug: blackrock-buidl
 - Branch: main
 - Requested review: possible institutional-grade upgrade
-- Current stage: Research Agent source repair complete
-- Current owner agent: Research Agent
-- Next agent: Source Verification Agent
+- Current stage: Source Verification Agent re-run complete
+- Current owner agent: Source Verification Agent
+- Next agent: none, unless new primary documents become available
 - Human approval required: yes
 
 ## Current baseline confirmation
@@ -41,7 +41,30 @@ Current active baseline summary remains unchanged:
 }
 ```
 
-## Source Verification result before repair
+## Workflow route
+
+Original expected route for risk or grade refresh:
+
+```text
+Coordinator Agent
+→ Source Verification Agent
+→ Risk & Grading Agent
+→ Build Agent
+→ QA Review Agent
+→ Human merge decision
+```
+
+Actual route for this review:
+
+```text
+Coordinator Agent
+→ Source Verification Agent
+→ Research Agent targeted source repair
+→ Source Verification Agent re-run
+→ Block institutional-grade upgrade path
+```
+
+## Source Verification re-run result
 
 Source review file:
 
@@ -49,102 +72,60 @@ Source review file:
 docs/agent-runs/blackrock-buidl/source-review.md
 ```
 
-Previous result:
+Current result:
 
 ```text
 safeToProceed: false
-Recommended next agent: Research Agent
+Recommended next agent: none, unless new primary documents become available
 Institutional-grade review may proceed: false
-Recommended sourceScore: 75-82
+Recommended sourceScore: 78-82
 ```
 
-## Research Agent source repair result
+## Research repair result accepted by verifier
 
-Research Agent performed targeted source repair on 2026-06-28.
+Resolved or improved:
 
-Files updated:
+1. `market.json` refreshed to 2026-06-28.
+2. `yield.json` refreshed to 2026-06-28.
+3. `source-discovery.md` now documents unresolved source gaps.
+4. `sources.json` now has improved observation notes and metric distinctions.
+5. Dynamic data now distinguishes RWA.xyz Total Asset Value, DeFiLlama TVL, CoinGecko market cap, and Etherscan original Ethereum token supply/holders.
+
+## Remaining blockers
+
+Institutional-grade upgrade remains blocked because:
+
+1. Public primary legal/governing document remains missing.
+2. Public prospectus, private placement memorandum, or offering memorandum remains missing.
+3. Primary reserve breakdown or official fund reporting remains missing.
+4. Explicit proof-of-reserves or public attestation evidence remains missing.
+5. Public audit/report URL remains missing.
+6. Primary confirmation for custodian, auditor, fund administrator, transfer agent, and paying agent roles remains incomplete.
+7. BUIDL and BUIDL-I aggregation policy remains unresolved.
+
+## Current decision
+
+Do not continue to Risk & Grading Agent.
+
+Reason:
 
 ```text
+Risk & Grading Agent requires Source Verification safeToProceed: true.
+Current Source Verification re-run returned safeToProceed: false.
+```
+
+## Files changed in this workflow
+
+```text
+docs/agent-runs/blackrock-buidl/workflow-status.md
+docs/agent-runs/blackrock-buidl/source-review.md
 data/assets/blackrock-buidl/source-discovery.md
 data/assets/blackrock-buidl/market.json
 data/assets/blackrock-buidl/yield.json
 data/assets/blackrock-buidl/sources.json
-docs/agent-runs/blackrock-buidl/workflow-status.md
 ```
 
-Files intentionally not changed:
-
-```text
-data/assets/blackrock-buidl/risk.json
-data/assets/blackrock-buidl/grade-baseline.json
-```
-
-## Research findings
-
-Targeted search did not find public primary sources for the material institutional blockers:
-
-1. Public legal/governing document URL remains not found.
-2. Public prospectus/private placement memorandum/offering memorandum remains not found.
-3. Primary reserve breakdown or official fund reporting source remains not found.
-4. Public proof-of-reserves, reserve oracle, or attestation evidence remains not found.
-5. Public audit or fund report URL remains not found.
-6. Primary confirmation for custodian, auditor, fund administrator, transfer agent, and paying agent roles remains incomplete beyond current public/secondary sources.
-7. BUIDL versus BUIDL-I aggregation rule remains not found.
-
-Research did refresh dynamic data using RWA.xyz, DeFiLlama, CoinGecko, and Etherscan with observation date 2026-06-28.
-
-## Refreshed dynamic values
-
-```text
-RWA.xyz Total Asset Value: 2,234,682,194 USD
-RWA.xyz NAV: 1.00 USD
-RWA.xyz holders: 110
-RWA.xyz 7D APY: 3.40%
-RWA.xyz 30D APY: 2.49%
-DeFiLlama TVL: 3.054b USD
-DeFiLlama BUIDL liquidity: 320,081 USD
-DeFiLlama Average APY: 3.34%
-CoinGecko market cap: 2,248,639,185 USD
-CoinGecko price: 1.00 USD
-Etherscan original Ethereum BUIDL holders: 59
-Etherscan original Ethereum BUIDL supply: 187,435,732.680349
-```
-
-## Current blockers after Research Agent
-
-Institutional-grade review is still likely blocked unless Source Verification decides otherwise:
-
-1. Missing primary legal/governing document.
-2. Missing primary reserve breakdown or official fund reporting.
-3. Missing explicit proof-of-reserves or public attestation evidence.
-4. Missing public audit/report URL.
-5. Key provider fields still rely materially on RWA.xyz or contextual sources.
-6. BUIDL and BUIDL-I aggregation remains unresolved.
-
-## Required next action
-
-Continue with Source Verification Agent only.
-
-Source Verification Agent should re-check only the repaired source package and decide:
-
-```text
-safeToProceed: true | false
-```
-
-If `safeToProceed` remains false, return to Research Agent or keep the institutional-grade upgrade blocked.
-
-If `safeToProceed` becomes true, route to Risk & Grading Agent.
-
-## Allowed files for next Source Verification Agent
-
-```text
-docs/agent-runs/blackrock-buidl/source-review.md
-docs/agent-runs/blackrock-buidl/workflow-status.md
-```
-
-## Forbidden files until later stage
-
-Do not modify yet:
+## Files intentionally not changed
 
 ```text
 data/assets/blackrock-buidl/risk.json
@@ -160,30 +141,30 @@ any unrelated asset directory
 ## Completed stages
 
 - Coordinator Agent: done
-- Source Verification Agent: done, first pass returned safeToProceed false
-- Research Agent: done, targeted source repair complete
-- Source Verification Agent re-run: pending
-- Risk & Grading Agent: blocked until source review returns safeToProceed true
-- Build Agent: pending
-- QA Review Agent: pending
+- Source Verification Agent first pass: done, returned safeToProceed false
+- Research Agent targeted source repair: done
+- Source Verification Agent re-run: done, returned safeToProceed false
+- Risk & Grading Agent: blocked
+- Build Agent: pending, not applicable unless future approved changes require validation
+- QA Review Agent: pending, not applicable unless future build stage runs
 - Human merge decision: pending
 
 ## Validation results
 
-No validation commands were run by Research Agent.
+No validation commands were run by Source Verification Agent.
 
-Reason: Research Agent scope was source repair and data refresh only. No application code, schema, risk, or grade files were changed.
+Reason: Source Verification scope is evidence review only. No application code, schema, risk, or grade files were changed.
 
 ## safeToProceed
 
-Pending Source Verification re-run.
+false
 
 ## safeToMergeRecommendation
 
-Not applicable. QA Review Agent must decide this after Build Agent completes.
+Not applicable. QA Review Agent must decide this only after Build Agent completes.
 
 ## Final recommendation
 
-Recommendation: RE-RUN SOURCE VERIFICATION AGENT.
+Recommendation: KEEP BLACKROCK BUIDL AT ANALYTICS GRADE.
 
-Do not change `risk.json` or `grade-baseline.json` until Source Verification is re-run and returns `safeToProceed: true`.
+Do not modify `risk.json` or `grade-baseline.json` for an institutional-grade upgrade unless future primary legal, reserve, audit, attestation/PoR, and provider documents become available and Source Verification re-runs with `safeToProceed: true`.
