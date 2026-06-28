@@ -7,7 +7,7 @@
     "sourceType": "official_product_page",
     "reliability": 92,
     "checkedBy": "manual",
-    "notes": "Securitize official BUIDL product access page."
+    "notes": "Securitize official BUIDL access page. Public page is concise but confirms BUIDL product identity. Checked 2026-06-28."
   },
   {
     "layer": "identity",
@@ -17,7 +17,7 @@
     "sourceType": "official_product_page",
     "reliability": 92,
     "checkedBy": "manual",
-    "notes": "Securitize official BUIDL product access page."
+    "notes": "Securitize official BUIDL access page. Checked 2026-06-28."
   },
   {
     "layer": "identity",
@@ -27,7 +27,7 @@
     "sourceType": "sec_filing",
     "reliability": 98,
     "checkedBy": "manual",
-    "notes": "SEC Form D issuer name."
+    "notes": "SEC Form D issuer name. Form D is a notice of exempt offering, not SEC approval or a full offering memorandum."
   },
   {
     "layer": "identity",
@@ -37,7 +37,7 @@
     "sourceType": "official_product_page",
     "reliability": 92,
     "checkedBy": "manual",
-    "notes": "Official product access page through Securitize."
+    "notes": "Official public BUIDL access page through Securitize."
   },
   {
     "layer": "identity",
@@ -47,7 +47,7 @@
     "sourceType": "official_press_release",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "BUIDL launch announcement on Ethereum."
+    "notes": "Securitize launch announcement on Ethereum."
   },
   {
     "layer": "institutional",
@@ -61,23 +61,33 @@
   },
   {
     "layer": "institutional",
+    "field": "legalStructure",
+    "value": "Exempt offering of securities under Securities Act Rule 506(c); issuer states it is excluded from Investment Company Act registration under Section 3(c)(7).",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/2013810/000201439024000001/xslFormDX01/primary_doc.xml",
+    "sourceType": "sec_filing",
+    "reliability": 98,
+    "checkedBy": "manual",
+    "notes": "SEC Form D supports exemption framework and pooled investment fund status. Do not frame as regulatory approval."
+  },
+  {
+    "layer": "institutional",
     "field": "fundManager",
     "value": "BlackRock",
     "sourceUrl": "https://app.rwa.xyz/assets/BUIDL",
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "RWA.xyz reports manager field; primary fund document still preferred if found."
+    "notes": "RWA.xyz manager field. Primary fund document still preferred for institutional-grade review. Checked 2026-06-28."
   },
   {
     "layer": "institutional",
     "field": "transferAgent",
     "value": "Securitize",
-    "sourceUrl": "https://securitize.io/learn/press/blackrock-launches-first-tokenized-fund-buidl-on-the-ethereum-network",
-    "sourceType": "official_press_release",
-    "reliability": 90,
+    "sourceUrl": "https://app.rwa.xyz/assets/BUIDL",
+    "sourceType": "rwa_data_aggregator",
+    "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Official Securitize launch source supports Securitize role in tokenization/access workflow."
+    "notes": "RWA.xyz service-provider section lists Securitize as transfer agent and paying agent. Securitize official sources support operating role generally, but a full legal-role document remains missing. Checked 2026-06-28."
   },
   {
     "layer": "institutional",
@@ -87,7 +97,7 @@
     "sourceType": "sec_filing",
     "reliability": 98,
     "checkedBy": "manual",
-    "notes": "Minimum outside investment from SEC Form D."
+    "notes": "Minimum outside investment from SEC Form D. This is distinct from RWA.xyz minimum subscription/redemption amounts."
   },
   {
     "layer": "institutional",
@@ -97,7 +107,7 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Lower bound of RWA.xyz reported 0.20-0.50% fee range stored for numeric schema compatibility; raw range retained in institutional.metadata."
+    "notes": "RWA.xyz reports management fee range 0.20-0.50%; lower bound stored for numeric schema compatibility. Checked 2026-06-28."
   },
   {
     "layer": "compliance",
@@ -107,7 +117,7 @@
     "sourceType": "sec_filing",
     "reliability": 98,
     "checkedBy": "manual",
-    "notes": "SEC Form D filing type and exemption basis."
+    "notes": "SEC Form D filing type and exemption basis. Not regulatory approval."
   },
   {
     "layer": "compliance",
@@ -123,11 +133,11 @@
     "layer": "compliance",
     "field": "kycRequired",
     "value": true,
-    "sourceUrl": "https://securitize.io/blackrock/buidl",
-    "sourceType": "official_product_page",
-    "reliability": 90,
+    "sourceUrl": "https://app.rwa.xyz/assets/BUIDL",
+    "sourceType": "rwa_data_aggregator",
+    "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Access through Securitize investor onboarding; set true for permissioned qualified-purchaser product."
+    "notes": "RWA.xyz primary-market description says investors complete AML/KYC requirements through Securitize workflow. Checked 2026-06-28."
   },
   {
     "layer": "compliance",
@@ -137,7 +147,7 @@
     "sourceType": "sec_filing",
     "reliability": 98,
     "checkedBy": "manual",
-    "notes": "Rule 506(c)/3(c)(7) private offering context supports restricted investor eligibility."
+    "notes": "Rule 506(c)/3(c)(7) private offering context supports restricted investor eligibility. RWA.xyz displays U.S. Qualified Purchaser."
   },
   {
     "layer": "reserve",
@@ -147,7 +157,7 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "RWA.xyz classification."
+    "notes": "RWA.xyz asset class classification. Primary reserve report still missing. Checked 2026-06-28."
   },
   {
     "layer": "reserve",
@@ -157,7 +167,7 @@
     "sourceType": "reputable_media_context",
     "reliability": 68,
     "checkedBy": "manual",
-    "notes": "Contextual reserve description; primary fund documentation still preferred."
+    "notes": "Contextual reserve description. Primary fund/reserve reporting remains missing."
   },
   {
     "layer": "reserve",
@@ -167,7 +177,7 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "RWA.xyz custodian field; primary confirmation still a data gap."
+    "notes": "RWA.xyz service-provider section lists Bank of New York Mellon as custodian/fund administrator context. Primary confirmation remains a data gap. Checked 2026-06-28."
   },
   {
     "layer": "reserve",
@@ -177,7 +187,7 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "RWA.xyz auditor field; public audit report URL not found."
+    "notes": "RWA.xyz lists PricewaterhouseCoopers as auditor. Public audit/report URL not found in targeted source repair. Checked 2026-06-28."
   },
   {
     "layer": "blockchain",
@@ -187,7 +197,7 @@
     "sourceType": "official_explorer",
     "reliability": 94,
     "checkedBy": "manual",
-    "notes": "Ethereum original BUIDL token contract."
+    "notes": "Ethereum original BUIDL token contract. Etherscan reported 187,435,732.680349 BUIDL max total supply and 59 holders for this contract at review time. Checked 2026-06-28."
   },
   {
     "layer": "blockchain",
@@ -207,27 +217,47 @@
     "sourceType": "official_press_release",
     "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Official multichain expansion source."
+    "notes": "Official multichain expansion source. Per-chain contract addresses still require explorer-level verification."
   },
   {
     "layer": "market",
     "field": "tvl",
-    "value": 2972036988,
+    "value": 3054000000,
     "sourceUrl": "https://defillama.com/protocol/blackrock-buidl",
     "sourceType": "market_data_aggregator",
     "reliability": 82,
     "checkedBy": "manual",
-    "notes": "Snapshot market data; refresh before production publication."
+    "notes": "DeFiLlama reported Total Value Locked 3.054b USD on 2026-06-28. TVL is not the same as RWA.xyz Total Asset Value."
   },
   {
     "layer": "market",
     "field": "aumUsd",
-    "value": 2415026981,
+    "value": 2234682194,
     "sourceUrl": "https://app.rwa.xyz/assets/BUIDL",
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "RWA.xyz total asset value snapshot; refresh before production publication."
+    "notes": "RWA.xyz reported Total Asset Value 2,234,682,194 USD on 2026-06-28. Stored as aumUsd for current schema compatibility; do not sum with DeFiLlama TVL."
+  },
+  {
+    "layer": "market",
+    "field": "marketCap",
+    "value": 2248639185,
+    "sourceUrl": "https://www.coingecko.com/en/coins/blackrock-usd-institutional-digital-liquidity-fund",
+    "sourceType": "market_data_aggregator",
+    "reliability": 78,
+    "checkedBy": "manual",
+    "notes": "CoinGecko reported market cap 2,248,639,185 USD and price 1.00 USD on 2026-06-28."
+  },
+  {
+    "layer": "market",
+    "field": "holderCount",
+    "value": 110,
+    "sourceUrl": "https://app.rwa.xyz/assets/BUIDL",
+    "sourceType": "rwa_data_aggregator",
+    "reliability": 84,
+    "checkedBy": "manual",
+    "notes": "RWA.xyz reported 110 holders across the displayed asset view on 2026-06-28. Do not conflate with Etherscan holder count for the original Ethereum token only."
   },
   {
     "layer": "yield",
@@ -237,7 +267,17 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Yield snapshot; refresh before production publication."
+    "notes": "RWA.xyz reported 7D APY 3.40% and 30D APY 2.49% on 2026-06-28. Treat as aggregator-reported APY, not official issuer yield methodology."
+  },
+  {
+    "layer": "yield",
+    "field": "averageApy",
+    "value": 3.34,
+    "sourceUrl": "https://defillama.com/protocol/blackrock-buidl",
+    "sourceType": "market_data_aggregator",
+    "reliability": 82,
+    "checkedBy": "manual",
+    "notes": "DeFiLlama reported Average APY 3.34% across tracked pools on 2026-06-28. Context only; not stored as primary currentYield."
   },
   {
     "layer": "liquidity",
@@ -247,7 +287,7 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "Primary redemption workflow terms summarized from RWA.xyz and Securitize context."
+    "notes": "RWA.xyz primary-market section reported daily subscription/redemption and described Securitize workflow. Official legal terms still preferred. Checked 2026-06-28."
   },
   {
     "layer": "liquidity",
@@ -257,7 +297,7 @@
     "sourceType": "rwa_data_aggregator",
     "reliability": 84,
     "checkedBy": "manual",
-    "notes": "RWA.xyz redemption terms snapshot."
+    "notes": "RWA.xyz reported minimum redemption amount 250,000 USDC and redemption fees 0% on 2026-06-28."
   },
   {
     "layer": "liquidity",
@@ -267,16 +307,16 @@
     "sourceType": "market_data_aggregator",
     "reliability": 82,
     "checkedBy": "manual",
-    "notes": "DeFiLlama liquidity snapshot."
+    "notes": "DeFiLlama reported BUIDL liquidity 320,081 USD on Raydium AMM on 2026-06-28."
   },
   {
     "layer": "risk",
     "field": "riskFactors",
     "value": "No public smart-contract audit report, public proof-of-reserves URL, reserve breakdown, or latest audit report URL found.",
-    "sourceUrl": "https://app.rwa.xyz/assets/BUIDL",
-    "sourceType": "rwa_data_aggregator",
-    "reliability": 84,
+    "sourceUrl": "docs/agent-runs/blackrock-buidl/source-review.md",
+    "sourceType": "internal_source_review",
+    "reliability": 90,
     "checkedBy": "manual",
-    "notes": "Risk data gaps retained for conservative scoring."
+    "notes": "Source Verification Agent returned safeToProceed false for institutional-grade review. Research Agent source repair on 2026-06-28 did not resolve primary legal/reserve/audit/PoR blockers."
   }
 ]
